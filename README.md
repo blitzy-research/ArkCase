@@ -14,11 +14,10 @@ This section documents how developers can build and run ArkCase.  (For non-devel
 
 ### Prerequisites
 
-- **Operating System**: [Ubuntu](https://ubuntu.com/download) (preferably 20.04 LTS)
 - [Helm 3.12.1](https://helm.sh/docs/intro/install/) for managing Kubernetes applications.(Versions above 3.13 are not yet supported)
 - A functioning [Kubernetes cluster](https://kubernetes.io/docs/setup/).
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) for interacting with your Kubernetes cluster.
-- [Docker](https://docs.docker.com/get-docker/) for containerization.
+
 
 ### Install ArkCase with helm chart
 
@@ -46,10 +45,10 @@ watch kubectl get pods -n arkcase
 To access ArkCase from a browser, we need to port forward the service. Follow these steps to achieve that:
 
 1. **Get the Cluster IP of the `core` service:**
-   - Use this command to get the Cluster IP: `kubectl get service core` (Note the CLUSTER-IP).
+   - Use this command to get the Cluster IP: `kubectl get service core -n arkcase` (Note the CLUSTER-IP).
 
 2. **Port forward the service:**
-   - Run the following command to port forward the service: `kubectl port-forward service/core 8443:8443`.
+   - Run the following command to port forward the service: `kubectl port-forward service/core 8443:8443 -n arkcase`.
 
 3. **Access ArkCase:**
 
