@@ -185,6 +185,16 @@
             <version>${chemistry.version}</version>
         </dependency>
 
+        <!-- JSR-353 JSON Processing, used by ProgressbarExecutor and SupportsFileTypes. It was never a JDK module;
+            it reached this module's compile classpath only as a transitive of org.eclipse.persistence.core 2.6.0,
+            which declared it at compile scope. Core 2.7.16 no longer declares it, so this module - the only one in
+            the reactor whose sources import javax.json - declares it directly, at the version the Java 8 baseline
+            resolved. The version comes from dependencyManagement in the root pom. -->
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+        </dependency>
+
         <!-- apache libraries -->
         <dependency>
             <groupId>commons-fileupload</groupId>

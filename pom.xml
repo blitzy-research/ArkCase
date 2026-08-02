@@ -18,10 +18,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!-- The single authoritative compile target for the whole reactor. It is consumed by the release element of
-            both compiler-plugin executions below (the default compile and the log4j-plugin-processor execution), and
-            no per-module source-level or target-level compiler setting exists anywhere in the reactor, so no module,
-            profile or plugin execution can compile against an older platform version. -->
+        <!-- the single compile target for the whole reactor: consumed by the release element of both
+            compiler-plugin executions below, and no module declares a source or target level of its own -->
         <maven.compiler.release>17</maven.compiler.release>
         <acm.version>${project.version}</acm.version>
         <activemq.version>5.13.2</activemq.version>
@@ -65,8 +63,8 @@
             to a 9.x series, so there is no 2.7.16 of that artifact and it cannot share ${eclipselink-jpa.version}.
             9.8.0 is the companion the EclipseLink 2.7.16 POM itself declares. Do not re-merge these axes. -->
         <eclipselink-asm.version>9.8.0</eclipselink-asm.version>
-        <!-- 2.7.x is the last EclipseLink line that uses the javax.persistence namespace; the 3.x line moves to
-            jakarta and is excluded by directive. Do not advance past 2.7.x. -->
+        <!-- 2.7.x is the last EclipseLink line built against the javax.persistence API; 3.x requires
+            jakarta.persistence, which this codebase does not use. Do not advance past 2.7.x. -->
         <eclipselink-jpa.version>2.7.16</eclipselink-jpa.version>
         <ehcache.version>2.6.9</ehcache.version>
         <exchange-web-services.version>2.0</exchange-web-services.version>
@@ -76,24 +74,32 @@
         <frevvo.forms.version>6.3</frevvo.forms.version>
         <google-collections.version>1.0</google-collections.version>
         <gps.pointlocations.version>4.1</gps.pointlocations.version>
+        <!-- groovy-all reaches 79 of the 142 reactor modules, 78 of them transitively through acm-service-search,
+            which declares it for IDE support only: no source file imports groovy, and no .groovy script exists
+            anywhere in the tree. It is loaded all the same, because Spring's DelegatingSmartContextLoader switches
+            to GenericGroovyXmlContextLoader whenever groovy.lang.Closure is on the test classpath, and that loader
+            constructs a GroovyBeanDefinitionReader even for .xml locations. On JDK 17 the 1.8.6 that resolved
+            before this pin fails there with an inaccessible-object error, because Groovy's CachedClass calls
+            setAccessible on Object.finalize() while java.lang is not opened to the unnamed module. Bisected against
+            spring-context 5.3.39 on JDK 17: 1.8.6, 2.1.8, 2.3.2 and 2.3.11 all fail and 2.4.0 is the first release
+            that succeeds, so 2.4 is the minimum capable line and 2.4.21 is its final patch. Do not advance past the
+            2.4 line: groovy-all became a pom-only aggregator at 2.5.0 and would no longer resolve as a jar. -->
+        <groovy.version>2.4.21</groovy.version>
         <gson.version>1.7.1</gson.version>
         <h2.version>1.3.169</h2.version>
         <hamcrest.version>1.3</hamcrest.version>
         <hibernate-validator.version>5.1.1.Final</hibernate-validator.version>
         <jai-imageio-core.version>1.3.1</jai-imageio-core.version>
         <java.mail.version>1.5.6</java.mail.version>
-        <!-- JEP 320 removed the JavaBeans Activation Framework, the JSR-250 annotations and JAXB from the JDK in
-            version 11; they are reinstated below as javax-namespace artifacts. com.sun.activation:javax.activation
-            is the reference implementation and is required rather than the API-only jar, because only the RI ships
-            META-INF/mimetypes.default and META-INF/mailcap.default, which the MIME-type mapping call sites read. -->
+        <!-- JEP 320 removed the JavaBeans Activation Framework and the JSR-250 annotations from the JDK in
+            version 11; both are reinstated below as javax-namespace artifacts -->
         <javax-activation.version>1.2.0</javax-activation.version>
         <javax-annotation-api.version>1.3.2</javax-annotation-api.version>
         <javax-el.version>3.0.0</javax-el.version>
-        <!-- JSR-353 was never part of the JDK; until now it reached the compile classpath only as a transitive of
-            org.eclipse.persistence.core 2.6.0, which declared org.glassfish:javax.json 1.0.4 at compile scope.
-            EclipseLink 2.7.16 no longer declares it, so it is pinned explicitly at exactly the version the Java 8
-            baseline resolved, which keeps the compile classpath and the packaged WAR unchanged for the two
-            main-source files that import javax.json. -->
+        <!-- org.eclipse.persistence.core 2.6.0 declared org.glassfish:javax.json at compile scope and 2.7.16
+            does not, so the version is pinned here at what the Java 8 build resolved. Only the version: the
+            dependency itself is declared by acm-service-ecm, the one module whose source imports javax.json,
+            not in the reactor-wide block below, which reinstates JDK-removed modules only. -->
         <javax-json.version>1.0.4</javax-json.version>
         <javax.servlet.version>3.1.0</javax.servlet.version>
         <!-- EclipseLink 2.7.16 implements the JPA 2.2 API. This javax-named artifact stays pinned so that exactly
@@ -101,6 +107,12 @@
             transitively is excluded in dependencyManagement. -->
         <javax-persistence.version>2.2.1</javax-persistence.version>
         <javax-validation.version>1.1.0.Final</javax-validation.version>
+        <!-- the JAX-RS API. It is not a JDK removal: it used to arrive transitively as the jakarta-named
+            jakarta.ws.rs-api 2.1.5 through Tika's CXF dependencies, which the migration cannot keep because no
+            jakarta-named artifact may remain in the resolved graph. The javax-named 2.1.1 artifact that replaces it
+            was verified to contain the identical 138 classes, all under javax/, so the two main-source files that
+            import javax.ws.rs.NotFoundException compile against exactly the same API as before. -->
+        <javax-ws-rs-api.version>2.1.1</javax-ws-rs-api.version>
         <!-- the 2.3.1 JAXB pairing declares no jakarta-groupId dependencies, unlike the 2.3.9 line -->
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <jaxb-runtime.version>2.3.1</jaxb-runtime.version>
@@ -120,22 +132,13 @@
         <maven.checkstyle.plugin.version>3.1.2</maven.checkstyle.plugin.version>
         <!-- shared by maven-surefire-plugin and maven-failsafe-plugin so unit and integration forking stay aligned -->
         <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
-        <!-- maven-war-plugin 3.0.0 cannot package the WAR on JDK 17: it eagerly constructs an XStream 1.4.9
-            instance from WebappStructureSerializer, whose TreeMap converter calls setAccessible on a private
-            java.util.TreeMap field and dies with an InaccessibleObjectException because java.base does not open
-            java.util to the unnamed module. 3.1.0 is the minimum capable release: it is the release immediately
-            following the failing 3.0.0, and it was verified by execution to package this WAR successfully on JDK 17.
-            The smallest possible advance is taken deliberately, so that packaging stays as close to the Java 8
-            baseline as the runtime allows. The plugin configuration below is untouched, so the WAR layout, the web
-            app directory and the manifest entries are unchanged. -->
-        <maven.war.plugin.version>3.1.0</maven.war.plugin.version>
         <maven.build.timestamp.format>MMMM dd, yyyy</maven.build.timestamp.format>
         <xalan.version>2.7.2</xalan.version>
         <gitflow-maven-plugin.version>1.14.0</gitflow-maven-plugin.version>
         <milton.version>3.0.0.246</milton.version>
-        <!-- the 3.7.7 inline mock maker cannot instrument a class file at major version 61; 4.11.0 can. Governs both
-            the core and the inline mockito artifacts. Only reachable now that the retired static-mocking framework's
-            hard pin on mockito-core 3.3.3 has been lifted. -->
+        <!-- the 3.7.7 inline mock maker cannot instrument a class file at major version 61; 4.11.0 can. Governs
+            mockito-core and mockito-inline. PowerMock pinned mockito-core to 3.3.3 and was removed from the
+            reactor. -->
         <mockito.core.version>4.11.0</mockito.core.version>
         <mysql.version>8.0.16</mysql.version>
         <!-- by default spring.security.saml2.core uses opensaml version 2.6.1, which uses bouncycastle version 1.46, but we require version
@@ -145,10 +148,9 @@
         <com.itextpdf.version>5.5.10</com.itextpdf.version>
         <net.sf.jtidy.version>r938</net.sf.jtidy.version>
         <org.json.version>20140107</org.json.version>
-        <!-- 2.4.7.Final throws a bytecode verification error out of its own ASM-based accessor optimizer on JDK 17,
-            even against a Java-8-target bean, so the defect is in MVEL's generated code. The floor was bisected:
-            2.4.8 fails, 2.4.9 succeeds. The Drools compiler declares MVEL without a version of its own, so this
-            property governs the MVEL that the 43 .xlsx decision tables actually load. Do not lower it. -->
+        <!-- 2.4.7.Final throws a bytecode verification error out of its own ASM-based accessor optimizer on
+            JDK 17; 2.4.9 is the earliest release that succeeds. Drools declares MVEL without a version of its
+            own, so this property governs the MVEL the .xlsx decision tables load; keep it at 2.4.9 or later. -->
         <org.mvel.version>2.4.15.Final</org.mvel.version>
         <pdfbox.version>2.0.22</pdfbox.version>
         <postgresql.version>9.3-1100-jdbc41</postgresql.version>
@@ -162,9 +164,8 @@
         <spring.ldap.version>2.3.3.RELEASE</spring.ldap.version>
         <spring.security.kerberos.version>1.0.1.RELEASE</spring.security.kerberos.version>
         <spring.security.saml2.core.version>1.0.10.RELEASE</spring.security.saml2.core.version>
-        <!-- Spring stays on its existing generation: Framework on the 5.3 line, Security on the last line that
-            pairs with it. 5.3.2 predates the 5.3.9 auto-proxying fix issued for JDK 17 compatibility, and the 5.3
-            line's documented support range covers JDK 8 through 21. This is not a move to Spring 6 or Spring Boot. -->
+        <!-- Framework stays on the 5.3 line and Security on the line that pairs with it. 5.3.2 predates the
+            5.3.9 auto-proxying fix for JDK 17; the 5.3 line supports JDK 8 through 21. Do not move to Spring 6. -->
         <spring.security.version>5.8.16</spring.security.version>
         <spring.version>5.3.39</spring.version>
         <spring-retry-version>1.3.1</spring-retry-version>
@@ -321,23 +322,10 @@
     <build>
         <pluginManagement>
             <plugins>
-                <!-- maven-surefire-plugin is pinned here rather than left to whichever version Maven implicitly
-                    binds, so that unit-test execution on JDK 17 is reproducible across environments, and so that
-                    there is a single auditable location for baseline-failure exclusions.
-
-                    Two elements are deliberately absent from this declaration and must stay absent.
-
-                    First, there is no JVM argument-line element. The jacoco-maven-plugin prepare-agent goal (the
-                    pre-unit-test execution further below) hands its agent configuration to the test runner through
-                    the argument-line property that it exports by default. Declaring a literal value for that
-                    property here silently severs the instrumentation, which leaves the jacoco check goal evaluating
-                    an empty data set and reporting a false pass with a zero exit code. A JVM argument that genuinely
-                    has to be appended must therefore use late replacement of the exported property value, never a
-                    literal override.
-
-                    Second, there is no test-exclusion element. Any exclusion added here MUST cite a row in
-                    docs/migration/baseline-test-failures.md; a test that starts failing only after the migration is
-                    a regression to be fixed, never one to be excluded. -->
+                <!-- pinned so unit-test execution is reproducible and baseline-failure exclusions have a single
+                    auditable home. Keep two things out of this declaration: a literal argLine, which replaces the
+                    value jacoco prepare-agent exports and silently disables instrumentation, and any excludes
+                    entry not backed by a row in docs/migration/baseline-test-failures.md. -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -354,7 +342,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>${maven.war.plugin.version}</version>
+                <!-- 3.0.0 cannot package this WAR on JDK 17: its XStream-based structure serializer needs
+                    reflective access to a private java.util field that java.base does not open. 3.1.0 is the
+                    earliest release that packages it successfully; the configuration below is untouched. -->
+                <version>3.1.0</version>
                 <configuration>
                     <webappDirectory>${project.build.directory}/arkcase</webappDirectory>
                     <archive>
@@ -417,8 +408,8 @@
                         <phase>process-classes</phase>
                         <configuration>
                             <encoding>${project.build.sourceEncoding}</encoding>
-                            <!-- this execution carries its own <configuration>, so the release target has to be
-                                restated here; it does not inherit the plugin-level configuration above -->
+                            <!-- restated here, though Maven would also merge it in from the plugin-level
+                                configuration, so that both compiler executions are visibly locked to release 17 -->
                             <release>${maven.compiler.release}</release>
                             <compilerArgument>-Xlint:all</compilerArgument>
                             <showWarnings>true</showWarnings>
@@ -637,6 +628,15 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
+                    <!-- milton-server-ce » milton-mail-api drags in the 1.1 activation jar. Under Java 8 that jar was
+                        shadowed by rt.jar and never loaded; now that the activation framework is supplied explicitly it
+                        would be a second provider for the javax.activation package, and its META-INF/mimetypes.default
+                        differs from the reference implementation's, so MIME resolution would depend on classpath order.
+                        The reinstated com.sun.activation:javax.activation RI is a strict superset of this jar. -->
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <!-- frevvo forms -->
@@ -650,6 +650,16 @@
                 <groupId>javax.enterprise</groupId>
                 <artifactId>cdi-api</artifactId>
                 <version>${cdi-api.version}</version>
+                <exclusions>
+                    <!-- cdi-api 1.0 declares the retired jsr250-api, whose 11 classes are all contained in the
+                        reinstated javax.annotation:javax.annotation-api (15 classes). Keeping both puts two providers
+                        on the javax.annotation package, so @PostConstruct and friends would resolve by classpath
+                        order. Excluding the older, smaller jar leaves exactly one provider and loses no class. -->
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>jsr250-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- Java mail -->
             <dependency>
@@ -668,6 +678,16 @@
                 <groupId>com.sun.mail</groupId>
                 <artifactId>javax.mail</artifactId>
                 <version>${java.mail.version}</version>
+                <exclusions>
+                    <!-- JavaMail 1.5.6 declares the standalone 1.1 activation jar. It is excluded for the same reason
+                        as on milton above: the reinstated com.sun.activation:javax.activation RI is a strict superset
+                        of its 38 classes and ships the MIME resource files, so this jar can only introduce a second,
+                        order-dependent provider for javax.activation. JavaMail keeps working against the RI. -->
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- exclude the mail.jar 1.4 from the war file -->
             <dependency>
@@ -681,6 +701,15 @@
                 <artifactId>mailapi</artifactId>
                 <version>(,1.5)</version>
                 <scope>provided</scope>
+                <exclusions>
+                    <!-- mailapi reaches the reactor through com.github.fge:json-schema-validator and declares the same
+                        1.1 activation jar; excluded so that com.sun.activation:javax.activation stays the single
+                        provider for the javax.activation package. -->
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- date time -->
             <dependency>
@@ -1039,6 +1068,32 @@
                 <groupId>org.apache.camel.springboot</groupId>
                 <artifactId>camel-spring-boot-starter</artifactId>
                 <version>${camel.spring.version}</version>
+                <exclusions>
+                    <!-- the second route by which jakarta-named artifacts entered the reactor: camel-spring-boot pulls
+                        jakarta.xml.bind-api (and through it jakarta.activation-api and, via jaxb-impl,
+                        com.sun.activation:jakarta.activation), while spring-boot-starter pulls
+                        jakarta.annotation-api. Every one of them duplicates, class for class, a javax artifact that
+                        is already on the classpath - jakarta.annotation-api 1.3.5 == javax.annotation-api 1.3.2,
+                        jakarta.xml.bind-api 2.3.2 == jaxb-api 2.3.1, jakarta.activation == the javax.activation RI -
+                        so excluding them removes duplicates without removing a single class. Camel itself stays at
+                        3.7.0; nothing about its own coordinates changes. -->
+                    <exclusion>
+                        <groupId>jakarta.annotation</groupId>
+                        <artifactId>jakarta.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jakarta.xml.bind</groupId>
+                        <artifactId>jakarta.xml.bind-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jakarta.activation</groupId>
+                        <artifactId>jakarta.activation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>jakarta.activation</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -1234,26 +1289,52 @@
                 <version>${xmlunit.version}</version>
                 <!-- do not use scope test -->
             </dependency>
-            <!-- Java EE modules that JEP 320 removed from the JDK in version 11, reinstated as standalone artifacts.
-                The javax namespace is preserved deliberately: every one of these artifacts publishes its classes
-                under javax/, so not a single consuming source file needs an import change. They are declared in the
-                global dependencies block at the end of this file rather than module by module, which reproduces the
-                reactor-wide availability that rt.jar provided under Java 8. No JAX-WS, SOAP, CORBA or JTA artifact is
-                reinstated, because none of those packages is referenced anywhere in the tree. -->
+            <!-- groovy. Managed here so that every module which receives groovy-all transitively resolves a
+                JDK-17-capable release instead of the 1.8.6 that fails Spring's Groovy-aware test context loader;
+                the groovy.version property records the bisection that fixed the floor. Groovy is not used by any
+                application code, so the pin changes no behaviour beyond letting that loader initialise. -->
+            <dependency>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+                <version>${groovy.version}</version>
+            </dependency>
+            <!-- Java EE modules that JEP 320 removed from the JDK in version 11, reinstated as standalone
+                artifacts. The APIs the application source consumes stay under javax.*, so no consuming file
+                needs an import change. No JAX-WS, SOAP, CORBA or JTA artifact is reinstated; those packages
+                are not referenced here. -->
             <dependency>
                 <groupId>javax.xml.bind</groupId>
                 <artifactId>jaxb-api</artifactId>
                 <version>${jaxb-api.version}</version>
+                <exclusions>
+                    <!-- jaxb-api 2.3.1 declares javax.activation:javax.activation-api, the API-only activation jar.
+                        It must not travel with it: the activation dependency reinstated below is deliberately the
+                        reference implementation, whose 42 classes are a strict superset of that jar's 31 and which
+                        alone ships META-INF/mimetypes.default and META-INF/mailcap.default. Carrying both would give
+                        the javax.activation package two providers whose winner depends on classpath order, and in
+                        several modules the API-only jar was ordered ahead of the RI. -->
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>javax.activation-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
-                <!-- the implementation behind the JAXB API. EclipseLink MOXy is also on the classpath and can
-                    register itself as a JAXB provider, but with this reference implementation present the deployed
-                    classpath shape resolves to it and produces identical XML, so no jaxb.properties file is needed
-                    anywhere in the reactor and none is added. -->
+                <!-- the implementation behind the JAXB API. EclipseLink MOXy can also register itself as a JAXB
+                    provider, but with this reference implementation present the deployed classpath resolves to it,
+                    so no jaxb.properties file is needed anywhere in the reactor. -->
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
                 <version>${jaxb-runtime.version}</version>
                 <scope>runtime</scope>
+                <exclusions>
+                    <!-- the runtime brings the same API-only activation jar in at runtime scope, so it needs the same
+                        exclusion as jaxb-api above; otherwise the duplicate reappears on the runtime classpath only. -->
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>javax.activation-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <!-- JSR-250 annotations (@PostConstruct and friends). This coexists safely with the JSR-305
@@ -1271,10 +1352,14 @@
                 <artifactId>javax.activation</artifactId>
                 <version>${javax-activation.version}</version>
             </dependency>
-            <!-- Not a JDK removal: this is the JSON Processing reference implementation that arrived transitively
-                from org.eclipse.persistence.core 2.6.0, which declared it at compile scope. EclipseLink 2.7.16 no
-                longer declares it, so it is reinstated explicitly at the identical coordinates and version the
-                Java 8 baseline resolved. Its classes are javax-prefixed, so the consuming imports are unchanged. -->
+            <dependency>
+                <!-- the javax-named JAX-RS API that replaces the excluded jakarta.ws.rs-api. It is declared in the
+                    global dependencies block below rather than only where it is imported, so that the package is
+                    available reactor-wide exactly as it was when it arrived transitively through Tika. -->
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>${javax-ws-rs-api.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.glassfish</groupId>
                 <artifactId>javax.json</artifactId>
@@ -1334,12 +1419,10 @@
                         <artifactId>asm-commons</artifactId>
                     </exclusion>
                     <exclusion>
-                        <!-- eclipselink 2.7.16 pulls org.eclipse.persistence:jakarta.persistence transitively. That
-                            artifact's class set is identical to the javax-named org.eclipse.persistence:javax.persistence
-                            pinned above - 213 classes, all under javax/, none under jakarta/ - so it is the same javax
-                            API republished under a jakarta artifactId. Carrying both would duplicate every
-                            javax/persistence class on the classpath with order-dependent nearest-wins resolution, and
-                            would place a jakarta-named jar on the classpath, which is excluded by directive. -->
+                        <!-- eclipselink 2.7.16 pulls org.eclipse.persistence:jakarta.persistence transitively. It
+                            republishes the same javax.persistence API as the javax-named artifact pinned above, so
+                            carrying both would put duplicate javax/persistence classes on the classpath under
+                            order-dependent nearest-wins resolution. -->
                         <groupId>org.eclipse.persistence</groupId>
                         <artifactId>jakarta.persistence</artifactId>
                     </exclusion>
@@ -1555,10 +1638,8 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <!-- supplies the static-mocking and construction-mocking capabilities that replace the idioms of the
-                    retired mocking framework removed from this reactor, at the version proven to instrument class
-                    file major version 61. Declared here so that the consuming modules can declare it without a
-                    version of their own, as they already do for every other test library. -->
+                <!-- supplies the static and construction mocking that PowerMock used to provide; version managed
+                    here so consuming modules declare it without one, as they do for every other test library -->
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-inline</artifactId>
                 <version>${mockito.core.version}</version>
@@ -1600,6 +1681,40 @@
                     <exclusion> 
                         <groupId>xerces</groupId> 
                         <artifactId>xercesImpl</artifactId>
+                    </exclusion>
+                    <!-- tika-parsers 1.24 is the only route by which jakarta-named artifacts entered the reactor: it
+                        declares com.sun.activation:jakarta.activation directly, and through org.apache.cxf it pulls
+                        jakarta.xml.bind-api (which in turn pulls jakarta.activation-api) and jakarta.ws.rs-api. All
+                        four are excluded because the migration forbids a jakarta-named artifact anywhere in the
+                        resolved graph. Nothing is lost: each one's class set was compared against the javax artifact
+                        that replaces it and found identical - jakarta.activation 1.2.1 == the javax.activation RI
+                        1.2.0 (42 classes), jakarta.xml.bind-api 2.3.2 == jaxb-api 2.3.1 (112 classes), and
+                        jakarta.ws.rs-api 2.1.5 == javax.ws.rs-api 2.1.1 (138 classes, all under javax/), the last of
+                        which is reinstated below because two main-source files import javax.ws.rs.NotFoundException. -->
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>jakarta.activation</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jakarta.xml.bind</groupId>
+                        <artifactId>jakarta.xml.bind-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jakarta.activation</groupId>
+                        <artifactId>jakarta.activation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jakarta.ws.rs</groupId>
+                        <artifactId>jakarta.ws.rs-api</artifactId>
+                    </exclusion>
+                    <!-- the last remaining contributor of the 1.1 activation jar, reached through
+                        cxf-rt-rs-client » saaj-impl » stax-ex. Under Java 8 it was shadowed by rt.jar, and while the
+                        JavaMail copy was still on the graph it was merely a duplicate; with that copy gone it would
+                        become the surviving provider in 58 modules, ahead of the reference implementation. stax-ex
+                        only needs javax.activation.DataHandler, which the RI supplies. -->
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1790,12 +1905,8 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
         </dependency>
-        <!-- JEP 320 removed the JAXB, JSR-250 annotation and JavaBeans Activation modules from the JDK in version 11.
-            They are reinstated here, at the aggregator, so that every child module inherits them exactly as it
-            inherited them from rt.jar under Java 8 - which is why none of the javax.xml.bind consumers, none of the
-            javax.annotation consumers and none of the javax.activation consumers needs an import change. The javax
-            namespace is retained deliberately; no jakarta-namespace artifact is used. Versions come from
-            dependencyManagement above, following the log4j-core precedent. -->
+        <!-- declared at the aggregator so every child module inherits the javax APIs that JEP 320 removed from
+            the JDK, exactly as it inherited them from rt.jar; versions come from dependencyManagement above -->
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
@@ -1813,13 +1924,12 @@
             <groupId>com.sun.activation</groupId>
             <artifactId>javax.activation</artifactId>
         </dependency>
-        <!-- org.glassfish:javax.json was on the compile classpath of every module that pulled EclipseLink core,
-            because core 2.6.0 declared it transitively at compile scope. Core 2.7.16 dropped that declaration, so it
-            is declared here at the aggregator to keep the compile classpath and the packaged WAR identical to the
-            Java 8 baseline. It is the same artifact at the same version that the baseline resolved. -->
+        <!-- javax.ws.rs-api replaces the jakarta-named JAX-RS API that Tika's CXF dependencies used to contribute.
+            Its class set is identical and javax-prefixed, so gov.foia.service.FOIADocumentGeneratorService and
+            gov.privacy.service.SARDocumentGeneratorService keep importing javax.ws.rs.NotFoundException unchanged. -->
         <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.json</artifactId>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
         </dependency>
     </dependencies>
 </project>
