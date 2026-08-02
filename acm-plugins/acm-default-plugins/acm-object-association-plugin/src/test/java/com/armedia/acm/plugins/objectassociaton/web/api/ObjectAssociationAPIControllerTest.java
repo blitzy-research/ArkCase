@@ -29,7 +29,7 @@ package com.armedia.acm.plugins.objectassociaton.web.api;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -94,7 +94,7 @@ public class ObjectAssociationAPIControllerTest implements HandlerExceptionResol
 
         String content = "{\"@id\":\"1\",\"parentId\":105,\"parentType\":\"PERSON\",\"parentClassName\":\"com.armedia.acm.plugins.person.model.Person\",\"targetId\":101,\"targetType\":\"PERSON\",\"targetClassName\":\"com.armedia.acm.plugins.person.model.Person\",\"associationType\":\"Sibling\",\"inverseAssociation\":{\"@id\":\"2\",\"parentId\":101,\"parentType\":\"PERSON\",\"parentClassName\":\"com.armedia.acm.plugins.person.model.Person\",\"targetId\":105,\"targetType\":\"PERSON\",\"targetClassName\":\"com.armedia.acm.plugins.person.model.Person\",\"associationType\":\"Sibling\",\"inverseAssociation\":{\"@ref\":\"1\"}}}";
 
-        when(objectAssociationDao.save(anyObject())).then(invocationOnMock -> invocationOnMock.getArguments()[0]);
+        when(objectAssociationDao.save(any())).then(invocationOnMock -> invocationOnMock.getArguments()[0]);
 
         MvcResult result = mockMvc.perform(
                 post("/api/latest/service/objectassociations")

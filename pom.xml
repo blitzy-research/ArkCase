@@ -18,7 +18,11 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
+        <!-- The single authoritative compile target for the whole reactor. It is consumed by the release element of
+            both compiler-plugin executions below (the default compile and the log4j-plugin-processor execution), and
+            no per-module source-level or target-level compiler setting exists anywhere in the reactor, so no module,
+            profile or plugin execution can compile against an older platform version. -->
+        <maven.compiler.release>17</maven.compiler.release>
         <acm.version>${project.version}</acm.version>
         <activemq.version>5.13.2</activemq.version>
         <activiti.version>5.15.1</activiti.version>
@@ -40,7 +44,9 @@
         <apache-commons-email.version>1.5</apache-commons-email.version>
         <apache-httpcomponents-httpclient.version>4.5.13</apache-httpcomponents-httpclient.version>
         <apache-tika-parsers.version>1.24</apache-tika-parsers.version>
-        <asm.version>5.0.3</asm.version>
+        <!-- asm 5.0.3 cannot read class file major version 61 at all; JDK 17 support arrives in the 9.1 line.
+            This also aligns the reactor's ASM with the version EclipseLink 2.7.16 requires. -->
+        <asm.version>9.8</asm.version>
         <aspectj.version>1.7.4</aspectj.version>
         <barcode4j.version>2.1</barcode4j.version>
         <bouncycastle.version>1.54</bouncycastle.version>
@@ -52,9 +58,16 @@
         <docx4j.core>3.3.7</docx4j.core>
         <docx4j.export.fo>3.3.6</docx4j.export.fo>
         <drools.version>7.34.0.Final</drools.version>
-        <easymock.version>4.1</easymock.version>
-        <easymock-extension.version>3.2</easymock-extension.version>
-        <eclipselink-jpa.version>2.6.0</eclipselink-jpa.version>
+        <!-- easymock 4.1 and 4.3 both fail on JDK 17 with an inaccessible-object error raised from EasyMock's
+            class proxy factory, because java.lang is not opened to the unnamed module; 5.6.0 succeeds. -->
+        <easymock.version>5.6.0</easymock.version>
+        <!-- org.eclipse.persistence.asm needs its own version axis: its 2.x line stops at 2.7.8 and then jumps
+            to a 9.x series, so there is no 2.7.16 of that artifact and it cannot share ${eclipselink-jpa.version}.
+            9.8.0 is the companion the EclipseLink 2.7.16 POM itself declares. Do not re-merge these axes. -->
+        <eclipselink-asm.version>9.8.0</eclipselink-asm.version>
+        <!-- 2.7.x is the last EclipseLink line that uses the javax.persistence namespace; the 3.x line moves to
+            jakarta and is excluded by directive. Do not advance past 2.7.x. -->
+        <eclipselink-jpa.version>2.7.16</eclipselink-jpa.version>
         <ehcache.version>2.6.9</ehcache.version>
         <exchange-web-services.version>2.0</exchange-web-services.version>
         <fasterxml-jackson-core.version>2.10.3</fasterxml-jackson-core.version>
@@ -69,10 +82,28 @@
         <hibernate-validator.version>5.1.1.Final</hibernate-validator.version>
         <jai-imageio-core.version>1.3.1</jai-imageio-core.version>
         <java.mail.version>1.5.6</java.mail.version>
+        <!-- JEP 320 removed the JavaBeans Activation Framework, the JSR-250 annotations and JAXB from the JDK in
+            version 11; they are reinstated below as javax-namespace artifacts. com.sun.activation:javax.activation
+            is the reference implementation and is required rather than the API-only jar, because only the RI ships
+            META-INF/mimetypes.default and META-INF/mailcap.default, which the MIME-type mapping call sites read. -->
+        <javax-activation.version>1.2.0</javax-activation.version>
+        <javax-annotation-api.version>1.3.2</javax-annotation-api.version>
         <javax-el.version>3.0.0</javax-el.version>
+        <!-- JSR-353 was never part of the JDK; until now it reached the compile classpath only as a transitive of
+            org.eclipse.persistence.core 2.6.0, which declared org.glassfish:javax.json 1.0.4 at compile scope.
+            EclipseLink 2.7.16 no longer declares it, so it is pinned explicitly at exactly the version the Java 8
+            baseline resolved, which keeps the compile classpath and the packaged WAR unchanged for the two
+            main-source files that import javax.json. -->
+        <javax-json.version>1.0.4</javax-json.version>
         <javax.servlet.version>3.1.0</javax.servlet.version>
-        <javax-persistence.version>2.1.0</javax-persistence.version>
+        <!-- EclipseLink 2.7.16 implements the JPA 2.2 API. This javax-named artifact stays pinned so that exactly
+            one JPA API jar reaches the classpath; the content-identical jakarta-named twin that EclipseLink pulls
+            transitively is excluded in dependencyManagement. -->
+        <javax-persistence.version>2.2.1</javax-persistence.version>
         <javax-validation.version>1.1.0.Final</javax-validation.version>
+        <!-- the 2.3.1 JAXB pairing declares no jakarta-groupId dependencies, unlike the 2.3.9 line -->
+        <jaxb-api.version>2.3.1</jaxb-api.version>
+        <jaxb-runtime.version>2.3.1</jaxb-runtime.version>
         <joda-time.version>2.3</joda-time.version>
         <json-path.version>2.2.0</json-path.version>
         <json-schema-validator.version>2.2.6</json-schema-validator.version>
@@ -87,11 +118,25 @@
         <magic.matcher.version>0.1.2</magic.matcher.version>
         <mariadb.jdbc.version>2.2.6</mariadb.jdbc.version>
         <maven.checkstyle.plugin.version>3.1.2</maven.checkstyle.plugin.version>
+        <!-- shared by maven-surefire-plugin and maven-failsafe-plugin so unit and integration forking stay aligned -->
+        <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
+        <!-- maven-war-plugin 3.0.0 cannot package the WAR on JDK 17: it eagerly constructs an XStream 1.4.9
+            instance from WebappStructureSerializer, whose TreeMap converter calls setAccessible on a private
+            java.util.TreeMap field and dies with an InaccessibleObjectException because java.base does not open
+            java.util to the unnamed module. 3.1.0 is the minimum capable release: it is the release immediately
+            following the failing 3.0.0, and it was verified by execution to package this WAR successfully on JDK 17.
+            The smallest possible advance is taken deliberately, so that packaging stays as close to the Java 8
+            baseline as the runtime allows. The plugin configuration below is untouched, so the WAR layout, the web
+            app directory and the manifest entries are unchanged. -->
+        <maven.war.plugin.version>3.1.0</maven.war.plugin.version>
         <maven.build.timestamp.format>MMMM dd, yyyy</maven.build.timestamp.format>
         <xalan.version>2.7.2</xalan.version>
         <gitflow-maven-plugin.version>1.14.0</gitflow-maven-plugin.version>
         <milton.version>3.0.0.246</milton.version>
-        <mockito.core.version>3.7.7</mockito.core.version>
+        <!-- the 3.7.7 inline mock maker cannot instrument a class file at major version 61; 4.11.0 can. Governs both
+            the core and the inline mockito artifacts. Only reachable now that the retired static-mocking framework's
+            hard pin on mockito-core 3.3.3 has been lifted. -->
+        <mockito.core.version>4.11.0</mockito.core.version>
         <mysql.version>8.0.16</mysql.version>
         <!-- by default spring.security.saml2.core uses opensaml version 2.6.1, which uses bouncycastle version 1.46, but we require version
             1.54 -->
@@ -100,10 +145,13 @@
         <com.itextpdf.version>5.5.10</com.itextpdf.version>
         <net.sf.jtidy.version>r938</net.sf.jtidy.version>
         <org.json.version>20140107</org.json.version>
-        <org.mvel.version>2.4.7.Final</org.mvel.version>
+        <!-- 2.4.7.Final throws a bytecode verification error out of its own ASM-based accessor optimizer on JDK 17,
+            even against a Java-8-target bean, so the defect is in MVEL's generated code. The floor was bisected:
+            2.4.8 fails, 2.4.9 succeeds. The Drools compiler declares MVEL without a version of its own, so this
+            property governs the MVEL that the 43 .xlsx decision tables actually load. Do not lower it. -->
+        <org.mvel.version>2.4.15.Final</org.mvel.version>
         <pdfbox.version>2.0.22</pdfbox.version>
         <postgresql.version>9.3-1100-jdbc41</postgresql.version>
-        <powermock.version>2.0.9</powermock.version>
         <puppycrawl.version>8.44</puppycrawl.version>
         <reactor-netty.version>1.0.3</reactor-netty.version>
         <rome.version>1.0</rome.version>
@@ -114,8 +162,11 @@
         <spring.ldap.version>2.3.3.RELEASE</spring.ldap.version>
         <spring.security.kerberos.version>1.0.1.RELEASE</spring.security.kerberos.version>
         <spring.security.saml2.core.version>1.0.10.RELEASE</spring.security.saml2.core.version>
-        <spring.security.version>5.4.2</spring.security.version>
-        <spring.version>5.3.2</spring.version>
+        <!-- Spring stays on its existing generation: Framework on the 5.3 line, Security on the last line that
+            pairs with it. 5.3.2 predates the 5.3.9 auto-proxying fix issued for JDK 17 compatibility, and the 5.3
+            line's documented support range covers JDK 8 through 21. This is not a move to Spring 6 or Spring Boot. -->
+        <spring.security.version>5.8.16</spring.security.version>
+        <spring.version>5.3.39</spring.version>
         <spring-retry-version>1.3.1</spring-retry-version>
         <springfox-version>2.5.0</springfox-version>
         <springframework-addons.version>0.1</springframework-addons.version>
@@ -148,7 +199,10 @@
         <openpdf.version>1.2.10</openpdf.version>
         <javax-jms.version>1.1</javax-jms.version>
         <!-- code coverage reports -->
-        <jacoco.version>0.8.7</jacoco.version>
+        <!-- 0.8.7 offers only experimental Java 17 class-file support; 0.8.8 is the first release with official
+            Java 17 support. 0.8.7 did instrument and report against a version 61 class in testing, so this is a
+            supportability advance rather than a fix for an observed failure. -->
+        <jacoco.version>0.8.13</jacoco.version>
         <code.coverage.minimum>0.02</code.coverage.minimum>
         <owasp.encoder.version>1.2.3</owasp.encoder.version>
     </properties>
@@ -222,16 +276,6 @@
             <id>Alfresco Maven Repository</id>
             <url>https://maven.alfresco.com/nexus/content/groups/public/</url>
         </repository>
-        <repository>
-            <id>milton-repo</id>
-            <url>http://dl.bintray.com/milton/Milton</url>
-        </repository>
-        <!-- swagger -->
-        <repository>
-            <id>jcenter-snapshots</id>
-            <name>jcenter</name>
-            <url>https://jcenter.bintray.com/</url>
-        </repository>
         <!-- local repo for dependencies not in Maven central... this is for poms embedded one level down -->
         <repository>
             <id>arkcase-local-repo-one-level</id>
@@ -275,6 +319,32 @@
         </pluginRepository>
     </pluginRepositories>
     <build>
+        <pluginManagement>
+            <plugins>
+                <!-- maven-surefire-plugin is pinned here rather than left to whichever version Maven implicitly
+                    binds, so that unit-test execution on JDK 17 is reproducible across environments, and so that
+                    there is a single auditable location for baseline-failure exclusions.
+
+                    Two elements are deliberately absent from this declaration and must stay absent.
+
+                    First, there is no JVM argument-line element. The jacoco-maven-plugin prepare-agent goal (the
+                    pre-unit-test execution further below) hands its agent configuration to the test runner through
+                    the argument-line property that it exports by default. Declaring a literal value for that
+                    property here silently severs the instrumentation, which leaves the jacoco check goal evaluating
+                    an empty data set and reporting a false pass with a zero exit code. A JVM argument that genuinely
+                    has to be appended must therefore use late replacement of the exported property value, never a
+                    literal override.
+
+                    Second, there is no test-exclusion element. Any exclusion added here MUST cite a row in
+                    docs/migration/baseline-test-failures.md; a test that starts failing only after the migration is
+                    a regression to be fixed, never one to be excluded. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven.surefire.plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.zeroturnaround</groupId>
@@ -284,7 +354,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>${maven.war.plugin.version}</version>
                 <configuration>
                     <webappDirectory>${project.build.directory}/arkcase</webappDirectory>
                     <archive>
@@ -306,7 +376,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.17</version>
+                <!-- the 2.17 forked booter predates Java 9 module semantics and long predates 17; held on the same
+                    property as maven-surefire-plugin so unit and integration forking behave identically -->
+                <version>${maven.surefire.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>integration-test</id>
@@ -326,12 +398,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <!-- 3.1 predates the release parameter entirely and cannot express a release-17 target -->
+                <version>3.13.0</version>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <compilerVersion>${java.version}</compilerVersion>
+                    <release>${maven.compiler.release}</release>
                     <compilerArgument>-Xlint:all</compilerArgument>
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
@@ -346,9 +417,9 @@
                         <phase>process-classes</phase>
                         <configuration>
                             <encoding>${project.build.sourceEncoding}</encoding>
-                            <source>${java.version}</source>
-                            <target>${java.version}</target>
-                            <compilerVersion>${java.version}</compilerVersion>
+                            <!-- this execution carries its own <configuration>, so the release target has to be
+                                restated here; it does not inherit the plugin-level configuration above -->
+                            <release>${maven.compiler.release}</release>
                             <compilerArgument>-Xlint:all</compilerArgument>
                             <showWarnings>true</showWarnings>
                             <showDeprecation>true</showDeprecation>
@@ -1163,6 +1234,52 @@
                 <version>${xmlunit.version}</version>
                 <!-- do not use scope test -->
             </dependency>
+            <!-- Java EE modules that JEP 320 removed from the JDK in version 11, reinstated as standalone artifacts.
+                The javax namespace is preserved deliberately: every one of these artifacts publishes its classes
+                under javax/, so not a single consuming source file needs an import change. They are declared in the
+                global dependencies block at the end of this file rather than module by module, which reproduces the
+                reactor-wide availability that rt.jar provided under Java 8. No JAX-WS, SOAP, CORBA or JTA artifact is
+                reinstated, because none of those packages is referenced anywhere in the tree. -->
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api.version}</version>
+            </dependency>
+            <dependency>
+                <!-- the implementation behind the JAXB API. EclipseLink MOXy is also on the classpath and can
+                    register itself as a JAXB provider, but with this reference implementation present the deployed
+                    classpath shape resolves to it and produces identical XML, so no jaxb.properties file is needed
+                    anywhere in the reactor and none is added. -->
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>${jaxb-runtime.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <!-- JSR-250 annotations (@PostConstruct and friends). This coexists safely with the JSR-305
+                    javax.annotation.Nullable that arrives through Guava: the two jars share no classes, and the
+                    application deploys as a WAR on the classpath, where split-package restrictions do not apply. -->
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>${javax-annotation-api.version}</version>
+            </dependency>
+            <dependency>
+                <!-- the JavaBeans Activation Framework reference implementation. It must be the RI and not the
+                    API-only artifact: only the RI ships META-INF/mimetypes.default and META-INF/mailcap.default,
+                    and the activation call sites in this codebase resolve MIME types through those resources. -->
+                <groupId>com.sun.activation</groupId>
+                <artifactId>javax.activation</artifactId>
+                <version>${javax-activation.version}</version>
+            </dependency>
+            <!-- Not a JDK removal: this is the JSON Processing reference implementation that arrived transitively
+                from org.eclipse.persistence.core 2.6.0, which declared it at compile scope. EclipseLink 2.7.16 no
+                longer declares it, so it is reinstated explicitly at the identical coordinates and version the
+                Java 8 baseline resolved. Its classes are javax-prefixed, so the consuming imports are unchanged. -->
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.json</artifactId>
+                <version>${javax-json.version}</version>
+            </dependency>
             <!-- servlet -->
             <dependency>
                 <groupId>javax.servlet</groupId>
@@ -1216,12 +1333,23 @@
                         <groupId>asm</groupId>
                         <artifactId>asm-commons</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- eclipselink 2.7.16 pulls org.eclipse.persistence:jakarta.persistence transitively. That
+                            artifact's class set is identical to the javax-named org.eclipse.persistence:javax.persistence
+                            pinned above - 213 classes, all under javax/, none under jakarta/ - so it is the same javax
+                            API republished under a jakarta artifactId. Carrying both would duplicate every
+                            javax/persistence class on the classpath with order-dependent nearest-wins resolution, and
+                            would place a jakarta-named jar on the classpath, which is excluded by directive. -->
+                        <groupId>org.eclipse.persistence</groupId>
+                        <artifactId>jakarta.persistence</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.asm</artifactId>
-                <version>${eclipselink-jpa.version}</version>
+                <!-- separate version axis: see the eclipselink-asm.version property -->
+                <version>${eclipselink-asm.version}</version>
                 <scope>runtime</scope>
                 <exclusions>
                     <exclusion>
@@ -1427,53 +1555,19 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <!-- supplies the static-mocking and construction-mocking capabilities that replace the idioms of the
+                    retired mocking framework removed from this reactor, at the version proven to instrument class
+                    file major version 61. Declared here so that the consuming modules can declare it without a
+                    version of their own, as they already do for every other test library. -->
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockito.core.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-all</artifactId>
                 <version>${hamcrest.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-easymock</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- powermock pulls in an older version of cglib that breaks our unit tests -->
-                        <groupId>cglib</groupId>
-                        <artifactId>cglib-nodep</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- powermock pulls in an older version of cglib that breaks our unit tests -->
-                        <groupId>cglib</groupId>
-                        <artifactId>cglib-nodep</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>${powermock.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- powermock pulls in an older version of cglib that breaks our unit tests -->
-                        <groupId>cglib</groupId>
-                        <artifactId>cglib-nodep</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-core</artifactId>
-                <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
             <!-- end of testing -->
@@ -1695,6 +1789,37 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
+        </dependency>
+        <!-- JEP 320 removed the JAXB, JSR-250 annotation and JavaBeans Activation modules from the JDK in version 11.
+            They are reinstated here, at the aggregator, so that every child module inherits them exactly as it
+            inherited them from rt.jar under Java 8 - which is why none of the javax.xml.bind consumers, none of the
+            javax.annotation consumers and none of the javax.activation consumers needs an import change. The javax
+            namespace is retained deliberately; no jakarta-namespace artifact is used. Versions come from
+            dependencyManagement above, following the log4j-core precedent. -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.activation</groupId>
+            <artifactId>javax.activation</artifactId>
+        </dependency>
+        <!-- org.glassfish:javax.json was on the compile classpath of every module that pulled EclipseLink core,
+            because core 2.6.0 declared it transitively at compile scope. Core 2.7.16 dropped that declaration, so it
+            is declared here at the aggregator to keep the compile classpath and the packaged WAR identical to the
+            Java 8 baseline. It is the same artifact at the same version that the baseline resolved. -->
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
         </dependency>
     </dependencies>
 </project>
