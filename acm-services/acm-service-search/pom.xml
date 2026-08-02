@@ -100,11 +100,14 @@
             <artifactId>mvel2</artifactId>
         </dependency>
 
-        <!-- this entry is needed for IDEA v12 -->
+        <!-- this entry is needed for IDEA v12. The version is deliberately omitted so that the reactor-wide
+            groovy.version pin in the parent dependencyManagement applies here as well: a version declared on
+            this direct dependency would win over dependencyManagement and keep resolving groovy-all 1.8.6,
+            whose CachedClass calls setAccessible on Object.finalize() and therefore fails on JDK 17 as soon as
+            Spring's DelegatingSmartContextLoader picks GenericGroovyXmlContextLoader for this module's tests. -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <version>1.8.6</version>
             <scope>compile</scope>
         </dependency>
 
