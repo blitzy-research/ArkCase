@@ -52,8 +52,6 @@ import java.util.Map;
 
 public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPathContextSource, InitializingBean
 {
-    public static final String SUN_LDAP_POOLING_FLAG = "com.sun.jndi.ldap.connect.pool";
-    private static final Class DEFAULT_CONTEXT_FACTORY = com.sun.jndi.ldap.LdapCtxFactory.class;
     private static final Class DEFAULT_DIR_OBJECT_FACTORY = DefaultDirObjectFactory.class;
     private static final boolean DONT_DISABLE_POOLING = false;
     private static final boolean EXPLICITLY_DISABLE_POOLING = true;
@@ -64,7 +62,8 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     protected String userDn = "";
     protected String password = "";
     private Class dirObjectFactory = DEFAULT_DIR_OBJECT_FACTORY;
-    private Class contextFactory = DEFAULT_CONTEXT_FACTORY;
+    private String contextFactory;
+    private String connectionPoolFlag;
     private DistinguishedName base = DistinguishedName.EMPTY_PATH;
     private String[] urls;
     private boolean pooled = false;
@@ -89,7 +88,7 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
         Hashtable env = getAuthenticatedEnv(principal, credentials);
         if (explicitlyDisablePooling)
         {
-            env.remove(SUN_LDAP_POOLING_FLAG);
+            env.remove(connectionPoolFlag);
         }
 
         DirContext ctx = createContext(env);
@@ -329,18 +328,21 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
      *
      * @return the context factory used when creating Contexts.
      */
-    public Class getContextFactory()
+    public String getContextFactory()
     {
         return contextFactory;
     }
 
     /**
-     * Set the context factory. Default is com.sun.jndi.ldap.LdapCtxFactory.
+     * Set the context factory, as the fully qualified name of the JNDI initial
+     * context factory class. This value is supplied by the login library Spring
+     * configuration rather than defaulted in Java, so a bean definition that
+     * leaves it unset fails fast when the context source initializes.
      *
      * @param contextFactory
      *            the context factory used when creating Contexts.
      */
-    public void setContextFactory(Class contextFactory)
+    public void setContextFactory(String contextFactory)
     {
         this.contextFactory = contextFactory;
     }
@@ -415,18 +417,18 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     {
         if (pooled)
         {
-            baseEnv.put(SUN_LDAP_POOLING_FLAG, "true");
+            baseEnv.put(connectionPoolFlag, "true");
             LOGGER.trace("Using LDAP pooling.");
         }
         else
         {
-            baseEnv.remove(SUN_LDAP_POOLING_FLAG);
+            baseEnv.remove(connectionPoolFlag);
             LOGGER.trace("Not using LDAP pooling");
         }
 
         Hashtable env = new Hashtable(baseEnv);
 
-        env.put(Context.INITIAL_CONTEXT_FACTORY, contextFactory.getName());
+        env.put(Context.INITIAL_CONTEXT_FACTORY, contextFactory);
         env.put(Context.PROVIDER_URL, assembleProviderUrlString(urls));
 
         if (dirObjectFactory != null)
@@ -539,6 +541,21 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     public void setPooled(boolean pooled)
     {
         this.pooled = pooled;
+    }
+
+    /**
+     * Set the JNDI environment property key that carries the LDAP connection
+     * pooling flag. This value is supplied by the login library Spring
+     * configuration rather than defaulted in Java, so a bean definition that
+     * leaves it unset fails fast when the context source initializes. JNDI
+     * matches the key exactly and recognizes no variation of it.
+     *
+     * @param connectionPoolFlag
+     *            the JNDI environment property key used to request pooling.
+     */
+    public void setConnectionPoolFlag(String connectionPoolFlag)
+    {
+        this.connectionPoolFlag = connectionPoolFlag;
     }
 
     /**

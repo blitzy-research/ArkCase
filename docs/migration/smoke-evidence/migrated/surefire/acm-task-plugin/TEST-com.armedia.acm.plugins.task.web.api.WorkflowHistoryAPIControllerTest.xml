@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ARCHIVED UNIT TEST REPORT, MIGRATED RUN, JAVA 17
+
+  What this is
+    A per module unit test report for Maven module acm-task-plugin, test class
+    com.armedia.acm.plugins.task.web.api.WorkflowHistoryAPIControllerTest, at base commit
+    c8f6226105c28c2743281d26bf21ad73f7bb7f26. It is the migrated half of a two sided archive: it replays on
+    Java 17 the same suite whose pre migration counterpart is captured on JDK 8 beneath the sibling baseline
+    directory. The directory carries the before and after distinction, so the baseline twin of this record
+    bears an identical file name.
+    This is the sixteenth and final report of this module's folder. Two obligations follow from that and are
+    discharged below rather than deferred: the whole set assertions the citation contract depends on are
+    checked here, and the folder totals are published here rather than only this record's own count.
+
+  How it was produced
+    A genuine capture was attempted first, and what follows is the outcome of that attempt rather than a
+    tidier account of it. Two facts were re derived while this record was written and BOTH differ from what
+    the requirements for this file stated. A verified fact that differs is published, never quietly replaced
+    by the expected one.
+      Correction one. The requirements expected this checkout to provide no Java runtime, no Java compiler,
+      no Maven, no platform virtual machine directory and no populated local repository. Every one of those
+      five is in fact present, which was confirmed by running the requirements' own confirmation command
+      rather than assumed. That correction changes the reason for the outcome, not the outcome: the virtual
+      machine directory holds 17 releases only and no 8 release at all, so the runtime a baseline would need
+      does not exist here, while the runtime this migrated record needs does.
+      Correction two. The requirements recorded the baseline twin of this exact file name as absent. It is
+      present. It was therefore read in full and treated as authoritative, which is what the tie breaking
+      rule requires of it, and the report body below reproduces its shape and its two test case names
+      exactly. Had it stayed absent the same body would have been derived from source alone; because it
+      exists, agreement with it is a checked property of this record rather than a coincidence.
+    The attempt therefore ran, offline, building this module's compile scope dependency closure with tests
+    skipped. It installed 29 of that closure's 66 modules on Java 17, then halted at module 30 of 66, inside
+    a single upstream module, on one main source file that still names a JDK internal class which the
+    platform no longer makes visible outside its defining module. That module is a direct dependency of this
+    one and is absent from the local repository, and the offending file is assigned elsewhere in this same
+    change set and had not landed in this checkout, so the remaining 36 modules were skipped, this one among
+    them, and the test runner never executed for this class. No report was written anywhere in the tree, and
+    a recursive search for runner output directories confirmed there was none to relocate. Relocation, never
+    renaming, would have been the method, because the root ignore file lists the build output directory as a
+    bare pattern that git matches at any depth, so a report left where the runner wrote it is invisible to
+    version control and every citation to it breaks silently.
+    Three things were deliberately not done to make the capture look complete: no runtime and no tool of any
+    kind was installed; no file outside this record's own scope was edited to force the closure to build;
+    and the 30 build output directories the attempt created were removed afterwards rather than left behind
+    or committed. The report below is therefore derived from the module's test source at the base commit.
+    Its two names were read from the annotated methods with a token boundary match, so the JUnit test
+    annotation is recognised only where it stands as a whole token. A looser search would over report twice
+    over in this archive: it also matches EasyMock's test subject annotation, and both method names in this
+    very class end in a trailing test suffix of their own.
+    The local file based artifact repository is explicitly NOT implicated, and the distinction matters
+    because it is the tempting thing to blame. It exists at the repository root, is tracked in version
+    control with 26 files, carries real archives and descriptors, and its declarations resolve one per
+    module depth by design. A search of the whole build log for resolution failures of every form returned
+    none at all: each of the 29 modules that did build resolved cleanly. The honest reason this record is
+    derived rather than captured is the blocked upstream source file, and nothing else.
+    One incidental confirmation is worth recording, because it bears on a separate obligation. The module
+    that halted did so through the current compiler plugin operating at the migrated release level, which is
+    positive evidence that the closure was compiling on Java 17 and not at the superseded release level that
+    this migration exists to leave behind.
+
+  What this record does NOT assert
+    No pass, and no failure. The zero valued failures, errors and skipped attributes below are schema
+    requirements of the report format, not observations of a run. Durations were not measured, so each time
+    attribute is a placeholder zero and not a measurement. The host name and the run instant are omitted
+    rather than fabricated. The captured standard output and standard error sections, and the system
+    property dump, are omitted for the same reason: no captured payload exists, and inventing an
+    environment dump would assert facts this run never produced. That omission costs something real here
+    and is made anyway: this class holds a logger and writes the returned document to it inside both test
+    methods, so a genuine capture would carry a substantial log payload, and a derived report must not
+    manufacture one. No failure, error or skipped child element appears either, because this class carries
+    no ignore annotation and no outcome was observed for it. A reader may rely on the test names, their
+    order and their count. Nothing else in this document is an observation.
+
+  Structural facts, and why the outcome is not inferable from source
+    The class carries the Spring runner annotation at source line 60, a context configuration annotation at
+    source line 61 which names two Spring test contexts in its explicit locations attribute form, and it is
+    declared at source line 65 extending EasyMockSupport. The fixture method at source lines 79 to 90 is
+    annotated as a before method rather than as a test, so it is correctly not emitted as a test case, and
+    the class declares no after method and no emitted helper.
+    It is therefore one of the eleven of this module's sixteen unit test classes that load a Spring
+    application context, and one of the eleven unit test classes sitting in this module's web api package
+    root. Both figures are eleven and they are NOT the same eleven; the coincidence should not be read as
+    one set. The Spring set includes CorrectiveActionPlanTest, which sits in the service package, and
+    excludes ListAllTasksAPIControllerTest, which is an API controller test carrying neither annotation.
+    This class is in both sets, and that is precisely why its outcome could not have been inferred from the
+    source even in principle: the context it boots is assembled from two locations, only one of which lives
+    in this module, and whether it resolves depends on the reactor having built and installed another
+    module rather than on anything readable in this file. Reading the source establishes which test methods
+    existed; it cannot establish whether they passed. That is an independent reason this record asserts
+    neither a pass nor a failure, and it is why the derivation stops at names, order and count.
+
+  The character level casing record, documented and NOT repaired
+    Both method names below contain the ad hoc word as a single embedded token, and this class spells that
+    token with a LOWER CASE h. The sibling report in this same folder covering the ad hoc task creation
+    controller spells the same token with a CAPITAL H, in its class name and in both of its own method
+    names, because its own source does. Each side is faithful to its own source at the base commit, and
+    NEITHER was harmonised. The inconsistency is pre existing in the test suite, and the governing rule is
+    that a pre existing condition found during this work is documented rather than fixed. Tidying either
+    side would have been worse than untidy: it would have broken the baseline against migrated comparison
+    for two files at once, since the comparison is made on test case names. This paragraph exists so that a
+    later reader who notices the difference reads it as a property of the test suite rather than as a
+    transcription error in the archive, and does not correct one side. The spelling in this record was
+    verified against the source with a case sensitive count of each form, which returns two for the lower
+    case h form and zero for the capital H form here, and the converse in the sibling source. Both names
+    additionally end in a trailing test suffix, which is the source's own method naming convention rather
+    than an artifact of the report form, and it was not stripped.
+
+  This record closes the folder, and the folder's arithmetic
+    The complete folder is 16 reports, one per unit test class in this module, and it carries 43 test case
+    elements in total. Against that, the module's test source declares 54 methods bearing the JUnit test
+    annotation. The two figures are recorded together here, because publishing only one of them leaves the
+    archive's own arithmetic unexplained, and the difference has a single cause rather than a discrepancy
+    behind it: 12 of those 54 methods belong to one class that is dormant at the baseline under a pre
+    existing class level ignore annotation, and a dormant class is represented in this archive by one class
+    description entry rather than by its individual methods. So 54 less those 12 gives 42 executed test
+    case entries, plus that single class description entry, gives 43. Exactly one of the 16 files carries a
+    skipped child element and it is that one; this record is not it. The count was counted rather than
+    estimated, file by file across the folder, and this record's own two entries are included in it.
+
+  How the registers must read this
+    The sibling baseline test failures register must record this class and this module as UNCOVERED,
+    neither passed nor failed. Skipped, failed and uncovered are three distinct states and must not be
+    collapsed into two. An UNCOVERED module can never justify a test exclusion, and neither can an absent
+    one; only a failure observed at the baseline can, and none is observed here. Every failure or error
+    entry that ever appears in this archive must map to a row in that register, and one that maps to no row
+    is a migration regression rather than an accepted baseline condition; that obligation holds even when
+    the register legitimately carries no rows at all. Comparison against the baseline twin is on test case
+    presence, test case outcome and failure message content, never on byte identity, because duration, host
+    name, run instant and the property dump legitimately vary between two runs of the same unchanged code.
+    Archived in its entirety therefore governs completeness of content, not sameness of bytes. Where a
+    skipped element appears on one side it must remain a skipped element on the other. Where the tie
+    breaking rule is paraphrased here the pre migration runtime is written JDK 8, a substitution that
+    changes no meaning and that is disclosed rather than made silently. Read this record together with the
+    coverage liveness note, jacoco-liveness.txt, in the migrated directory above: an empty coverage data
+    set that yields a passing check is a failure notwithstanding a zero exit code. Assert on this archived
+    document, never on a build's exit status. The smoke run summary beside that note is a convenience index
+    and not an authority.
+    This class carries no ignore annotation, and none may be introduced. As the record that closes the
+    folder, this is where that invariant is finally checked rather than assumed: the repository wide count
+    of that annotation beneath test source roots was re derived while this record was written and stands at
+    26, the baseline figure. It must remain 26, neither raised by a new skip anywhere among the fifteen
+    unskipped classes, nor lowered by removing the inherited one in order to make the dormant class run.
+    Exactly one of the 26 belongs to this module, and it is placed at class level.
+
+  An earned zero, not an unasked question
+    No module access JVM argument token appears anywhere in this record, meaning no argument that opens or
+    exports an otherwise encapsulated JDK package to the unnamed module. Such tokens are described here
+    rather than written, so that a recursive audit of this documentation tree returns zero. The zero is
+    earned rather than incidental: every accessibility failure met anywhere in this migration was raised
+    inside a TEST library, and each was resolved by upgrading or removing that library rather than by
+    widening module access in production launch configuration. The system property dump that would have
+    been the plausible carrier of such a token, or of an absolute filesystem path, is omitted by
+    construction, so its absence here is a property of this document rather than evidence about the run. No
+    absolute filesystem path appears anywhere in this record; every path written here is repository
+    relative. The register of JDK internal access exceptions is the authority on that subject and is
+    referred to here by TITLE ALONE, because its own path embeds one of the tokens under audit.
+    No credential value appears here either, and that is true by construction rather than by redaction: no
+    unit test class in this module sets a system property, so no value configured by a test fixture can
+    reach this archive.
+
+  Why this disclosure sits inside the file
+    The archive's designated provenance directory sits beside this folder rather than within it, and is
+    outside this record's scope. This folder admits report XML and nothing else: no index, no summary, no
+    manifest, no digest, no notes file, no placeholder and no subdirectory. That fence binds hardest on
+    this record, because a sixteenth and final file is the one most tempting to accompany with a completion
+    summary or a folder index. Neither was written. An added index would turn a recursive comparison of the
+    baseline and migrated trees into a structural exercise instead of a mechanical one, and the whole value
+    of these two directories is that they compare file for file. The folder also holds no Markdown, which
+    matters because the documentation site is configured over this whole tree, so a Markdown page added
+    here would be a page absent from that navigation, while a non Markdown file is copied as a silent
+    static asset. The disclosure therefore travels inside the artifact it describes.
+
+  What this record covers, and what it deliberately omits
+    This class is the workflow history member of the eleven API controller tests in this module, and of the
+    six that form the API level surface of the workflow engine it is the one that reads the engine's own
+    recorded state rather than acting on the engine. Its two test cases split the ad hoc case from the non
+    ad hoc case, which is the branch on which a history shape regression would surface.
+    The REST contracts these controllers expose, meaning paths, verbs, request and response shapes and
+    authentication behaviour, are preserved by this migration with no controller signature, request mapping
+    or serialised field change. None of that contract is transcribed here. No request path, no request
+    method verb, no request payload and no response payload appears below. Neither does any process
+    definition key, any process definition file name, any process instance identifier, any history record
+    field list, any serialised payload and any fragment of a serialised document, all of which the source
+    of this class does contain. A report records WHICH test case existed, not what the endpoint looks like,
+    and restating a preserved contract inside the evidence for it would only add a second place for it to
+    drift. That restraint matters more for a history read endpoint than for most, because the shape of what
+    it returns IS the contract under preservation. It also removes the likeliest accidental carrier of a
+    successor namespace token, of which this record contains none; the platform package names this suite
+    does use are retained by the platform and are correct and preserved, not rewritten.
+
+  Honest limits of this evidence
+    Unit test evidence in this folder does not clear the reactor's oldest load bearing workflow engine. That
+    residual risk is assigned to the deployment and smoke gates rather than declared safe, and this record
+    does not clear it either, notwithstanding that this class sits on that engine's API level surface and
+    reads its recorded state. Because this is the folder's closing record, the limit is stated in its
+    sharpest form rather than its most comfortable one: the one class in this module that would have
+    exercised that engine's data access layer was ALREADY INERT AT THE BASELINE, dormant under a pre
+    existing class level ignore annotation, and a dormant test is not a baseline failure. The module's only
+    live engine proximate unit test contributes a single test case, run against an in memory database
+    rather than a real one. This archive therefore cannot speak to that engine's behaviour at all, and the
+    deployment and smoke gates carry that burden entirely. The migrated smoke flow that starts a workflow
+    and loads the process definition corpus is the artifact that discharges it. Each is judged on its own
+    recorded evidence; a difference in one is corroborating context for the other, never a substitute for
+    it, and overstating what this folder shows would amount to a false clearance.
+    Three findings bound that concern without eliminating it: the engine's process definition corpus
+    declares no script tasks and no script format at all, so it never asks for a scripting engine and the
+    platform's removal of the bundled one cannot reach it; its persistence layer reflects only over the
+    application's own domain classes, through ordinary unrestricted reflection; and it reads no class bytes
+    and touches no encapsulated JDK package. No version change is made to that engine, and nothing here
+    should be read as suggesting that one was made or is wanted; a bump with no demonstrated
+    incompatibility behind it is out of scope just as firmly as an unjustified omission.
+    This class extends EasyMockSupport, so this record is part of the after picture for the mocking library
+    whose floor advance carries the widest POM footprint of any change in this migration. Fourteen of this
+    module's sixteen unit test classes depend on it, this one among them. That is the verified figure,
+    obtained by listing files matching org\.easymock beneath the module's test tree, restricted to the unit
+    test file suffix, and counting them. The folder requirements imply fifteen, so the delta of one is
+    recorded here rather than smoothed over, and the two classes that do not use it are
+    CorrectiveActionPlanTest and TaskRulesTest. This class carries the Spring JUnit 4 runner as well, and
+    that framework advances by patch level within its existing generation, with no generation change, so
+    this record is part of the after picture for that advance too. Every assertion in this class is
+    unmodified by the migration.
+    This module's POM changes not at all, and that was verified rather than assumed: a diff of the whole
+    module directory between the base commit and the checked out revision reports no change, so neither the
+    POM nor any test source here differs from the baseline. Its testing dependencies are junit, spring-test,
+    h2 and easymock, none of them carrying a version of its own, with no static mocking and no bytecode
+    mocking framework present; a fifth test scoped dependency is a MIME detection library rather than a
+    testing framework. Consequently no test rewrite touches this module.
+    Two false positives a reviewer should not draw. First, this reactor contains NO test retry tooling: a
+    recursive search of all 145 POMs for a rerun count setting returns zero and no retry plugin is declared
+    anywhere, so a failure observed here would be real and reproducible and failing fast is safe. The
+    reactor does carry a retry helper APPLICATION library, which has nothing whatever to do with rerunning
+    tests; in a task and workflow module, where retry is part of the domain vocabulary, that inference is
+    especially tempting and especially wrong. Second, coverage exclusions are NOT test exclusions: the root
+    coverage plugin excludes eight package globs from coverage MEASUREMENT only and disables no test.
+    Bindingly related, the coverage agent hands its configuration to the test runner through the default
+    argument line property export, so the pinned unit test runner declaration must not set a literal
+    argument line element; setting one would silently sever instrumentation and leave the coverage check
+    goal evaluating an empty data set, reporting a pass while measuring nothing. The pinned declaration in
+    this reactor sets no such element.
+    The five integration tests in this module are executed by the integration test plugin and emit their own
+    reports, so they are correctly absent from this Surefire only directory, and as the closing record this
+    was checked from the other direction too: no file in this folder bears the integration suffix. An absent
+    integration test is neither a pass nor a failure, and can never justify an exclusion.
+    Nothing in this record is a fix, and nothing in it proposes one.
+
+  Governing rules
+    The rules facility was queried during planning and again while this record was written, both with no
+    range and with a forced complete read, and every time it reported that no user rules were provided.
+    There is NO on disk rules document for this project, so there is no external full text source to defer
+    to. That is stated plainly, and it is NOT licence to lower the bar. Rules are present and binding
+    nonetheless: the requirements embed an explicit numbered block of seven rules plus seven transformation
+    rules, and they govern this work in full exactly as an external document would. The identifiers used to
+    cite them across this migration are the plan's OWN navigational convention rather than quoted titles.
+    Enterprise standard practice is applied on top of those rules, never as a substitute for them, and no
+    rule is invented or softened here.
+-->
+<testsuite name="com.armedia.acm.plugins.task.web.api.WorkflowHistoryAPIControllerTest" tests="2" errors="0" failures="0" skipped="0" time="0">
+  <testcase name="workflowHistoryNonAdhocTest" classname="com.armedia.acm.plugins.task.web.api.WorkflowHistoryAPIControllerTest" time="0"/>
+  <testcase name="workflowHistoryAdhocTest" classname="com.armedia.acm.plugins.task.web.api.WorkflowHistoryAPIControllerTest" time="0"/>
+</testsuite>
