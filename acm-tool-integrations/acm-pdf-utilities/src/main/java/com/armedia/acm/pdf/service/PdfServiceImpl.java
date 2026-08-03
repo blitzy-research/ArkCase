@@ -134,12 +134,11 @@ public class PdfServiceImpl implements PdfService
 
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             /**
-             * com.sun.org.apache.xalan.internal.xsltc.trax - JDK
-             * org.apache.xalan.processor - Xalan
-             * org.apache.xalan.xsltc.trax - Xalan
-             * 
-             * those are TransformerFactory implementation providers and not sure which implementation doesn't support below XMLConstants 
-             * that's why suppressing IllegalArgumentException.
+             * The TransformerFactory implementation actually in use here may be the JDK's own built-in
+             * XSLTC-based provider, or one of Xalan's providers (org.apache.xalan.processor,
+             * org.apache.xalan.xsltc.trax). It is not known which of those providers rejects the
+             * XMLConstants attributes set below, so IllegalArgumentException is caught and suppressed
+             * rather than allowed to fail PDF generation.
              */
          
             try

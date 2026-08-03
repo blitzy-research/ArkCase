@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ================================================================
+  ARCHIVE ENTRY
+  ================================================================
+  MODULE: acm-service-data-access-control
+  REACTOR PATH: acm-services/acm-service-data-access-control
+  TEST CLASS: com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest
+  RUNTIME LABEL: JDK 8, the pre-migration runtime of the platform. The migration target is
+    Java 17.
+  BASE COMMIT: c8f6226105c28c2743281d26bf21ad73f7bb7f26
+  CAPTURE ORDER: before any file was edited
+  CITATION FORM: docs/migration/smoke-evidence/baseline/surefire/acm-service-data-access-control/TEST-com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest.xml
+  ARCHIVE POSITION: third and largest of exactly three report files in this folder, and the one
+    of the three that exercises the access-decision path itself. The first entry,
+    TEST-com.armedia.acm.services.dataaccess.service.impl.AcmPrivilegeServiceTest.xml,
+    establishes the report template; this entry follows it in structure, section order,
+    attribute order and prose convention, and only the class-specific content differs. The
+    native report file name is already the word TEST followed by the fully qualified class name,
+    so this artifact is relocated into version control rather than renamed; no part of the name
+    is shortened, normalised or re-cased. The module path segment is the module directory name
+    alone, not the reactor path.
+  COUNT NOTE: an unanchored search for the test annotation returns 24 in this class because it
+    also matches the test subject annotation at line 74. The verified count is 23. The
+    anchored search that produces the correct figure requires the annotation to open its own
+    line and to be followed by nothing or by an opening parenthesis, which is what excludes
+    the test subject annotation. Every enumeration in this file uses the anchored figure.
+
+  ================================================================
+  PROVENANCE
+  ================================================================
+  DERIVATION: this report is derived from the module test source rather than captured from an
+    execution. No JDK 8 runtime is available to the capture host, so the pre-migration
+    runtime could not be exercised, and the governing rules forbid installing one to make a
+    capture look complete. The toolchain actually observed on the capture host, and its
+    divergence from the toolchain this archive template assumed, is recorded in the SOURCE
+    ENUMERATION note inside the suite element below rather than reconciled silently.
+  GOVERNING RULE, quoted verbatim (R-T7): "Validation asserts on produced artifacts and
+    captured output, never on process exit status alone. This is mandatory rather than
+    stylistic because Gruntfile.js sets grunt.option('force', true), which masks task
+    failures and lets a broken build exit zero."
+  WHY THAT RULE BITES HARDEST HERE: this is the access-decision class, so fabricating a
+    passing security test report would be the most damaging possible violation of it. The
+    fabrication would become the very evidence a reviewer relies on to conclude that
+    permission-evaluation outcomes were preserved, and it would carry the authority of a
+    machine-generated capture while carrying none of the assurance. Nothing below is asserted
+    to have passed.
+  1. The testcase list below is a faithful enumeration of the real test method names read
+     from the module test source, in declaration order. Nothing is added and nothing is
+     omitted. Declaration order is a property of that source reading and is not a claim about
+     execution order: the default class runner orders methods by its own deterministic rule,
+     which is unrelated to the order they are declared in. Element order is therefore excluded
+     from the comparison criteria stated at the end of this header.
+  2. No pass and no failure is asserted for any testcase. The failure count and the error
+     count are zero because no execution produced a failure or an error to record, NOT
+     because a run was observed to pass. Reading those zeros as a green run would be reading
+     evidence that is not present here.
+  3. Every time attribute is a structural placeholder of zero. It asserts no elapsed time
+     measurement.
+  4. The host name attribute, the time stamp attribute, the system property dump element, the
+     standard output payload and the standard error payload are omitted rather than invented,
+     because a hand corrected capture is not evidence. Their absence also makes this file's
+     forbidden token counts structural rather than fortunate: a system property dump is the
+     plausible carrier of a class path entry or of a launch argument list that would name one.
+  5. The skipped count is zero because the class carries no ignore annotation. That was
+     verified in the source, not inferred from a run.
+
+  ================================================================
+  RULES PROVENANCE
+  ================================================================
+  Two facts, always stated together because either one alone misleads:
+  1. There is no on-disk user rules document for this project. The rules facility returns,
+     verbatim, "No user rules provided." That was confirmed on a forced complete read rather
+     than assumed from a partial one.
+  2. Rules are nonetheless present and binding. The requirements embed seven core rules and
+     seven transformation rules, and they govern this work in full, exactly as an external
+     rules document would.
+  LABEL DISCLOSURE: the R and R-T identifiers used in this file are the migration plan's own
+    navigational convention, supplied so a decision can be traced back to the constraint that
+    produced it. They are not quoted rule titles. No rule is invented here and none is
+    softened. Where a rule is reproduced it is marked verbatim; where its own text carries a
+    literal this documentation tree forbids, it is paraphrased and the paraphrase is declared.
+
+  ================================================================
+  WHY THIS MODULE IS ARCHIVED
+  ================================================================
+  The migration must preserve security and permission-evaluation outcomes. The permission
+  evaluator and the reflection-based scanning that supports it are unchanged by directive, and
+  this test class exercises the access-decision path directly and at greater breadth than any
+  other report in this archive, which makes it the single most behaviour-bearing unit test
+  report in the whole of it. It loads and evaluates access rules held as a configured rule
+  list and matched against a stored search document: a missing rule list and an empty rule
+  list, a permission that does not match and a target type that does not match, a status
+  expressed as an array inside the rule, an inherited parent fallback action, requirements that
+  demand every listed authority and requirements that demand any one of them, each of those in
+  a wildcard suffixed form and in a case-insensitive form, and participant-type evaluation for
+  an assignee principal, for a reader principal, for a principal holding one of several
+  required group types, for a principal holding none of the required types, and for the two
+  degenerate participant-type lists.
+  CONSEQUENCE: a difference between this baseline report and its migrated counterpart is not a
+  minor regression that can be absorbed. It is a security outcome change, and it is blocking.
+  The comparison bar for this class is effectively absolute on outcomes, because an
+  authorisation test that changes state is by definition a security outcome change: there is no
+  reading of an altered access decision that is cosmetic, and no aggregate pass rate that
+  redeems one.
+  SCOPE NOTE: the migration's one security-adjacent source edit lives in a different module.
+  In the login service the directory context factory reference changes from a class literal to
+  the identical class name held as a string, which the naming environment consumes
+  identically. Nothing in this module's source changes: the difference between the base commit
+  named above and the migrated tree is empty for the whole of
+  acm-services/acm-service-data-access-control.
+
+  ================================================================
+  DELIBERATELY UNCHANGED
+  ================================================================
+  SUBJECT: the annotation-scanning library the permission evaluator depends on, imported at
+    acm-services/acm-service-data-access-control/src/main/java/com/armedia/acm/services/dataaccess/service/impl/ArkPermissionEvaluator.java line 27
+  WHY IT LOOKS LIKE A BLOCKER: it reads raw class bytes, which makes it a textbook candidate
+    blocker on a newer class file version, and it is load-bearing across six modules
+    (acm-core-api, acm-service-data-access-control, acm-service-data-update,
+    acm-service-sequence-manager, acm-camel-context-manager and acm-configuration).
+  WHY IT IS NOT UPGRADED: it was investigated and cleared by execution rather than by
+    reputation. An end to end scan of a class at the newer file version succeeded on the
+    installed release with its existing companions, and the companion class file reader was
+    probed across a wide release range and found never to have enforced a maximum class file
+    version. R-1, verbatim: "A change without a reason is out of scope." A version change
+    without a demonstrated incompatibility is therefore out of scope exactly as firmly as an
+    unjustified omission would be.
+  WHY THAT REASONING IS RECORDED HERE: "an old bytecode reading library was left at its
+    current version" reads as an oversight unless the executed evidence behind it is stated.
+    In a module whose subject is access control the appearance of an oversight is itself a
+    cost, so the evidence is stated rather than assumed to be inferable from the diff.
+  WHAT IT BUYS: this report is a clean control. The library is constant and this module's
+    source is constant, so any baseline to migrated difference in the 23 testcases below
+    points at the runtime alone. That is the property that makes the blocking consequence
+    stated above actionable rather than merely stern: there is no third variable to blame.
+
+  ================================================================
+  MODULE ACCESS AUDIT
+  ================================================================
+  This archive requires no launch argument that opens or exports an otherwise encapsulated JDK
+  package to the unnamed module, and no such argument appears anywhere in it. The rules that
+  govern that subject are paraphrased rather than quoted throughout this file, because their
+  own text carries literals this documentation tree forbids; the paraphrase changes no
+  meaning, and it is the same reason the tokens themselves are described rather than named.
+  Paraphrased in the same way: where a dependency fails under the platform's stronger
+  encapsulation, that dependency is upgraded or replaced, and module access in production
+  launch configuration is never widened to accommodate it.
+  THE ZERO IS EARNED, ON THREE FINDINGS:
+  1. Every accessibility failure encountered anywhere in the migration was inside a test
+     library, and each was resolved by upgrading or replacing that library rather than by
+     widening module access in production launch configuration.
+  2. Every reflective access widening call site in the codebase targets the application's own
+     classes rather than platform internals.
+  3. There is no security manager usage anywhere in the codebase.
+  WHY IT IS RECORDED IN THIS FILE: a module whose whole purpose is access control is the
+  natural place to record that finding, and a reader who reaches for this report to check the
+  access-decision path is the reader most likely to want it.
+  REGISTER: the register of documented launch configuration exceptions is delivered empty,
+  carrying a positive statement that none are required. It is referred to here by title only,
+  because its own file name embeds a literal this documentation tree forbids.
+
+  ================================================================
+  TWO READINGS TO PRE EMPT
+  ================================================================
+  1. RETRY IS NOT TEST RERUN. The reactor declares an application level retry library, and it
+     has nothing to do with re-running tests. No project object model in the reactor
+     configures a rerun count, and no retry plugin is declared anywhere. A failure observed at
+     baseline is therefore real and reproducible, and fail-fast is safe. For an access
+     decision, that matters twice over: an intermittent authorisation result could not be
+     dismissed as flakiness here, because there is no retry mechanism for it to be attributed
+     to.
+  2. COVERAGE EXCLUDES DISABLE NOTHING. The root coverage plugin configuration excludes a set
+     of package globs from coverage measurement only. No test is disabled by them, and none of
+     the excluded globs is a data access control package. Relatedly, the coverage agent
+     communicates with the test runner through the default argument line property export, so
+     the unit test runner declaration the migration adds must not set a literal argument line
+     element. Setting one silently severs instrumentation and leaves the coverage check goal
+     evaluating an empty data set, which reports a false pass while measuring nothing.
+     Instrumentation must be verifiably live, not merely configured.
+
+  ================================================================
+  COMPARISON BASIS
+  ================================================================
+  This archive is not comparable byte for byte, and pretending otherwise would set a test no
+  honest capture could pass: genuine report XML unavoidably carries elapsed time values, a
+  host name attribute, a time stamp attribute and a system property dump, every one of which
+  differs between two runs. "Archived in its entirety" therefore governs content completeness,
+  not byte identity. Judge the comparison on three things only: testcase presence, testcase
+  outcome, and failure message content.
+  MIGRATED COUNTERPART: docs/migration/smoke-evidence/migrated/surefire/acm-service-data-access-control/TEST-com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest.xml
+  The file name is deliberately identical on both sides of the archive. That identity is what
+  lets a recursive directory difference map report to report without a lookup table. Applied to
+  this class, the three criteria read: all 23 testcase names present on the migrated side,
+  every one of them carrying the same outcome, and any failure message identical in content.
+
+  BASELINE IS THE TIE BREAKER
+  R-7, reproduced with one disclosed editorial substitution: "The application's observed
+  behavior at the base commit on JDK 8 is the tie-breaker for any ambiguity, and each
+  resolution must be documented."
+  EDITORIAL NOTE ON THAT REPRODUCTION: the rule's own text names the older runtime with a
+  phrase this documentation tree's wording gate forbids. The label "JDK 8" is substituted for
+  that phrase. The substitution changes no meaning, and it is disclosed here rather than made
+  silently.
+  R-6, verbatim: "Pre-existing bugs discovered during the work are documented rather than
+  fixed, unless one blocks a validation item." A test failing at baseline is captured in this
+  archive AS FAILING. It is never fixed, never skipped and never tidied. The escape clause is
+  invoked exactly twice in the whole migration, and neither invocation is in this folder.
+  R-5, verbatim: "Failing tests must not be disabled, and exclusions are limited to failures
+  already present at baseline." No test may be excluded from the migrated run except by citing
+  a row of the baseline test failures register, which is referred to here by title only. No
+  access control test may be excluded on any lesser ground, and for this class in particular
+  there is no lesser ground at all: all 23 testcases below must be present in the migrated
+  run, and this report is the only evidence that could ever justify an exclusion for one of
+  them.
+  ================================================================
+-->
+<testsuite name="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0" tests="23" errors="0" skipped="0" failures="0">
+  <!--
+    SOURCE ENUMERATION
+    SOURCE: acm-services/acm-service-data-access-control/src/test/java/com/armedia/acm/services/dataaccess/service/impl/AccessControlRuleCheckerImplTest.java
+      line 121 testMissingRules
+      line 135 testEmptyRules
+      line 150 testNonMatchingPermission
+      line 170 testNonMatchingTargetType
+      line 190 testStatusAsArrayInJSONRule
+      line 220 testMatchingParentFallbackPermission
+      line 262 testMatchingRolesAll
+      line 288 testMatchingRolesAllWithWildcardRole
+      line 315 testNonMatchingRolesAllWithWildcardRole
+      line 341 testCaseInsensitiveMatchingRolesAll
+      line 367 testNonMatchingRolesAll
+      line 393 testEmptyRolesAll
+      line 418 testMatchingRolesAny
+      line 444 testMatchingRolesAnyWithWildcardRole
+      line 470 testCaseInsensitiveMatchingRolesAny
+      line 496 testNonMatchingRolesAny
+      line 522 testEmptyRolesAny
+      line 547 testCheckParticipantTypesWhenPrincipalIsAssignee
+      line 565 testCheckParticipantTypesWhenPrincipalIsReader
+      line 592 testCheckParticipantTypesWhenPrincipalIsInOneOfTheRequiredGroups
+      line 614 testCheckParticipantTypesWhenPrincipalIsNotInAnyOfRequiredTypes
+      line 635 testCheckParticipantTypesWhenUserIsParticipantTypeAnyListIsNull
+      line 652 testCheckParticipantTypesWhenUserIsParticipantTypeAnyListIsEmpty
+    Runner: EasyMockRunner, declared at line 68; the class extends the EasyMock support base
+      class at line 69.
+    Deliberately absent because they are not test methods: setUp, the before method at line
+      100; mockExpectsWhenParticipantTypesTest at line 668; getGrantedAuthoritiesMockList at
+      line 678; getAccessControlRuleForParticipantTypesTest at line 687. A public modifier and
+      a name containing the word test do not make a method a test. The before method loads the
+      stored search document from the module test resources and configures the four access
+      control fallback expressions; the other three are helper methods called from the
+      participant-type tests.
+    SOURCE FIGURES RE VERIFIED against the file named above, all matching: the package
+      declaration at line 1, the runner annotation at line 68, the class declaration at line
+      69, the test subject annotation at line 74, 23 anchored test annotations against 24
+      unanchored matches, zero ignore annotations, the before annotation at line 99, 694 lines
+      in total, and zero integration test classes anywhere in the module test tree.
+    NO VALUE FROM THE TEST FIXTURES IS REPRODUCED HERE. The source names authorities, group
+      types and a principal; none of them appears in this report, because the testcase names
+      alone are the required content and an evidence file is a poor place to copy identifiers
+      out of a security fixture. No unit test class in the reactor sets a system property, and
+      this module's test sources set none, so no fixture secret could have reached this file by
+      that route either.
+    OBSERVED DIVERGENCE FROM THE CAPTURE HOST THIS TEMPLATE ASSUMED, reported rather than
+      reconciled: the template records a checkout with no Java runtime, no Java compiler, no
+      build tool and no local build repository. On the host that produced this file all four
+      are in fact present, at a Java 17 runtime and compiler, Apache Maven 3.8.7, and a
+      populated local build repository. What is absent is any JDK 8 runtime, and the working
+      tree has moved past the base commit named above, so the conclusion the template drew is
+      unchanged: no execution at the pre-migration runtime is possible here, installing one is
+      out of scope, and this report stays derived from the source. The XML validator used is
+      the standard library parser of the interpreter already present on the host; nothing was
+      installed to produce or check this file.
+    No outcome is asserted for any element below. See the PROVENANCE block above.
+  -->
+  <testcase name="testMissingRules" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testEmptyRules" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testNonMatchingPermission" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testNonMatchingTargetType" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testStatusAsArrayInJSONRule" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testMatchingParentFallbackPermission" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testMatchingRolesAll" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testMatchingRolesAllWithWildcardRole" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testNonMatchingRolesAllWithWildcardRole" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testCaseInsensitiveMatchingRolesAll" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testNonMatchingRolesAll" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testEmptyRolesAll" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testMatchingRolesAny" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testMatchingRolesAnyWithWildcardRole" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testCaseInsensitiveMatchingRolesAny" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testNonMatchingRolesAny" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testEmptyRolesAny" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testCheckParticipantTypesWhenPrincipalIsAssignee" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testCheckParticipantTypesWhenPrincipalIsReader" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testCheckParticipantTypesWhenPrincipalIsInOneOfTheRequiredGroups" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testCheckParticipantTypesWhenPrincipalIsNotInAnyOfRequiredTypes" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testCheckParticipantTypesWhenUserIsParticipantTypeAnyListIsNull" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+  <testcase name="testCheckParticipantTypesWhenUserIsParticipantTypeAnyListIsEmpty" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0"/>
+</testsuite>

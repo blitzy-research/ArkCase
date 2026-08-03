@@ -36,7 +36,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -68,13 +67,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,9 +82,7 @@ import java.util.Map;
 /**
  * Created by Riste Tutureski <riste.tutureski@armedia.com> on 03/13/2018
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
-@PrepareForTest({ AWSTranscribeServiceImpl.class, HttpClients.class, EntityUtils.class })
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class AWSTranscribeServiceTest
 {
     private AWSTranscribeServiceImpl awsTranscribeService;
@@ -107,10 +105,28 @@ public class AWSTranscribeServiceTest
     @Mock
     private MediaEngineIntegrationEventPublisher mediaEngineIntegrationEventPublisher;
 
+    /**
+     * Stub stream handed to the service under test through its {@code openMediaStream} seam, which is
+     * overridden in {@link #setUp()}. A test assigns this before exercising {@code create}; while it is
+     * unset the seam delegates to the production implementation so the real code path still runs.
+     * <p>
+     * The seam replaces the constructor interception this class used previously: {@code FileInputStream}
+     * is loaded by the bootstrap class loader, so Mockito construction mocking cannot intercept it.
+     * JUnit builds a fresh test instance per method, so no explicit teardown is required.
+     */
+    private InputStream mediaStreamOverride;
+
     @Before
     public void setUp()
     {
-        awsTranscribeService = new AWSTranscribeServiceImpl();
+        awsTranscribeService = new AWSTranscribeServiceImpl()
+        {
+            @Override
+            protected InputStream openMediaStream(File mediaFile) throws IOException
+            {
+                return mediaStreamOverride != null ? mediaStreamOverride : super.openMediaStream(mediaFile);
+            }
+        };
         awsTranscribeService.setS3Client(s3Client);
         awsTranscribeService.setTranscribeClient(transcribeClient);
         awsTranscribeService.setAwsTranscribeConfigurationService(awsTranscribeConfigurationService);
@@ -144,7 +160,7 @@ public class AWSTranscribeServiceTest
         configuration.setProfile("profile");
 
         when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
-        PowerMockito.whenNew(FileInputStream.class).withArguments(file).thenReturn(fileStream);
+        mediaStreamOverride = fileStream;
         when(s3Client.doesObjectExist((String) configuration.getBucket(),
                 transcribe.getRemoteId() + transcribe.getProperties().get("extension"))).thenReturn(false);
         when(s3Client.putObject(eq((String) configuration.getBucket()),
@@ -236,7 +252,7 @@ public class AWSTranscribeServiceTest
         String expectedErrorMessage = "Unable to upload media file to Amazon. REASON=[error (Service: null; Status Code: 0; Error Code: null; Request ID: null)].";
 
         when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
-        PowerMockito.whenNew(FileInputStream.class).withArguments(file).thenReturn(fileStream);
+        mediaStreamOverride = fileStream;
         when(s3Client.doesObjectExist((String) configuration.getBucket(),
                 transcribe.getRemoteId() + transcribe.getProperties().get("extension"))).thenReturn(false);
         when(s3Client.putObject(eq((String) configuration.getBucket()),
@@ -288,7 +304,7 @@ public class AWSTranscribeServiceTest
         String expectedErrorMessage = "Unable to start transcribe job on Amazon. REASON=[error (Service: null; Status Code: 0; Error Code: null; Request ID: null; Proxy: null)]";
 
         when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
-        PowerMockito.whenNew(FileInputStream.class).withArguments(file).thenReturn(fileStream);
+        mediaStreamOverride = fileStream;
         when(s3Client.doesObjectExist((String) configuration.getBucket(),
                 transcribe.getRemoteId() + transcribe.getProperties().get("extension"))).thenReturn(false);
         when(s3Client.putObject(eq((String) configuration.getBucket()),
@@ -335,50 +351,53 @@ public class AWSTranscribeServiceTest
         GetTranscriptionJobResult getTranscriptionJobResult = new GetTranscriptionJobResult();
         getTranscriptionJobResult.setTranscriptionJob(transcriptionJob);
 
-        mockStatic(HttpClients.class, EntityUtils.class);
-        CloseableHttpResponse response = mock(CloseableHttpResponse.class);
-        HttpEntity entity = mock(HttpEntity.class);
-        StatusLine statusLine = mock(StatusLine.class);
-        CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
+        try (MockedStatic<HttpClients> httpClientsMock = Mockito.mockStatic(HttpClients.class);
+                MockedStatic<EntityUtils> entityUtilsMock = Mockito.mockStatic(EntityUtils.class))
+        {
+            CloseableHttpResponse response = mock(CloseableHttpResponse.class);
+            HttpEntity entity = mock(HttpEntity.class);
+            StatusLine statusLine = mock(StatusLine.class);
+            CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
 
-        when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
-        when(transcribeClient.getTranscriptionJob(any())).thenReturn(getTranscriptionJobResult);
-        when(HttpClients.createDefault()).thenReturn(httpClient);
-        when(httpClient.execute(any(HttpGet.class))).thenReturn(response);
-        when(response.getStatusLine()).thenReturn(statusLine);
-        when(response.getEntity()).thenReturn(entity);
-        when(EntityUtils.toString(entity)).thenReturn(jsonString);
+            when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
+            when(transcribeClient.getTranscriptionJob(any())).thenReturn(getTranscriptionJobResult);
+            httpClientsMock.when(HttpClients::createDefault).thenReturn(httpClient);
+            when(httpClient.execute(any(HttpGet.class))).thenReturn(response);
+            when(response.getStatusLine()).thenReturn(statusLine);
+            when(response.getEntity()).thenReturn(entity);
+            entityUtilsMock.when(() -> EntityUtils.toString(entity)).thenReturn(jsonString);
 
-        Map<String, Object> props = new HashMap<>();
-        props.put("wordCountPerItem", 20);
-        props.put("silentBetweenWords", BigDecimal.valueOf(2));
+            Map<String, Object> props = new HashMap<>();
+            props.put("wordCountPerItem", 20);
+            props.put("silentBetweenWords", BigDecimal.valueOf(2));
 
-        TranscribeDTO transcribe = (TranscribeDTO) awsTranscribeService.get(remoteId, props);
+            TranscribeDTO transcribe = (TranscribeDTO) awsTranscribeService.get(remoteId, props);
 
-        verify(transcribeClient).getTranscriptionJob(any());
+            verify(transcribeClient).getTranscriptionJob(any());
 
-        assertNotNull(transcribe);
-        assertNotNull(transcribe.getTranscribeItems());
-        assertEquals(8, transcribe.getTranscribeItems().size());
-        assertEquals(new BigDecimal("1.44"), transcribe.getTranscribeItems().get(0).getStartTime());
-        assertEquals(new BigDecimal("8.45"), transcribe.getTranscribeItems().get(0).getEndTime());
-        assertEquals(99, transcribe.getTranscribeItems().get(0).getConfidence());
-        assertEquals("[spk_0]: welcome to English in a minute. Most of us know it's better to do or say something after we think",
-                transcribe.getTranscribeItems().get(0).getText());
-        assertEquals(new BigDecimal("56.01"), transcribe.getTranscribeItems().get(7).getStartTime());
-        assertEquals(new BigDecimal("58.94"), transcribe.getTranscribeItems().get(7).getEndTime());
-        assertEquals(99, transcribe.getTranscribeItems().get(7).getConfidence());
-        assertEquals("[spk_0]: activity. And that's English in a minute.",
-                transcribe.getTranscribeItems().get(7).getText());
+            assertNotNull(transcribe);
+            assertNotNull(transcribe.getTranscribeItems());
+            assertEquals(8, transcribe.getTranscribeItems().size());
+            assertEquals(new BigDecimal("1.44"), transcribe.getTranscribeItems().get(0).getStartTime());
+            assertEquals(new BigDecimal("8.45"), transcribe.getTranscribeItems().get(0).getEndTime());
+            assertEquals(99, transcribe.getTranscribeItems().get(0).getConfidence());
+            assertEquals("[spk_0]: welcome to English in a minute. Most of us know it's better to do or say something after we think",
+                    transcribe.getTranscribeItems().get(0).getText());
+            assertEquals(new BigDecimal("56.01"), transcribe.getTranscribeItems().get(7).getStartTime());
+            assertEquals(new BigDecimal("58.94"), transcribe.getTranscribeItems().get(7).getEndTime());
+            assertEquals(99, transcribe.getTranscribeItems().get(7).getConfidence());
+            assertEquals("[spk_0]: activity. And that's English in a minute.",
+                    transcribe.getTranscribeItems().get(7).getText());
 
-        // There is one item plus, because of the speaker label
-        assertEquals(21, transcribe.getTranscribeItems().get(0).getText().split(" ").length);
+            // There is one item plus, because of the speaker label
+            assertEquals(21, transcribe.getTranscribeItems().get(0).getText().split(" ").length);
 
-        // There is a silent between words, new item is created + speaker label
-        assertEquals(11, transcribe.getTranscribeItems().get(4).getText().split(" ").length);
+            // There is a silent between words, new item is created + speaker label
+            assertEquals(11, transcribe.getTranscribeItems().get(4).getText().split(" ").length);
 
-        // ... Last item length + speaker label
-        assertEquals(8, transcribe.getTranscribeItems().get(7).getText().split(" ").length);
+            // ... Last item length + speaker label
+            assertEquals(8, transcribe.getTranscribeItems().get(7).getText().split(" ").length);
+        }
     }
 
     @Test
@@ -400,48 +419,51 @@ public class AWSTranscribeServiceTest
         GetTranscriptionJobResult getTranscriptionJobResult = new GetTranscriptionJobResult();
         getTranscriptionJobResult.setTranscriptionJob(transcriptionJob);
 
-        mockStatic(HttpClients.class, EntityUtils.class);
-        CloseableHttpResponse response = mock(CloseableHttpResponse.class);
-        HttpEntity entity = mock(HttpEntity.class);
-        StatusLine statusLine = mock(StatusLine.class);
-        CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
+        try (MockedStatic<HttpClients> httpClientsMock = Mockito.mockStatic(HttpClients.class);
+                MockedStatic<EntityUtils> entityUtilsMock = Mockito.mockStatic(EntityUtils.class))
+        {
+            CloseableHttpResponse response = mock(CloseableHttpResponse.class);
+            HttpEntity entity = mock(HttpEntity.class);
+            StatusLine statusLine = mock(StatusLine.class);
+            CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
 
-        when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
-        when(transcribeClient.getTranscriptionJob(any())).thenReturn(getTranscriptionJobResult);
-        when(HttpClients.createDefault()).thenReturn(httpClient);
-        when(httpClient.execute(any(HttpGet.class))).thenReturn(response);
-        when(response.getStatusLine()).thenReturn(statusLine);
-        when(response.getEntity()).thenReturn(entity);
-        when(EntityUtils.toString(entity)).thenReturn(jsonString);
+            when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
+            when(transcribeClient.getTranscriptionJob(any())).thenReturn(getTranscriptionJobResult);
+            httpClientsMock.when(HttpClients::createDefault).thenReturn(httpClient);
+            when(httpClient.execute(any(HttpGet.class))).thenReturn(response);
+            when(response.getStatusLine()).thenReturn(statusLine);
+            when(response.getEntity()).thenReturn(entity);
+            entityUtilsMock.when(() -> EntityUtils.toString(entity)).thenReturn(jsonString);
 
-        Map<String, Object> props = new HashMap<>();
-        props.put("wordCountPerItem", 20);
-        props.put("silentBetweenWords", BigDecimal.valueOf(2));
+            Map<String, Object> props = new HashMap<>();
+            props.put("wordCountPerItem", 20);
+            props.put("silentBetweenWords", BigDecimal.valueOf(2));
 
-        TranscribeDTO transcribe = (TranscribeDTO) awsTranscribeService.get(remoteId, props);
+            TranscribeDTO transcribe = (TranscribeDTO) awsTranscribeService.get(remoteId, props);
 
-        verify(transcribeClient).getTranscriptionJob(any());
+            verify(transcribeClient).getTranscriptionJob(any());
 
-        assertNotNull(transcribe);
-        assertNotNull(transcribe.getTranscribeItems());
-        assertEquals(22, transcribe.getTranscribeItems().size());
-        assertEquals(new BigDecimal("1.390"), transcribe.getTranscribeItems().get(0).getStartTime());
-        assertEquals(new BigDecimal("7.720"), transcribe.getTranscribeItems().get(0).getEndTime());
-        assertEquals(98, transcribe.getTranscribeItems().get(0).getConfidence());
-        assertEquals("I've often said that i wish people could realize all their dreams and wealth fame and so that they could",
-                transcribe.getTranscribeItems().get(0).getText());
-        assertEquals(new BigDecimal("169.120"), transcribe.getTranscribeItems().get(21).getStartTime());
-        assertEquals(new BigDecimal("177.730"), transcribe.getTranscribeItems().get(21).getEndTime());
-        assertEquals(61, transcribe.getTranscribeItems().get(21).getConfidence());
-        assertEquals("Wait", transcribe.getTranscribeItems().get(21).getText());
+            assertNotNull(transcribe);
+            assertNotNull(transcribe.getTranscribeItems());
+            assertEquals(22, transcribe.getTranscribeItems().size());
+            assertEquals(new BigDecimal("1.390"), transcribe.getTranscribeItems().get(0).getStartTime());
+            assertEquals(new BigDecimal("7.720"), transcribe.getTranscribeItems().get(0).getEndTime());
+            assertEquals(98, transcribe.getTranscribeItems().get(0).getConfidence());
+            assertEquals("I've often said that i wish people could realize all their dreams and wealth fame and so that they could",
+                    transcribe.getTranscribeItems().get(0).getText());
+            assertEquals(new BigDecimal("169.120"), transcribe.getTranscribeItems().get(21).getStartTime());
+            assertEquals(new BigDecimal("177.730"), transcribe.getTranscribeItems().get(21).getEndTime());
+            assertEquals(61, transcribe.getTranscribeItems().get(21).getConfidence());
+            assertEquals("Wait", transcribe.getTranscribeItems().get(21).getText());
 
-        assertEquals(props.get("wordCountPerItem"), transcribe.getTranscribeItems().get(0).getText().split(" ").length);
+            assertEquals(props.get("wordCountPerItem"), transcribe.getTranscribeItems().get(0).getText().split(" ").length);
 
-        // There is a silent between words, new item is created
-        assertEquals(13, transcribe.getTranscribeItems().get(1).getText().split(" ").length);
+            // There is a silent between words, new item is created
+            assertEquals(13, transcribe.getTranscribeItems().get(1).getText().split(" ").length);
 
-        // ... Also at the end there is silent between words. New item is created
-        assertEquals(1, transcribe.getTranscribeItems().get(21).getText().split(" ").length);
+            // ... Also at the end there is silent between words. New item is created
+            assertEquals(1, transcribe.getTranscribeItems().get(21).getText().split(" ").length);
+        }
     }
 
     public AWSTranscribeConfigurationService getAwsTranscribeConfigurationService()

@@ -69,10 +69,10 @@ import java.util.stream.Collectors;
  * The ArkCase WAR file should configure the deployment folder in a Tomcat context resources element, such that
  * files in this deployment folder are treated as if they were in the root folder of the war file itself.
  * <p>
- * Yarn and npm (the Node.js Package Manager) must be installed on the deployment host, and npm must be in the
+ * Node.js and npm (the Node.js Package Manager) must be installed on the deployment host, and npm must be in the
  * system path.
  * <p>
- * The resources to be copied from the war file and extension jars; the front-end commands to be run (e.g. yarn,
+ * The resources to be copied from the war file and extension jars; the front-end commands to be run (e.g. npm,
  * grunt); and the resources to be copied to the deployment folder are configured in Spring. All resources to
  * be copied from the war file and extension jars must be within a top-level resources folder.
  */
@@ -127,7 +127,7 @@ public class AngularResourceCopier implements ServletContextAware
                 copiedFiles.add(copied);
             }
 
-            // yarn install
+            // npm ci
             runFrontEndBuildCommand(tmpDir, yarnInstallCommand);
             // add 'customer' as specific profile, so if any customer resources are present will come
             // on top of core and extension resources
@@ -148,13 +148,13 @@ public class AngularResourceCopier implements ServletContextAware
             log.debug("Found {} files in tmp folder", tmpFilesFound.size());
 
             // delete all files that exist in the tmp dir, but we didn't copy them there; such files must have been
-            // removed from the project. Exceptions are files managed by yarn and grunt: lib folder, node_modules
-            // folder, bower_components folder, yarn.lock
+            // removed from the project. Exceptions are files managed by npm and grunt: lib folder, node_modules
+            // folder, bower_components folder, package-lock.json
             
             List<File> oldFilesInTmpFolder = tmpFilesFound.stream()
                     .filter(p -> !p.contains("node_modules"))
                     .filter(p -> !p.contains("bower_components"))
-                    .filter(p -> !p.endsWith("yarn.lock"))
+                    .filter(p -> !p.endsWith("package-lock.json"))
                     .filter(p -> !p.startsWith(libFolderPath))
                     .filter(p -> !copiedFiles.contains(p))
                     .peek(p -> log.debug("File to be removed: {}", p))

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ArkCase runtime modernization : archived JDK 8 baseline unit test report
+
+  Module       : acm-service-ms-outlook-integration
+  Test class   : com.armedia.acm.service.outlook.service.impl.OutlookRecreatableCalendarServiceImplTest
+  Derived from : acm-services/acm-service-ms-outlook-integration/src/test/java/com/armedia/acm/service/outlook/service/impl/OutlookRecreatableCalendarServiceImplTest.java
+  Base commit  : c8f6226105c28c2743281d26bf21ad73f7bb7f26
+  Baseline this file documents : JDK 8, the pre-migration runtime, unit test phase only
+
+  ==========================================================================
+  1. PROVENANCE. DERIVED FROM TEST SOURCE, NOT CAPTURED FROM A RUN
+  ==========================================================================
+
+  This report was DERIVED FROM THE MODULE TEST SOURCE at the base commit named
+  above. It was NOT produced by an executed test run. The capture this archive
+  is meant to hold, a unit test run on JDK 8 at the base commit before any
+  migration file was edited, could not be performed in this checkout. The
+  reason is recorded here rather than left to inference.
+
+  Environment probe, run in this checkout and reported exactly as observed:
+
+    java  resolves on the search path and IS present
+    javac resolves on the search path and IS present
+    mvn   resolves on the search path and IS present
+    the system JVM directory IS present
+    a local artifact repository under the home directory IS present
+
+  Those five findings are recorded as observed, because an evidence file that
+  misstates its own environment is not evidence. The decisive fact is narrower
+  and stronger than a missing toolchain: the ONLY runtime installed anywhere
+  in this checkout is the TARGET runtime of the migration. NO JDK 8 runtime is
+  installed, neither in the system JVM directory nor elsewhere. A JDK 8
+  capture is therefore impossible here, and installing a JDK 8 runtime in
+  order to make the capture look complete is forbidden. No tool, runtime or
+  package was installed for this file. Only POSIX utilities already present
+  were used.
+
+  Two further independent blockers were verified, and are recorded so that no
+  reader assumes a retry in this checkout would succeed:
+
+    a. The "before any file was edited" precondition has already lapsed on
+       this branch. Six commits and 128 changed files separate the base commit
+       from the current head, and within this module the POM, this very test
+       class and two of the three integration test classes have already been
+       edited. Restoring the base state would require altering the working
+       tree, which is not permitted.
+
+    b. Nothing was salvageable. This checkout contains no unit test report
+       output directory and no report of this kind anywhere outside this
+       documentation tree, and no report of this kind has ever been tracked in
+       this repository's recorded history.
+
+  A run on the target runtime would NOT be a substitute for a JDK 8 capture.
+  Its output would be an artifact of that runtime rather than observed
+  baseline behaviour, and archiving it as a JDK 8 baseline would be inventing
+  evidence.
+
+  ==========================================================================
+  2. WHAT IS ACCURATE HERE, AND WHAT ASSERTS NO OUTCOME
+  ==========================================================================
+
+  ACCURATE. Read from the test source and reconfirmed against the base commit
+  revision itself rather than against the current head:
+
+    name        The package declaration at source line 4 and the class
+                declaration at source line 54 together give the fully
+                qualified class name carried by the name attribute below.
+
+    tests="1"   The class declares exactly ONE test method. The test
+                annotation occurs once, at source line 76, and the method it
+                annotates, testClearFolderRecreatedFlag, is declared at source
+                line 77. The class declares no setup and no teardown method of
+                any kind, so no synthetic test case can arise. The method name
+                and the count are identical at the base commit and at the
+                current head.
+
+    skipped="0" There is no ignore annotation anywhere in this module's test
+                tree. None was added by this work.
+
+  ASSERTS NO MEASURED OUTCOME. Validation asserts on produced artifacts and
+  captured output, never on process exit status alone, and it may not assert a
+  measured value that no run produced. Accordingly:
+
+    failures="0" and errors="0" record that NO baseline failure and NO
+    baseline error is on record for this class. They are not observed results.
+    No register may cite an OUTCOME from this file. The test case inventory,
+    which is read from source, may be relied upon. The outcome attributes may
+    not.
+
+    Every time attribute is 0 because nothing was executed and no elapsed time
+    was measured at all. A duration was NOT invented, because a fabricated
+    duration asserts a measurement that never happened.
+
+  DELIBERATELY OMITTED, disclosed here rather than left silent:
+
+    a. The host name attribute. A genuine capture legitimately carries one.
+       None is written here, because no host executed this report.
+
+    b. The timestamp attribute, for the same reason.
+
+    c. The system property block. A genuine capture carries one. Its values
+       were never observed, so writing any would be fabrication. That block is
+       also the plausible carrier of an absolute filesystem path, of a
+       successor namespace token by way of a class path value, and of a JVM
+       argument that opens or exports an otherwise encapsulated JDK package to
+       the unnamed module. Omitting it is therefore both honest and safe.
+
+  A hand edited capture is not evidence. Nothing here was trimmed, tidied or
+  normalised to look better than it is, and every zero and every omission
+  above is disclosed rather than quietly taken.
+
+  ==========================================================================
+  3. THE EMPTY OUTPUT PAYLOAD IS AN OBSERVATION, NOT AN OMISSION
+  ==========================================================================
+
+  The standard output and standard error elements below are present and empty.
+  That emptiness is a finding about the code path, not a gap in the record:
+
+    a. The method under test, clearFolderRecreatedFlag on
+       OutlookRecreatableCalendarServiceImpl in this module's main source, is
+       three statements long, and its class declares no logger field and makes
+       no logging call.
+
+    b. This module's own test logging configuration, at
+       acm-services/acm-service-ms-outlook-integration/src/test/resources/log4j2.xml,
+       routes the com.armedia logger hierarchy at debug level to a console
+       appender whose target is standard output. Any log output on this path
+       WOULD therefore have landed in the standard output element. There is
+       none.
+
+  No log line was invented.
+
+  ==========================================================================
+  4. THE FOUR CLASSES IN THIS MODULE THAT GET NO REPORT HERE
+  ==========================================================================
+
+  This module's test tree holds exactly five java source files. Exactly one of
+  them, the class reported on below, is selected by a unit test run. The other
+  four have no report in this folder, by design.
+
+  THREE INTEGRATION TEST CLASSES: JPAAcmOutlookFolderCreatorDaoIT,
+  OutlookCalendarAdminServiceIT and OutlookServiceRetryLogicIT. The
+  integration test runner's execution binds its integration test goal and its
+  verify goal with no explicit phase element, so both goals take their default
+  phases, and both of those fall after the test phase at which the baseline
+  unit test command stops. AN ABSENT INTEGRATION TEST IS NEITHER A PASS NOR A
+  FAILURE, AND MAY NEVER JUSTIFY A TEST EXCLUSION.
+
+  ONE HELPER CLASS: FakeVerifier. It is a plain stub implementing the calendar
+  service and email credentials verifier interfaces, and it is a non test for
+  two independent reasons. First, its file name matches none of the unit test
+  runner's default include patterns, so it is never even considered. Second,
+  even if it were considered, the runner accepts a class only when that class
+  carries a runner annotation, extends the legacy test case class, or declares
+  at least one test method, and this class satisfies none of the three: its
+  only annotations are eight override markers. Writing a report for a non test
+  would be a fabricated evidence file, and it would additionally seed a
+  register row citing a class that never ran.
+
+  ==========================================================================
+  5. HOW TO CITE AND HOW TO COMPARE THIS FILE
+  ==========================================================================
+
+  CITATION FORM. The baseline test failures register derives its rows from XML
+  archived in this tree and cites files by path. The citable path for this
+  report is:
+
+    docs/migration/smoke-evidence/baseline/surefire/acm-service-ms-outlook-integration/TEST-com.armedia.acm.service.outlook.service.impl.OutlookRecreatableCalendarServiceImplTest.xml
+
+  That name is locked and must not drift by a single character, because a
+  citation to an evidence file that does not exist fails the register's own
+  standard.
+
+  COMPARISON BASIS. This archive is NOT comparable byte for byte, unlike the
+  five frontend build artifacts whose gate genuinely is byte identity. Report
+  XML unavoidably carries elapsed time, host and timestamp detail that
+  legitimately differs between runs. Archived in its entirety governs content
+  completeness, not byte identity. Judge baseline against migrated on TEST
+  CASE PRESENCE, TEST CASE OUTCOME and FAILURE MESSAGE CONTENT, never on raw
+  bytes. The migrated mirror must carry this identical file name so that a
+  recursive directory comparison maps report to report.
+
+  BASELINE FAILURES ARE NEVER TIDIED. A test failing at baseline is captured
+  AS FAILING, and is never fixed, skipped or reworded. None is recorded here
+  because no run occurred, and the absence of a recorded failure must not be
+  read as a pass.
+
+  ==========================================================================
+  6. RULES PROVENANCE. BOTH FACTS, STATED TOGETHER
+  ==========================================================================
+
+  FACT 1. There is no on-disk user rules document for this project. The rules
+  facility was queried, including a forced complete read, and returned plainly
+  that no user rules were provided. There is therefore no external full text
+  source to defer to. This is stated explicitly, and it is NOT licence to
+  lower the bar.
+
+  FACT 2. Rules are nonetheless present and binding. The migration
+  requirements embed an explicit numbered block of seven rules, plus seven
+  transformation rules, and those govern this work in full exactly as an
+  external rules document would.
+
+  Both facts are stated together deliberately. Reporting only the first would
+  imply that enterprise best practice is the sole standard here, which is
+  wrong, because fourteen specific constraints apply. Reporting only the
+  second would misrepresent where the rules came from. The identifiers the
+  migration plan uses for these rules are that plan's own navigational
+  convention, not quoted titles. No rule was invented and none was softened.
+
+  MODULE ACCESS AUDIT. This file was searched for JVM argument names that open
+  or export an otherwise encapsulated JDK package to the unnamed module. The
+  result is ZERO, and it is an EARNED zero rather than an incidental one:
+  every accessibility failure in this migration sat inside a TEST library and
+  was resolved by upgrading that library or by removing it, never by widening
+  module access in production launch configuration. The plausible carrier of
+  such a token, the system property block, is absent by design as recorded in
+  section 2. The register that catalogues such exceptions is delivered empty
+  and is referred to here BY TITLE ONLY, as the JDK internal access exceptions
+  register, because its own file name embeds a token this documentation tree
+  forbids.
+
+  NAMESPACE INVARIANCE. This file carries zero successor namespace tokens. The
+  javax names that appear in this module's sources are correct and are
+  preserved there untouched.
+
+  ==========================================================================
+  7. TWO FALSE POSITIVES, PRE EMPTED
+  ==========================================================================
+
+  a. RETRY HERE IS NOT TEST RERUN TOOLING. This module holds an integration
+     class named OutlookServiceRetryLogicIT, which makes it the likeliest
+     module in this archive to invite a false inference from a reader who
+     searches for the word retry. A rerun count setting appears in ZERO of the
+     reactor's POMs and no test retry plugin is declared anywhere, so a
+     baseline failure is real and reproducible and failing fast is safe. The
+     reactor does contain an application level retry library, declared as a
+     root version property, managed centrally and consumed by three child
+     modules, but it has nothing whatsoever to do with test reruns. The
+     integration class named above exercises APPLICATION retry behaviour
+     toward the mail service, and it produces no report here in any case.
+
+  b. A COVERAGE EXCLUSION IS NOT A TEST EXCLUSION. The root coverage plugin
+     declares eight package globs, five marked as carrying no test coverage
+     and three as falling under the configured minimum ratio. This module's
+     outlook service package glob is among those three. Such globs exclude
+     packages from coverage MEASUREMENT only. NO TEST IS DISABLED BY THEM, and
+     this folder is the concrete counter evidence: a report is archived here
+     for a class whose package is coverage excluded. That is precisely why a
+     coverage exclusion must never be presented as a test exclusion in the
+     register's sense.
+-->
+<testsuite name="com.armedia.acm.service.outlook.service.impl.OutlookRecreatableCalendarServiceImplTest" tests="1" errors="0" skipped="0" failures="0" time="0">
+  <testcase name="testClearFolderRecreatedFlag" classname="com.armedia.acm.service.outlook.service.impl.OutlookRecreatableCalendarServiceImplTest" time="0"/>
+  <system-out/>
+  <system-err/>
+</testsuite>

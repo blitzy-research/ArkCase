@@ -243,7 +243,7 @@ public class AWSComprehendMedicalServiceImpl implements ComprehendMedicalService
     {
         if (mediaEngineDTO != null)
         {
-            try (InputStream inputStream = new FileInputStream(mediaEngineDTO.getMediaEcmFileVersion()))
+            try (InputStream inputStream = openMediaStream(mediaEngineDTO.getMediaEcmFileVersion()))
             {
                 AWSComprehendMedicalConfiguration configuration = getAwsComprehendMedicalConfigurationService().getAwsComprehendMedicalConfiguration();
 
@@ -268,6 +268,17 @@ public class AWSComprehendMedicalServiceImpl implements ComprehendMedicalService
         }
 
         throw new CreateMediaEngineToolException("Unable to upload media file to Amazon. File not provided.");
+    }
+
+    /**
+     * Test seam. Opens the media file for upload. Package/subclass-visible so a test can supply a
+     * stub stream: java.io.FileInputStream is loaded by the bootstrap class loader and therefore
+     * cannot be intercepted by Mockito construction mocking. Production behavior is unchanged --
+     * this method does exactly what the inlined constructor call did.
+     */
+    protected InputStream openMediaStream(File mediaFile) throws IOException
+    {
+        return new FileInputStream(mediaFile);
     }
 
     private StartEntitiesDetectionV2JobResult startComprehendMedicalJob(MediaEngineDTO mediaEngineDTO) throws CreateMediaEngineToolException

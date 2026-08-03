@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ARCHIVED BASELINE UNIT TEST REPORT
+
+  WHAT THIS FILE IS. This is the archived per module unit test report for the test
+  class com.armedia.acm.compressfolder.web.api.FolderCompressorAPIControllerTest in
+  the Maven module acm-service-compress-folder. Its capture target is the JDK 8
+  runtime at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26, that is, the
+  state of the reactor as it stood before any file in the runtime modernization was
+  edited. It is the second and last report in this folder. The first is the report
+  for com.armedia.acm.compressfolder.FolderCompressorTest, which was authored ahead
+  of this one and sets the conventions this file follows deliberately, element for
+  element, attribute for attribute and property for property, so that the recursive
+  comparison against the migrated mirror stays mechanical rather than noisy.
+
+  WORDING SUBSTITUTION, DISCLOSED. The older runtime is written as "JDK 8"
+  everywhere in this file. The alternative two word rendering of the same runtime
+  name is forbidden by this documentation tree's wording gate, so the substitution
+  is disclosed here rather than made silently. It changes no meaning. The newer
+  runtime is written as Java 17, which that gate does not affect.
+
+  WHY THIS ARCHIVE EXISTS. Rule R-5, verbatim: "Failing tests must not be disabled,
+  and exclusions are limited to failures already present at baseline." This archive
+  is therefore the only evidence that could ever justify a later test exclusion for
+  this class in acm-service-compress-folder. Without it the baseline test failures
+  register is unfalsifiable for this class. That rule cuts the other way as well,
+  and did: the six test classes that depended on the removed mocking framework were
+  rewritten onto the retained mocking library, with every assertion left unmodified,
+  rather than excluded, and not one of those six sits in this module.
+
+  WHY THIS MODULE IS IN SCOPE, AND THE ASYMMETRY THAT IS THE POINT. The module is a
+  change set module: its own POM declared the removed mocking framework, by way of
+  the artifact that exposes that framework's API in the EasyMock idiom, with no
+  version element of its own so the version was inherited from the aggregator, and
+  it loses that declaration. The asymmetry, verified by reading the module's entire
+  test tree, is that the removed framework is referenced zero times in either of the
+  module's two test classes, so the removal is a pure POM level deletion with zero
+  source impact. That is exactly what makes this report valuable as evidence:
+  because no test code changes, the migrated counterpart must show identical
+  testcase outcomes, and any difference isolates the POM edit or the runtime rather
+  than a test rewrite. This report is the control for the removal. The removal
+  itself is forced rather than chosen. The removed framework's final release fails
+  on the target runtime with an inaccessible object error on a core JDK method, and
+  that final release is the last the project ever published, so there is no version
+  to upgrade to. Removing it is also the mechanism that lifts its hard pins on an
+  older mocking core release and on an older unit test framework release, which is
+  what allows the retained mocking library to advance, and it cascades away three
+  transitive constraint exclusion blocks in the root aggregator that existed only to
+  constrain it. The library those blocks constrained now appears in no POM at all.
+
+  NO INLINE MOCKING DEPENDENCY FOR THIS MODULE. Only the six modules whose rewritten
+  tests need static or construction mocking receive an inline mock maker artifact.
+  This module is not one of them, its two test classes need neither capability, and
+  its POM carries no mocking library declaration beyond EasyMock. Adding one here
+  would be a change without a reason, which rule R-1 places out of scope, so none is
+  added and none is implied.
+
+  THE EASYMOCK BEFORE PICTURE. The class extends the EasyMock support base class and
+  leans on the library throughout: two mocks created in the fixture, one for the
+  folder compressor implementation and one for the authentication token, the static
+  expectation and argument matcher entry points, and the replay all and verify all
+  helpers, each used once per test method. The EasyMock floor advance is the change
+  with the widest POM footprint in the whole migration, because the release
+  installed at the base commit and the intermediate release after it fail
+  identically on the target runtime with an inaccessible object error raised from
+  the library's own class proxy factory, and only a considerably later release
+  succeeds. This report, describing the module as it stood under the old release, is
+  the before picture for that upgrade. Every assertion in the class is left
+  unmodified by the migration.
+
+  THE REST CONTRACT SURFACE THIS REPORT COVERS, WHICH IS WHAT DISTINGUISHES IT FROM
+  ITS SIBLING. The sibling report covers the compression service itself. This one
+  covers the module's REST controller, driven through the Spring MVC test support in
+  a standalone setup with the context's own exception resolver injected into it, and
+  that is what makes this report the module level behavioural evidence for a
+  preservation claim the migration states explicitly: REST API contracts are
+  preserved, meaning request paths, HTTP verbs, request and response shapes and
+  authentication behaviour all stay as they are, with no controller signature
+  change, no request mapping change and no serialised field change. Four request
+  contracts are covered by the four test methods listed below, and every one of them
+  is described here as coverage and never as an observed result. First, a GET on the
+  path api/v1/service/compressor with the folder identifier as a path variable, sent
+  with a JSON media type in the accept header, covering an OK status, a response
+  content type that begins with the JSON media type, and a JSON body deserialised
+  into the controller's own response type and read for the compressed file name.
+  Second, that same path when the compression service raises a folder exception,
+  covering an internal server error status produced by the injected exception
+  resolver rather than by the controller. Third, a GET on
+  api/v1/service/compressor/download with the folder identifier as a path variable
+  and an HTTP session attached, covering an OK status, a content type of exactly
+  application/zip, and a content disposition header of exactly
+  attachment; filename="acm-101-ROOT.zip". Fourth, a POST on
+  api/v1/service/compressor/download carrying a JSON request body that describes a
+  root folder and its selected nodes, together with an authenticated principal, a
+  ZIP accept header and a session, covering an OK status and the passing of the
+  authenticated principal through into the compression operation. Compression output
+  also feeds the document handling smoke flow, so a report here that is unchanged
+  between baseline and migrated supports that flow level comparison rather than
+  duplicating it. Describing this surface is required. Asserting that any of these
+  outcomes was observed in a run that did not occur is forbidden, and nothing in
+  this file does that.
+
+  PROVENANCE STATUS: DERIVED FROM TEST SOURCE, NOT EXECUTED. The genuine capture
+  path was attempted first, as the mandated ordering requires, and it is impossible
+  here on three independently verified grounds. First, no JDK 8 toolchain exists in
+  this environment: the only development kit installed is a Java 17 one, the system
+  directory that holds JVM installations holds Java 17 alone, the alternatives
+  registry offers no other Java candidate, and rule R-1 forbids installing another
+  because "A change without a reason is out of scope." Second, there is nothing to
+  relocate: the module has no build output directory, and a search of the whole
+  checkout finds no natively produced report for this class anywhere outside this
+  documentation tree, so the mandated relocation of a natively produced file has no
+  source. Third, the pre migration state is no longer present in the working tree,
+  because the tree already carries the migration commits that sit on top of the base
+  commit, so the irreversible ordering constraint that the baseline be taken before
+  any edit has already passed.
+
+  WHAT MAKES THE DERIVED INVENTORY FAITHFUL ANYWAY. The class name and the four test
+  method names below are read, in declaration order, from
+  acm-services/acm-service-compress-folder/src/test/java/com/armedia/acm/compressfolder/web/api/FolderCompressorAPIControllerTest.java
+  and that file was verified byte for byte identical at the base commit and at the
+  current revision by digest comparison, while the module's entire test source tree
+  shows no change since the base commit. The inventory is therefore faithful to the
+  base commit even though it was read from the working tree. The class carries a
+  runner annotation naming the Spring JUnit 4 runner, so the unit test runner's
+  JUnit 4 checker admits it on the runner annotation branch, and it would equally be
+  admitted on the branch that accepts a class declaring at least one test annotated
+  method. The single fixture method, bound to the before annotation, is a fixture
+  and deliberately does not appear as a testcase element. There is no fifth test
+  method and none is invented.
+
+  WHAT IS AND IS NOT ASSERTED. Asserted: the fully qualified class name, the test
+  count of four, a skipped count of zero, and the four method names, all of them
+  read from that source file. Not asserted: any outcome whatsoever. No pass, no
+  failure and no skip is claimed, because rule R-T7 requires that "Validation
+  asserts on produced artifacts and captured output, never on process exit status
+  alone" and therefore forbids asserting an outcome that no run produced. Read this
+  plainly: the ABSENCE of a failure, error or skipped child element below records
+  OUTCOME NOT CAPTURED, and emphatically NOT PASSED. A derived capture is not
+  evidence of a run and must never be presented as one.
+
+  OMITTED ATTRIBUTES, AND WHY EACH IS OMITTED. The testsuite element carries no
+  failures attribute and no errors attribute, because writing either as zero would
+  affirmatively claim an absence of failures, which is precisely the pass claim rule
+  R-T7 forbids. It carries no time attribute, and no testcase carries one, because a
+  duration is a measurement only a real run can produce and a fabricated duration
+  would be worse than a missing one. It carries no hostname attribute and no
+  timestamp attribute for the same reason, with the added hazard that a hostname
+  identifies an execution environment that never executed anything. Only values
+  derivable from source are retained. The skipped count of zero is legitimate on
+  exactly that basis: the class declares no ignore annotation, which is a source
+  fact rather than a measurement, so the count would also be zero in a real run.
+
+  WHY THE PROPERTIES ELEMENT HOLDS PROVENANCE RATHER THAN A SYSTEM PROPERTY DUMP. A
+  fabricated dump would violate rule R-T7 twice over, once by inventing captured
+  data and once by dressing derivation up as execution. It would also be the
+  principal carrier for the very tokens this documentation tree audits for: a class
+  path property value is a real carrier for successor namespace artifact names, and
+  a JVM arguments property value is a real carrier for module access tokens.
+  Omitting the dump removes that risk at the root, and the space is spent instead on
+  machine readable derivation provenance that a reviewer can act on. This class
+  reads no system property and sets none, so nothing a test could place into the
+  environment can reach this archive either.
+
+  REPLACEMENT OBLIGATION. When a JDK 8 toolchain is available, replace this file
+  with the genuine report relocated unchanged out of the module build output
+  directory. Relocate, never rename: the native filename produced by the unit test
+  runner is already exactly the filename this file uses, prefix and dotted fully
+  qualified class name and extension included, the dotted package segment web.api
+  among them. Relocation is mandatory rather than cosmetic, because the repository
+  ignores the build output directory name at any depth, so a report left in place is
+  invisible to version control and the citation contract silently breaks. Retain the
+  genuine content in its entirety: every testcase, every failure or error body with
+  its full stack trace, every skipped element, and the console output payload, all
+  verbatim. Above all, retain a baseline failure AS FAILING. Rule R-6, verbatim:
+  "Pre-existing bugs discovered during the work are documented rather than fixed,
+  unless one blocks a validation item." Do not fix it, do not skip it, do not tidy
+  the report. The migration's escape clause to that rule is invoked exactly twice in
+  total, and neither invocation is in this folder or anywhere else in this evidence
+  tree, so the count stays auditable.
+
+  FORWARD GUIDANCE FOR THAT GENUINE CAPTURE. Two content carriers are already known,
+  so handle them deliberately rather than stumbling into them. The class holds a
+  logger, and the first test method logs exactly one line, a fixed prefix followed
+  by the response body, so a real capture would plausibly carry that single line as
+  console output; it is recorded here as guidance only and is deliberately not
+  invented below, because inventing console content would be fabrication rather than
+  evidence. The fixture also resolves a zip fixture from the classpath and the third
+  and fourth test methods use that resolved path, so a real capture can carry an
+  absolute filesystem path; replace any absolute path with a described placeholder
+  and log the substitution in the sibling notes directory of this evidence tree.
+  Redact nothing that is not a secret. On credentials this class is already safe, and
+  that was verified rather than assumed: the only principal name it uses is a user
+  identifier with no password beside it, and there is no password literal anywhere in
+  either of the module's two test classes, so the recursive credential gate over this
+  tree is not at risk here, though it must still be run.
+
+  GOVERNING RULE PROVENANCE, BOTH FACTS STATED TOGETHER. First, the project's rules
+  facility returns, verbatim and in its entirety, that no user rules were provided,
+  confirmed by a forced complete read of the whole document, so there is no on disk
+  user rules document for this project and no external full text source to defer to.
+  Second, rules are nonetheless present and binding: the requirements embed a
+  numbered block of seven core rules and seven transformation rules that govern in
+  full, exactly as an external rules document would. Recording only the first fact
+  would falsely imply that enterprise best practice is the sole standard here;
+  recording only the second would misrepresent where the rules came from. The R and
+  R-T identifiers used in this file are the plan's own navigational convention and
+  not quoted titles. No rule is invented and none is softened, and best practice
+  applies on top of them rather than as a substitute.
+
+  RULE R-7, QUOTED WITH ITS DISCLOSED SUBSTITUTION. "The application's observed
+  behavior at the base commit on JDK 8 is the tie-breaker for any ambiguity, and
+  each resolution must be documented." Editorial note, which must never be omitted
+  when this rule is quoted in this tree: the rule's own text names the older runtime
+  with a phrase this documentation tree's wording gate forbids; the substitution
+  changes no meaning and is disclosed here rather than made silently.
+
+  RULE R-2, PARAPHRASED RATHER THAN QUOTED BECAUSE ITS OWN TEXT CARRIES A LITERAL
+  THIS TREE FORBIDS. It requires that production launch configuration not depend on
+  access to JDK internals, save where a pinned third party dependency documentedly
+  requires it, and that each such exception be documented. An audit of this file for
+  module access tokens and for illegal access tokens returns zero, and that zero is
+  earned rather than assumed: every accessibility failure encountered anywhere in
+  this migration was inside a test library, and each was resolved by upgrading or by
+  removing that library, never by widening access to an encapsulated JDK package.
+  The register that would hold such exceptions is referred to here by title only, as
+  the register of JDK internal access exceptions, because its own filename embeds a
+  token this tree audits for; it is delivered empty, and empty is the correct and
+  truthful state.
+
+  RULE R-T3, PARAPHRASED. Where a dependency fails under the platform's stronger
+  encapsulation, the resolution is to upgrade or replace that dependency, never to
+  widen module access in production launch configuration. That rule is precisely why
+  the EasyMock floor advances and why the other mocking framework is removed
+  outright, and therefore precisely why this pre upgrade report is worth archiving as
+  the before picture.
+
+  WHERE THE TREE LEVEL LOG LIVES. The tree level provenance and substitution log
+  belongs in the sibling notes directory of this evidence tree, at
+  docs/migration/smoke-evidence/baseline/surefire/notes. It is a sibling of this
+  folder and not a child of it, and it is deliberately not created here, because rule
+  R-1 admits only report XML into this folder. No absolute path substitution and no
+  forbidden token substitution was needed for this file, so this file contributes
+  nothing to that log beyond the wording and quotation substitutions already
+  disclosed above.
+
+  THIS FILE IS NOT BYTE IDENTICAL COMPARABLE. The migrated mirror of this folder, at
+  docs/migration/smoke-evidence/migrated/surefire/acm-service-compress-folder, must
+  reproduce this layout exactly, with both filenames identical, so that a recursive
+  directory comparison maps report to report. Byte identity is not the standard, and
+  could not be: a genuine report unavoidably carries duration, hostname and timestamp
+  attributes and a system property dump. The requirement that a report be archived in
+  its entirety governs content completeness, not byte identity. Judge the comparison
+  on testcase presence, on testcase outcome, and on failure message content. Byte
+  identity is a separate gate belonging to the five built frontend artefacts and it
+  has no bearing here. The migrated mirror does not exist yet, so this layout is the
+  reference shape.
+
+  CITATION CONTRACT. The baseline test failures register, a mandated deliverable of
+  this same change set at docs/migration/baseline-test-failures.md, derives every row
+  from XML archived in this tree and cites each source file by path, in the form
+  docs/migration/smoke-evidence/baseline/surefire/MODULE/TEST-FULLY.QUALIFIED.CLASS.xml
+  where MODULE is the module directory name alone, here acm-service-compress-folder,
+  and never the reactor path that carries its parent directory, and never a path
+  threaded through an intermediate build output directory. For this class the
+  citation is therefore
+  docs/migration/smoke-evidence/baseline/surefire/acm-service-compress-folder/TEST-com.armedia.acm.compressfolder.web.api.FolderCompressorAPIControllerTest.xml
+  in full, dotted package segment web.api included. That register's own validation
+  standard fails a citation that points at an evidence file which does not exist,
+  which is why this file is populated with a real report rather than any form of
+  placeholder.
+
+  EXCLUSION: NO INTEGRATION TEST REPORT BELONGS IN THIS FOLDER. A search of the
+  module's test tree for the integration test filename suffix returns nothing, so
+  the module has no integration test to report on. Independently, the root aggregator
+  declares the integration test runner with no explicit phase element, so both of its
+  bound goals take their default phases and both of those fall after the unit test
+  phase; a unit test run consequently produces no integration test report at all. An
+  absent integration test is neither a pass nor a failure and may never be cited to
+  justify a test exclusion.
+
+  EXCLUSION: NO NON TEST HELPER REPORT. The unit test runner's JUnit 4 checker admits
+  a class only when it carries a runner annotation, or extends the legacy test case
+  base class, or declares at least one test annotated method; a class that matches an
+  include pattern while satisfying none of those yields no report. This module holds
+  exactly two test source files and both are admitted, so a third report is not
+  possible and its absence is not evidence of anything.
+
+  FALSE POSITIVE ONE: THE REACTOR'S RETRY LIBRARY IS NOT TEST RETRY TOOLING. A
+  reviewer grepping this repository for the word retry will find an application level
+  retry library, and should not conclude that this archive is unsound. No rerun count
+  configuration appears in any of the reactor's POMs and no test retry plugin is
+  declared anywhere, so a failure observed at baseline is real and reproducible and
+  failing fast is safe. That library is an application dependency with nothing
+  whatever to do with rerunning tests.
+
+  FALSE POSITIVE TWO: COVERAGE EXCLUSIONS ARE NOT TEST EXCLUSIONS. The root
+  aggregator configures the coverage plugin with exactly eight package glob
+  exclusions. Those suppress coverage measurement only, they disable no test
+  whatsoever, and not one of them matches this module's package. One related point
+  binds anyone editing the build: the coverage agent goal communicates with the unit
+  test runner through the default argument line property export, and the coverage
+  report and threshold goals are both bound to the unit test phase with a minimum
+  line coverage ratio of two hundredths. A newly added unit test runner declaration
+  must therefore NOT set a literal argument line element, because doing so silently
+  severs instrumentation and leaves the threshold goal evaluating an empty data set,
+  which reports a false pass. Instrumentation must be verifiably live.
+-->
+<testsuite name="com.armedia.acm.compressfolder.web.api.FolderCompressorAPIControllerTest" tests="4" skipped="0">
+  <properties>
+    <property name="arkcase.baseline.module" value="acm-service-compress-folder"/>
+    <property name="arkcase.baseline.test.class" value="com.armedia.acm.compressfolder.web.api.FolderCompressorAPIControllerTest"/>
+    <property name="arkcase.baseline.runtime.target" value="JDK 8"/>
+    <property name="arkcase.baseline.base.commit" value="c8f6226105c28c2743281d26bf21ad73f7bb7f26"/>
+    <property name="arkcase.baseline.capture.status" value="derived-from-test-source-not-executed"/>
+    <property name="arkcase.baseline.test.source" value="acm-services/acm-service-compress-folder/src/test/java/com/armedia/acm/compressfolder/web/api/FolderCompressorAPIControllerTest.java"/>
+    <property name="arkcase.baseline.outcome.asserted" value="none"/>
+    <property name="arkcase.baseline.attributes.omitted" value="failures errors time hostname timestamp"/>
+    <property name="arkcase.baseline.system.property.dump" value="absent-not-captured"/>
+  </properties>
+  <!-- Absence of a failure, error or skipped child below records OUTCOME NOT CAPTURED, not PASSED. -->
+  <testcase classname="com.armedia.acm.compressfolder.web.api.FolderCompressorAPIControllerTest" name="testCompressFolder"/>
+  <testcase classname="com.armedia.acm.compressfolder.web.api.FolderCompressorAPIControllerTest" name="testCompressFolderWithException"/>
+  <testcase classname="com.armedia.acm.compressfolder.web.api.FolderCompressorAPIControllerTest" name="testDownloadFolder"/>
+  <testcase classname="com.armedia.acm.compressfolder.web.api.FolderCompressorAPIControllerTest" name="testDownloadSelectedFolderFiles"/>
+</testsuite>

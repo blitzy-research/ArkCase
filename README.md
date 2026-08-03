@@ -22,17 +22,14 @@ This section documents how developers can build and run ArkCase.  (For non-devel
 
 * at least 16 GB RAM
 * at least 50 GB disk space (the Vagrant VM is 11G)
-* Java 8 (AdoptOpenJDK JVM works well).  Note, ArkCase is not tested on Java 9, Java 10, or Java 11.
-* Maven 3.5+ <https://maven.apache.org>
+* Java 17 (Eclipse Temurin, formerly AdoptOpenJDK, works well).  Java 17 is the required LTS release: the Maven build compiles at `maven.compiler.release=17`, so an earlier JDK can neither build nor run ArkCase.
+* Maven 3.8+ <https://maven.apache.org>.  Maven 3.8 and later block artifact resolution over plain HTTP; the build declares only HTTPS remote repositories and local `file://` repositories.
 * VirtualBox <https://www.virtualbox.org>
 * Vagrant <https://www.vagrantup.com>
 * Tomcat 9 <https://tomcat.apache.org>
 * git <https://git-scm.com/>
-* nodejs <https://nodejs.org>
-    * MacOS: install Node 6.  Node 8 and Node 11 do not work on MacOS.  
-    * Windows and Linux: use Node 8 or above.
-* npm (comes with NodeJS)
-* yarn <https://yarnpkg.com>
+* Node 20 LTS <https://nodejs.org>.  The required version is pinned in `acm-standard-applications/arkcase/src/main/webapp/resources/.nvmrc`, so `nvm use` selects it without an argument.
+* npm 10 (comes with Node 20)
 
 ### Build the Vagrant VM
 
@@ -125,6 +122,10 @@ export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NAT
 
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
+
+This launch configuration deliberately contains no argument that opens or exports an encapsulated JDK package, and Java 17 needs none: nothing above relies on JDK internal access, which is why the JDK access exceptions register under [`docs/migration/`](docs/migration/) is delivered empty.  Every strong encapsulation failure found during the Java 17 migration was inside a test library and was resolved by upgrading or removing that library rather than by opening a JDK module to the application; ArkCase's own reflective code only ever targets ArkCase classes, and ArkCase installs no `SecurityManager`.
+
+`NODE_ENV=development` is still required: the front-end build that Tomcat runs at startup reads it to select its environment configuration, and that build now installs its dependencies with `npm ci` on Node 20.
 
 On MacOS X, you have to replace `file:${user.home}` in the above script, with the actual full path to your home folder.
 
