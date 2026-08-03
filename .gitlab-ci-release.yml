@@ -81,7 +81,7 @@ release_candidate_X:
     - echo '    </server>' >> /root/.m2/settings.xml
     - echo '  </servers>' >> /root/.m2/settings.xml
     - echo '</settings>' >> /root/.m2/settings.xml
-    - export MAVEN_OPTS="-Xmx2048M -Xss256M -XX:MetaspaceSize=2048M -XX:+CMSClassUnloadingEnabled"
+    - export MAVEN_OPTS="-Xmx2048M -Xss256M -XX:MetaspaceSize=2048M"
     - git config --global user.name "$GIT_USERNAME"
     - git config --global user.email "$GIT_USERMAIL"
     - git remote set-url origin "$GIT_URL"
@@ -110,7 +110,7 @@ release:
     - echo '    </server>' >> /root/.m2/settings.xml
     - echo '  </servers>' >> /root/.m2/settings.xml
     - echo '</settings>' >> /root/.m2/settings.xml
-    - export MAVEN_OPTS="-Xmx2048M -Xss256M -XX:MetaspaceSize=2048M -XX:+CMSClassUnloadingEnabled"
+    - export MAVEN_OPTS="-Xmx2048M -Xss256M -XX:MetaspaceSize=2048M"
     - git config --global user.name "$GIT_USERNAME"
     - git config --global user.email "$GIT_USERMAIL"
     - git remote set-url origin "$GIT_URL"
@@ -170,7 +170,7 @@ release_hotfix:
     - echo '    </server>' >> /root/.m2/settings.xml
     - echo '  </servers>' >> /root/.m2/settings.xml
     - echo '</settings>' >> /root/.m2/settings.xml
-    - export MAVEN_OPTS="-Xmx2048M -Xss256M -XX:MetaspaceSize=2048M -XX:+CMSClassUnloadingEnabled"
+    - export MAVEN_OPTS="-Xmx2048M -Xss256M -XX:MetaspaceSize=2048M"
     - git config --global user.name "$GIT_USERNAME"
     - git config --global user.email "$GIT_USERMAIL"
     - git remote set-url origin "$GIT_URL"

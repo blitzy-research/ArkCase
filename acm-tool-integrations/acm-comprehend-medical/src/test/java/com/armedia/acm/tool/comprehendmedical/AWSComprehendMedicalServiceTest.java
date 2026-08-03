@@ -48,13 +48,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,9 +64,7 @@ import static org.mockito.Mockito.*;
 /**
  * Created by Riste Tutureski <riste.tutureski@armedia.com> on 05/12/2020
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
-@PrepareForTest({ AWSComprehendMedicalServiceImpl.class, HttpClients.class, EntityUtils.class })
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class AWSComprehendMedicalServiceTest
 {
     private AWSComprehendMedicalServiceImpl awsComprehendMedicalService;
@@ -88,10 +84,28 @@ public class AWSComprehendMedicalServiceTest
     @Mock
     private MediaEngineIntegrationEventPublisher mediaEngineIntegrationEventPublisher;
 
+    /**
+     * Stub stream handed to the service under test through its {@code openMediaStream} seam, which is
+     * overridden in {@link #setUp()}. A test assigns this before exercising {@code create}; while it is
+     * unset the seam delegates to the production implementation so the real code path still runs.
+     * <p>
+     * The seam replaces the constructor interception this class used previously: {@code FileInputStream}
+     * is loaded by the bootstrap class loader, so Mockito construction mocking cannot intercept it.
+     * JUnit builds a fresh test instance per method, so no explicit teardown is required.
+     */
+    private InputStream mediaStreamOverride;
+
     @Before
     public void setUp()
     {
-        awsComprehendMedicalService = new AWSComprehendMedicalServiceImpl();
+        awsComprehendMedicalService = new AWSComprehendMedicalServiceImpl()
+        {
+            @Override
+            protected InputStream openMediaStream(File mediaFile) throws IOException
+            {
+                return mediaStreamOverride != null ? mediaStreamOverride : super.openMediaStream(mediaFile);
+            }
+        };
         awsComprehendMedicalService.setS3Client(s3Client);
         awsComprehendMedicalService.setAwsComprehendMedicalClient(comprehendMedicalClient);
         awsComprehendMedicalService.setAwsComprehendMedicalConfigurationService(awsComprehendMedicalConfigurationService);
@@ -125,7 +139,7 @@ public class AWSComprehendMedicalServiceTest
         configuration.setProfile("profile");
 
         when(awsComprehendMedicalConfigurationService.getAwsComprehendMedicalConfiguration()).thenReturn(configuration);
-        PowerMockito.whenNew(FileInputStream.class).withArguments(file).thenReturn(fileStream);
+        mediaStreamOverride = fileStream;
         when(s3Client.doesObjectExist((String) configuration.getBucket(),
                 comprehendMedicineDTO.getRemoteId() + "/" + comprehendMedicineDTO.getRemoteId())).thenReturn(false);
         when(s3Client.putObject(eq((String) configuration.getBucket()),

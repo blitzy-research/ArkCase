@@ -6,17 +6,14 @@ This page documents how developers can build and run ArkCase from source. If you
 
 - At least 16 GB RAM
 - At least 50 GB disk space (the Vagrant VM is roughly 11 GB)
-- Java 8 (AdoptOpenJDK works well). ArkCase is not tested on Java 9, 10, or 11.
-- Maven 3.5+ <https://maven.apache.org>
+- Java 17 (Eclipse Temurin, formerly AdoptOpenJDK, works well). Java 17 is the required LTS release: the Maven build compiles at `maven.compiler.release=17`, so an earlier JDK can neither build nor run ArkCase.
+- Maven 3.8+ <https://maven.apache.org>. Maven 3.8 and later block artifact resolution over plain HTTP; the build declares only HTTPS remote repositories and local `file://` repositories.
 - VirtualBox <https://www.virtualbox.org>
 - Vagrant <https://www.vagrantup.com>
 - Tomcat 9 <https://tomcat.apache.org>
 - git <https://git-scm.com/>
-- Node.js <https://nodejs.org>
-    - macOS: install Node 6. Node 8 and Node 11 do not work on macOS.
-    - Windows and Linux: use Node 8 or above.
-- npm (comes with Node.js)
-- yarn <https://yarnpkg.com>
+- Node 20 LTS <https://nodejs.org>. The required version is pinned in `acm-standard-applications/arkcase/src/main/webapp/resources/.nvmrc`, so `nvm use` selects it without an argument.
+- npm 10 (comes with Node 20)
 
 ## Build the Vagrant VM
 
@@ -95,6 +92,8 @@ export NODE_ENV=development
 export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)"
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
+
+This launch configuration deliberately contains no argument that opens or exports an encapsulated JDK package, and Java 17 needs none: nothing above relies on JDK internal access. That is why the [JDK access exceptions register](migration/add-opens-exceptions.md) is delivered empty. Every strong encapsulation failure found during the Java 17 migration was inside a test library and was resolved by upgrading or removing that library rather than by opening a JDK module to the application; ArkCase's own reflective code only ever targets ArkCase classes, and ArkCase installs no `SecurityManager`.
 
 ### Start and Stop Tomcat
 
