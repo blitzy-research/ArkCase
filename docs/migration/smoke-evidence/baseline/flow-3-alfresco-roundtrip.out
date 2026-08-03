@@ -6,62 +6,29 @@ title: document round-trip to the content repository
 request-method: GET
 request-url: https://arkcase-ce.local/share
 auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 0
 observed-http-status: 000
 observed-content-type: unknown
 observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
-tls-verification-state: verified-system
+capture-body-truncated: no
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
 transport-exit-status-observed: 6
-observed-body-sha256: empty-body
-observed-body-shape: empty
-observed-body-lines: 0
------ allowlisted-body-fields -----
-  (empty body)
------ end allowlisted-body-fields -----
-correlation-token-present-in-body: no
-raw-body: not captured (allowlisted fields and a digest are recorded instead)
+----- body -----
+(empty)
+----- end body -----
 ----- transport-diagnostics -----
 curl: (6) Could not resolve host: arkcase-ce.local
+
 ----- end transport-diagnostics -----
------ allowlisted-response-headers -----
-  (none)
------ end allowlisted-response-headers -----
-
-===== document-upload =====
-request-method: POST
-request-url: https://arkcase-ce.local/arkcase/api/latest/service/ecm/upload
-auth-mode: basic
-observed-http-status: 000
-observed-content-type: unknown
-observed-body-bytes: 0
-observed-session-cookie: absent
-tls-verification-state: verified-system
-transport-exit-status-observed: 6
-observed-body-sha256: empty-body
-observed-body-shape: empty
-observed-body-lines: 0
------ allowlisted-body-fields -----
-  (empty body)
------ end allowlisted-body-fields -----
-correlation-token-present-in-body: no
-raw-body: not captured (allowlisted fields and a digest are recorded instead)
------ transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
------ end transport-diagnostics -----
------ allowlisted-response-headers -----
-  (none)
------ end allowlisted-response-headers -----
-
-===== document-readback =====
-observed-http-status: not-attempted
-reason: the upload response carried no stored-document identifier, so there
-  was nothing to read back.  Recorded as an observation rather than omitted.
-
-===== document-upload (SKIPPED) =====
-SKIPPED
-reason: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/service/ecm/upload
-note: this flow could not be executed.  The record is deliberate: an
-  unexecuted flow is reported rather than omitted, so that the
-  eight-flow completion condition stays verifiable and the gap is
-  visible in a directory diff (R-5).
+----- response-headers -----
+(none)
+----- end response-headers -----
 

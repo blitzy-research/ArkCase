@@ -19,7 +19,12 @@
                      because a default absolute path would be wrong on most hosts; when empty the copier resolves the
                      launcher from the process path ONCE, logs the absolute file it found, and then verifies its major
                      version before allowing an install. Set -Darkcase.node.executable and -Darkcase.npm.executable in
-                     the container's launch configuration to remove the process path from the trust boundary. -->
+                     the container's launch configuration to remove the process path from the trust boundary.
+                     The npm and grunt commands below name Node.js scripts, which the operating system starts through
+                     the interpreter named on their first line rather than through the launcher path itself. The copier
+                     therefore also places the directory of the VERIFIED Node.js launcher first on the path of every
+                     process it starts, so that interpreter line resolves to the runtime whose major version was
+                     checked - for the package manager, for Grunt, and for anything either of them spawns. -->
                 <prop key="nodeExecutablePath">
                     #{ systemProperties['arkcase.node.executable'] ?: '' }
                 </prop>

@@ -1,0 +1,138 @@
+the frontend pipeline built on the HISTORICAL Node runtime, and what its output says
+==================================================================================
+
+WHY THIS EXISTS
+  The migration's frontend claim is that the pipeline produces the same artifacts from the same
+  inputs after the package manager and the runtime changed.  An earlier capture compared the
+  base-commit manifest against the migrated manifest with BOTH builds running on Node 20 - which
+  isolates the package-manager change but says nothing about the runtime move, and the note beside
+  it said so.  This capture closes that gap: the base-commit tree is built here on the historical
+  Node line with the superseded package manager, and its output is compared against the migrated
+  build.  It is the comparison the migration actually promises, and it is the first time it has been
+  run.
+
+HOW THE HISTORICAL SIDE WAS PRODUCED
+  runtime         Node v8.17.0 with npm 6.13.4, installed for this capture
+  package manager yarn 1.22.22, bootstrapped under that runtime
+  tree            base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26, extracted with git archive
+  manifest        the base-commit package.json, unmodified, with its 76 git dependency
+                  specifications in owner/repo#<semver-range> form
+  lockfile        the base-commit yarn.lock, unmodified
+  install         the exact command the base-commit runtime wiring used:
+                  yarn --skip-integrity-check --ignore-engines --no-progress --non-interactive install
+  build           the Grunt default task graph, unmodified
+  script          capture-historical-frontend.sh, committed beside this note
+
+  Two conditions on the historical side, recorded rather than smoothed over.  The install exited
+  NON-ZERO: node-sass failed its native build because this host has no Python 2 for node-gyp - a
+  host condition, not a Node 8 condition, and a different cause from the Node 20 failure of the same
+  package.  It did not stop the pipeline: the Gruntfile declares no Sass task, and all five artifacts
+  were produced.  And profiles.js, which config/config.js requires and which is not tracked at the
+  base commit, was written with exactly the content the deployed runtime writes for it, because
+  without it the build cannot start at all.
+
+  The build exited ZERO while warning about a missing modules_config/config/modules.json and printing
+  "Used --force, continuing" - the forced-execution setting masking a task failure, in a real run, on
+  the historical runtime, exactly as it does on Node 20.  It is the reason every assertion here is
+  made against artifacts and digests rather than exit status.
+
+THE RESULT, ARTIFACT BY ARTIFACT
+  artifact                 historical Node 8            migrated Node 20             verdict
+  application.js           3c0aeb4d2b02dc74…            3c0aeb4d2b02dc74…            BYTE-IDENTICAL
+  vendors.min.js           70187246b480eebb…            70187246b480eebb…            BYTE-IDENTICAL
+  home.html                43c5eb7d7735fc28…            43c5eb7d7735fc28…            BYTE-IDENTICAL
+  application.min.js       938ba106e8dc0b19…            c1a4cb56e4b644c4…            DIFFERS by 2 bytes
+  application.min.css      17703f8babbccbcb…            04228704205f51db…            DIFFERS by 789 bytes
+  Full digests are in artifact-digests-node8.txt and artifact-digests-node20.txt beside this note.
+  These two sets are also the five digests recorded in ../baseline/artifacts/ and
+  ../migrated/artifacts/ respectively, so the capture directories and this analysis cannot drift
+  apart; each capture's notes/artifact-gate.txt records the directory its run actually read.
+
+  Three of the five are byte-identical across a twelve-year runtime gap and a change of package
+  manager.  The two that differ are both MINIFIER OUTPUT, and in both cases the minifier is the same
+  version on both sides - grunt-contrib-uglify 0.9.2 with uglify-js 2.8.29, and grunt-contrib-cssmin
+  0.12.3 with clean-css 3.4.28, verified in both installed trees.  The INPUT to those minifiers is
+  byte-identical, because application.js is.  So the cause is not the dependency graph, not the
+  package-manager change and not the application source: it is the JavaScript engine the minifier
+  itself runs on.
+
+  THE ATTRIBUTION IS SETTLED BY A THIRD BUILD, NOT INFERRED FROM TWO
+  A comparison that varies two things at once cannot say which of them caused a difference, so a
+  third build was taken and is preserved beside this note:
+    A  base-commit tree, yarn 1.22.22, Node  v8.17.0   artifact-digests-node8.txt
+    B  base-commit tree, yarn 1.22.22, Node v20.20.2   artifact-digests-node20-basecommit-yarn.txt
+    C  migrated tree, npm 10.8.2 from the committed lockfile, Node v20.20.2
+                                                      artifact-digests-node20.txt
+  B holds the RUNTIME constant against C and varies only the package manager, the lockfile and the
+  dependency-specification form.  B and C are byte-identical on all five artifacts AND on the source
+  map, and even the content-hash filenames the cache-busting task derives agree.  Therefore the two
+  A-against-C differences cannot be caused by the package-manager change, the lockfile change or the
+  manifest rewrite from 76 owner/repo#<semver-range> specifications to 76 exact commit SHAs, because
+  those are exactly and only what B and C differ in.  The single remaining variable between A and B
+  is the runtime.  That is a positive elimination rather than an argument from plausibility, and it
+  is why the engine attribution below can be stated as a finding.
+
+application.min.js — the entire difference, exactly
+  Two bytes, on one line of sixty-four, inside one regular-expression literal:
+    historical  /[-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*/
+    migrated    /[-a-zA-Z0-9()@:%_\+.~#?&//=]*/
+  UglifyJS re-prints a literal from the RegExp object's own source text, and the engine normalises
+  an escaped forward slash inside a character class differently: Node 8 keeps \/ where Node 20 emits
+  /.  Inside a character class the two denote the same character, so the two patterns match exactly
+  the same strings.
+  This is asserted mechanically, not by eye: replacing every \/ with / in BOTH files makes the two
+  2,011,9xx-byte bundles compare EQUAL, and the count of \/ falls from 17 to 15.  There is no other
+  difference anywhere in the bundle.
+
+application.min.css — what differs, and what does not
+  789 bytes, and the difference is how clean-css GROUPS selectors, not which declarations exist.
+  Its restructuring pass merges and splits rule blocks, and the order it considers candidates in
+  depends on array sort behaviour, which the engine changed between these two runtimes (sorting
+  became stable in V8 7.0).  Two concrete examples, one from each side:
+    historical  .ui-button-icon-only,.ui-controlgroup-vertical .ui-controlgroup-item{box-sizing:border-box}
+    migrated    the same box-sizing:border-box merged into .ui-button-icon-only{width:2em;box-sizing:border-box;…}
+    historical  .btn,.ui-grid-header-cell,.ui-grid-pager-control button{-moz-user-select:none;-ms-user-select:none}
+    migrated    .btn,.ui-button,.ui-grid-header-cell{-moz-user-select:none} plus the rest merged elsewhere
+  A declaration-level comparison was run over both files, flattening every rule into
+  (selector, property, value) triples: 13,455 on the historical side and 13,454 on the migrated
+  side, agreeing on 13,340 distinct triples, with five reported one-sided.  Each of those five was
+  checked BY HAND against both files and found present on BOTH sides in a differently grouped rule -
+  they are the rules that sit immediately after a preserved licence comment, which is the one place
+  the hand-rolled extractor mis-attributes a selector.  That limitation is disclosed here rather
+  than presented as a result: the correct statement is that no declaration was found on one side and
+  absent on the other, not that a parser proved set equality.  The 28 distinct @media preludes are
+  identical on both sides.
+
+WHAT THIS MEANS FOR THE ARTIFACT CRITERION, STATED PLAINLY
+  Read strictly - five artifacts byte-identical to a build on the ORIGINAL runtime - the criterion is
+  NOT met: two artifacts differ.  Read as what it exists to detect - did the migration change what
+  the application loads - nothing was found: the concatenated bundle, the vendor bundle and the
+  rewritten entry document are byte-identical; the minified script differs only in an escape inside
+  a character class that cannot change what the pattern matches; and the minified stylesheet differs
+  only in the grouping of declarations that are present on both sides.
+  Neither difference can be removed without replacing a build tool, and no build tool is being
+  replaced: both minifiers install and run on Node 20 at the versions the lockfile pins, so a
+  version change to either would be a dependency change with no compatibility justification, which
+  the governing rules forbid - and it would change the output further rather than restore it.
+  The residual difference is therefore recorded as an accepted, evidenced deviation rather than
+  eliminated, and it is registered in ambiguity-resolutions.md and pre-existing-defects.md.
+
+REPRODUCING THIS, AND THE FACT THAT IT WAS REPRODUCED
+  ./capture-historical-frontend.sh [staging-directory]
+  With nvm available it selects the Node 8 line (refusing to run on any other, since building on the
+  new runtime would make this the same measurement as the migrated one), bootstraps yarn 1.22.22,
+  extracts the frontend subtree of the base commit itself with git archive, writes profiles.js with
+  the content the deployed runtime emits, runs the base-commit install command and the unmodified
+  Grunt default task, and prints the digest table.  Everything it writes goes into the staging
+  directory; it writes NOTHING into this committed directory, so running it cannot damage the
+  evidence it exists to let a reader check.  An earlier revision did both of the wrong things here -
+  it required the tree to have been extracted beside it by hand, and it overwrote the committed
+  digest table on being run - and both are fixed.
+  The migrated side is  npm ci && npm run build  in the frontend directory on Node 20.
+
+  It was then RUN, from a clean staging directory, and the result is the reason this paragraph is
+  here rather than an instruction on its own: all five digests came out byte-identical to
+  artifact-digests-node8.txt, and so did all ten cache-busted filenames.  The historical baseline is
+  therefore independently reproducible rather than a single observation that has to be taken on
+  trust.  Run provenance of that reproduction: node v8.17.0, npm 6.13.4, yarn 1.22.22,
+  install-exit=1 (node-sass native build, the documented condition below), build-exit=0.

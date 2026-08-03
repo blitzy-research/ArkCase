@@ -27,12 +27,13 @@ honest caveat: source-map generation is enabled (Gruntfile.js:L52) and a
 why this comparison carries so much weight: the frontend tree contains no
   spec files at all, so there is no automated behavioural test to fall
   back on.  These digests are the strongest available evidence, which is
-  also why exit codes cannot be relied on: the build is configured to
-  force its way past task failures (Gruntfile.js:L144), so a broken build
-  can exit zero.
+  also why exit codes of the BUILD cannot be relied on: the build is
+  configured to force its way past task failures (Gruntfile.js:L144), so
+  a broken build can exit zero.
 
-absent artifacts are recorded as ABSENT rather than omitted.  The four
-  dist artifacts and home.html are build outputs and are not tracked in
-  version control, so a capture taken without a completed frontend build
-  legitimately records ABSENT on every row — that is an observation, and
-  it must match between the two runs like any other.
+an ABSENT digest is recorded as ABSENT rather than omitted, AND it makes
+  this run incomplete.  The four dist artifacts and home.html are build
+  outputs and are not tracked in version control, so a capture taken
+  without a completed frontend build records ABSENT on every row — which
+  means the capture cannot support the byte comparison the migration
+  criteria require.  Run the frontend build before capturing.

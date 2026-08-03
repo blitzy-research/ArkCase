@@ -2,42 +2,72 @@ flow: 8
 slug: 8-queue-transition
 title: queue transition on a case or complaint
 
-===== locate-case =====
+===== queue-definitions =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/casebystatus/all
+request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/queues
 auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 0
 observed-http-status: 000
 observed-content-type: unknown
 observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
-tls-verification-state: verified-system
+capture-body-truncated: no
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
 transport-exit-status-observed: 6
-observed-body-sha256: empty-body
-observed-body-shape: empty
-observed-body-lines: 0
------ allowlisted-body-fields -----
-  (empty body)
------ end allowlisted-body-fields -----
-correlation-token-present-in-body: no
-raw-body: not captured (allowlisted fields and a digest are recorded instead)
+----- body -----
+(empty)
+----- end body -----
 ----- transport-diagnostics -----
 curl: (6) Could not resolve host: arkcase-ce.local
+
 ----- end transport-diagnostics -----
------ allowlisted-response-headers -----
-  (none)
------ end allowlisted-response-headers -----
+----- response-headers -----
+(none)
+----- end response-headers -----
 
-===== next-possible-queues =====
-observed-http-status: not-attempted
-reason: no case identifier was available from SMOKE_CASE_ID or from the
-  case list, so there was no object to transition.  Recorded as an
-  observation rather than omitted.
+===== case-discovery =====
+request-method: GET
+request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 0
+observed-http-status: 000
+observed-content-type: unknown
+observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 6
+----- body -----
+(empty)
+----- end body -----
+----- transport-diagnostics -----
+curl: (6) Could not resolve host: arkcase-ce.local
 
-===== next-possible-queues (SKIPPED) =====
+----- end transport-diagnostics -----
+----- response-headers -----
+(none)
+----- end response-headers -----
+
+===== queue-definitions (SKIPPED) =====
 SKIPPED
-reason: no HTTP response from the next-possible-queues or enqueue endpoint
+reason: no HTTP response from either the queue-definition or the case-discovery endpoint
 note: this flow could not be executed.  The record is deliberate: an
   unexecuted flow is reported rather than omitted, so that the
   eight-flow completion condition stays verifiable and the gap is
-  visible in a directory diff (R-5).
+  visible in a directory diff, in the completeness verdict and in the
+  exit status (R-5).
 

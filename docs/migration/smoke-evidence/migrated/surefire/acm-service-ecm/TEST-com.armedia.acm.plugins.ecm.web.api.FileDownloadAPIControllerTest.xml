@@ -1,44 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Native Surefire report, migrated run, Java 17, module acm-service-ecm.
-
-  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
-  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
-  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
-  from a prebuilt repository:
-
-    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
-    mvn -B -fae test                    (every module reached; no module short-circuited the run)
-
-  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
-  change no test outcome - they only stop the reactor halting at the first red module, which is what
-  allows archiving every module's reports in one pass.
-
-  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
-  order, and every failure, error and skipped element with its message, type and full stack trace. No
-  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
-  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
-
-  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
-  discovered. The system property dump the reporter writes inside the properties element is emptied - it
-  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
-  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
-  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
-  both, no absolute path of this machine survives anywhere in this archive.
-
-  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
-  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
-  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
-  failure regardless of exit status.
-
-  Read against the twin report of the same name under the sibling baseline directory, which carries the
-  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
-  content - never on byte identity, since duration, host name and run instant legitimately vary between
-  two runs of the same suite.
--->
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.487" tests="4" errors="0" skipped="0" failures="3">
-  <properties/>
-  <testcase name="downloadFileByIdAndVersion_successful" classname="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.276">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.306" tests="4" errors="0" skipped="0" failures="3">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="java.vm.vendor" value="Ubuntu"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="os.name" value="Linux"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="java.runtime.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
+    <property name="os.version" value="6.12.85+"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.version" value="17.0.19"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Ubuntu"/>
+    <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
+    <property name="java.class.version" value="61.0"/>
+  </properties>
+  <testcase name="downloadFileByIdAndVersion_successful" classname="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.164">
     <failure message="&#10;  Expectation failure on verify:&#10;    EasyMock for interface org.apache.chemistry.opencmis.commons.data.ContentStream -&gt; ContentStream.getFileName(): expected: at least 1, actual: 0" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
 
   Expectation failure on verify:
@@ -82,21 +62,21 @@
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
 ]]></failure>
-    <system-out><![CDATA[2026-08-03 09:32:25,128 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
-2026-08-03 09:32:25,128 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@524b1c70, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@37ca8b4c, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@420cf372, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@708a0150, org.springframework.test.context.support.DirtiesContextTestExecutionListener@7a282bad, org.springframework.test.context.transaction.TransactionalTestExecutionListener@195b4f4f, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@3c69b875, org.springframework.test.context.event.EventPublishingTestExecutionListener@1c49ae29]
-2026-08-03 09:32:25,493 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 09:32:25,494 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 09:32:25,494 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-2026-08-03 09:32:25,499 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIController - Downloading file by ID '500' for user 'user'
-2026-08-03 09:32:25,500 [INFO ] [main] com.armedia.acm.plugins.ecm.utils.EcmFileCamelUtils - There is no authenticated user.
+    <system-out><![CDATA[2026-08-03 15:27:22,887 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+2026-08-03 15:27:22,888 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@68e47ff9, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@6e639c1e, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@11786a43, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@11b097a1, org.springframework.test.context.support.DirtiesContextTestExecutionListener@5a6029d9, org.springframework.test.context.transaction.TransactionalTestExecutionListener@2811cde7, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@7a6980d4, org.springframework.test.context.event.EventPublishingTestExecutionListener@6f710da7]
+2026-08-03 15:27:23,110 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 15:27:23,110 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 15:27:23,111 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-03 15:27:23,116 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIController - Downloading file by ID '500' for user 'user'
+2026-08-03 15:27:23,117 [INFO ] [main] com.armedia.acm.plugins.ecm.utils.EcmFileCamelUtils - There is no authenticated user.
 ]]></system-out>
   </testcase>
-  <testcase name="downloadFileById_fileNotFoundInDb" classname="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.026">
-    <system-out><![CDATA[2026-08-03 09:32:25,546 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 09:32:25,546 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 09:32:25,547 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 1 ms
-2026-08-03 09:32:25,549 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIController - Downloading file by ID '500' for user 'user'
-2026-08-03 09:32:25,551 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - Object Not Found: Could not retrieve FILE with ID = 500.
+  <testcase name="downloadFileById_fileNotFoundInDb" classname="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.02">
+    <system-out><![CDATA[2026-08-03 15:27:23,154 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 15:27:23,154 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 15:27:23,155 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-03 15:27:23,157 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIController - Downloading file by ID '500' for user 'user'
+2026-08-03 15:27:23,159 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - Object Not Found: Could not retrieve FILE with ID = 500.
 Server encountered exception: File 500 not found
 Exception type was: 'com.armedia.acm.core.exceptions.AcmObjectNotFoundException'.
 com.armedia.acm.core.exceptions.AcmObjectNotFoundException: Could not retrieve FILE with ID = 500.
@@ -163,7 +143,7 @@ Exception type was: 'com.armedia.acm.core.exceptions.AcmObjectNotFoundException'
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) [surefire-booter-3.5.2.jar:3.5.2]
 ]]></system-out>
   </testcase>
-  <testcase name="downloadFileById_successful" classname="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.034">
+  <testcase name="downloadFileById_successful" classname="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.019">
     <failure message="&#10;  Expectation failure on verify:&#10;    EasyMock for interface org.springframework.context.ApplicationEventPublisher -&gt; ApplicationEventPublisher.publishEvent(capture(Nothing captured yet)): expected: 1, actual: 0" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
 
   Expectation failure on verify:
@@ -207,11 +187,11 @@ Exception type was: 'com.armedia.acm.core.exceptions.AcmObjectNotFoundException'
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
 ]]></failure>
-    <system-out><![CDATA[2026-08-03 09:32:25,565 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 09:32:25,565 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 09:32:25,565 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-2026-08-03 09:32:25,592 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIController - Downloading file by ID '500' for user 'user'
-2026-08-03 09:32:25,593 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - Last Chance Handler: Cannot invoke "String.endsWith(String)" because "fileName" is null
+    <system-out><![CDATA[2026-08-03 15:27:23,172 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 15:27:23,173 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 15:27:23,173 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-03 15:27:23,177 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIController - Downloading file by ID '500' for user 'user'
+2026-08-03 15:27:23,178 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - Last Chance Handler: Cannot invoke "String.endsWith(String)" because "fileName" is null
 java.lang.NullPointerException: Cannot invoke "String.endsWith(String)" because "fileName" is null
 	at com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl.handleFilePayload(EcmFileServiceImpl.java:2703) ~[classes/:?]
 	at com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl.download(EcmFileServiceImpl.java:2656) ~[classes/:?]
@@ -275,7 +255,7 @@ java.lang.NullPointerException: Cannot invoke "String.endsWith(String)" because 
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) [surefire-booter-3.5.2.jar:3.5.2]
 ]]></system-out>
   </testcase>
-  <testcase name="override_mime_type" classname="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.028">
+  <testcase name="override_mime_type" classname="com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest" time="0.018">
     <failure message="&#10;  Expectation failure on verify:&#10;    EasyMock for interface org.springframework.context.ApplicationEventPublisher -&gt; ApplicationEventPublisher.publishEvent(capture(Nothing captured yet)): expected: 1, actual: 0" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
 
   Expectation failure on verify:
@@ -319,12 +299,12 @@ java.lang.NullPointerException: Cannot invoke "String.endsWith(String)" because 
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
 ]]></failure>
-    <system-out><![CDATA[2026-08-03 09:32:25,618 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 09:32:25,618 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 09:32:25,618 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-2026-08-03 09:32:25,621 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIController - Downloading file by ID '500' for user 'user'
-2026-08-03 09:32:25,621 [INFO ] [main] com.armedia.acm.plugins.ecm.utils.EcmFileCamelUtils - There is no authenticated user.
-2026-08-03 09:32:25,621 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - Last Chance Handler: Cannot invoke "String.endsWith(String)" because "fileName" is null
+    <system-out><![CDATA[2026-08-03 15:27:23,192 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 15:27:23,193 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 15:27:23,193 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-03 15:27:23,195 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIController - Downloading file by ID '500' for user 'user'
+2026-08-03 15:27:23,195 [INFO ] [main] com.armedia.acm.plugins.ecm.utils.EcmFileCamelUtils - There is no authenticated user.
+2026-08-03 15:27:23,196 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - Last Chance Handler: Cannot invoke "String.endsWith(String)" because "fileName" is null
 java.lang.NullPointerException: Cannot invoke "String.endsWith(String)" because "fileName" is null
 	at com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl.handleFilePayload(EcmFileServiceImpl.java:2703) ~[classes/:?]
 	at com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl.download(EcmFileServiceImpl.java:2656) ~[classes/:?]

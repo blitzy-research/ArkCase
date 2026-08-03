@@ -694,6 +694,13 @@ NO_RESPONSE_TOKEN='000'
 SMOKE_SCRIPT_DIR="$(cd "$(dirname -- "$0")" 2>/dev/null && pwd -P)" || SMOKE_SCRIPT_DIR='.'
 SMOKE_EXPECTED_SUITES="${SMOKE_EXPECTED_SUITES:-${SMOKE_SCRIPT_DIR}/expected-suites.txt}"
 
+# The other capture to compare this one against, if any.  Empty by default: a
+# first capture has nothing to compare to, and a comparison against a directory
+# the operator did not name would be a guess.  When set, the comparison is
+# COMPUTED at the end of the run from both captures on disk and written to
+# comparison.txt -- see write_comparison for why that file is no longer authored.
+SMOKE_COMPARE_AGAINST="${SMOKE_COMPARE_AGAINST:-}"
+
 # ---------------------------------------------------------------------------
 # REJECT THE REMOVED TRANSPORT VARIABLE.
 #
@@ -2373,6 +2380,32 @@ capture_toolchain()
 #                  five artifact digests are the only available behavioural
 #                  evidence for the frontend, and why they are captured here.
 # ---------------------------------------------------------------------------
+# WHAT IS PRUNED, AND WHY PRUNING IS THE HONEST CHOICE HERE.
+#
+# An unpruned count over a WORKING tree does not measure the corpus; it measures
+# the corpus plus however many copies of it the last build happened to leave
+# behind, plus whatever the dependency install brought in.  Measured that way the
+# figures came out at exactly twice the source count for the decision tables and
+# the process definitions -- once under src/main/resources and once under the
+# target/ copy the resources plugin makes -- and the frontend spec count came out
+# at 54 while the note beside it read "expected: 0", because every one of those
+# 54 lives inside an installed dependency and none is a spec for this
+# application.  A figure that contradicts its own stated expectation for a reason
+# the note does not give is worse than no figure: a reader can only conclude that
+# the claim is false.
+#
+# So four kinds of path are pruned, and each is pruned because a file found
+# there is definitionally not part of this repository's own source:
+#   target            build output; a copy of a source file, counted twice
+#   node_modules      installed dependencies; their tests are not this project's
+#   .git              object storage, not a working file
+#   blitzy_adhoc_test_*   scratch trees created by validation runs, each of which
+#                     may contain a whole second checkout and its own artifact
+#                     repository
+# The pruned set is printed into the note beside every figure, so the reader is
+# told what was excluded rather than having to infer it from a suspicious total.
+SMOKE_CORPUS_PRUNED='target node_modules .git blitzy_adhoc_test_*'
+
 count_matching_files()
 {
     local root="$1"
@@ -2382,7 +2415,18 @@ count_matching_files()
         printf 'unmeasured'
         return 0
     fi
-    find "$root" -name "$pattern" -type f 2>/dev/null | wc -l | tr -d '[:space:]'
+
+    # -path with a trailing /* on the scratch pattern rather than -name, so that
+    # the scratch DIRECTORY itself is pruned wherever it sits, not merely files
+    # whose own name matches.
+    find "$root" \
+            \( -type d \( -name 'target' \
+                       -o -name 'node_modules' \
+                       -o -name '.git' \
+                       -o -name 'blitzy_adhoc_test_*' \) -prune \) \
+            -o \( -name "$pattern" -type f -print \) \
+            2>/dev/null \
+        | wc -l | tr -d '[:space:]'
 }
 
 capture_corpus_figures()
@@ -2404,8 +2448,20 @@ capture_corpus_figures()
     {
         printf 'corpus figures, measured at run time by this script\n'
         printf 'repository-root-examined: %s\n' "$REPO_ROOT"
+        printf 'directories-pruned-from-every-count: %s\n' "$SMOKE_CORPUS_PRUNED"
+        printf 'why-pruned: a file under any of those is not part of this\n'
+        printf '  repository source.  target/ holds a build-made COPY of a source\n'
+        printf '  file and doubles every resource count; node_modules holds\n'
+        printf '  installed dependencies whose tests are not this project s; .git\n'
+        printf '  holds object storage; and a blitzy_adhoc_test_* tree is scratch\n'
+        printf '  created by a validation run and can contain a whole second\n'
+        printf '  checkout.  Measured WITHOUT this pruning on a built tree with a\n'
+        printf '  scratch checkout present, these same five figures read 156, 0, 81,\n'
+        printf '  144 and 54 -- every one of them a multiple or a dependency\n'
+        printf '  artefact rather than a corpus size.\n'
         printf '\n'
-        printf 'command: find <repo> -name %s -type f | wc -l\n' "'drools-*.xlsx'"
+        printf 'command: find <repo> %s -name %s -type f | wc -l\n' \
+            '<prune above>' "'drools-*.xlsx'"
         printf 'measured-drools-xlsx-decision-tables: %s\n' "$decision_tables"
         printf 'verified-figure-at-base-commit: 39\n'
         printf 'migration-plan-figure: 43\n'
@@ -2413,18 +2469,22 @@ capture_corpus_figures()
         printf '  test fixture alongside the 39 live .xlsx decision tables.  This script\n'
         printf '  publishes what it measures and states the plan figure beside it so the\n'
         printf '  difference is visible rather than silently contradicted.\n'
-        printf 'command: find <repo> -name %s -type f | wc -l\n' "'drools-*.xls'"
+        printf 'command: find <repo> %s -name %s -type f | wc -l\n' \
+            '<prune above>' "'drools-*.xls'"
         printf 'measured-drools-xls-files: %s\n' "$decision_tables_xls"
         printf '\n'
-        printf 'command: find <repo> -name %s -type f | wc -l\n' "'*.drl'"
+        printf 'command: find <repo> %s -name %s -type f | wc -l\n' \
+            '<prune above>' "'*.drl'"
         printf 'measured-textual-rule-files: %s\n' "$textual_rules"
         printf 'expected: 0 — the rule surface is entirely in the decision tables\n'
         printf '\n'
-        printf 'command: find <repo> -name %s -type f | wc -l\n' "'*.bpmn*'"
+        printf 'command: find <repo> %s -name %s -type f | wc -l\n' \
+            '<prune above>' "'*.bpmn*'"
         printf 'measured-process-definitions: %s\n' "$processes"
         printf 'expected: 36 — flow 7 expects the engine to load all of them\n'
         printf '\n'
-        printf 'command: find <frontend-resources> -name %s -type f | wc -l\n' "'*.spec.js'"
+        printf 'command: find <frontend-resources> %s -name %s -type f | wc -l\n' \
+            '<prune above>' "'*.spec.js'"
         printf 'measured-frontend-spec-files: %s\n' "$frontend_specs"
         printf 'expected: 0 — with no frontend specs, the five artifact digests are the\n'
         printf '  only available behavioural evidence for the frontend, which is why they\n'
@@ -3741,6 +3801,82 @@ capture_frontend_digests()
         '  without a completed frontend build records ABSENT on every row — which' \
         '  means the capture cannot support the byte comparison the migration' \
         '  criteria require.  Run the frontend build before capturing.'
+
+    # -----------------------------------------------------------------------
+    # THE GATE NOTE IS GENERATED, AND THAT IS THE WHOLE POINT.
+    #
+    # An earlier revision of this deliverable carried notes/artifact-gate.txt as
+    # a HAND-AUTHORED file that reproduced the shape of generated output.  It
+    # went stale the moment a capture digested a directory other than the
+    # default one: the note still named the in-tree dist directory while the run
+    # had actually read a staged historical build, so a reader was told the wrong
+    # provenance by a file that looked machine-written.  A note whose numbers and
+    # paths are typed by a person can only ever say what that person believed,
+    # which is precisely the defect the whole evidence deliverable exists to
+    # avoid.  So the counters and both probed paths are now READ BACK OUT of the
+    # capture that was just written, and the note is emitted through the same
+    # sanitiser as every other capture file.
+    # -----------------------------------------------------------------------
+    local required=5
+    local produced=0
+    local failed=0
+
+    for name in application.js application.min.js vendors.min.js \
+                application.min.css home.html
+    do
+        target="${dir}/${name}.sha256"
+        if [ -s "$target" ] \
+            && grep -qE '^[0-9a-f]{64}[[:space:]]' "$target" 2>/dev/null
+        then
+            produced=$((produced + 1))
+        else
+            failed=$((failed + 1))
+        fi
+    done
+
+    local gate_state='FAILED'
+    if [ "$produced" -eq "$required" ] && [ "$failed" -eq 0 ]; then
+        gate_state='PASSED'
+    fi
+
+    record_note 'artifact-gate.txt' \
+        'frontend artifact digest gate' \
+        '' \
+        "state: ${gate_state}" \
+        "digests-required: ${required}" \
+        "digests-produced: ${produced}" \
+        "digests-failed: ${failed}" \
+        "artifact-directory-probed: ${FRONTEND_DIST_DIR}" \
+        "home-html-probed: ${FRONTEND_HOME_HTML}" \
+        '' \
+        'The two probed paths above are the paths this run actually read, not the' \
+        '  defaults: a capture may point FRONTEND_RESOURCES_DIR at a staged build' \
+        '  produced by a different toolchain, which is exactly how the historical' \
+        '  runtime baseline is taken.  Read them together with env/toolchain.txt,' \
+        '  which records the node and npm that were on PATH, and with' \
+        '  notes/frontend-comparison-provenance.txt, which states which build each' \
+        '  side of the comparison came from.' \
+        '' \
+        'gate rule: all five compared artifacts must exist and must each yield a' \
+        '  well-formed 64-character lower-case hexadecimal digest.  A missing file,' \
+        '  an unavailable digest tool, an empty digest or a malformed digest is a' \
+        '  GATE FAILURE and is never recorded as a row of evidence.' \
+        '' \
+        'why the gate is a hard failure rather than a note: a capture taken without' \
+        '  a completed frontend build would otherwise write five rows each reading' \
+        '  ABSENT, two such captures would compare byte-identical, and the' \
+        '  comparison would report the frontend unchanged when it had never been' \
+        '  built at all.  Identical absence is not identity of behaviour.  The' \
+        '  frontend tree contains no spec files, so these five digests are the only' \
+        '  behavioural evidence this track has, and evidence that passes when' \
+        '  absent is worse than none because it is trusted.' \
+        '' \
+        'the source map is digested but deliberately EXCLUDED from these counters,' \
+        '  because it embeds file paths and is not one of the five compared' \
+        '  artifacts; see notes/determinism-basis.txt for that caveat in full.' \
+        '' \
+        'to satisfy the gate, build the frontend first:' \
+        '  cd <frontend resources dir> && npm ci && npm run build'
 }
 
 # ---------------------------------------------------------------------------
@@ -3773,11 +3909,19 @@ capture_frontend_digests()
 # point.  A suite that exists only on the baseline side has LOST its counterpart:
 # something that used to run either stopped running or stopped being archived,
 # and its behaviour can no longer be compared.  A suite that exists only on the
-# migrated side is an ADDITION — a test this change set introduced — and it
-# cannot have a baseline counterpart by construction, because it did not exist at
-# the base commit.  Demanding one would make every newly added test an evidence
-# hole and would penalise exactly the thing a review most wants to see.  So
-# additions are counted and listed by name, which is what keeps them honest, and
+# migrated side cannot have a baseline counterpart by construction, and there are
+# exactly two ways that happens.  Either the class did not exist at the base
+# commit, so no baseline run could ever have produced a report for it; or the
+# class did exist and the baseline runner did not SELECT it, which is the case
+# for the one suite whose name ends in "Tests" — the baseline built with the
+# implicitly bound maven-surefire-plugin 2.12.4, whose default includes are
+# **/Test*.java, **/*Test.java and **/*TestCase.java and match no plural name,
+# while the pinned 3.5.2 adds **/*Tests.java.  Neither case is a hole, and
+# demanding a counterpart would make every newly added test an evidence gap and
+# would penalise exactly the thing a review most wants to see.  The distinction
+# between the two cases is not derivable from the archive, so it is recorded per
+# suite in docs/migration/baseline-test-failures.md rather than guessed at here.
+# Additions are counted and listed by name, which is what keeps them honest, and
 # only losses are fatal.
 # ---------------------------------------------------------------------------
 verify_surefire_pairing()
@@ -3872,10 +4016,16 @@ verify_surefire_pairing()
         printf 'suite, an unlisted suite, or any lost suite therefore makes this capture\n'
         printf 'INCOMPLETE rather than merely noteworthy.\n'
         printf '\n'
-        printf 'A suite archived only on the migrated side is an ADDITION, not a hole: it did\n'
-        printf 'not exist at the base commit, so it cannot have a baseline counterpart, and\n'
-        printf 'demanding one would make every newly added test an evidence gap.  Additions\n'
-        printf 'are listed by name below instead, which is what keeps them accountable.\n'
+        printf 'A suite archived only on the migrated side is an ADDITION, not a hole.  It has\n'
+        printf 'no baseline counterpart for one of exactly two reasons: either the class did\n'
+        printf 'not exist at the base commit, or it existed and the baseline runner did not\n'
+        printf 'select it -- the baseline built with the implicitly bound surefire 2.12.4,\n'
+        printf 'whose default includes match no class name ending in "Tests", while the pinned\n'
+        printf '3.5.2 does.  Which reason applies to which suite cannot be read out of the\n'
+        printf 'archive, so it is recorded per suite in docs/migration/baseline-test-failures.md\n'
+        printf 'rather than assumed here.  Demanding a counterpart either way would make every\n'
+        printf 'newly added test an evidence gap.  Additions are listed by name below instead,\n'
+        printf 'which is what keeps them accountable.\n'
         printf '\n'
         printf 'suites required by the contract but missing here:\n'
         if [ "$contract_state" = 'read' ] && [ "$missing_count" -gt 0 ]; then
@@ -3916,6 +4066,161 @@ verify_surefire_pairing()
 # down can be disposed of deliberately, whereas residue that is not written down
 # is simply litter in someone else's system.
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# CROSS-CAPTURE COMPARISON.
+#
+# This file used to be written BY HAND, and it went false the first time the two
+# captures stopped agreeing: it went on reporting "match" against all five
+# artifact digests while the baseline side had been re-taken on the historical
+# runtime and two of the five had diverged.  An evidence file that asserts an
+# outcome no run produced is the single worst thing in an evidence deliverable,
+# because it is the one file a reader is most likely to accept without checking.
+# So the comparison is COMPUTED here, by reading both captures back off disk, and
+# it reports whatever it finds.
+#
+# The comparison does NOT change this capture's completeness verdict, and that is
+# deliberate rather than lenient.  Completeness answers "is this capture usable as
+# evidence"; the comparison answers "do the two captures agree".  A capture can be
+# perfectly complete and still differ from the other side — that is the case this
+# whole deliverable exists to surface, not to suppress — and folding the second
+# question into the first would make a registered, evidenced deviation
+# indistinguishable from a hole in the capture.  Every REQUIRED difference is
+# counted, named and pointed at the register that has to account for it.
+# ---------------------------------------------------------------------------
+write_comparison()
+{
+    local other="$SMOKE_COMPARE_AGAINST"
+    local target="${SMOKE_OUT_DIR}/comparison.txt"
+    local entry n slug dest verdict other_verdict
+    local name mine theirs
+    local required_diffs=0
+    local rows=''
+
+    [ -n "$other" ] || return 0
+
+    if [ ! -d "$other" ]; then
+        record_note 'comparison-unavailable.txt' \
+            'cross-capture comparison was requested and could not be performed' \
+            '' \
+            "SMOKE_COMPARE_AGAINST names no readable directory: ${other}" \
+            '' \
+            'No comparison file was written.  A comparison that cannot read one of' \
+            '  its two sides has nothing to report, and writing an empty or' \
+            '  optimistic one would be worse than writing none.'
+        mark_incomplete "a cross-capture comparison was requested against ${other}, which is not a readable directory, so no comparison was produced"
+        return 0
+    fi
+
+    begin_capture_file "$target"
+    {
+        printf 'ArkCase migration smoke evidence — cross-capture comparison\n'
+        printf 'this-capture: %s\n' "$SMOKE_OUT_DIR"
+        printf 'other-capture: %s\n' "$other"
+        printf '\n'
+        printf 'Computed by reading both captures back off disk at the end of this run.\n'
+        printf 'Not authored.  Every row below is a comparison of two files that exist.\n'
+        printf '\n'
+        printf 'REQUIRED comparisons — flow verdicts:\n'
+    } | sanitise >> "$target"
+
+    for entry in $SMOKE_FLOW_SLUGS; do
+        n="${entry%%-*}"
+        slug="${entry#*-}"
+        dest="$(flow_prefix "$n" "$slug")"
+        verdict='(no result recorded)'
+        other_verdict='(no result recorded)'
+        if [ -s "${dest}.result.txt" ]; then
+            verdict="$(sed -n 's|^verdict: ||p' "${dest}.result.txt" | tail -1)"
+        fi
+        if [ -s "${other}/flow-${n}-${slug}.result.txt" ]; then
+            other_verdict="$(sed -n 's|^verdict: ||p' \
+                "${other}/flow-${n}-${slug}.result.txt" | tail -1)"
+        fi
+        if [ "$verdict" = "$other_verdict" ]; then
+            rows="match"
+        else
+            rows="DIFFER"
+            required_diffs=$((required_diffs + 1))
+        fi
+        printf '  %-7s flow-%s-%s: this=%s other=%s\n' \
+            "$rows" "$n" "$slug" "$verdict" "$other_verdict" \
+            | sanitise >> "$target"
+    done
+
+    printf '\nREQUIRED comparisons — the five frontend artifact digests:\n' \
+        | sanitise >> "$target"
+
+    for name in application.js application.min.js vendors.min.js \
+                application.min.css home.html
+    do
+        mine='(absent)'
+        theirs='(absent)'
+        [ -s "${SMOKE_OUT_DIR}/artifacts/${name}.sha256" ] \
+            && mine="$(awk 'NR==1{print $1}' "${SMOKE_OUT_DIR}/artifacts/${name}.sha256")"
+        [ -s "${other}/artifacts/${name}.sha256" ] \
+            && theirs="$(awk 'NR==1{print $1}' "${other}/artifacts/${name}.sha256")"
+        if [ "$mine" = "$theirs" ]; then
+            printf '  %-7s %s: %s\n' 'match' "$name" "$mine" | sanitise >> "$target"
+        else
+            required_diffs=$((required_diffs + 1))
+            {
+                printf '  %-7s %s\n' 'DIFFER' "$name"
+                printf '            this  %s\n' "$mine"
+                printf '            other %s\n' "$theirs"
+            } | sanitise >> "$target"
+        fi
+    done
+
+    # The archived unit-test suites, compared by name.  A suite present on the
+    # other side and absent here is the fatal direction; the reverse is an
+    # addition.  Both counts are printed so neither has to be inferred.
+    local tmp_mine="${SMOKE_TMPDIR}/cmp-mine"
+    local tmp_theirs="${SMOKE_TMPDIR}/cmp-theirs"
+    local added=0 lost=0
+    ( cd "${SMOKE_OUT_DIR}/surefire" 2>/dev/null \
+        && find . -type f -name 'TEST-*.xml' | sed -e 's|^\./||' | LC_ALL=C sort ) \
+        > "$tmp_mine" 2>/dev/null || : > "$tmp_mine"
+    ( cd "${other}/surefire" 2>/dev/null \
+        && find . -type f -name 'TEST-*.xml' | sed -e 's|^\./||' | LC_ALL=C sort ) \
+        > "$tmp_theirs" 2>/dev/null || : > "$tmp_theirs"
+    added="$(LC_ALL=C comm -23 "$tmp_mine" "$tmp_theirs" | wc -l | tr -d '[:space:]')"
+    lost="$(LC_ALL=C comm -13 "$tmp_mine" "$tmp_theirs" | wc -l | tr -d '[:space:]')"
+
+    {
+        printf '\nREQUIRED comparison — archived unit-test suites:\n'
+        printf '  suites-in-this-capture: %s\n' \
+            "$(wc -l < "$tmp_mine" | tr -d '[:space:]')"
+        printf '  suites-in-other-capture: %s\n' \
+            "$(wc -l < "$tmp_theirs" | tr -d '[:space:]')"
+        printf '  present-here-only: %s\n' "$added"
+        printf '  present-there-only: %s\n' "$lost"
+        printf '  The per-suite accounting, and which of the two reasons applies to\n'
+        printf '  each unpaired suite, is in notes/surefire-pairing.txt and in\n'
+        printf '  docs/migration/baseline-test-failures.md.  Neither direction is\n'
+        printf '  counted as a REQUIRED difference here, because the pairing contract\n'
+        printf '  already adjudicates it and doing it twice would double-count.\n'
+        printf '\n'
+        printf 'ADVISORY differences — reported, never counted:\n'
+        printf '  the source map is excluded from the required set by design; it embeds\n'
+        printf '    file paths, and two captures run from different roots by construction\n'
+        printf '  the capture directory and the target base URL are provenance, not\n'
+        printf '    evidence, and are not compared\n'
+        printf '  durations, host names and run instants legitimately vary between two\n'
+        printf '    runs of the same suite and are not compared\n'
+        printf '\n'
+        printf 'REQUIRED-DIFFERENCES: %s\n' "$required_diffs"
+        printf '\n'
+        printf 'How to read that number.  Zero means the two captures agree on every\n'
+        printf 'required row.  Non-zero does NOT by itself mean a regression: it means\n'
+        printf 'something differs and therefore has to be ACCOUNTED FOR, either by being\n'
+        printf 'fixed or by being registered as an accepted deviation with evidence, in\n'
+        printf 'docs/migration/ambiguity-resolutions.md and\n'
+        printf 'docs/migration/pre-existing-defects.md.  A difference that appears in\n'
+        printf 'neither register is an unexplained difference, and that is the condition\n'
+        printf 'this file exists to make impossible to miss.\n'
+    } | sanitise >> "$target"
+}
+
 write_created_state_note()
 {
     local complaint_id
@@ -4223,6 +4528,7 @@ main()
 
     verify_surefire_pairing
     write_created_state_note
+    write_comparison
     run_cleanup
 
     overall="$(write_completeness)"

@@ -1,18 +1,22 @@
 flow: 6
 slug: 6-generated-number
-verdict: SKIPPED
-migration-path-exercised: expression language 2.4.15.Final through the live decision tables
-compared-artefacts: none — the flow did not execute
+verdict: NOT-EXERCISED-MUTATION-NOT-PERMITTED
+migration-path-exercised: the expression language advanced to 2.4.15.Final, reached through the live decision tables; the rule compiler declares that language with no version of its own, so the reactor property governs which one loads
+compared-artefacts: flow-6-generated-number.out, flow-6-generated-number.status and notes/corpus-figures.txt
+transport-trust-mode: verify-default-trust-store
+state-mutation-permitted: no
 observed-statuses:
   numbering-precondition=000
-  create-object=000
-  create-object=SKIPPED
 observations:
-  - skipped: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/plugin/complaint
-  - a SKIPPED verdict is not a pass and must not be read as one
+  - numbering precondition query observed: 000
+  - decision tables measured at run time: 39 (verified 39 at base commit; the migration plan quotes 43, which additionally counts three .xls files and one spreadsheet test fixture)
+  - state mutation refused because: ALLOW_SMOKE_MUTATIONS is not set to 1
+  - a generated number can only be observed by generating one.  Rather than record a read-only query and label it a numbering observation, the flow states that the behaviour was NOT exercised and marks the run incomplete
+  - to exercise it: set ALLOW_SMOKE_MUTATIONS=1 and name the target host in SMOKE_MUTATION_HOSTS
+  - requirements unmet: 1
 assertion-basis: derived by reading flow-6-generated-number.status and
   flow-6-generated-number.out back from disk; no verdict in this script is taken
-  from a process exit status (R-T7).
+  from a subprocess exit status (R-T7).
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this

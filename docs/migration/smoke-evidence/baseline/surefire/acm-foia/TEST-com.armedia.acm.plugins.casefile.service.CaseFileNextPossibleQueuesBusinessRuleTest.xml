@@ -1,44 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--
-  Native Surefire report, JDK 8 baseline, module acm-foia.
-
-  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
-  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
-  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
-  working tree could reach the classpath this run exercised:
-
-    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
-    mvn -B -fae test                    (every module reached; no module short-circuited the run)
-
-  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
-  change no test outcome - they only stop the reactor from halting at the first red module, which is
-  what makes archiving every module's reports possible in one pass.
-
-  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
-  order, and every failure, error and skipped element with its message, type and full stack trace.
-  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
-
-  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
-  left to be discovered: the system property dump the reporter writes inside the properties element is
-  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
-  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
-  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
-  message content - never on byte identity, since duration, host name and run instant legitimately vary
-  between two runs of the same suite.
--->
-<testsuite tests="13" failures="0" name="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="13.348" errors="0" skipped="0">
-  <properties/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterHoldQueue" time="1.608"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterBillingQueue_notDeniedFlag_release" time="1.348"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterGeneralCounselQueue_FeeWaiverAndNotDeniedFlag_release" time="0.993"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterIntakeQueue" time="1.077"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterGeneralCounselQueue_deniedFlag_approve" time="1.277"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterBillingQueue_deniedFlag_approve" time="0.86"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterApproveQueue_deniedFlag_release" time="0.779"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterFulfillQueue" time="0.863"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterGeneralCounselQueue_notFeeWaiverAndNotDeniedFlag_billing" time="0.731"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterApproveQueue_litigationAndNotDeniedFlag_generalCounsel" time="0.935"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterApproveQueue_notLitigationAndFeeWaiverAndNotDeniedFlag_release" time="0.884"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterAppealQueue" time="0.895"/>
-  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterApproveQueue_notLitigationAndNotFeeWaiverAndNotDeniedFlag_billing" time="1.098"/>
+<testsuite tests="13" failures="0" name="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="6.475" errors="0" skipped="0">
+  <properties>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="java.vm.version" value="25.492-b09"/>
+    <property name="java.vm.vendor" value="Private Build"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.runtime.version" value="1.8.0_492-8u492-ga~us2-0ubuntu1~25.10.1-b09"/>
+    <property name="os.arch" value="amd64"/>
+"/>
+    <property name="os.name" value="Linux"/>
+    <property name="java.class.version" value="52.0"/>
+    <property name="os.version" value="6.12.85+"/>
+    <property name="java.specification.version" value="1.8"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.version" value="1.8.0_492"/>
+    <property name="java.vendor" value="Private Build"/>
+  </properties>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterHoldQueue" time="0.495"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterBillingQueue_notDeniedFlag_release" time="0.492"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterGeneralCounselQueue_FeeWaiverAndNotDeniedFlag_release" time="0.482"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterIntakeQueue" time="0.473"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterGeneralCounselQueue_deniedFlag_approve" time="0.484"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterBillingQueue_deniedFlag_approve" time="0.487"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterApproveQueue_deniedFlag_release" time="0.601"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterFulfillQueue" time="0.478"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterGeneralCounselQueue_notFeeWaiverAndNotDeniedFlag_billing" time="0.539"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterApproveQueue_litigationAndNotDeniedFlag_generalCounsel" time="0.479"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterApproveQueue_notLitigationAndFeeWaiverAndNotDeniedFlag_release" time="0.498"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterAppealQueue" time="0.477"/>
+  <testcase classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" name="nextQueuesAfterApproveQueue_notLitigationAndNotFeeWaiverAndNotDeniedFlag_billing" time="0.49"/>
 </testsuite>

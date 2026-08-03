@@ -1,0 +1,61 @@
+=== artifact digests, base-commit tree built with the SUPERSEDED package manager
+=== on the NEW runtime (Node 20.20.2, yarn 1.22.22, the base-commit manifest and
+=== lockfile, installed with the exact command the base-commit runtime wiring used)
+
+3c0aeb4d2b02dc740e733e5ed89c87bf0d229cc19489ee0f023c04af611391b8  assets/dist/application.js
+c1a4cb56e4b644c4d6e356698a222f9de2b57dc0114eec86d93323e0a9b41dc2  assets/dist/application.min.js
+70187246b480eebb6f920732ce84356fb719b2db9694c10ed20388ff6f5e3be4  assets/dist/vendors.min.js
+04228704205f51db7eac073b0001c87e54473f372865a031b910b989c8891ea1  assets/dist/application.min.css
+43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9  home.html
+84a7efde28457effd813db74a816936d6c0b434196f79d1eec6c4aaa0697c2b8  assets/dist/application.min.js.map
+
+=== cache-busted names produced ===
+application.ef1612bbd7993382.js
+application.js
+application.min.1ae47d39c0d9d836.css
+application.min.2fa1cd12f2c4077f.js
+application.min.css
+application.min.js
+application.min.js.56da89159ec1b11a.map
+application.min.js.map
+vendors.min.59439035604af96f.js
+vendors.min.js
+
+=== WHY THIS THIRD SET EXISTS AND WHAT IT ISOLATES ===
+
+Three builds were taken, not two, because the migration changes two things at
+once on this track and a single comparison cannot separate them:
+
+  build A  base-commit tree, yarn 1.22.22, Node  8.17.2 era runtime (v8.17.0)
+           -> artifact-digests-node8.txt, and the five digests recorded in
+              ../baseline/artifacts/
+  build B  base-commit tree, yarn 1.22.22, Node 20.20.2
+           -> THIS FILE
+  build C  migrated tree, npm 10.8.2 from the committed lockfile, Node 20.20.2
+           -> artifact-digests-node20.txt, and the five digests recorded in
+              ../migrated/artifacts/
+
+B against C holds the RUNTIME constant and varies only the package manager, the
+lockfile and the dependency-specification form.  Every one of the five compared
+artifacts, and the source map, is byte-identical between them -- so the manifest
+rewrite from 76 owner/repo#<semver-range> specifications to 76 exact commit SHAs,
+the replacement of the superseded lockfile with package-lock.json at
+lockfileVersion 3, and the change of installer resolved to the same dependency
+graph and drove the pipeline to the same bytes.  That is the strongest statement
+available about the change this migration actually makes to the frontend, and it
+is unambiguous.
+
+A against C is the comparison the review asked for, and it varies BOTH the
+runtime and the package manager.  Three of the five artifacts are byte-identical;
+two differ, both of them minifier output, and comparison.txt in this directory
+carries the full analysis.  Read against B, the attribution is settled rather
+than argued: since B and C agree byte for byte, the two differences between A and
+C cannot be caused by the package manager, the lockfile or the specification
+form, because those are exactly what B and C differ in.  The only variable left
+between A and B is the Node runtime the minifier ran on.
+
+The captures under ../baseline/ and ../migrated/ hold A and C, because A against
+C is what the migration criteria call for.  B is preserved here rather than in a
+capture directory of its own so that the attribution above can be checked, and
+its digests are the ones ../baseline/artifacts/ carried before that capture was
+re-taken on the historical runtime.

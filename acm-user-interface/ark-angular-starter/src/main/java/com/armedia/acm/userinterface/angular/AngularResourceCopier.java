@@ -673,14 +673,27 @@ public class AngularResourceCopier implements ServletContextAware
      * location inside the staging folder that this class does not create means the package manager finds no
      * configuration file at all, so neither the server user's own file nor a file left in the folder can redirect the
      * registry, the proxy or the certificate authority.
+     * <p>
+     * It then pins the interpreter. Resolving the npm and Grunt launchers to absolute files is not by itself enough to
+     * decide which Node.js runs them, because both launchers are Node.js scripts introduced by a
+     * {@code #!/usr/bin/env node} line: the kernel hands the file to {@code env}, which resolves the name
+     * {@code node} against the PATH of the child process. Inheriting the server's PATH unchanged would therefore let
+     * a different, unverified interpreter execute the very install whose runtime this class has just checked, and on a
+     * host with more than one Node.js installed that is the likely outcome rather than a remote one. Placing the
+     * verified launcher's own directory first on the child PATH closes that gap for every process in the tree - the
+     * package manager, Grunt, and anything either of them spawns in turn - without changing a single configured
+     * command.
+     * <p>
+     * Visible to the test in this package so that the pinned PATH can be asserted directly rather than inferred from
+     * the behaviour of a child process.
      *
      * @param tmpDir
      *            the staging folder.
      * @return the environment to run with.
      * @throws IOException
-     *             if the server's own environment cannot be read.
+     *             if the server's own environment cannot be read, or the Node.js launcher cannot be resolved.
      */
-    private Map<String, String> buildToolEnvironment(File tmpDir) throws IOException
+    Map<String, String> buildToolEnvironment(final File tmpDir) throws IOException
     {
         Map<String, String> environment = EnvironmentUtils.getProcEnvironment();
         File absentConfig = new File(tmpDir, ".arkcase-no-npm-config");
@@ -698,7 +711,64 @@ public class AngularResourceCopier implements ServletContextAware
         environment.put("npm_config_progress", "false");
         environment.put("npm_config_fund", "false");
 
+        pinInterpreter(environment, resolveLauncher(tmpDir, "node"));
+
         return environment;
+    }
+
+    /**
+     * Put the directory of a resolved Node.js launcher first on the PATH of a child process, so that a launcher whose
+     * interpreter line names {@code node} runs on that launcher and not on whatever the ambient path resolves.
+     * <p>
+     * The existing PATH is kept behind it rather than discarded, because the build tools legitimately need the rest of
+     * it - a shell, the platform's own utilities, and on Windows the system directories. Prepending is sufficient:
+     * name resolution takes the first match.
+     *
+     * @param environment
+     *            the environment being prepared; modified in place.
+     * @param nodeLauncher
+     *            the resolved Node.js launcher whose directory is pinned.
+     * @throws IOException
+     *             if the launcher's directory cannot be resolved to a canonical path.
+     */
+    private void pinInterpreter(final Map<String, String> environment, final File nodeLauncher) throws IOException
+    {
+        File nodeDirectory = nodeLauncher.getCanonicalFile().getParentFile();
+
+        if (nodeDirectory == null)
+        {
+            throw new IOException("Cannot pin the Node.js interpreter: '" + nodeLauncher + "' has no parent "
+                    + "directory to place on the PATH of the front-end build.");
+        }
+
+        // Windows spells the variable Path and matches it case-insensitively, so the existing key is reused when there
+        // is one; adding a second key that differs only in case would leave the original in force.
+        String pathKey = "PATH";
+
+        for (String existingKey : environment.keySet())
+        {
+            if ("PATH".equalsIgnoreCase(existingKey))
+            {
+                pathKey = existingKey;
+                break;
+            }
+        }
+
+        String inherited = environment.get(pathKey);
+        String pinnedDirectory = nodeDirectory.getPath();
+
+        if (inherited == null || inherited.trim().isEmpty())
+        {
+            environment.put(pathKey, pinnedDirectory);
+        }
+        else
+        {
+            environment.put(pathKey, pinnedDirectory + File.pathSeparator + inherited);
+        }
+
+        log.info("Front-end tools will run with [{}] first on their path, so a launcher started through its "
+                + "interpreter line resolves 'node' to the runtime this class verified rather than to whatever the "
+                + "server process inherited.", pinnedDirectory);
     }
 
     /**
@@ -717,8 +787,14 @@ public class AngularResourceCopier implements ServletContextAware
         requirePositive("requiredNodeMajorVersion", getRequiredNodeMajorVersion());
         requirePositive("requiredNpmMajorVersion", getRequiredNpmMajorVersion());
 
-        verifyToolMajorVersion("node", getNodeExecutablePath(), getRequiredNodeMajorVersion());
-        verifyToolMajorVersion("npm", getNpmExecutablePath(), getRequiredNpmMajorVersion());
+        // Node.js is checked first and its launcher is carried into the npm check. The npm launcher is a Node.js
+        // script, so asking it for its version starts an interpreter, and that interpreter has to be the one just
+        // verified - otherwise the check reports the npm version of one installation while the install itself would be
+        // performed by the runtime of another.
+        File nodeLauncher = verifyToolMajorVersion("node", getNodeExecutablePath(), getRequiredNodeMajorVersion(),
+                null);
+
+        verifyToolMajorVersion("npm", getNpmExecutablePath(), getRequiredNpmMajorVersion(), nodeLauncher);
     }
 
     private void requirePositive(String propertyName, int value) throws IOException
@@ -730,13 +806,30 @@ public class AngularResourceCopier implements ServletContextAware
         }
     }
 
-    private void verifyToolMajorVersion(String tool, String configuredPath, int requiredMajor) throws IOException
+    /**
+     * Check one launcher's own reported major version against the version this build requires.
+     *
+     * @param tool
+     *            the bare tool name, used in messages.
+     * @param configuredPath
+     *            the configured absolute launcher, or blank to resolve the tool from the process path.
+     * @param requiredMajor
+     *            the major version that must be reported.
+     * @param interpreter
+     *            the verified Node.js launcher whose directory is pinned on the probe's path, or {@code null} when the
+     *            launcher being probed is itself a native executable and needs no interpreter.
+     * @return the resolved launcher, so that a verified interpreter can be reused for the launchers that need one.
+     * @throws IOException
+     *             if the launcher is absent, cannot be interrogated, or reports an unacceptable major version.
+     */
+    private File verifyToolMajorVersion(final String tool, final String configuredPath, final int requiredMajor,
+            final File interpreter) throws IOException
     {
         File launcher = configuredPath != null && !configuredPath.trim().isEmpty()
                 ? requireExecutable(new File(configuredPath.trim()), tool)
                 : requireExecutable(searchProcessPath(tool), tool);
 
-        String reported = readToolVersion(launcher);
+        String reported = readToolVersion(launcher, interpreter);
         Matcher matcher = VERSION_MAJOR.matcher(reported);
 
         if (!matcher.find())
@@ -757,6 +850,8 @@ public class AngularResourceCopier implements ServletContextAware
 
         log.info("Front-end {} launcher [{}] reports {}, which satisfies the required major version {}.", tool,
                 launcher, reported, requiredMajor);
+
+        return launcher;
     }
 
     /**
@@ -764,21 +859,32 @@ public class AngularResourceCopier implements ServletContextAware
      *
      * @param launcher
      *            the resolved launcher.
+     * @param interpreter
+     *            the verified Node.js launcher to pin on the probe's path, or {@code null} to run the probe with the
+     *            server's own environment. It is supplied whenever the launcher being probed is a Node.js script, so
+     *            that the version being read is the version that the verified runtime reports.
      * @return the trimmed first line the launcher printed.
      * @throws IOException
      *             if the launcher cannot be run.
      */
-    private String readToolVersion(File launcher) throws IOException
+    private String readToolVersion(final File launcher, final File interpreter) throws IOException
     {
         CommandLine command = new CommandLine(launcher);
         command.addArgument("--version", false);
 
         DefaultExecutor executor = new DefaultExecutor();
+        Map<String, String> environment = null;
+
+        if (interpreter != null)
+        {
+            environment = EnvironmentUtils.getProcEnvironment();
+            pinInterpreter(environment, interpreter);
+        }
 
         try (ByteArrayOutputStream captured = new ByteArrayOutputStream())
         {
             executor.setStreamHandler(new PumpStreamHandler(captured, captured));
-            executor.execute(command);
+            executor.execute(command, environment);
 
             String output = new String(captured.toByteArray(), StandardCharsets.UTF_8).trim();
             int newline = output.indexOf('\n');

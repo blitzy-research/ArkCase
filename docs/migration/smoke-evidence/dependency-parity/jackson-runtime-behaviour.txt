@@ -1,0 +1,61 @@
+jackson runtime behaviour, three ways: the JDK 8 baseline, the reverted library on JDK 17, and the migrated library on JDK 17
+==========================================================================================================================
+
+WHY THIS EXISTS
+  Jackson advanced from 2.10.3 to 2.12.7 because 2.10.3 cannot build a bean deserializer for any type
+  carrying a java.time property on Java 17: ClassUtil.checkAndFixAccess calls setAccessible on
+  LocalDate's private fields and java.base does not open java.time to the unnamed module.  The library
+  serialises every REST response, so a version change to it has to be shown not to move a response.
+  The three files beside this one are the same probe run in three configurations, and the table below
+  is what they say.  JacksonModuleParity.java in this directory is the probe.
+
+  The probe uses a bean shaped like the ones the failing controller tests read back - one java.time
+  property beside a plain one - and exercises both mappers the application actually uses: the mapper
+  Spring's message converter builds for REST responses, and a plain ObjectMapper, which 22 production
+  sites construct directly.
+
+WHAT WAS OBSERVED
+                                            JDK 8 + 2.10.3      JDK 17 + 2.10.3     JDK 17 + 2.12.7
+                                            (the baseline)      (the revert)        (as shipped)
+  Spring MVC mapper: registered modules      JavaTimeModule      JavaTimeModule      JavaTimeModule
+  Spring MVC mapper: writes LocalDate        [2026,3,4]          [2026,3,4]          [2026,3,4]
+  Spring MVC mapper: writes the bean         {"day":[2026,3,4]…} same                same
+  Spring MVC mapper: reads an ISO date       OK                  OK                  OK
+  plain mapper: reads a payload WITHOUT
+    the java.time property                   OK                  InaccessibleObject  OK
+  plain mapper: reads an ISO date            InvalidDefinition   InaccessibleObject  InvalidDefinition
+  plain mapper: reads a bean-shaped date     InvalidDefinition   InaccessibleObject  InvalidDefinition
+  plain mapper: writes the bean              bean-shaped object  bean-shaped object  InvalidDefinition
+
+WHAT THAT MEANS, ROW BY ROW
+  1. Every REST response path is unchanged.  The message-converter mapper registers the same module
+     set and produces the same bytes in all three configurations, which is the row that carries the
+     preserved-response-contract claim.
+
+  2. The migrated library reproduces the JDK 8 baseline on the plain-mapper READ path exactly,
+     including the exception TYPE on the two payload shapes that already failed at baseline.  The
+     reverted library reproduces none of it: on Java 17, 2.10.3 fails for EVERY payload - even one
+     that does not mention the java.time property - because the failure happens while the deserializer
+     is being built rather than while a value is being read.  That is not a test-only condition:
+     gov.foia.service.FOIAPortalRequestServiceProvider.submitRequest reads PortalFOIARequest, which
+     carries two LocalDateTime properties, through a plain mapper, and the error it would now raise is
+     unchecked and escapes the catch(IOException) around it.  gov.privacy's SARPortalRequestServiceProvider
+     does the same with PortalSubjectAccessRequest.  Reverting would break portal request submission on
+     the target runtime.
+
+  3. One asymmetry, stated rather than buried.  A plain mapper WRITING a java.time-bearing type
+     produced a bean-shaped rendering at baseline and now raises InvalidDefinitionException.  Every
+     plain-mapper write site in production was checked against that: PortalFOIARequestStatus (the
+     portal status response), a JsonNode of object associations in two services, a
+     HashMap<String,String> of labels, a lookup map, a progressbar message and a generated JSON
+     schema.  None of them carries a java.time property, so the asymmetry is not reachable from
+     production code.  The central marshaller, com.armedia.acm.objectonverter.ObjectConverter,
+     registers JavaTimeModule explicitly and then calls findAndRegisterModules, so it is on the first
+     row of the table, not this one.
+
+  Reproduce with:
+    mvn -o -pl acm-standard-applications/arkcase dependency:build-classpath \
+        -Dfasterxml-jackson-core.version=<version> -Dmdep.outputFile=<cp>
+    javac -cp "$(cat <cp>)" -d <classes> JacksonModuleParity.java
+    java  -cp "<classes>:$(cat <cp>)" JacksonModuleParity <out-file>
+  under each JDK in turn.  The jackson and spring jars alone are enough for the probe.

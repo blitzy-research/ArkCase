@@ -1,6 +1,20 @@
 toolchain provenance, captured verbatim from each tool
 capture-directory: <CAPTURE-DIR>
 
+===== run posture =====
+transport-trust-mode: verify-default-trust-store
+transport-trust-degraded: no
+certificate-authority-bundle-supplied: no
+public-key-pin-supplied: no
+credential-source: environment
+credential-value-recorded: never
+state-mutation-permitted: no
+state-mutation-refused-because: ALLOW_SMOKE_MUTATIONS is not set to 1
+body-capture-cap-bytes: 262144
+header-capture-cap-bytes: 16384
+diagnostic-capture-cap-bytes: 8192
+log-region-cap-lines: 2000
+
 ===== java -version =====
 openjdk version "17.0.19" 2026-04-21
 OpenJDK Runtime Environment (build 17.0.19+10-1-25.10.2-Ubuntu)

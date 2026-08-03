@@ -1,18 +1,20 @@
 flow: 5
 slug: 5-activemq-event
-verdict: SKIPPED
-migration-path-exercised: messaging client on Java 17, unchanged by design
-compared-artefacts: none — the flow did not execute
+verdict: NOT-EXERCISED-NO-EVENT-PRODUCED
+migration-path-exercised: messaging client on Java 17, unchanged by design: its messaging interfaces resolve from the broker client rather than from the platform, so the removal of the platform enterprise modules cannot reach it
+compared-artefacts: flow-5-activemq-event.out, flow-5-activemq-event.status and startup/messaging-and-persistence.log
+transport-trust-mode: verify-default-trust-store
+state-mutation-permitted: no
 observed-statuses:
-  raise-event=000
-  audit-readback-1=000
-  raise-event=SKIPPED
+  (none recorded)
 observations:
-  - skipped: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/service/event
-  - a SKIPPED verdict is not a pass and must not be read as one
+  - broker and persistence startup lines not captured (no container log supplied)
+  - state mutation permitted: no
+  - this flow observes the downstream effect of an event THIS RUN produced.  Without a produced event there is nothing to observe, and a query that answers 200 with an empty result set on an idle broker is not evidence of a transit — which is precisely the unsound inference this version replaces
+  - requirements unmet: 1
 assertion-basis: derived by reading flow-5-activemq-event.status and
   flow-5-activemq-event.out back from disk; no verdict in this script is taken
-  from a process exit status (R-T7).
+  from a subprocess exit status (R-T7).
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this

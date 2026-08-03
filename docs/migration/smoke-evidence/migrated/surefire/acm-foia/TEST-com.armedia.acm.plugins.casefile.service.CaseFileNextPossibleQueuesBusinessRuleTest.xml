@@ -1,44 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Native Surefire report, migrated run, Java 17, module acm-foia.
-
-  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
-  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
-  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
-  from a prebuilt repository:
-
-    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
-    mvn -B -fae test                    (every module reached; no module short-circuited the run)
-
-  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
-  change no test outcome - they only stop the reactor halting at the first red module, which is what
-  allows archiving every module's reports in one pass.
-
-  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
-  order, and every failure, error and skipped element with its message, type and full stack trace. No
-  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
-  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
-
-  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
-  discovered. The system property dump the reporter writes inside the properties element is emptied - it
-  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
-  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
-  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
-  both, no absolute path of this machine survives anywhere in this archive.
-
-  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
-  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
-  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
-  failure regardless of exit status.
-
-  Read against the twin report of the same name under the sibling baseline directory, which carries the
-  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
-  content - never on byte identity, since duration, host name and run instant legitimately vary between
-  two runs of the same suite.
--->
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="3.996" tests="13" errors="0" skipped="0" failures="0">
-  <properties/>
-  <testcase name="nextQueuesAfterHoldQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.311">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="3.924" tests="13" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="java.vm.vendor" value="Ubuntu"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="os.name" value="Linux"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="java.runtime.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
+    <property name="os.version" value="6.12.85+"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.version" value="17.0.19"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Ubuntu"/>
+    <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
+    <property name="java.class.version" value="61.0"/>
+  </properties>
+  <testcase name="nextQueuesAfterHoldQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.367">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -232,14 +212,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:08,488 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:08,748 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:08,764 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:08,764 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:08,764 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:33,054 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:33,358 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:33,375 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:33,375 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:33,375 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterBillingQueue_notDeniedFlag_release" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.294">
+  <testcase name="nextQueuesAfterBillingQueue_notDeniedFlag_release" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.326">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -433,14 +413,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:08,808 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:09,045 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:09,059 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:09,059 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:09,059 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:33,424 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:33,687 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:33,702 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:33,702 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:33,702 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterGeneralCounselQueue_FeeWaiverAndNotDeniedFlag_release" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.288">
+  <testcase name="nextQueuesAfterGeneralCounselQueue_FeeWaiverAndNotDeniedFlag_release" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.319">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -634,14 +614,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:09,102 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:09,332 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:09,348 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:09,348 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:09,348 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:33,745 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:34,006 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:34,021 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:34,021 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:34,021 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterIntakeQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.287">
+  <testcase name="nextQueuesAfterIntakeQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.29">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -835,14 +815,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:09,392 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:09,622 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:09,633 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:09,633 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:09,634 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:34,065 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:34,299 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:34,311 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:34,311 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:34,311 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterGeneralCounselQueue_deniedFlag_approve" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.288">
+  <testcase name="nextQueuesAfterGeneralCounselQueue_deniedFlag_approve" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.297">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -1036,14 +1016,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:09,676 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:09,903 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:09,923 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:09,923 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:09,923 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:34,354 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:34,594 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:34,608 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:34,609 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:34,609 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterBillingQueue_deniedFlag_approve" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.277">
+  <testcase name="nextQueuesAfterBillingQueue_deniedFlag_approve" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.3">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -1237,14 +1217,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:09,965 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:10,187 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:10,200 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:10,201 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:10,201 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:34,652 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:34,895 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:34,908 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:34,909 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:34,909 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterApproveQueue_deniedFlag_release" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.309">
+  <testcase name="nextQueuesAfterApproveQueue_deniedFlag_release" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.294">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -1438,14 +1418,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:10,242 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:10,488 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:10,509 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:10,509 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:10,509 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:34,952 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:35,186 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:35,202 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:35,202 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:35,202 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterFulfillQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.317">
+  <testcase name="nextQueuesAfterFulfillQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.293">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -1639,14 +1619,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:10,551 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:10,805 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:10,818 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:10,818 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:10,818 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:35,246 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:35,483 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:35,495 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:35,495 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:35,495 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterGeneralCounselQueue_notFeeWaiverAndNotDeniedFlag_billing" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.322">
+  <testcase name="nextQueuesAfterGeneralCounselQueue_notFeeWaiverAndNotDeniedFlag_billing" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.285">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -1840,14 +1820,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:10,867 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:11,131 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:11,149 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:11,149 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:11,149 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:35,539 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:35,765 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:35,780 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:35,780 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:35,780 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterApproveQueue_litigationAndNotDeniedFlag_generalCounsel" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.321">
+  <testcase name="nextQueuesAfterApproveQueue_litigationAndNotDeniedFlag_generalCounsel" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.298">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -2041,14 +2021,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:11,198 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:11,451 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:11,469 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:11,469 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:11,469 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:35,823 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:36,063 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:36,079 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:36,079 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:36,079 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterApproveQueue_notLitigationAndFeeWaiverAndNotDeniedFlag_release" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.329">
+  <testcase name="nextQueuesAfterApproveQueue_notLitigationAndFeeWaiverAndNotDeniedFlag_release" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.29">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -2242,14 +2222,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:11,518 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:11,781 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:11,799 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:11,799 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:11,799 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:36,121 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:36,354 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:36,370 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:36,370 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:36,370 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterAppealQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.318">
+  <testcase name="nextQueuesAfterAppealQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.279">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -2443,14 +2423,14 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:11,848 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:12,104 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:12,117 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:12,117 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:12,117 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:36,412 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:36,637 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:36,649 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:36,649 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:36,649 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="nextQueuesAfterApproveQueue_notLitigationAndNotFeeWaiverAndNotDeniedFlag_billing" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.331">
+  <testcase name="nextQueuesAfterApproveQueue_notLitigationAndNotFeeWaiverAndNotDeniedFlag_billing" classname="com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest" time="0.283">
     <system-out><![CDATA[DRL: package Next_Possible_Queues_Rules;
 //generated from Decision Table
 import com.armedia.acm.plugins.businessprocess.model.NextPossibleQueuesModel;
@@ -2644,11 +2624,11 @@ rule "Next Possible Queues Rules_33"
 end
 
 
-2026-08-03 09:39:12,165 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-03 09:39:12,432 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-03 09:39:12,449 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-03 09:39:12,449 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-03 09:39:12,449 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+2026-08-03 15:32:36,690 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-03 15:32:36,916 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-03 15:32:36,932 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-03 15:32:36,932 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-03 15:32:36,932 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
 </testsuite>

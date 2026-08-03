@@ -3,17 +3,18 @@ slug: 2-views
 verdict: SKIPPED
 migration-path-exercised: served frontend artifacts; permission evaluation via reflection-based scanning
 compared-artefacts: none — the flow did not execute
+transport-trust-mode: verify-default-trust-store
+state-mutation-permitted: no
 observed-statuses:
   app-shell=000
   case-list=000
-  case-detail=not-attempted
   app-shell=SKIPPED
 observations:
   - skipped: no HTTP response from https://arkcase-ce.local/arkcase/ or the case-list endpoint
   - a SKIPPED verdict is not a pass and must not be read as one
 assertion-basis: derived by reading flow-2-views.status and
   flow-2-views.out back from disk; no verdict in this script is taken
-  from a process exit status (R-T7).
+  from a subprocess exit status (R-T7).
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this

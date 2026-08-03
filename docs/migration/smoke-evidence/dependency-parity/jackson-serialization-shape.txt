@@ -1,0 +1,62 @@
+serialization property model of every project class, compared between jackson 2.10.3 and 2.12.7
+
+METHOD
+  JacksonShapeParity.java in this directory asks a mapper for the value serializer of every
+  class carried by the project's own artifacts on the WAR classpath, and writes the properties
+  it will serialize IN ORDER, with their declared types.  That ordered property list is what
+  decides the shape of a serialized response, so comparing it class by class compares response
+  shape across the whole model surface rather than asserting something about it.
+  Both runs used the resolved classpath of the WAR module, differing only in the value of the
+  fasterxml-jackson-core.version property, on OpenJDK 17.0.19.
+
+  2a8ce5d13ca720d6ead496ffc7cab9afbbef598e83e1749a946589c7462782c0  shape-2.10.3.txt  (2667 lines, regenerate with the harness in this directory)
+  5973a3805b5229b13512e2fc86caf53109bd0842bbaf7e4bf459ac7ae6d2a4c5  shape-2.12.7.txt  (2667 lines, regenerate with the harness in this directory)
+
+RESULT
+  classes compared                     2663
+  serializer-class differences         0
+  property NAME-SET differences        0   (no field appears or disappears anywhere)
+  property ORDER-only differences      9
+
+THE ORDER DIFFERENCES, IN FULL
+  Each is a swap between adjacent properties of the same kind; no name, type or serializer
+  changes.  JSON object members are unordered by definition, and the AngularJS clients read
+  every payload by key, so none of these changes what a response means.  They are listed here
+  in full rather than summarised, because a difference that is bounded is only useful if the
+  bound is checkable.
+
+  com.armedia.acm.camelcontext.arkcase.cmis.ArkCaseCMISComponent
+    2.10.3  status componentPropertyConfigurer endpointPropertyConfigurer camelContext autowiredEnabled bridgeErrorHandler lazyStartProducer sessionFacadeFactory supportedExtensions started starting stopping suspending runAllowed stopped suspended shutdown new build init stoppingOrStopped suspendingOrSuspended startingOrStarted
+    2.12.7  status componentPropertyConfigurer endpointPropertyConfigurer camelContext autowiredEnabled bridgeErrorHandler lazyStartProducer sessionFacadeFactory supportedExtensions stopped started starting stopping suspending runAllowed suspended shutdown new build init stoppingOrStopped suspendingOrSuspended startingOrStarted
+
+  com.armedia.acm.configuration.client.ConfigurationServiceBootClient
+    2.10.3  configurableEnvironment defaultApplicationName applicationProfile activeApplicationName modulesPath modulesNames
+    2.12.7  configurableEnvironment defaultApplicationName applicationProfile modulesPath modulesNames activeApplicationName
+
+  com.armedia.acm.core.AcmSpringActiveProfile
+    2.10.3  activeProfiles ssoenabledEnvironment oidcenabledEnvironment samlenabledEnvironment ldapEnabledEnvironment externalAuthEnabledEnvironment extensionActiveProfile
+    2.12.7  activeProfiles oidcenabledEnvironment samlenabledEnvironment ldapEnabledEnvironment externalAuthEnabledEnvironment extensionActiveProfile ssoenabledEnvironment
+
+  com.armedia.acm.frevvo.config.FrevvoFormUrl
+    2.10.3  properties plainFormProperties authenticationTokenService host port protocol baseUrl portAsInteger internalProtocol internalHost internalPort internalPortAsInteger tenant designerUser currentRequest adminUser adminPassword plainFormApplicationIds
+    2.12.7  properties plainFormProperties authenticationTokenService host port protocol baseUrl portAsInteger internalProtocol internalHost internalPort internalPortAsInteger plainFormApplicationIds tenant designerUser currentRequest adminUser adminPassword
+
+  com.armedia.acm.objectdiff.model.AcmDiff
+    2.10.3  changesAsTree changesAsList changesAsTreeJson changesAsListJson
+    2.12.7  changesAsTreeJson changesAsListJson changesAsList changesAsTree
+
+  com.armedia.acm.objectdiff.model.AcmObjectDiff
+    2.10.3  changesAsTree changesAsList changesAsTreeJson changesAsListJson
+    2.12.7  changesAsList changesAsTree changesAsTreeJson changesAsListJson
+
+  com.armedia.acm.quartz.scheduler.AcmJobState
+    2.10.3  jobName triggerName repeatIntervalInSeconds cronExpression lastRun nextRun triggerState paused running
+    2.12.7  jobName triggerName repeatIntervalInSeconds cronExpression lastRun nextRun triggerState running paused
+
+  com.armedia.acm.web.api.MDCThreadPoolExecutor
+    2.10.3  largestPoolSize completedTaskCount threadFactory corePoolSize maximumPoolSize queue shutdown terminated poolSize terminating activeCount rejectedExecutionHandler taskCount
+    2.12.7  largestPoolSize completedTaskCount threadFactory corePoolSize maximumPoolSize queue shutdown terminated poolSize terminating rejectedExecutionHandler taskCount activeCount
+
+  gov.privacy.model.SubjectAccessRequest
+    2.10.3  id personAssociations originator caseNumber caseType title status details caseDetailsSummary incidentDate created creator modified modifier closed disposition priority external className participants dueDate changeCaseStatus hasAnyAssociatedTimesheets approvers ecmFolderPath organizationAssociations milestones restricted childObjects container courtroomName responsibleOrganization nextCourtDate lock queue queueEnterDate responseDueDate previousQueue securityField legacySystemId deniedFlag receivedDate holdEnterDate requestType releasedDate componentAgency returnReason requestSource recordSearchDateFrom recordSearchDateTo requestCategory deliveryMethodOfResponse swornStatement understandProcessingRequirementStatement informationAgreementStatement accurateAndAuthorizedStatement signature signatureDate originalRequestNumber sarconfiguration subject acmObjectNumber references acmObjectOriginator
+    2.12.7  id personAssociations originator caseNumber caseType title status details caseDetailsSummary incidentDate created creator modified modifier closed disposition priority external className participants dueDate changeCaseStatus hasAnyAssociatedTimesheets approvers ecmFolderPath organizationAssociations milestones restricted childObjects container courtroomName responsibleOrganization nextCourtDate lock queue queueEnterDate responseDueDate previousQueue securityField legacySystemId deniedFlag receivedDate holdEnterDate requestType releasedDate componentAgency returnReason requestSource recordSearchDateFrom recordSearchDateTo requestCategory deliveryMethodOfResponse swornStatement understandProcessingRequirementStatement informationAgreementStatement accurateAndAuthorizedStatement signature signatureDate originalRequestNumber subject sarconfiguration acmObjectNumber references acmObjectOriginator

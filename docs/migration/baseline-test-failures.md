@@ -64,27 +64,43 @@ R-T7 forbids asserting an outcome that no run produced, so the archive's provena
 
 What each report therefore asserts is what the runner observed: the suite counts, the per-test durations, the testcase names in execution order, and every `failure`, `error` and `skipped` element with its message, its type and its complete stack trace. **A baseline failure is archived as failing** — R-6 requires it to be documented rather than tidied away, and nothing here softens one.
 
-One normalisation is applied, uniformly to every file, and it is disclosed in each file's own header as well as here: **the system property dump the reporter writes inside the `properties` element is emptied.** That element carried the whole JVM environment and the capture tree's absolute paths, neither of which is evidence about this codebase. After emptying it, no absolute path of the capture tree survives anywhere in the archive. Nothing else is altered: no attribute is removed, no outcome is added, reshaped or deleted, and no value is invented — there is no placeholder text and no non-numeric literal standing in for a count anywhere in the archive.
+Two normalisations are applied, uniformly to every file, by the committed `install-surefire-evidence.sh`, and both are counted per side inside `smoke-evidence/baseline/surefire/run-provenance.txt` so the claim is checkable rather than asserted:
+
+- **Absolute machine paths become placeholders.** The capture tree and its local artefact repository are named as `{REACTOR-ROOT}` and `{LOCAL-ARTIFACT-REPOSITORY}`; after the substitution no absolute path of the capture machine survives anywhere in either archive.
+
+  **That last clause is verified rather than asserted, and it had to be.** An earlier revision of the harvest read the repository path only from a `maven.repo.local` property, which a run using the *default* repository never records — so the migrated side performed no repository substitution and three reports went in carrying the home directory inside their captured test output, while this page claimed none did. The harvest now takes the repository path from that property when the run recorded one and from the default location when it did not, states which in `run-provenance.txt`, and then **searches the written archive for both the harvest root and the home directory and aborts the install if either survives.** So the claim above cannot appear while being false. The system temporary directory is deliberately *not* searched: a test that writes a scratch file there and logs its name is capturing its own behaviour, and deleting that would remove a real observation to satisfy a rule about provenance.
+- **The system property dump is reduced to an allowlist, and what remains is native.** The runner writes around fifty properties into every report; most describe the machine rather than the evidence — two full classpaths, the launcher command line, the user name, home directory, country and timezone, the temporary directory, the boot and native library paths, and `java.home`. Those are dropped. **Sixteen are retained exactly as the runner wrote them:** `java.version`, `java.runtime.version`, `java.runtime.name`, `java.vendor`, `java.vm.name`, `java.vm.vendor`, `java.vm.version`, `java.vm.info`, `java.specification.version`, `java.class.version`, `os.name`, `os.arch`, `os.version`, `sun.arch.data.model`, `file.encoding` and `jdk.debug`.
+
+That second point is a correction to an earlier revision of this archive, and it is worth naming as one. That revision emptied the `properties` element completely, which left the runtime provenance of every report resting on a hand-authored comment — the weakest possible form of the strongest available evidence, since a comment is exactly what an authored report can fake and a native `java.runtime.version` is exactly what it cannot. **Every report in this archive now states `java.runtime.version` = `1.8.0_492-8u492-ga~us2-0ubuntu1~25.10.1-b09` and `java.vm.version` = `25.492-b09`, read from the report itself rather than from any prose.** The harvest refuses to install a report that carries no `java.runtime.version`, and each installed file is verified to have lost exactly the angle brackets the dropped lines carried and no others.
+
+Nothing else is altered: no attribute is removed, no outcome is added, reshaped or deleted, and no value is invented — there is no placeholder text and no non-numeric literal standing in for a count anywhere in the archive. A `sha256-manifest.txt` beside the reports covers every one of them and the provenance note itself, so the archive cannot be edited after the fact without detection; verify with `sha256sum -c sha256-manifest.txt` from that directory.
+
+**This archive was re-captured, and the re-capture is itself a result.** The JDK 8 run described above was performed again, from the same base commit in a fresh isolated tree with a fresh local repository, in order to retain the property allowlist that the earlier revision had emptied. The two captures were then compared programmatically: **the same 278 files, and zero suites differing in testcase membership, in outcome kind, or in the `tests`/`failures`/`errors`/`skipped` attributes of their `testsuite` element.** The earlier archive was therefore genuine, and this one is the same evidence with its provenance restored — which is the strongest statement available about either.
 
 Two consequences for how the archive is read:
 
 - **Comparison against the migrated half is on testcase presence, testcase outcome and failure message content — never on byte identity.** Duration, host name and run instant legitimately vary between two runs of the same suite, and EasyMock 5 renders an unmet expectation more verbosely than EasyMock 4 while reporting the same unmet expectation. "Archived in its entirety" governs completeness of content, not sameness of bytes.
-- **The two halves pair by filename.** 278 of the 279 migrated reports have a baseline twin of the identical name, and no baseline report lacks a migrated twin. The single unpaired migrated file is `smoke-evidence/migrated/surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml`: the implicitly bound Surefire at the baseline did not match a `*Tests.java` name, and the pinned 3.5.2 does. That class now runs and passes. It is recorded here because a reviewer diffing the two trees will find it, and because it is the one direction of difference that cannot be a regression — a test that never ran before and passes now.
+- **The two halves pair by filename, and the pairing is total in the direction that matters.** Every one of the 278 baseline reports has a migrated twin of the identical name — **zero suites lost** — which is enforced by the committed pairing contract rather than left to a reader's diff. Seven migrated reports have no baseline twin; all seven are enumerated in the next sub-section, and six of them are simply classes that do not exist at the base commit. The seventh, `smoke-evidence/migrated/surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml`, is the one that needed explaining, and the JDK 8 re-capture establishes directly why the baseline has no counterpart: the class `SolrReindexServiceTests.java` **does exist** in the base-commit source at `acm-services/acm-service-data-update/src/test/java/com/armedia/acm/services/dataupdate/web/`, the baseline run used the implicitly bound **`maven-surefire-plugin:2.12.4`**, and that version's default includes are `**/Test*.java`, `**/*Test.java` and `**/*TestCase.java` — none of which matches a class whose name ends in `Tests`. The baseline run consequently produced exactly **two** reports for that module, and the plural-named class is not among them. Surefire 3.x added `**/*Tests.java` to the defaults, so the pinned 3.5.2 selects it and it now runs and passes.
 
-### Test classes added after the archived migrated run
+  The baseline report is therefore **correctly absent rather than missing**, and no report was lost, deleted or left unproduced. It is recorded here because a reviewer diffing the two trees will find it; because it is the one direction of difference that cannot be a regression — a test that never ran before and passes now; and because it is a real, if small, behavioural consequence of pinning the runner, which belongs on this page rather than in a footnote. Nothing was fabricated to close the gap, and nothing should be: an authored baseline report for a suite the baseline runner never selected would be exactly the defect this archive exists to have escaped.
 
-Six unit-test classes reach the reactor from the code-review remediations that landed after the migrated capture above, so they have no report in the archived migrated half and no baseline twin — they did not exist at the base commit. They are named here rather than left to be discovered from a count mismatch, and their outcome is stated from a measurement rather than assumed:
+### The seven migrated suites with no baseline counterpart, and why each has none
 
-| Module | Test class | Tests | Outcome |
-| --- | --- | --- | --- |
-| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest` | 13 | all pass |
-| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest` | 9 | all pass |
-| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest` | 7 | all pass |
-| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest` | 7 | all pass |
-| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest` | 14 | all pass |
-| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest` | 6 | all pass |
+The archived migrated half carries **285** suites against the baseline half's **278**, and the whole of that difference is enumerated below rather than left to be discovered from a count mismatch. The pairing is enforced mechanically by the committed contract at `smoke-evidence/expected-suites.txt`, generated from the two installed archives by `install-surefire-evidence.sh --manifest`; `smoke-checks.sh` reads it and each capture's `notes/surefire-pairing.txt` records the result. Both sides report **0 suites missing, 0 unlisted and 0 lost**, which is the fact that matters: **no suite that ran at baseline has stopped running or stopped being archived.**
 
-The full reactor unit run over the current tree produces **285 reports and 949 test methods, 3 failures, 1 error and 21 skips** — the 279 archived migrated reports reproduced, plus these six, and 893 + 56 = 949 methods. **All four red outcomes are the four rows registered below**, so the delta against the archive is additive coverage and not a regression. The archive itself is deliberately left as the single coherent capture it documents: adding reports from a later run would break the provenance statement above, which is worth more than a matching count.
+| Module | Test class | Tests | Outcome | Why no baseline counterpart |
+| --- | --- | --- | --- | --- |
+| `acm-services/acm-service-data-update` | `com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests` | 1 | passes | Class **exists** at the base commit; the baseline runner did not select it — see the preceding sub-section |
+| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest` | 13 | all pass | Class did not exist at the base commit |
+| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest` | 9 | all pass | Class did not exist at the base commit |
+| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest` | 7 | all pass | Class did not exist at the base commit |
+| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest` | 7 | all pass | Class did not exist at the base commit |
+| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest` | 16 | all pass | Class did not exist at the base commit |
+| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest` | 6 | all pass | Class did not exist at the base commit |
+
+**The two reasons are not interchangeable, and the distinction is load-bearing.** Six of the seven classes are absent from the base commit outright, so no baseline run could ever have produced a report for them. The seventh existed and was skipped by the runner. Only the second kind is a behavioural consequence of this migration; collapsing both into "newly added" would have quietly hidden that. The generated pairing note therefore states both possibilities and defers the per-suite attribution to this table rather than asserting one.
+
+The arithmetic closes exactly: **278 baseline suites / 892 test methods**, and **285 migrated suites / 951 test methods**. The seven suites above contribute 1 + 13 + 9 + 7 + 7 + 16 + 6 = **59** methods, and 892 + 59 = 951. Every figure here is read out of the two installed archives, whose `sha256-manifest.txt` files verify clean. The migrated run recorded **3 failures, 1 error and 21 skips**, and **all four red outcomes are the four rows registered below** — so the entire delta against the baseline is additive coverage, with no regression anywhere in the corpus.
 
 ### The environment precondition that gates a complete run
 
@@ -96,21 +112,25 @@ In this checkout the precondition is **satisfied** rather than outstanding. The 
 
 ## The Test Corpus at Baseline
 
-Every figure below was re-derived at base commit `c8f6226105` rather than copied forward, and each was cross-checked against the working tree. All eleven match the migration plan's stated values exactly, so no divergence has to be reported for this table.
+Every figure below was re-derived at base commit `c8f6226105` rather than copied forward. All eleven baseline values match the migration plan's stated values exactly, so no divergence has to be reported against the plan.
 
-| Measure | Verified at base commit `c8f6226105` |
-| --- | --- |
-| `src/test/java` source trees | 76 |
-| Java test source files | 402 |
-| `*Test.java` (unit) | 280 |
-| `*IT.java` (integration) | 86 |
-| Files importing `org.junit.Test` | 366 |
-| Files importing `org.junit.jupiter` (JUnit 5) | 0 |
-| Existing `@Ignore` occurrences | 26 |
-| POMs declaring `maven-surefire-plugin` | 0 of 145 |
-| POMs declaring `maven-failsafe-plugin` | 3 — the root aggregator plus two children |
-| POMs configuring `rerunFailingTestsCount` or a retry plugin | 0 of 145 |
-| Test classes importing `org.powermock` | 6 |
+The working-tree column is stated separately rather than being asserted equal to the baseline, because for four measures **it is not equal** and saying so is the point: the migration adds six test classes, and a table that quietly published one number for both columns would either understate the working tree or misattribute the addition to the base commit.
+
+| Measure | Verified at base commit `c8f6226105` | Working tree now | Δ |
+| --- | --- | --- | --- |
+| `src/test/java` source trees | 76 | 77 | +1 — `ark-angular-starter` had no test tree at the base commit |
+| Java test source files | 402 | 408 | +6 — the six classes enumerated above |
+| `*Test.java` (unit) | 280 | 286 | +6 — same six |
+| `*IT.java` (integration) | 86 | 86 | — |
+| Files importing `org.junit.Test` | 366 | 372 | +6 — same six |
+| Files importing `org.junit.jupiter` (JUnit 5) | 0 | 0 | — |
+| Existing `@Ignore` occurrences | 26 | 26 | — **must not move**; see below |
+| POMs declaring `maven-surefire-plugin` | 0 of 145 | 1 — the root aggregator | +1 — the pinned declaration this migration adds |
+| POMs declaring `maven-failsafe-plugin` | 3 — the root aggregator plus two children | 3 | — |
+| POMs configuring `rerunFailingTestsCount` or a retry plugin | 0 of 145 | 0 | — |
+| Test classes importing `org.powermock` | 6 | 0 | −6 — all six rewritten onto Mockito, no assertion changed |
+
+The two Δ values that would signal a violation are the ones that are zero: `@Ignore` occurrences and retry configuration. Both are unchanged, and both are re-derived in the verification block below rather than asserted here.
 
 Five points follow from that table and each one binds something.
 
@@ -260,7 +280,7 @@ The reviewer procedure, in the order that catches the most.
 - **The `@Ignore` count must be unchanged** from the 26 recorded in the corpus table. Any increase violates R-5 whether it appears in build configuration or in source.
 - **JaCoCo liveness must be confirmed, not inferred from an exit code**: a non-empty `jacoco.exec` and a `check` goal that evaluated a real data set. A pass over an empty data set is a gate failure.
 - **The archived baseline XML under `smoke-evidence/baseline/surefire/` is the tie-breaker** for any dispute about what was failing before the migration. It is a native capture of a real JDK 8 run, so a report in it may be cited directly as an observation — subject only to the one disclosed normalisation and to the comparison contract above, both recorded in the provenance section and in every file's own header.
-- **Read the two halves together.** For any class, the report of the same name under `smoke-evidence/migrated/surefire/` is its Java 17 twin. The pairing is total in one direction — no baseline report lacks a migrated twin — and the single migrated file with no baseline twin is named in the provenance section.
+- **Read the two halves together.** For any class, the report of the same name under `smoke-evidence/migrated/surefire/` is its Java 17 twin. The pairing is total in one direction — no baseline report lacks a migrated twin — and the seven migrated reports with no baseline twin are each enumerated, with the reason it has none, in *The seven migrated suites with no baseline counterpart* above.
 
 The figures published on this page are re-derivable. Run from the repository root; the base commit is `c8f6226105`.
 
@@ -268,17 +288,39 @@ The figures published on this page are re-derivable. Run from the repository roo
 BASE=docs/migration/smoke-evidence/baseline/surefire
 MIG=docs/migration/smoke-evidence/migrated/surefire
 
-# the corpus, from the working tree
-git ls-files | grep -oE '^.*/src/test/java/' | sed 's|/src/test/java/||' | sort -u | wc -l   # 76
-git ls-files '*.java' | grep -c '/src/test/java/'                                            # 402
-git ls-files '*Test.java' | grep -c '/src/test/java/'                                        # 280
-git ls-files '*IT.java'   | grep -c '/src/test/java/'                                        # 86
-git ls-files '*.java' | xargs grep -l 'org.junit.Test'    | grep -c '/src/test/java/'         # 366
-git ls-files '*.java' | xargs grep -l 'org.junit.jupiter' | wc -l                             # 0
-git ls-files '*.java' | xargs grep -c '@Ignore' | awk -F: '{s+=$2} END {print s}'             # 26
-git ls-files 'pom.xml' '*/pom.xml' | xargs grep -l rerunFailingTestsCount | wc -l             # 0
-git grep -l 'org.powermock' c8f6226105 -- '*.java' | wc -l                                    # 6
+# the corpus AT THE BASE COMMIT.  Read out of the commit itself with ls-tree and git grep, not
+# out of the working tree: ls-files would answer for the tree as it stands now, and four of these
+# figures legitimately differ there because the migration adds six test classes.  These are the
+# left-hand column of the corpus table.
+B=c8f6226105
+git ls-tree -r --name-only $B | grep -oE '^.*/src/test/java/' | sort -u | wc -l                # 76
+git ls-tree -r --name-only $B | grep -c '/src/test/java/.*\.java$'                             # 402
+git ls-tree -r --name-only $B | grep -c '/src/test/java/.*Test\.java$'                         # 280
+git ls-tree -r --name-only $B | grep -c '/src/test/java/.*IT\.java$'                           # 86
+git grep -l 'org.junit.Test'    $B -- '*.java' | grep -c '/src/test/java/'                     # 366
+git grep -l 'org.junit.jupiter' $B -- '*.java' | wc -l                                         # 0
+git grep -c '@Ignore' $B -- '*.java' | awk -F: '{s+=$3} END {print s}'                         # 26
+git grep -l rerunFailingTestsCount $B -- 'pom.xml' '*/pom.xml' | wc -l                         # 0
+git grep -l 'maven-surefire-plugin' $B -- 'pom.xml' '*/pom.xml' | wc -l                        # 0
+git grep -l 'org.powermock'             $B -- '*.java' | wc -l                                 # 6
+git grep -l 'org.easymock.classextension' $B -- '*.java' | wc -l                               # 0
+
+# the same corpus IN THE WORKING TREE - the right-hand column.  The four differences are the six
+# added test classes and the one new test tree that holds two of them.
+git ls-files | grep -oE '^.*/src/test/java/' | sed 's|/src/test/java/||' | sort -u | wc -l     # 77
+git ls-files '*.java' | grep -c '/src/test/java/'                                              # 408
+git ls-files '*Test.java' | grep -c '/src/test/java/'                                          # 286
+git ls-files '*IT.java'   | grep -c '/src/test/java/'                                          # 86
+git ls-files '*.java' | xargs grep -l 'org.junit.Test'    | grep -c '/src/test/java/'          # 372
+git ls-files '*.java' | xargs grep -l 'org.junit.jupiter' | wc -l                              # 0
+git ls-files '*.java' | xargs grep -l 'org.powermock' | wc -l                                  # 0
 git ls-files '*.java' | xargs grep -l 'org.easymock.classextension' | wc -l                    # 0
+
+# the two counts that must NOT have moved.  An increase in either is an R-5 violation regardless
+# of where it appears, so they are re-derived on the working tree and compared to the 26 and the 0
+# above rather than restated.
+git ls-files '*.java' | xargs grep -c '@Ignore' | awk -F: '{s+=$2} END {print s}'              # 26
+git ls-files 'pom.xml' '*/pom.xml' | xargs grep -l rerunFailingTestsCount | wc -l              # 0
 
 # the archive, element by element - these are the figures published above
 find $BASE -name 'TEST-*.xml' | wc -l                                                         # 278
@@ -287,8 +329,35 @@ grep -rho '<testcase' $BASE | wc -l                                             
 grep -rho '<skipped'  $BASE | wc -l                                                           # 21
 grep -rho '<failure'  $BASE | wc -l                                                           # 3
 grep -rho '<error'    $BASE | wc -l                                                           # 1
-find $MIG  -name 'TEST-*.xml' | wc -l                                                         # 279
-find $MIG  -mindepth 1 -maxdepth 1 -type d | wc -l                                            # 66
+find $MIG  -name 'TEST-*.xml' | wc -l                                                         # 285
+find $MIG  -mindepth 1 -maxdepth 1 -type d | wc -l                                            # 67
+grep -rho '<testcase' $MIG | wc -l                                                            # 951
+grep -rho '<skipped'  $MIG | wc -l                                                            # 21
+grep -rho '<failure'  $MIG | wc -l                                                            # 3
+grep -rho '<error'    $MIG | wc -l                                                            # 1
+
+# the seven-suite delta and the pairing contract that enforces it.  Write the two listings to
+# files rather than comparing them through process substitution: comm needs both inputs sorted
+# under the SAME collation, and LC_ALL=C is what makes '-' and '.' order predictably.
+( cd $BASE && find . -name 'TEST-*.xml' | sed 's|^\./||' | LC_ALL=C sort ) > /tmp/b.list
+( cd $MIG  && find . -name 'TEST-*.xml' | sed 's|^\./||' | LC_ALL=C sort ) > /tmp/m.list
+LC_ALL=C comm -13 /tmp/b.list /tmp/m.list | wc -l                                             # 7  <- added
+LC_ALL=C comm -23 /tmp/b.list /tmp/m.list | wc -l                                             # 0  <- nothing lost
+grep -c '^BOTH'           docs/migration/smoke-evidence/expected-suites.txt                   # 278
+grep -c '^MIGRATED-ONLY'  docs/migration/smoke-evidence/expected-suites.txt                   # 7
+grep -c '^BASELINE-ONLY'  docs/migration/smoke-evidence/expected-suites.txt                   # 0
+
+# every report states its own runtime, so the archive proves which JDK produced it without
+# reference to any prose on this page.  The allowlist retains 16 native properties per report.
+grep -rl 'name="java.runtime.version" value="1.8.0_492' $BASE | wc -l                         # 278
+grep -rl 'name="java.class.version" value="52.0"'       $BASE | wc -l                         # 278
+grep -rl 'name="java.runtime.version" value="17.0.19'   $MIG  | wc -l                         # 285
+grep -rl 'name="java.class.version" value="61.0"'       $MIG  | wc -l                         # 285
+
+# integrity: each archive carries a checksum manifest covering every report and its own
+# provenance note, so an edit after harvest is detectable rather than invisible.
+( cd $BASE && sha256sum -c sha256-manifest.txt >/dev/null && echo OK )                        # OK
+( cd $MIG  && sha256sum -c sha256-manifest.txt >/dev/null && echo OK )                        # OK
 
 # provenance gates: no derived-report residue, and no path of the machine that ran the capture.
 # The third command looks for the checkout root specifically, not for every temporary path: one
@@ -297,7 +366,9 @@ find $MIG  -mindepth 1 -maxdepth 1 -type d | wc -l                              
 grep -rl 'not-captured' $BASE $MIG | wc -l                                                    # 0
 grep -rho 'status="[^"]*"' $BASE $MIG | wc -l                                                 # 0
 grep -rl '/tmp/blitzy' $BASE $MIG | wc -l                                                     # 0
-find $BASE $MIG -type f ! -name '*.xml' | wc -l                                               # 0
+find $BASE $MIG -type f ! -name '*.xml' | wc -l                                               # 4
+#   the four are run-provenance.txt and sha256-manifest.txt in each archive; every other file
+#   in both trees is a Surefire report written by the runner.
 
 # the four rows above, re-derived from the archive rather than read off this page
 grep -rl -e '<failure' -e '<error' $BASE | sort                                               # 2 files

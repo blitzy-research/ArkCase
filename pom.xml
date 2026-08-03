@@ -67,7 +67,12 @@
             instead). Stay on the 7.x line: it keeps the javax namespace and the existing rule semantics.
             drools-decisiontables is the only artifact managed with this property; drools-core, drools-compiler,
             drools-mvel, drools-templates, drools-ecj, kie-api, kie-internal, kie-memory-compiler and the
-            kie-soup family all follow it transitively, and mvel2 stays pinned at ${org.mvel.version}. -->
+            kie-soup family all follow it transitively, and mvel2 stays pinned at ${org.mvel.version}.
+            This library is NOT in the migration plan's change set, and the plan is not amended to accommodate it:
+            the rules leave no other remedy, since opening java.lang in the launch configuration is forbidden and
+            the failure is not a baseline failure. The change is therefore raised for owner ratification, with all
+            39 decision tables shown to compile to byte-identical rule text under both versions, in
+            docs/migration/dependency-change-inventory.md and docs/migration/ambiguity-resolutions.md. -->
         <drools.version>7.49.0.Final</drools.version>
         <!-- easymock 4.1 and 4.3 both fail on JDK 17 with an inaccessible-object error raised from EasyMock's
             class proxy factory, because java.lang is not opened to the unnamed module; 5.6.0 succeeds. -->
@@ -86,9 +91,15 @@
             LocalDate's private fields and java.base does not open java.time to the unnamed module. The 2.12 line
             is the earliest that does not reflect into those types at all - it installs a lazily failing
             unsupported-type deserializer instead - so 2.11.4 still fails and 2.12.7 succeeds. Serialisation
-            output is unchanged: the same modules are registered from the same classpath as before. This property
-            drives jackson-core, jackson-databind, jackson-annotations, jackson-datatype-jsr310,
-            jackson-module-jsonSchema and jackson-datatype-hibernate5, all of which publish 2.12.7. -->
+            output is unchanged: the same modules are registered from the same classpath as before, verified by
+            comparing the ordered serialisation property model of 2663 project classes under both versions. The
+            failure is not test-only - the FOIA and privacy portal submission paths read a request carrying two
+            LocalDateTime properties through a plain mapper - but this library is NOT in the migration plan's
+            change set either, and the plan is not amended to accommodate it: the change is raised for owner
+            ratification in docs/migration/dependency-change-inventory.md and
+            docs/migration/ambiguity-resolutions.md. This property drives jackson-core, jackson-databind,
+            jackson-annotations, jackson-datatype-jsr310, jackson-module-jsonSchema and
+            jackson-datatype-hibernate5, all of which publish 2.12.7. -->
         <fasterxml-jackson-core.version>2.12.7</fasterxml-jackson-core.version>
         <fop.version>2.0</fop.version>
         <freemarker.version>2.3.28</freemarker.version>
@@ -1836,6 +1847,21 @@
                     <exclusion>
                         <groupId>org.apache.tomcat</groupId>
                         <artifactId>tomcat-util-scan</artifactId>
+                    </exclusion>
+                    <!-- the third route by which a second javax.annotation provider entered the WAR, and the only one
+                        that survived the other two being closed. tomcat-catalina pulls tomcat-annotations-api, which
+                        is Tomcat's own repackaging of the JSR-250 annotations: its 15 classes are exactly the 15
+                        classes of the reinstated javax.annotation:javax.annotation-api, so keeping both puts two
+                        providers on the javax.annotation package and lets @PostConstruct, @Resource and their
+                        siblings resolve by whichever jar the container happens to read first. That is the same defect
+                        the jsr250-api exclusion on cdi-api and the jakarta.annotation-api exclusion on
+                        camel-spring-boot-starter close, and it is closed here the same way. Nothing is lost: the two
+                        jars have no class the other lacks, the reinstated API is the single authoritative provider,
+                        and the servlet container supplies its own copy to its own class loader regardless of what the
+                        web application ships. -->
+                    <exclusion>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-annotations-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

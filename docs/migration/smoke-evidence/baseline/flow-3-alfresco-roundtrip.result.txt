@@ -1,19 +1,21 @@
 flow: 3
 slug: 3-alfresco-roundtrip
-verdict: SKIPPED
-migration-path-exercised: reinstated XML binding API and runtime; activation framework MIME-type mapping
-compared-artefacts: none — the flow did not execute
+verdict: NOT-EXERCISED-MUTATION-NOT-PERMITTED
+migration-path-exercised: reinstated XML binding API and its runtime; the activation framework MIME-type mapping that made the reference implementation mandatory rather than the API-only jar, which lacks the default MIME and mailcap resources
+compared-artefacts: flow-3-alfresco-roundtrip.out and flow-3-alfresco-roundtrip.status, re-read from disk
+transport-trust-mode: verify-default-trust-store
+state-mutation-permitted: no
 observed-statuses:
   repository-reachability=000
-  document-upload=000
-  document-readback=not-attempted
-  document-upload=SKIPPED
 observations:
-  - skipped: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/service/ecm/upload
-  - a SKIPPED verdict is not a pass and must not be read as one
+  - content repository reachability observed: 000
+  - state mutation refused because: ALLOW_SMOKE_MUTATIONS is not set to 1
+  - the named behaviour of this flow is a document round trip, and a round trip cannot be performed read-only.  Rather than substitute a configuration request and label it a round trip, the flow records that the behaviour was NOT exercised and marks the run incomplete
+  - to exercise it: set ALLOW_SMOKE_MUTATIONS=1 and name the target host in SMOKE_MUTATION_HOSTS
+  - requirements unmet: 1
 assertion-basis: derived by reading flow-3-alfresco-roundtrip.status and
   flow-3-alfresco-roundtrip.out back from disk; no verdict in this script is taken
-  from a process exit status (R-T7).
+  from a subprocess exit status (R-T7).
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this

@@ -322,6 +322,59 @@ public class AngularResourceCopierSafetyTest
     }
 
     /**
+     * Resolving the launchers to absolute files does not by itself decide which Node.js executes them, because npm and
+     * Grunt are Node.js scripts started through the interpreter named on their first line, and that name is resolved
+     * against the child process path. The environment handed to the build tools must therefore carry the verified
+     * launcher's own directory first, or the runtime that was checked is not the runtime that runs.
+     */
+    @Test
+    public void putsTheVerifiedInterpreterFirstOnThePathOfTheBuildTools() throws Exception
+    {
+        Assume.assumeTrue("an executable stub launcher is required for this assertion", symbolicLinksSupported());
+
+        File node = stubLauncher("node", "v20.20.2");
+        File tmpDir = temporaryFolder.newFolder("staging");
+
+        copier.setNodeExecutablePath(node.getPath());
+
+        String path = copier.buildToolEnvironment(tmpDir).get("PATH");
+        String pinned = node.getCanonicalFile().getParentFile().getPath();
+
+        assertTrue("the verified interpreter's directory must be on the path, and first: " + path,
+                path != null && path.startsWith(pinned));
+        assertTrue("the inherited path must be kept behind it, not discarded",
+                path.equals(pinned) || path.startsWith(pinned + File.pathSeparator));
+    }
+
+    /**
+     * The same guarantee, observed from inside a child process rather than read off a map: a launcher started by the
+     * copier must find the verified interpreter under the bare name {@code node}, which is the name its interpreter
+     * line uses.
+     */
+    @Test
+    public void aLaunchedToolResolvesTheBareInterpreterNameToTheVerifiedOne() throws Exception
+    {
+        Assume.assumeTrue("a POSIX shell stub is required for this assertion",
+                File.separatorChar == '/' && symbolicLinksSupported());
+
+        File node = stubLauncher("node", "v20.20.2");
+        File tmpDir = temporaryFolder.newFolder("staging-launched");
+        File resolved = new File(tmpDir, "resolved-interpreter.txt");
+        File reporter = new File(temporaryFolder.newFolder("reporter-stub"), "npm");
+
+        write(reporter, "#!/bin/sh\ncommand -v node > \"$1\"\n");
+        Assume.assumeTrue("the stub launcher must be executable for this assertion",
+                reporter.setExecutable(true, true));
+
+        copier.setNodeExecutablePath(node.getPath());
+        copier.runFrontEndBuildCommand(tmpDir, reporter.getPath() + " " + resolved.getPath());
+
+        assertTrue("the launched tool must have reported the interpreter it resolved", resolved.isFile());
+        assertEquals("the bare name must resolve to the verified interpreter",
+                node.getCanonicalPath(), new File(read(resolved).trim()).getCanonicalPath());
+    }
+
+    /**
      * The version check is a security control, so it must not be possible to neutralise it by configuring away the
      * version it checks for.
      */

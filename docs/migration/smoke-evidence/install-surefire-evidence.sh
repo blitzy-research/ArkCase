@@ -15,12 +15,12 @@
 # so that the harvest is reproducible and reviewable rather than a step somebody
 # once performed.
 #
-# WHAT IT DOES, AND THE ONE THING IT CHANGES.
+# WHAT IT DOES, AND THE TWO THINGS IT CHANGES.  Both are disclosed here, both are
+# counted per file, and nothing else is touched.
 #
-# Reports are copied VERBATIM with a single exception: absolute filesystem paths
-# that identify the machine the build ran on are replaced with stable
-# placeholders.  Three properties carry them — the reactor root, the working
-# directory and the local artifact repository — and they are replaced because:
+# (1) ABSOLUTE MACHINE PATHS become stable placeholders.  Two properties carry
+# them — the reactor root and the local artifact repository — and they are
+# replaced because:
 #   * the baseline build necessarily runs from a throwaway checkout of the base
 #     commit, so its path names a directory that will not exist by the time
 #     anyone reads the evidence;
@@ -29,15 +29,31 @@
 #     migrated for a reason that has nothing to do with test outcomes, which
 #     defeats the row-for-row comparison the evidence exists to support.
 #
-# NOTHING ELSE IS TOUCHED.  Every testsuite, testcase, failure, error, skipped
-# and system-out element is byte-identical to what the test runner wrote.  So is
-# every property that carries runtime provenance — the runtime version, the
-# virtual-machine version and vendor, the platform library path that names the
-# installed JDK, the operating system and the encoding.  Those are the properties
-# a reviewer needs in order to confirm which runtime produced the report, and
-# they are exactly the properties an authored report cannot fake convincingly.
-# The substitution count is recorded per side, so the claim "only paths changed"
-# is checkable rather than asserted.
+# (2) THE SYSTEM PROPERTY DUMP IS REDUCED TO AN ALLOWLIST.  The runner writes
+# around fifty properties into every report.  Most of them are the machine, not
+# the evidence: two full classpaths, the launcher command line, the user's name,
+# home directory, country and timezone, and several more absolute paths.  Those
+# are dropped.  What is KEPT is the set that answers the only question the dump
+# is evidence for — which runtime produced this report — and it is kept NATIVE,
+# exactly as the runner wrote it:
+#
+#   PROPERTY_ALLOWLIST below: the Java version and runtime version, the virtual
+#   machine's name, vendor and version, the language specification version, the
+#   class-file version the runtime reads, the operating system name, version and
+#   architecture, the data model width, and the file encoding.
+#
+# An earlier revision of this archive emptied the properties element entirely.
+# That left the runtime provenance of every report resting on a hand-authored
+# comment, which is the weakest possible form of the strongest available evidence:
+# a comment is exactly what an authored report can fake, and a native
+# java.runtime.version is exactly what it cannot.  Keeping the allowlist is what
+# lets a reviewer confirm the runtime from the report itself.
+#
+# Every testsuite, testcase, failure, error, skipped and system-out element is
+# byte-identical to what the runner wrote.  The substitution count and the
+# dropped-property count are both recorded per side, and each installed file is
+# verified structurally against the exact number of angle brackets the drop
+# removed, so "only these two things changed" is checkable rather than asserted.
 #
 # USAGE
 #   install-surefire-evidence.sh --from <reactor-root> --into <capture-dir> \
@@ -68,6 +84,20 @@ set -o pipefail
 # ---------------------------------------------------------------------------
 PLACEHOLDER_ROOT='{REACTOR-ROOT}'
 PLACEHOLDER_REPO='{LOCAL-ARTIFACT-REPOSITORY}'
+
+# ---------------------------------------------------------------------------
+# THE PROPERTY ALLOWLIST.
+#
+# Every name here is a runtime fact and none of them identifies a machine, a
+# user or a filesystem.  Adding a name to this list is adding it to a published
+# deliverable, so the test for a candidate is: does it answer "which runtime
+# produced this report", and would publishing it disclose anything about the
+# host?  java.home, sun.boot.library.path, java.library.path, java.io.tmpdir,
+# user.name, user.home, user.dir, basedir, localRepository, java.class.path,
+# surefire.real.class.path, surefire.test.class.path and sun.java.command all
+# fail the second half of that test and are deliberately absent.
+# ---------------------------------------------------------------------------
+PROPERTY_ALLOWLIST='java.version java.runtime.version java.runtime.name java.vendor java.vm.name java.vm.vendor java.vm.version java.vm.info java.specification.version java.class.version os.name os.arch os.version sun.arch.data.model file.encoding jdk.debug'
 
 case "${PLACEHOLDER_ROOT}${PLACEHOLDER_REPO}" in
     *'<'*|*'>'*|*'&'*|*'"'*|*"'"*)
@@ -434,10 +464,35 @@ runtime_version='unknown'
 vm_version='unknown'
 jdk_path='unknown'
 
-# The local repository path is discovered from the first report rather than
-# passed in, so the caller cannot get it wrong.
+# The local repository path is discovered from the reports rather than passed in,
+# so the caller cannot get it wrong.
+#
+# TWO SOURCES, AND THE SECOND ONE IS NOT OPTIONAL POLISH.  A run given
+# -Dmaven.repo.local=<dir> records that property, and reading it back is exact.
+# A run that uses the DEFAULT repository records no such property, and an earlier
+# revision of this script stopped there — leaving repo_local empty, performing no
+# repository substitution, and installing three reports that carried
+# "$HOME/.m2/repository/..." inside their captured test output while the
+# provenance note beside them stated that no absolute machine path survived.  The
+# note was wrong, and it was wrong in the one direction that matters: it claimed
+# more than the transformation had done.
+#
+# So when the property is absent the default location is used, and the result is
+# then VERIFIED rather than trusted: after every report is written, the archive is
+# searched for the home directory path, and the install refuses outright if one
+# survives.  A check that fails loudly is what makes the note's claim checkable;
+# deriving the path more cleverly without checking would only move the hope.
 first_report="$(printf '%s\n' "$reports" | head -1)"
 repo_local="$(sed -n 's|.*<property name="maven.repo.local" value="\([^"]*\)".*|\1|p' "$first_report" | head -1)"
+repo_local_source='the maven.repo.local property recorded by the run'
+if [ -z "$repo_local" ]; then
+    if [ -n "${HOME:-}" ] && [ -d "${HOME}/.m2/repository" ]; then
+        repo_local="${HOME}/.m2/repository"
+        repo_local_source='the default location, the run having recorded no maven.repo.local'
+    else
+        repo_local_source='not determined; no maven.repo.local property and no default repository on disk'
+    fi
+fi
 
 printf '%s\n' "$reports" | while IFS= read -r report; do
     [ -n "$report" ] || continue
@@ -488,7 +543,44 @@ printf '%s\n' "$reports" | while IFS= read -r report; do
             print line
         }
         END { print n > "/dev/stderr" }
-    ' "$report" 2>> "${INTO}/surefire/.substitution-counts" > "${INTO}/surefire/${module}/${base}" || exit 1
+    ' "$report" 2>> "${INTO}/surefire/.substitution-counts" > "${INTO}/surefire/${module}/${base}.paths" || exit 1
+
+    # THE SECOND TRANSFORMATION: reduce the system property dump to the allowlist.
+    #
+    # The dropped lines are counted, and so are the angle brackets they carried,
+    # because the structural check below is what stands in for an XML parser and
+    # it has to know exactly how much the drop was allowed to remove.  Counting
+    # the brackets in the dropped lines rather than assuming one of each keeps the
+    # check honest even if a dropped value happens to contain a bracket.
+    filter_counts="$(PROPERTY_ALLOWLIST="$PROPERTY_ALLOWLIST" awk '
+        BEGIN {
+            split(ENVIRON["PROPERTY_ALLOWLIST"], allowed, " ")
+            for (i in allowed) { keep[allowed[i]] = 1 }
+            dropped = 0; lt = 0; gt = 0
+        }
+        {
+            line = $0
+            if (line ~ /^[[:space:]]*<property name="/) {
+                name = line
+                sub(/^[^"]*"/, "", name)
+                sub(/".*$/, "", name)
+                if (!(name in keep)) {
+                    dropped++
+                    lt += gsub(/</, "<", line)
+                    gt += gsub(/>/, ">", line)
+                    next
+                }
+            }
+            print
+        }
+        END { printf "%d %d %d\n", dropped, lt, gt > "/dev/stderr" }
+    ' "${INTO}/surefire/${module}/${base}.paths" 2>&1 >"${INTO}/surefire/${module}/${base}")" || exit 1
+    rm -f -- "${INTO}/surefire/${module}/${base}.paths"
+
+    dropped_props="$(printf '%s' "$filter_counts" | awk '{ print $1 + 0 }')"
+    dropped_lt="$(printf '%s' "$filter_counts" | awk '{ print $2 + 0 }')"
+    dropped_gt="$(printf '%s' "$filter_counts" | awk '{ print $3 + 0 }')"
+    printf '%s\n' "$dropped_props" >> "${INTO}/surefire/.dropped-property-counts"
 
     # STRUCTURAL VERIFICATION, per file, immediately after writing.
     #
@@ -503,11 +595,23 @@ printf '%s\n' "$reports" | while IFS= read -r report; do
     src_close="$(tr -cd '>' < "$report" | wc -c | tr -d '[:space:]')"
     out_open="$(tr -cd '<' < "${INTO}/surefire/${module}/${base}" | wc -c | tr -d '[:space:]')"
     out_close="$(tr -cd '>' < "${INTO}/surefire/${module}/${base}" | wc -c | tr -d '[:space:]')"
-    if [ "$src_open" != "$out_open" ] || [ "$src_close" != "$out_close" ]; then
-        printf 'install-surefire-evidence.sh: substitution altered the markup of %s\n' "$base" >&2
-        printf '  angle brackets before: %s open, %s close; after: %s open, %s close\n' \
-            "$src_open" "$src_close" "$out_open" "$out_close" >&2
+    expect_open=$((src_open - dropped_lt))
+    expect_close=$((src_close - dropped_gt))
+    if [ "$expect_open" != "$out_open" ] || [ "$expect_close" != "$out_close" ]; then
+        printf 'install-surefire-evidence.sh: a transformation altered the markup of %s\n' "$base" >&2
+        printf '  angle brackets before: %s open, %s close\n' "$src_open" "$src_close" >&2
+        printf '  dropped with %s non-allowlisted properties: %s open, %s close\n' \
+            "$dropped_props" "$dropped_lt" "$dropped_gt" >&2
+        printf '  expected after: %s open, %s close; actual: %s open, %s close\n' \
+            "$expect_open" "$expect_close" "$out_open" "$out_close" >&2
         printf '  The installed report would not parse.  Refusing to continue.\n' >&2
+        exit 1
+    fi
+    if ! grep -q '<property name="java.runtime.version"' "${INTO}/surefire/${module}/${base}"; then
+        printf 'install-surefire-evidence.sh: %s carries no native java.runtime.version.\n' "$base" >&2
+        printf '  The allowlist exists so that every installed report states the runtime that\n' >&2
+        printf '  produced it.  A report without it cannot serve as provenance.  Refusing to\n' >&2
+        printf '  continue.\n' >&2
         exit 1
     fi
     if [ ! -s "${INTO}/surefire/${module}/${base}" ]; then
@@ -532,6 +636,61 @@ installed="$(printf '%s\n' "$reports" | wc -l | tr -d '[:space:]')"
 if [ -f "${INTO}/surefire/.substitution-counts" ]; then
     substitutions="$(awk '{ s += $1 } END { printf "%d", s }' "${INTO}/surefire/.substitution-counts")"
     rm -f -- "${INTO}/surefire/.substitution-counts"
+fi
+dropped_total=0
+if [ -f "${INTO}/surefire/.dropped-property-counts" ]; then
+    dropped_total="$(awk '{ s += $1 } END { printf "%d", s }' "${INTO}/surefire/.dropped-property-counts")"
+    rm -f -- "${INTO}/surefire/.dropped-property-counts"
+fi
+
+# ---------------------------------------------------------------------------
+# LEAKAGE CHECK — FAIL CLOSED, ACROSS THE WHOLE ARCHIVE.
+#
+# The provenance note this script writes states that after the substitutions no
+# absolute path of the capture machine survives in the archive.  That is a claim
+# about every one of several hundred files, and it was once false: a run using the
+# DEFAULT artifact repository recorded no maven.repo.local property, so no
+# repository substitution was performed, and three reports went into a committed
+# deliverable carrying the home directory inside their captured test output.
+#
+# Deriving the path better is necessary but not sufficient, because the next way
+# an absolute path reaches a report will not be this one — a test that logs its
+# own working directory, a stack trace from a tool invoked with an absolute
+# argument, a temporary file under the home directory.  So the claim is CHECKED
+# against the written archive, and a survivor stops the install rather than being
+# reported and shipped.  The two roots checked are the ones a note can be wrong
+# about: the harvest source and the home directory.
+#
+# The system temporary directory is deliberately NOT checked.  A test that writes
+# a scratch file there and logs the name is capturing its own behaviour, and that
+# output is evidence rather than leaked environment; refusing it would delete a
+# real observation to satisfy a rule about provenance.
+# ---------------------------------------------------------------------------
+leaked=''
+for leak_root in "$FROM_ABS" "${HOME:-}"; do
+    [ -n "$leak_root" ] || continue
+    [ "$leak_root" = '/' ] && continue
+    if grep -rlF -- "$leak_root" "${INTO}/surefire" 2>/dev/null | grep -q .; then
+        leaked="${leaked}${leak_root}
+"
+    fi
+done
+if [ -n "$leaked" ]; then
+    printf 'install-surefire-evidence.sh: an absolute machine path survived into the archive.\n' >&2
+    printf '  The provenance note this script writes claims none does, so the install is\n' >&2
+    printf '  refused rather than shipping a note that overstates what was done.\n' >&2
+    printf '  Path(s) still present:\n' >&2
+    printf '%s' "$leaked" | sed -e 's|^|    |' >&2
+    printf '  Files carrying one of them:\n' >&2
+    for leak_root in $leaked; do
+        grep -rlF -- "$leak_root" "${INTO}/surefire" 2>/dev/null \
+            | sed -e "s|^${INTO}/surefire/|    |" | head -10 >&2
+    done
+    printf '  Remediation: the repository path is taken from the maven.repo.local property\n' >&2
+    printf '  and, when the run recorded none, from the default location.  If neither is the\n' >&2
+    printf '  path above, the report is carrying it for some other reason and that reason has\n' >&2
+    printf '  to be understood before the archive can be published.\n' >&2
+    exit 1
 fi
 
 # Runtime provenance is READ OUT OF the installed reports rather than asserted,
@@ -572,6 +731,9 @@ totals="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' -exec awk '
     printf 'and an authored report can only ever contain what its author already believed.\n'
     printf '\n'
     printf 'harvested-by: install-surefire-evidence.sh, committed beside this archive\n'
+    printf 'integrity: sha256-manifest.txt beside this note covers every report here and\n'
+    printf '  this note itself.  Verify the archive has not been edited since it was\n'
+    printf '  harvested with:  cd <this directory> && sha256sum -c sha256-manifest.txt\n'
     printf 'suites-installed: %s\n' "$installed"
     printf 'aggregate: %s\n' "$totals"
     printf 'build-install-phase-exit-status: %s\n' "$INSTALL_EXIT"
@@ -582,13 +744,30 @@ totals="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' -exec awk '
     printf '  java.vm.version: %s\n' "${vm_version:-unknown}"
     printf '  installed JDK path recorded by the runtime: %s\n' "${jdk_path:-unknown}"
     printf '\n'
-    printf 'the single transformation applied, and its extent:\n'
-    printf '  absolute machine paths replaced with placeholders: %s occurrences\n' "$substitutions"
-    printf '  <REACTOR-ROOT>                the root the build ran from\n'
-    printf '  <LOCAL-ARTIFACT-REPOSITORY>   the local artifact repository the build used\n'
+    printf 'the two transformations applied, and their exact extent:\n'
+    printf '  1. absolute machine paths replaced with placeholders: %s occurrences\n' "$substitutions"
+    printf '     %s   the root the build ran from\n' "$PLACEHOLDER_ROOT"
+    printf '     %s   the local artifact repository the build used\n' "$PLACEHOLDER_REPO"
+    printf '     the repository path was taken from: %s\n' "$repo_local_source"
+    printf '     VERIFIED, not asserted: after every report was written the archive was\n'
+    printf '     searched for both the harvest root and the home directory, and neither\n'
+    printf '     appears in any file.  A survivor aborts the install, so this line cannot\n'
+    printf '     be present while the claim is false.  The system temporary directory is\n'
+    printf '     deliberately not searched: a test that writes a scratch file there and\n'
+    printf '     logs its name is capturing its own behaviour, and that is evidence.\n'
+    printf '  2. non-allowlisted system properties dropped: %s across the archive\n' "$dropped_total"
+    printf '     retained, native, in every report:\n'
+    printf '       %s\n' "$PROPERTY_ALLOWLIST"
+    printf '     dropped because they describe the machine and not the evidence: both\n'
+    printf '     classpaths, the launcher command line, the user name, home directory,\n'
+    printf '     country and timezone, the temporary directory, the boot and native library\n'
+    printf '     paths, and java.home.\n'
     printf '  Every testsuite, testcase, failure, error, skipped and system-out element is\n'
-    printf '  byte-identical to what the runner wrote, and so is every property that carries\n'
-    printf '  runtime provenance.  The count above is what makes the claim checkable.\n'
+    printf '  byte-identical to what the runner wrote, and every retained property carries\n'
+    printf '  the value the runner wrote.  Each installed file was verified to have lost\n'
+    printf '  exactly the angle brackets the dropped lines carried and no others, and to\n'
+    printf '  still state its own java.runtime.version -- so a report in this archive proves\n'
+    printf '  which runtime produced it without reference to any prose, including this note.\n'
     printf '\n'
     printf 'why the paths were replaced rather than kept:\n'
     printf '  the baseline necessarily runs from a throwaway checkout of the base commit, so\n'
@@ -598,6 +777,24 @@ totals="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' -exec awk '
     printf '  precisely what the row-for-row comparison must not be flooded with.\n'
 } > "${INTO}/surefire/run-provenance.txt"
 
-printf 'installed %s executed Surefire reports into %s/surefire (%s path substitutions)\n' \
-    "$installed" "$INTO" "$substitutions"
+# A DIGEST MANIFEST OVER THE ARCHIVE.
+#
+# The reports are the evidence, and an evidence file that can be edited without
+# trace is weaker than one that cannot.  The manifest is written last, covers
+# every installed report and the provenance note beside them, and is what a
+# reviewer re-runs to establish that the archive being read is the archive that
+# was harvested.
+# It carries checksum lines and nothing else, so that `sha256sum -c` accepts it
+# without a single formatting warning; the instructions for using it live in the
+# provenance note beside it, where prose belongs.
+(
+    cd "${INTO}/surefire" || exit 1
+    find . -type f -name 'TEST-*.xml' | LC_ALL=C sort | while IFS= read -r f; do
+        sha256sum "$f"
+    done
+    sha256sum ./run-provenance.txt
+) > "${INTO}/surefire/sha256-manifest.txt"
+
+printf 'installed %s executed Surefire reports into %s/surefire (%s path substitutions, %s properties dropped)\n' \
+    "$installed" "$INTO" "$substitutions" "$dropped_total"
 printf 'aggregate: %s\n' "$totals"

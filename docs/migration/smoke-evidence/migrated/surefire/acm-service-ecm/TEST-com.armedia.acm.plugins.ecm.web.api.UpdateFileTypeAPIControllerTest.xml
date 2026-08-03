@@ -1,62 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Native Surefire report, migrated run, Java 17, module acm-service-ecm.
-
-  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
-  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
-  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
-  from a prebuilt repository:
-
-    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
-    mvn -B -fae test                    (every module reached; no module short-circuited the run)
-
-  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
-  change no test outcome - they only stop the reactor halting at the first red module, which is what
-  allows archiving every module's reports in one pass.
-
-  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
-  order, and every failure, error and skipped element with its message, type and full stack trace. No
-  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
-  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
-
-  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
-  discovered. The system property dump the reporter writes inside the properties element is emptied - it
-  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
-  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
-  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
-  both, no absolute path of this machine survives anywhere in this archive.
-
-  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
-  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
-  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
-  failure regardless of exit status.
-
-  Read against the twin report of the same name under the sibling baseline directory, which carries the
-  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
-  content - never on byte identity, since duration, host name and run instant legitimately vary between
-  two runs of the same suite.
--->
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="6.036" tests="3" errors="0" skipped="0" failures="0">
-  <properties/>
-  <testcase name="bulkUpdateFileType" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="2.199">
-    <system-out><![CDATA[2026-08-03 09:32:20,634 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
-2026-08-03 09:32:20,692 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@4aaecabd, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@23bd0c81, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@1332dec4, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@544e3679, org.springframework.test.context.support.DirtiesContextTestExecutionListener@6889f56f, org.springframework.test.context.transaction.TransactionalTestExecutionListener@231b35fb, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@26da1ba2, org.springframework.test.context.event.EventPublishingTestExecutionListener@3820cfe]
-2026-08-03 09:32:23,542 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 09:32:23,543 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 09:32:23,546 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 3 ms
-2026-08-03 09:32:24,603 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Updating file type to 'new_file_type' for multiple files.
-2026-08-03 09:32:24,749 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest - Results: [{"@id":"1","fileId":100,"status":null,"created":null,"creator":null,"modified":null,"modifier":null,"cmisRepositoryId":null,"versionSeriesId":null,"fileName":null,"fileActiveVersionMimeType":null,"fileActiveVersionNameExtension":null,"folder":null,"container":null,"fileType":"new_file_type","fileLang":null,"activeVersionTag":null,"category":"Document","pageCount":0,"fileSource":null,"versions":[],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null},{"@id":"2","fileId":101,"status":null,"created":null,"creator":null,"modified":null,"modifier":null,"cmisRepositoryId":null,"versionSeriesId":null,"fileName":null,"fileActiveVersionMimeType":null,"fileActiveVersionNameExtension":null,"folder":null,"container":null,"fileType":"new_file_type","fileLang":null,"activeVersionTag":null,"category":"Document","pageCount":0,"fileSource":null,"versions":[],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null}]
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="4.019" tests="3" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="java.vm.vendor" value="Ubuntu"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="os.name" value="Linux"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="java.runtime.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
+    <property name="os.version" value="6.12.85+"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.version" value="17.0.19"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Ubuntu"/>
+    <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
+    <property name="java.class.version" value="61.0"/>
+  </properties>
+  <testcase name="bulkUpdateFileType" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="1.547">
+    <system-out><![CDATA[2026-08-03 15:27:19,915 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+2026-08-03 15:27:19,942 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@4f3356c0, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@586cc15d, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@6c835217, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@4584304, org.springframework.test.context.support.DirtiesContextTestExecutionListener@51888019, org.springframework.test.context.transaction.TransactionalTestExecutionListener@6f50d55c, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@19b5214b, org.springframework.test.context.event.EventPublishingTestExecutionListener@5fb3111a]
+2026-08-03 15:27:21,705 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 15:27:21,705 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 15:27:21,708 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 3 ms
+2026-08-03 15:27:22,536 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Updating file type to 'new_file_type' for multiple files.
+2026-08-03 15:27:22,655 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest - Results: [{"@id":"1","fileId":100,"status":null,"created":null,"creator":null,"modified":null,"modifier":null,"cmisRepositoryId":null,"versionSeriesId":null,"fileName":null,"fileActiveVersionMimeType":null,"fileActiveVersionNameExtension":null,"folder":null,"container":null,"fileType":"new_file_type","fileLang":null,"activeVersionTag":null,"category":"Document","pageCount":0,"fileSource":null,"versions":[],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null},{"@id":"2","fileId":101,"status":null,"created":null,"creator":null,"modified":null,"modifier":null,"cmisRepositoryId":null,"versionSeriesId":null,"fileName":null,"fileActiveVersionMimeType":null,"fileActiveVersionNameExtension":null,"folder":null,"container":null,"fileType":"new_file_type","fileLang":null,"activeVersionTag":null,"category":"Document","pageCount":0,"fileSource":null,"versions":[],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null}]
 ]]></system-out>
-    <system-err><![CDATA[Aug 03, 2026 9:32:23 AM org.hibernate.validator.internal.util.Version <clinit>
+    <system-err><![CDATA[Aug 03, 2026 3:27:21 PM org.hibernate.validator.internal.util.Version <clinit>
 INFO: HV000001: Hibernate Validator 5.1.1.Final
 ]]></system-err>
   </testcase>
-  <testcase name="updateFileTypeError" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="0.04">
-    <system-out><![CDATA[2026-08-03 09:32:24,920 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 09:32:24,920 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 09:32:24,920 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-2026-08-03 09:32:24,923 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Updating file type to 'new_file_type'
-2026-08-03 09:32:24,924 [ERROR] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Error wile updating file type: Could not retrieve FILE with ID = 100.
+  <testcase name="updateFileTypeError" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="0.035">
+    <system-out><![CDATA[2026-08-03 15:27:22,762 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 15:27:22,762 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 15:27:22,762 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-03 15:27:22,765 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Updating file type to 'new_file_type'
+2026-08-03 15:27:22,766 [ERROR] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Error wile updating file type: Could not retrieve FILE with ID = 100.
 Server encountered exception: File  not found
 Exception type was: 'com.armedia.acm.core.exceptions.AcmObjectNotFoundException'.
 com.armedia.acm.core.exceptions.AcmObjectNotFoundException: Could not retrieve FILE with ID = 100.
@@ -124,12 +104,12 @@ Exception type was: 'com.armedia.acm.core.exceptions.AcmObjectNotFoundException'
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) [surefire-booter-3.5.2.jar:3.5.2]
 ]]></system-out>
   </testcase>
-  <testcase name="updateFileType" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="0.082">
-    <system-out><![CDATA[2026-08-03 09:32:24,950 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 09:32:24,950 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 09:32:24,950 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-2026-08-03 09:32:24,954 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Updating file type to 'new_file_type'
-2026-08-03 09:32:24,960 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest - Results: {"@id":"1","fileId":100,"status":null,"created":null,"creator":null,"modified":null,"modifier":null,"cmisRepositoryId":null,"versionSeriesId":null,"fileName":null,"fileActiveVersionMimeType":null,"fileActiveVersionNameExtension":null,"folder":null,"container":null,"fileType":"new_file_type","fileLang":null,"activeVersionTag":null,"category":"Document","pageCount":0,"fileSource":null,"versions":[],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null}
+  <testcase name="updateFileType" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="0.041">
+    <system-out><![CDATA[2026-08-03 15:27:22,797 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 15:27:22,797 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 15:27:22,797 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-03 15:27:22,800 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Updating file type to 'new_file_type'
+2026-08-03 15:27:22,806 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest - Results: {"@id":"1","fileId":100,"status":null,"created":null,"creator":null,"modified":null,"modifier":null,"cmisRepositoryId":null,"versionSeriesId":null,"fileName":null,"fileActiveVersionMimeType":null,"fileActiveVersionNameExtension":null,"folder":null,"container":null,"fileType":"new_file_type","fileLang":null,"activeVersionTag":null,"category":"Document","pageCount":0,"fileSource":null,"versions":[],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null}
 ]]></system-out>
   </testcase>
 </testsuite>

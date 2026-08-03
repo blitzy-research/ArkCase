@@ -1,0 +1,45 @@
+archived unit-test report pairing
+
+contract-file: <REPO-ROOT>/docs/migration/smoke-evidence/expected-suites.txt
+contract-state: read
+suites-required-on-both-sides: 278
+suites-present-in-this-capture: 278
+suites-missing-from-this-capture: 0
+suites-present-but-not-in-the-contract: 0
+suites-lost-baseline-only: 0
+suites-added-migrated-only: 7
+
+A suite archived at baseline with no migrated counterpart proves nothing:
+something that used to run either stopped running or stopped being archived,
+and there is no longer anything to compare it against.  A missing required
+suite, an unlisted suite, or any lost suite therefore makes this capture
+INCOMPLETE rather than merely noteworthy.
+
+A suite archived only on the migrated side is an ADDITION, not a hole.  It has
+no baseline counterpart for one of exactly two reasons: either the class did
+not exist at the base commit, or it existed and the baseline runner did not
+select it -- the baseline built with the implicitly bound surefire 2.12.4,
+whose default includes match no class name ending in "Tests", while the pinned
+3.5.2 does.  Which reason applies to which suite cannot be read out of the
+archive, so it is recorded per suite in docs/migration/baseline-test-failures.md
+rather than assumed here.  Demanding a counterpart either way would make every
+newly added test an evidence gap.  Additions are listed by name below instead,
+which is what keeps them accountable.
+
+suites required by the contract but missing here:
+  (none)
+
+suites here that the contract does not list:
+  (none)
+
+suites LOST — archived at baseline, no migrated counterpart (fatal):
+  (none)
+
+suites ADDED — archived on the migrated side only (accounted for, not fatal):
+  - acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
+  - ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest.xml
+  - ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml

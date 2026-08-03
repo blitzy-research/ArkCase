@@ -1,0 +1,39 @@
+decision-table output parity across the drools version change
+=============================================================
+
+WHY THIS EXISTS
+  The rule engine advanced from 7.34.0.Final to 7.49.0.Final because 7.34 cannot fire a rule at all
+  on Java 17: ClassGenerator, the ASM consequence-invoker generator reached through
+  KnowledgeBuilderImpl.addPackageFromDecisionTable, asks in its static initialiser for reflective
+  access to the protected four-argument ClassLoader.defineClass, and java.base does not open
+  java.lang to the unnamed module.  The engine is behaviour-bearing - 39 spreadsheet decision tables
+  drive object numbering, queue entry and exit, next-possible-queues, task routing, business-process
+  start, access control, assignment, OCR and transcription - so the change needs evidence, not an
+  argument.  This is that evidence.
+
+METHOD
+  DecisionTableParity.java in this directory compiles every tracked drools-*.xlsx decision table with
+  org.drools.decisiontable.SpreadsheetCompiler and prints one SHA-256 digest per table over the
+  generated rule text.  The spreadsheet compiler is pure text generation: it does not enter the ASM
+  path that fails on Java 17, which is what makes the OLD version measurable here at all.  Both runs
+  used the resolved test classpath of acm-tool-integrations/acm-drools-rule-monitor, differing only
+  in the value of the drools.version property, on OpenJDK 17.0.19.
+
+  Reproduce with:
+    mvn -o -pl acm-tool-integrations/acm-drools-rule-monitor dependency:build-classpath \
+        -Ddrools.version=<version> -Dmdep.outputFile=<cp>
+    javac -cp "$(cat <cp>)" -d <classes> DecisionTableParity.java
+    java  -cp "<classes>:$(cat <cp>)" DecisionTableParity <list-of-xlsx> <out-dir>
+  where <list-of-xlsx> is the output of:  git ls-files '*drools-*.xlsx'
+
+RESULT
+  39 tables compiled under each version.
+  All 39 digests are identical, and the generated rule text is byte-identical table for table
+  (39 files compared, 0 differing).  The two digest files in this directory are the per-table
+  record; diff them.
+
+  The rule text is what the engine parses and what every decision the tables express is derived
+  from, so identical rule text is a direct statement that the version change cannot alter a
+  numbering sequence or a routing decision.  What it does not cover is the compiled consequence
+  bytecode, which 7.34 cannot produce on this runtime at all - that is the defect being remediated,
+  and the queue-transition and generated-number smoke flows cover the firing behaviour end to end.

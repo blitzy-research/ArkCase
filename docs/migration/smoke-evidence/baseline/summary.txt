@@ -1,57 +1,54 @@
 ArkCase migration smoke evidence — closing summary
 capture-directory: <CAPTURE-DIR>
 target-base-url: https://arkcase-ce.local/arkcase
+completeness: INCOMPLETE
+transport-trust-mode: verify-default-trust-store
+state-mutation-permitted: no
 
 This summary is an index over the evidence, read back from each flow s own
 result file.  It is NOT the assertion for any flow: the authoritative record
 for flow n is the trio flow-n-<slug>.out, .status and .result.txt.  No verdict
-here or anywhere in this script is derived from a process exit status.
-
-preconditions:
-  readiness-state: NEVER-READY
-  artifact-digest-gate: PASSED (5 of 5 produced, 0 failed)
-  startup-evidence: MISSING
-  tls-verification: verified-system
-  credentialed-requests-permitted: yes
-  raw-body-capture: disabled (allowlisted fields and digests recorded)
-
-how to read the three states above (a legend, not this capture status):
-  if readiness reads NEVER-READY        no flow observation below is
-                                       behavioural evidence; two such
-                                       captures are identical and prove
-                                       nothing.
-  if the artifact gate reads FAILED     the frontend comparison is void.
-                                       Identical absence is not identity of
-                                       behaviour.
-  if startup evidence reads MISSING     no claim about the startup frontend
-                                       build or the process engine may be
-                                       made from this capture.
+here or anywhere in this script is derived from a subprocess exit status.
 
 flows:
   flow-1-login: SKIPPED
   flow-2-views: SKIPPED
-  flow-3-alfresco-roundtrip: SKIPPED
+  flow-3-alfresco-roundtrip: NOT-EXERCISED-MUTATION-NOT-PERMITTED
   flow-4-solr-search: SKIPPED
-  flow-5-activemq-event: SKIPPED
-  flow-6-generated-number: SKIPPED
-  flow-7-workflow-start: SKIPPED
+  flow-5-activemq-event: NOT-EXERCISED-NO-EVENT-PRODUCED
+  flow-6-generated-number: NOT-EXERCISED-MUTATION-NOT-PERMITTED
+  flow-7-workflow-start: NOT-EXERCISED-WORKFLOW-NOT-STARTED
   flow-8-queue-transition: SKIPPED
+
+execution order, which differs from the flow numbering on purpose:
+  1-login, 2-views, 6-generated-number, 3-alfresco-roundtrip,
+  4-solr-search, 5-activemq-event, 7-workflow-start, 8-queue-transition
+  Flow 6 creates the object that flows 3, 5 and 7 then act on, which is what
+  lets those three observe real behaviour rather than a configuration
+  endpoint.  The flow NUMBERS and SLUGS are fixed by the artefact naming
+  contract so that the two capture directories align for a directory diff;
+  only the order in which they run is chosen.
 
 artifact digests:
   application.js.sha256: 3c0aeb4d2b02dc740e733e5ed89c87bf0d229cc19489ee0f023c04af611391b8  application.js
-  application.min.css.sha256: 04228704205f51db7eac073b0001c87e54473f372865a031b910b989c8891ea1  application.min.css
-  application.min.js.map.sha256: 84a7efde28457effd813db74a816936d6c0b434196f79d1eec6c4aaa0697c2b8  application.min.js.map
-  application.min.js.sha256: c1a4cb56e4b644c4d6e356698a222f9de2b57dc0114eec86d93323e0a9b41dc2  application.min.js
+  application.min.css.sha256: 17703f8babbccbcb61f9ab8c21817d09757116c307d557f899c850f3552a2751  application.min.css
+  application.min.js.map.sha256: 60ea8616dfa29ed8cc57910a838024d3172be23693d378b2610adcde68159762  application.min.js.map
+  application.min.js.sha256: 938ba106e8dc0b1948bd9d5817110b097ecfc4d585eb5eaf2febe09c586fab8c  application.min.js
   home.html.sha256: 43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9  home.html
   vendors.min.js.sha256: 70187246b480eebb6f920732ce84356fb719b2db9694c10ed20388ff6f5e3be4  vendors.min.js
 
 supporting captures:
-  env/toolchain.txt              toolchain provenance, captured verbatim
+  notes/completeness.txt         the machine-readable completeness verdict
+  env/toolchain.txt              toolchain provenance and run posture
   notes/corpus-figures.txt       corpus counts measured at run time
   notes/determinism-basis.txt    why the digests are a valid comparison
   notes/reference-stack.txt      four service probes, including the
                                  documented pre-existing 503
   notes/readiness.txt            readiness polling observations
+  notes/created-state.txt        application state this run created
+  notes/cleanup.txt              removal of that state, and its outcome
+  notes/surefire-pairing.txt     archived unit-test report pairing against
+                                 the committed contract
   startup/                       startup-log regions (never a directory
                                  named after a log folder: that name is
                                  git-ignored at any depth)

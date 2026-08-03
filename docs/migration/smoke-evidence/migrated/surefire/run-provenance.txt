@@ -1,0 +1,52 @@
+run provenance for the archived Surefire reports in this directory
+
+These reports were PRODUCED BY RUNNING THE SUITE.  They were not authored, not
+derived from test source, and not reconstructed from a build log.  That matters
+because the only thing a baseline is for is recording a failure nobody predicted,
+and an authored report can only ever contain what its author already believed.
+
+harvested-by: install-surefire-evidence.sh, committed beside this archive
+integrity: sha256-manifest.txt beside this note covers every report here and
+  this note itself.  Verify the archive has not been edited since it was
+  harvested with:  cd <this directory> && sha256sum -c sha256-manifest.txt
+suites-installed: 285
+aggregate: suites=285 tests=951 failures=3 errors=1 skipped=21
+build-install-phase-exit-status: 0
+build-test-phase-exit-status: 0
+
+runtime provenance, read out of the installed reports themselves:
+  java.runtime.version: 17.0.19+10-1-25.10.2-Ubuntu
+  java.vm.version: 17.0.19+10-1-25.10.2-Ubuntu
+  installed JDK path recorded by the runtime: unknown
+
+the two transformations applied, and their exact extent:
+  1. absolute machine paths replaced with placeholders: 255804 occurrences
+     {REACTOR-ROOT}   the root the build ran from
+     {LOCAL-ARTIFACT-REPOSITORY}   the local artifact repository the build used
+     the repository path was taken from: the default location, the run having recorded no maven.repo.local
+     VERIFIED, not asserted: after every report was written the archive was
+     searched for both the harvest root and the home directory, and neither
+     appears in any file.  A survivor aborts the install, so this line cannot
+     be present while the claim is false.  The system temporary directory is
+     deliberately not searched: a test that writes a scratch file there and
+     logs its name is capturing its own behaviour, and that is evidence.
+  2. non-allowlisted system properties dropped: 10501 across the archive
+     retained, native, in every report:
+       java.version java.runtime.version java.runtime.name java.vendor java.vm.name java.vm.vendor java.vm.version java.vm.info java.specification.version java.class.version os.name os.arch os.version sun.arch.data.model file.encoding jdk.debug
+     dropped because they describe the machine and not the evidence: both
+     classpaths, the launcher command line, the user name, home directory,
+     country and timezone, the temporary directory, the boot and native library
+     paths, and java.home.
+  Every testsuite, testcase, failure, error, skipped and system-out element is
+  byte-identical to what the runner wrote, and every retained property carries
+  the value the runner wrote.  Each installed file was verified to have lost
+  exactly the angle brackets the dropped lines carried and no others, and to
+  still state its own java.runtime.version -- so a report in this archive proves
+  which runtime produced it without reference to any prose, including this note.
+
+why the paths were replaced rather than kept:
+  the baseline necessarily runs from a throwaway checkout of the base commit, so
+  its path names a directory that no longer exists; and the two sides run from
+  different roots by construction, so keeping the paths would make every report
+  differ between the two sides for a reason unrelated to test outcomes, which is
+  precisely what the row-for-row comparison must not be flooded with.

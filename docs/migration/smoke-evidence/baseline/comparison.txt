@@ -1,0 +1,57 @@
+ArkCase migration smoke evidence — cross-capture comparison
+this-capture: <CAPTURE-DIR>
+other-capture: docs/migration/smoke-evidence/migrated
+
+Computed by reading both captures back off disk at the end of this run.
+Not authored.  Every row below is a comparison of two files that exist.
+
+REQUIRED comparisons — flow verdicts:
+  match   flow-1-login: this=SKIPPED other=SKIPPED
+  match   flow-2-views: this=SKIPPED other=SKIPPED
+  match   flow-3-alfresco-roundtrip: this=NOT-EXERCISED-MUTATION-NOT-PERMITTED other=NOT-EXERCISED-MUTATION-NOT-PERMITTED
+  match   flow-4-solr-search: this=SKIPPED other=SKIPPED
+  match   flow-5-activemq-event: this=NOT-EXERCISED-NO-EVENT-PRODUCED other=NOT-EXERCISED-NO-EVENT-PRODUCED
+  match   flow-6-generated-number: this=NOT-EXERCISED-MUTATION-NOT-PERMITTED other=NOT-EXERCISED-MUTATION-NOT-PERMITTED
+  match   flow-7-workflow-start: this=NOT-EXERCISED-WORKFLOW-NOT-STARTED other=NOT-EXERCISED-WORKFLOW-NOT-STARTED
+  match   flow-8-queue-transition: this=SKIPPED other=SKIPPED
+
+REQUIRED comparisons — the five frontend artifact digests:
+  match   application.js: 3c0aeb4d2b02dc740e733e5ed89c87bf0d229cc19489ee0f023c04af611391b8
+  DIFFER  application.min.js
+            this  938ba106e8dc0b1948bd9d5817110b097ecfc4d585eb5eaf2febe09c586fab8c
+            other c1a4cb56e4b644c4d6e356698a222f9de2b57dc0114eec86d93323e0a9b41dc2
+  match   vendors.min.js: 70187246b480eebb6f920732ce84356fb719b2db9694c10ed20388ff6f5e3be4
+  DIFFER  application.min.css
+            this  17703f8babbccbcb61f9ab8c21817d09757116c307d557f899c850f3552a2751
+            other 04228704205f51db7eac073b0001c87e54473f372865a031b910b989c8891ea1
+  match   home.html: 43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9
+
+REQUIRED comparison — archived unit-test suites:
+  suites-in-this-capture: 278
+  suites-in-other-capture: 285
+  present-here-only: 0
+  present-there-only: 7
+  The per-suite accounting, and which of the two reasons applies to
+  each unpaired suite, is in notes/surefire-pairing.txt and in
+  docs/migration/baseline-test-failures.md.  Neither direction is
+  counted as a REQUIRED difference here, because the pairing contract
+  already adjudicates it and doing it twice would double-count.
+
+ADVISORY differences — reported, never counted:
+  the source map is excluded from the required set by design; it embeds
+    file paths, and two captures run from different roots by construction
+  the capture directory and the target base URL are provenance, not
+    evidence, and are not compared
+  durations, host names and run instants legitimately vary between two
+    runs of the same suite and are not compared
+
+REQUIRED-DIFFERENCES: 2
+
+How to read that number.  Zero means the two captures agree on every
+required row.  Non-zero does NOT by itself mean a regression: it means
+something differs and therefore has to be ACCOUNTED FOR, either by being
+fixed or by being registered as an accepted deviation with evidence, in
+docs/migration/ambiguity-resolutions.md and
+docs/migration/pre-existing-defects.md.  A difference that appears in
+neither register is an unexplained difference, and that is the condition
+this file exists to make impossible to miss.

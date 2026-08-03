@@ -1,51 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Native Surefire report, migrated run, Java 17, module acm-complaint-plugin.
-
-  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
-  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
-  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
-  from a prebuilt repository:
-
-    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
-    mvn -B -fae test                    (every module reached; no module short-circuited the run)
-
-  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
-  change no test outcome - they only stop the reactor halting at the first red module, which is what
-  allows archiving every module's reports in one pass.
-
-  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
-  order, and every failure, error and skipped element with its message, type and full stack trace. No
-  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
-  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
-
-  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
-  discovered. The system property dump the reporter writes inside the properties element is emptied - it
-  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
-  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
-  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
-  both, no absolute path of this machine survives anywhere in this archive.
-
-  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
-  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
-  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
-  failure regardless of exit status.
-
-  Read against the twin report of the same name under the sibling baseline directory, which carries the
-  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
-  content - never on byte identity, since duration, host name and run instant legitimately vary between
-  two runs of the same suite.
--->
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" time="4.988" tests="2" errors="0" skipped="0" failures="0">
-  <properties/>
-  <testcase name="complaintsForUser_exception" classname="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" time="1.862">
-    <system-out><![CDATA[2026-08-03 09:36:22,068 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
-2026-08-03 09:36:22,107 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@b30a50d, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@764a3e5d, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@6c742b84, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@5db3d57c, org.springframework.test.context.support.DirtiesContextTestExecutionListener@53a50b0a, org.springframework.test.context.transaction.TransactionalTestExecutionListener@74ba6ff5, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@395f52ed, org.springframework.test.context.event.EventPublishingTestExecutionListener@7a84788f]
-2026-08-03 09:36:24,382 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 09:36:24,382 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 09:36:24,387 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 5 ms
-2026-08-03 09:36:25,504 [INFO ] [main] com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIController - Finding complaints created by user 'user'
-2026-08-03 09:36:25,505 [ERROR] [main] com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIController - Could not list complaints: testMessage
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" time="4.888" tests="2" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="java.vm.vendor" value="Ubuntu"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="os.name" value="Linux"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="java.runtime.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
+    <property name="os.version" value="6.12.85+"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.version" value="17.0.19"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Ubuntu"/>
+    <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
+    <property name="java.class.version" value="61.0"/>
+  </properties>
+  <testcase name="complaintsForUser_exception" classname="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" time="1.821">
+    <system-out><![CDATA[2026-08-03 15:30:19,229 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+2026-08-03 15:30:19,273 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@57151b3a, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@26457986, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@2dff7085, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@2faa55bb, org.springframework.test.context.support.DirtiesContextTestExecutionListener@501957bf, org.springframework.test.context.transaction.TransactionalTestExecutionListener@5d1d9d73, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@b30a50d, org.springframework.test.context.event.EventPublishingTestExecutionListener@764a3e5d]
+2026-08-03 15:30:21,508 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 15:30:21,509 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 15:30:21,513 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 4 ms
+2026-08-03 15:30:22,570 [INFO ] [main] com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIController - Finding complaints created by user 'user'
+2026-08-03 15:30:22,571 [ERROR] [main] com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIController - Could not list complaints: testMessage
 javax.persistence.PersistenceException: testMessage
 	at org.easymock.internal.MockInvocationHandler.invoke(MockInvocationHandler.java:48) ~[easymock-5.6.0.jar:5.6.0]
 	at org.easymock.internal.ObjectMethodsFilter.invoke(ObjectMethodsFilter.java:100) ~[easymock-5.6.0.jar:5.6.0]
@@ -109,7 +89,7 @@ javax.persistence.PersistenceException: testMessage
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) [surefire-booter-3.5.2.jar:3.5.2]
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) [surefire-booter-3.5.2.jar:3.5.2]
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) [surefire-booter-3.5.2.jar:3.5.2]
-2026-08-03 09:36:25,527 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - List Objects Failed: Could not list complaints.
+2026-08-03 15:30:22,598 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - List Objects Failed: Could not list complaints.
 Server encountered exception: testMessage
 Exception type was: 'com.armedia.acm.core.exceptions.AcmListObjectsFailedException'.
 com.armedia.acm.core.exceptions.AcmListObjectsFailedException: Could not list complaints.
@@ -181,15 +161,15 @@ Caused by: javax.persistence.PersistenceException: testMessage
 	at com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIController.tasksForUser(FindComplaintsByUserAPIController.java:74) ~[classes/:?]
 	... 57 more
 ]]></system-out>
-    <system-err><![CDATA[Aug 03, 2026 9:36:23 AM org.hibernate.validator.internal.util.Version <clinit>
+    <system-err><![CDATA[Aug 03, 2026 3:30:21 PM org.hibernate.validator.internal.util.Version <clinit>
 INFO: HV000001: Hibernate Validator 5.1.1.Final
 ]]></system-err>
   </testcase>
-  <testcase name="retrieveListOfUserComplaints" classname="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" time="0.192">
-    <system-out><![CDATA[2026-08-03 09:36:25,569 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 09:36:25,569 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 09:36:25,570 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 1 ms
-2026-08-03 09:36:25,574 [INFO ] [main] com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIController - Finding complaints created by user 'user'
+  <testcase name="retrieveListOfUserComplaints" classname="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" time="0.195">
+    <system-out><![CDATA[2026-08-03 15:30:22,638 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 15:30:22,639 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 15:30:22,640 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 1 ms
+2026-08-03 15:30:22,644 [INFO ] [main] com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIController - Finding complaints created by user 'user'
 ]]></system-out>
   </testcase>
 </testsuite>

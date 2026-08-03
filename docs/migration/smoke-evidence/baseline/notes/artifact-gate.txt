@@ -4,8 +4,16 @@ state: PASSED
 digests-required: 5
 digests-produced: 5
 digests-failed: 0
-artifact-directory-probed: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
-home-html-probed: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/home.html
+artifact-directory-probed: /tmp/arkcase-node8-frontend/resources/assets/dist
+home-html-probed: /tmp/arkcase-node8-frontend/resources/home.html
+
+The two probed paths above are the paths this run actually read, not the
+  defaults: a capture may point FRONTEND_RESOURCES_DIR at a staged build
+  produced by a different toolchain, which is exactly how the historical
+  runtime baseline is taken.  Read them together with env/toolchain.txt,
+  which records the node and npm that were on PATH, and with
+  notes/frontend-comparison-provenance.txt, which states which build each
+  side of the comparison came from.
 
 gate rule: all five compared artifacts must exist and must each yield a
   well-formed 64-character lower-case hexadecimal digest.  A missing file,

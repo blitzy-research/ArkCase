@@ -1,18 +1,22 @@
 flow: 7
 slug: 7-workflow-start
-verdict: SKIPPED
-migration-path-exercised: process engine residual risk across the process definitions
-compared-artefacts: none — the flow did not execute
+verdict: NOT-EXERCISED-WORKFLOW-NOT-STARTED
+migration-path-exercised: process engine residual risk: the oldest load-bearing component in the reactor, assigned to this gate rather than declared safe because it could not be bootstrapped for testing without a database
+compared-artefacts: flow-7-workflow-start.out, flow-7-workflow-start.status and startup/process-definitions.log
+transport-trust-mode: verify-default-trust-store
+state-mutation-permitted: no
 observed-statuses:
-  start-workflow=000
-  task-list-1=000
-  start-workflow=SKIPPED
+  task-list-before=000
 observations:
-  - skipped: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/plugin/task/adHocTask
-  - a SKIPPED verdict is not a pass and must not be read as one
+  - workflow surface observed: 000 (/api/latest/plugin/task/businessProcessTasks)
+  - process definitions measured at run time: 36 (expected 36, all of which the engine must load)
+  - process-engine startup lines NOT captured: no container log was supplied, so engine initialisation and process-definition loading remain unobserved and the residual risk of this flow is NOT discharged
+  - state mutation permitted: no
+  - listing tasks exercises a query; it does not instantiate a process and therefore observes none of the residual risk this flow exists for.  The flow says so rather than labelling a listing as a start
+  - requirements unmet: 1
 assertion-basis: derived by reading flow-7-workflow-start.status and
   flow-7-workflow-start.out back from disk; no verdict in this script is taken
-  from a process exit status (R-T7).
+  from a subprocess exit status (R-T7).
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this
