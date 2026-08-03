@@ -1,6 +1,6 @@
 # Module Overview
 
-ArkCase is a multi-module Maven project. Each top-level directory in the repository groups related modules.
+ArkCase is a multi-module Maven project. Each top-level directory in the repository groups related modules. Every module compiles at Java 17, and the frontend build toolchain runs on Node 20 LTS; see [Developer Setup](setup.md) for the full prerequisite list.
 
 | Module | Description |
 | --- | --- |
