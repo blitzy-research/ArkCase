@@ -182,6 +182,23 @@
             reactor. -->
         <mockito.core.version>4.11.0</mockito.core.version>
         <mysql.version>8.0.16</mysql.version>
+        <!-- JEP 372 removed the Nashorn engine from the JDK in 15, while javax.script stayed behind in
+            java.scripting - so a request for it compiles, returns null at run time, and fails on the next
+            dereference. personnelSecurityBackgroundInvestigation_v11.bpmn20.xml asks Activiti for the
+            'javascript' engine from seven complete-event ScriptTaskListener blocks, so the engine is
+            reinstated as a standalone artifact in the same way JEP 320's modules were. Declared only by
+            acm-personnel-security-plugin, the one module whose resources request it. -->
+        <nashorn-core.version>15.4</nashorn-core.version>
+        <!-- accessors-smart 1.1 does not depend on ASM, it BUNDLES a stripped ASM 4 under the real
+            org/objectweb/asm package, where org.objectweb.asm.Handle has only the four-argument constructor.
+            Whenever that jar sorts ahead of org.ow2.asm:asm the reinstated script engine dies in
+            MethodEmitter's static initialiser with NoSuchMethodError on Handle's five-argument constructor.
+            2.4.9 bundles nothing and depends on ASM properly, so ${asm.version} governs it. Which of the two
+            json-smart lines a module resolved was decided by declaration order - 49 modules got 2.2.1/1.1 and
+            29 got 2.4.10/2.4.9 through oauth2-oidc-sdk - so both are pinned at the pair the migrated security
+            stack already requires. -->
+        <json-smart.version>2.4.10</json-smart.version>
+        <accessors-smart.version>2.4.9</accessors-smart.version>
         <!-- by default spring.security.saml2.core uses opensaml version 2.6.1, which uses bouncycastle version 1.46, but we require version
             1.54 -->
         <opensaml.version>2.6.4</opensaml.version>
@@ -202,7 +219,14 @@
         <solr-solrj.version>7.6.0</solr-solrj.version>
         <sonar.version>3.5.0.1254</sonar.version>
         <spring.integration.version>4.3.22.RELEASE</spring.integration.version>
-        <spring.ldap.version>2.3.3.RELEASE</spring.ldap.version>
+        <!-- 2.3.3.RELEASE holds com.sun.jndi.ldap.LdapCtxFactory as a Class literal in
+            AbstractContextSource's static initialiser, so every LdapContextSource and
+            DefaultSpringSecurityContextSource fails on JDK 17 with an IllegalAccessError: java.naming does
+            not export that package. 2.4.4 stores the same factory as its class NAME, which is the identical
+            remedy applied to ArkCase's own ActiveDirectoryAbstractContextSource, so no module has to be
+            opened. It is also the release spring-security-ldap 5.8.16 declares and is built against Spring
+            Framework 5.3.39, and it is the last of the javax-namespace 2.x line - 3.x moves to jakarta. -->
+        <spring.ldap.version>2.4.4</spring.ldap.version>
         <spring.security.kerberos.version>1.0.1.RELEASE</spring.security.kerberos.version>
         <spring.security.saml2.core.version>1.0.10.RELEASE</spring.security.saml2.core.version>
         <!-- Framework stays on the 5.3 line and Security on the line that pairs with it. 5.3.2 predates the
@@ -1081,6 +1105,31 @@
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>
+            </dependency>
+            <!-- standalone OpenJDK Nashorn, replacing the engine JEP 372 removed from the JDK in 15. Its
+                classes live under org.openjdk.nashorn and it registers through
+                META-INF/services/javax.script.ScriptEngineFactory, so the javax script API the BPMN task
+                listeners go through is unchanged. Its asm-commons, asm-tree and asm-util transitives must be
+                left alone: asm-util supplies org.objectweb.asm.util.Printer, which Nashorn loads while
+                emitting a compile unit. -->
+            <dependency>
+                <groupId>org.openjdk.nashorn</groupId>
+                <artifactId>nashorn-core</artifactId>
+                <version>${nashorn-core.version}</version>
+            </dependency>
+            <!-- pinned so that exactly one provider of the org/objectweb/asm package reaches any module: see
+                the property comments above. Both arrive only transitively - json-path pulls the older pair and
+                oauth2-oidc-sdk the newer one - so managing them here is what makes the choice deterministic
+                instead of an artefact of declaration order. -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json-smart.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>accessors-smart</artifactId>
+                <version>${accessors-smart.version}</version>
             </dependency>
             <!-- chemistry -->
             <dependency>

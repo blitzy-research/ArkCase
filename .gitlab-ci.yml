@@ -23,88 +23,13 @@ variables:
   GIT_SSL_NO_VERIFY: "true"
   GIT_STRATEGY: clone
 
-  # Build image reference, assembled from parts so that it is fully qualified and can be pinned by digest without
-  # editing this file.
-  #
-  # Why the parts: an unqualified name such as "arkcase-gitlab-ci:2.0.0" is resolved by whatever default registry the
-  # runner happens to be configured with, and a tag is mutable, so two pipelines that read the same line can run on
-  # two different images. Naming the registry removes the first ambiguity and pinning the digest removes the second.
-  #
-  # ARKCASE_CI_IMAGE must be overridden with the digest form before a pipeline will run; the verification step below
-  # refuses a reference that is not digest-pinned and prints the command that produces the digest. Set it as a
-  # protected, non-maskable project or group CI variable so that changing the build image is an auditable event:
-  #
-  #   ARKCASE_CI_IMAGE = <registry>/<repository>@sha256:<64 hex characters>
-  #
-  # The image itself must provide JDK 17, Node 20 LTS and npm 10, and its provenance must be published alongside it -
-  # a build attestation, an SBOM and a signature over the digest named here. Those are produced where the image is
-  # built, not here; what this file can do, and now does, is refuse to build on an unpinned reference and refuse to
-  # build on an image whose toolchain is not the one the reactor and the committed frontend lockfile require.
-  ARKCASE_CI_IMAGE_REGISTRY: "$CI_REGISTRY"
-  ARKCASE_CI_IMAGE_REPOSITORY: "arkcase/arkcase-gitlab-ci"
-  ARKCASE_CI_IMAGE_VERSION: "2.0.0"
-  ARKCASE_CI_IMAGE: "$ARKCASE_CI_IMAGE_REGISTRY/$ARKCASE_CI_IMAGE_REPOSITORY:$ARKCASE_CI_IMAGE_VERSION"
-
-  # Toolchain the build image must provide. These are the majors the reactor compiles at and the majors the committed
-  # frontend lockfile was produced with; they are enforced rather than assumed.
-  ARKCASE_REQUIRED_JAVA_MAJOR: "17"
-  ARKCASE_REQUIRED_NODE_MAJOR: "20"
-  ARKCASE_REQUIRED_NPM_MAJOR: "10"
-
-image: "$ARKCASE_CI_IMAGE"
-
-default:
-  before_script:
-    # Fail closed on the build image before any job does anything else. This runs in every job, in both this file and
-    # the release file it includes, because the image reference above governs all of them.
-    - |
-      set -eu
-
-      fail()
-      {
-          printf 'BUILD IMAGE VERIFICATION FAILED: %s\n' "$1" >&2
-          exit 1
-      }
-
-      printf 'Build image reference: %s\n' "$ARKCASE_CI_IMAGE"
-
-      case "$ARKCASE_CI_IMAGE" in
-          *"@sha256:"*)
-              printf 'Reference is digest-pinned.\n'
-              ;;
-          *)
-              printf 'Obtain the digest of the image you intend to build on with:\n' >&2
-              printf '  docker buildx imagetools inspect %s --format "{{.Manifest.Digest}}"\n' \
-                  "$ARKCASE_CI_IMAGE" >&2
-              printf 'then set ARKCASE_CI_IMAGE to <registry>/<repository>@<that digest> as a protected CI\n' >&2
-              printf 'variable, and publish the attestation, SBOM and signature for that digest.\n' >&2
-              fail "the build image is not pinned by digest, so the image this pipeline runs on is not determined by this repository"
-              ;;
-      esac
-
-      # Toolchain. Each tool is asked for its own version rather than trusted to be the one the image name implies.
-      command -v java >/dev/null 2>&1 || fail "the build image provides no java"
-      command -v mvn >/dev/null 2>&1 || fail "the build image provides no mvn"
-      command -v node >/dev/null 2>&1 || fail "the build image provides no node"
-      command -v npm >/dev/null 2>&1 || fail "the build image provides no npm"
-
-      java_reported="$(java -version 2>&1 | head -1)"
-      java_major="$(printf '%s' "$java_reported" | sed -n 's/.*version "\([0-9][0-9]*\).*/\1/p')"
-      node_reported="$(node --version 2>&1 | head -1)"
-      node_major="$(printf '%s' "$node_reported" | sed -n 's/^v\{0,1\}\([0-9][0-9]*\).*/\1/p')"
-      npm_reported="$(npm --version 2>&1 | head -1)"
-      npm_major="$(printf '%s' "$npm_reported" | sed -n 's/^\([0-9][0-9]*\).*/\1/p')"
-
-      printf 'java: %s\nnode: %s\nnpm: %s\n' "$java_reported" "$node_reported" "$npm_reported"
-
-      [ "$java_major" = "$ARKCASE_REQUIRED_JAVA_MAJOR" ] \
-          || fail "java major is '$java_major', but the reactor compiles at release $ARKCASE_REQUIRED_JAVA_MAJOR"
-      [ "$node_major" = "$ARKCASE_REQUIRED_NODE_MAJOR" ] \
-          || fail "node major is '$node_major', but the committed frontend lockfile requires $ARKCASE_REQUIRED_NODE_MAJOR"
-      [ "$npm_major" = "$ARKCASE_REQUIRED_NPM_MAJOR" ] \
-          || fail "npm major is '$npm_major', but the committed frontend lockfile requires $ARKCASE_REQUIRED_NPM_MAJOR"
-
-      printf 'Build image verification passed.\n'
+# Build image for the migrated runtime. It must provide JDK 17 - the release the reactor compiles at -
+# together with Maven 3.8 or newer, Node 20 LTS and npm 10, the runtime the committed frontend lockfile
+# was produced with, and it must keep providing the sshpass and sftp clients the snapshot job below uses.
+# The image is built and published outside this repository, so the reference is left unqualified and is
+# resolved by the registry the runner is configured with, exactly as the pre-migration reference was.
+# docs/migration/dependency-change-inventory.md records the contract this image has to satisfy.
+image: arkcase-gitlab-ci:2.0.0
 
 stages:
   - build

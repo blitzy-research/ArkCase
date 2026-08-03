@@ -283,8 +283,11 @@
 # without them, because a default would either be a secret in version control
 # or a silently weakened transport.
 #
-#   SMOKE_OUT_DIR         Capture directory.  Default ./baseline.  Setting this
-#                         is the mechanism that satisfies R-7.
+#   SMOKE_OUT_DIR         Capture directory.  Default ./baseline when UNSET, and
+#                         setting it is the mechanism that satisfies R-7.  Set
+#                         but EMPTY is refused rather than defaulted, so an
+#                         unexpanded variable in a wrapper cannot silently write
+#                         a capture tree into the current directory.
 #   ARKCASE_BASE_URL      Default https://arkcase-ce.local/arkcase — the
 #                         reference-stack host from README.md plus
 #                         config/env/all.js:L6 (appPath : '/arkcase/'); the WAR
@@ -605,10 +608,20 @@ assert_positive_integer()
 # Parameter resolution.  Every value uses the ${VAR:-default} idiom so that the
 # identical script body serves the baseline run and the migrated replay — except
 # the credential and the transport trust settings, which have no defaults on
-# purpose.
+# purpose, and the capture directory, which is explained immediately below.
 # ---------------------------------------------------------------------------
 
-SMOKE_OUT_DIR="${SMOKE_OUT_DIR:-./baseline}"
+# The capture directory is the ONE parameter resolved with the unset-only form,
+# ${VAR-default} instead of ${VAR:-default}, and the difference is deliberate.
+# UNSET means the operator expressed no preference, so the documented default
+# applies.  SET AND EMPTY means the operator did express one and it evaluated to
+# nothing — an unexpanded variable in a wrapper script is the usual cause — and
+# quietly treating that as ./baseline is the wrong answer: with the greedy form
+# the empty-path refusal inside guard_output_dir below could never fire, so such
+# a run wrote a whole capture tree into whatever directory it started in and then
+# reported itself fine.  The unset-only form routes an explicitly empty value
+# into that refusal instead of past it.
+SMOKE_OUT_DIR="${SMOKE_OUT_DIR-./baseline}"
 
 ARKCASE_BASE_URL="${ARKCASE_BASE_URL:-https://arkcase-ce.local/arkcase}"
 ARKCASE_USER="${ARKCASE_USER:-arkcase-admin@arkcase.org}"
@@ -805,7 +818,29 @@ if [ -n "$ARKCASE_PASSWORD_FILE" ]; then
     # Only the first line is taken, and -r keeps a backslash literal.  A trailing
     # newline in the file is therefore not part of the credential, which is what
     # an operator writing the file with a text editor will expect.
-    IFS= read -r ARKCASE_PASSWORD < "$ARKCASE_PASSWORD_FILE" || ARKCASE_PASSWORD=''
+    #
+    # The value is cleared BEFORE the read, and the read's exit status is
+    # deliberately NOT used to decide whether to keep what it read.  `read`
+    # returns non-zero when it reaches end of file without having seen the
+    # delimiter — which is exactly what a credential file written by printf, by
+    # echo -n, by `tr -d`, or by an editor configured to omit the final newline
+    # looks like — and it does so AFTER assigning the bytes it consumed.  An
+    # earlier revision discarded the value on that status, so a perfectly good
+    # single-line file without a trailing newline was reported as "no credential
+    # supplied": a refusal that misdirected the operator, who had supplied a
+    # correctly permissioned file.  That was the R-T7 mistake in miniature — a
+    # control decision taken from an exit status while throwing away the
+    # evidence, here the bytes actually read — inside the very file that argues
+    # against it, so it is fixed by reading the evidence instead.
+    #
+    # Clearing first is what makes discarding the status safe, and it closes a
+    # second hazard: were the read to fail for a genuine reason with both this
+    # variable and ARKCASE_PASSWORD set in the environment, the environment value
+    # would otherwise survive while credential-source recorded 'file'.  An empty
+    # result instead reaches the refusal below, which is the correct answer for an
+    # empty, first-line-empty, or unreadable file.
+    ARKCASE_PASSWORD=''
+    IFS= read -r ARKCASE_PASSWORD < "$ARKCASE_PASSWORD_FILE" || true
     CREDENTIAL_SOURCE='file'
 elif [ -n "$ARKCASE_PASSWORD" ]; then
     CREDENTIAL_SOURCE='environment'
@@ -958,6 +993,12 @@ guard_output_dir()
 
     if [ -z "$candidate" ]; then
         printf 'smoke-checks.sh: SMOKE_OUT_DIR resolved to an empty path; refusing to run.\n' >&2
+        printf '  The variable was set and evaluated to nothing, which usually means an\n' >&2
+        printf '  unexpanded variable in a wrapper script.  It is refused rather than\n' >&2
+        printf '  defaulted, because defaulting it would write a capture tree into whatever\n' >&2
+        printf '  directory the run happened to start in and still report success.\n' >&2
+        printf '  Remediation: name the capture directory explicitly, or leave the variable\n' >&2
+        printf '  unset to accept the documented default.\n' >&2
         return 1
     fi
 

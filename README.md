@@ -55,9 +55,13 @@ Clone this repository to a folder of your choice.
 
 `cd` to the root folder of this repository; then run `mvn -DskipITs clean install`.  This will run the unit tests and build the war file.  It should take a few minutes.
 
+The reactor builds all of its modules in a single JVM, so the class metadata of every module has to coexist in one metaspace.  Do not cap it: a `MAVEN_OPTS` containing `-XX:MaxMetaspaceSize` set below roughly 1 GB aborts the build part-way through with nothing but `[ERROR] Metaspace`, which reads like a module failure rather than a memory ceiling.  `MAVEN_OPTS="-Xmx1400m -Xss512k"` builds the whole reactor; the GitLab pipeline uses `-XX:MetaspaceSize` (an initial size, not a limit) for the same reason.
+
 ### Clone the configuration folder
 
 ArkCase requires a configuration folder which is housed in another GitHub repository: https://github.com/ArkCase/.arkcase; follow the instructions at this link to setup the configuration folder.
+
+The build command above skips the integration tests, so it does not need this folder.  `mvn verify` does: the integration-test Spring contexts import `${user.home}/.arkcase/acm/encryption/spring-properties-encryption.xml` and `${user.home}/.arkcase/acm/app-config.xml` directly, read `${user.home}/.arkcase/acm/conf.yml`, and decrypt property values with the key material under `${user.home}/.arkcase/acm/private`.  Without the folder those tests fail during context initialisation with `FileNotFoundException` on a `.arkcase` path, which reads like a code failure and is not one.  Set the folder up, and start the configuration server described below, before drawing conclusions from an integration-test result.
 
 ### Run the Configuration Server
 
