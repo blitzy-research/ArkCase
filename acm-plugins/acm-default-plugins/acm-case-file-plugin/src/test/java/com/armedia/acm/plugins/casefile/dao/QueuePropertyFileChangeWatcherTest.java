@@ -43,9 +43,11 @@ import org.easymock.Mock;
 import org.easymock.TestSubject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
+import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.persistence.EntityManager;
@@ -96,7 +98,6 @@ public class QueuePropertyFileChangeWatcherTest extends EasyMockSupport
 
         expect(acmQueueDaoMock.findAll()).andReturn(createStoredQueues());
         TransactionTemplate transactionTemplate = new TransactionTemplate(txManagerMock);
-        PowerMock.expectNew(TransactionTemplate.class, txManagerMock).andReturn(transactionTemplate);
         expect(txManagerMock.getTransaction(transactionTemplate)).andReturn(mockedTransactionStatus);
         txManagerMock.commit(mockedTransactionStatus);
         expectLastCall();
@@ -107,9 +108,26 @@ public class QueuePropertyFileChangeWatcherTest extends EasyMockSupport
 
         replayAll();
 
-        // execute the method being tested
-        Properties properties = createLoadedProperties();
-        watcher.loadQueues(properties);
+        // Intercept the TransactionTemplate that loadQueues() creates internally. The answer delegates back to the real
+        // transaction flow - resolve the status from the transaction manager, run the callback, then commit - so the
+        // acmQueueDao.save(..) calls that live inside that callback still execute and still feed capturedArgs.
+        // The status is resolved with the transactionTemplate built above rather than with the constructed mock, because
+        // TransactionTemplate.equals compares the definition description and also requires the same transaction manager.
+        // The template built above satisfies both, so the expectation above matches just as it did against the real template.
+        try (MockedConstruction<TransactionTemplate> ignored = Mockito.mockConstruction(TransactionTemplate.class,
+                (mock, context) -> Mockito.doAnswer(invocation ->
+                {
+                    TransactionCallback<?> action = invocation.getArgument(0);
+                    TransactionStatus status = txManagerMock.getTransaction(transactionTemplate);
+                    Object result = action.doInTransaction(status);
+                    txManagerMock.commit(status);
+                    return result;
+                }).when(mock).execute(Mockito.any())))
+        {
+            // execute the method being tested
+            Properties properties = createLoadedProperties();
+            watcher.loadQueues(properties);
+        }
 
         // verify the expected interaction with the AcmQueueDao
         List<AcmQueue> values = capturedArgs.getValues();

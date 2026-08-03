@@ -33,8 +33,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 import com.armedia.acm.auth.AuthenticationUtils;
 import com.armedia.acm.service.objectlock.dao.AcmObjectLockDao;
@@ -48,10 +46,8 @@ import com.armedia.acm.services.search.service.SearchResults;
 import org.easymock.Capture;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -65,9 +61,6 @@ import java.nio.file.Files;
 /**
  * Created by nebojsha on 25.08.2015.
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*", "javax.security.*" })
-@PrepareForTest({ AuthenticationUtils.class })
 public class AcmObjectLockServiceImplTest 
 {
     private AcmObjectLockServiceImpl acmObjectLockService;
@@ -99,8 +92,6 @@ public class AcmObjectLockServiceImplTest
         executeSolrQueryMock = createMock(ExecuteSolrQuery.class);
         acmObjectLockService.setExecuteSolrQuery(executeSolrQueryMock);
 
-        mockStatic(AuthenticationUtils.class);
-
         authMock = createMock(Authentication.class);
         mockRequest = createMock(HttpServletRequest.class);
         expect(authMock.getName()).andReturn(authName).anyTimes();
@@ -113,117 +104,129 @@ public class AcmObjectLockServiceImplTest
     @Test
     public void testCreateExistingSameUserLock() throws Exception
     {
-        Long objectId = 1L;
-        String objectType = "CASE_FILE";
-        String lockType = "OBJECT_LOCK";
-        AcmObjectLock lock = new AcmObjectLock(objectId, objectType);
-        lock.setCreator(authName);
+        try (MockedStatic<AuthenticationUtils> mockedAuthUtils = Mockito.mockStatic(AuthenticationUtils.class))
+        {
+            Long objectId = 1L;
+            String objectType = "CASE_FILE";
+            String lockType = "OBJECT_LOCK";
+            AcmObjectLock lock = new AcmObjectLock(objectId, objectType);
+            lock.setCreator(authName);
 
-        Capture<AcmObjectLockEvent> event = Capture.newInstance();
+            Capture<AcmObjectLockEvent> event = Capture.newInstance();
 
-        expect(acmObjectLockDao.findLock(objectId, objectType)).andReturn(lock);
-        expect(acmObjectLockDao.save(lock)).andReturn(lock);
-        when(AuthenticationUtils.getUserIpAddress()).thenReturn("");
-        mockApplicationEventPublisher.publishEvent(capture(event));
+            expect(acmObjectLockDao.findLock(objectId, objectType)).andReturn(lock);
+            expect(acmObjectLockDao.save(lock)).andReturn(lock);
+            mockedAuthUtils.when(AuthenticationUtils::getUserIpAddress).thenReturn("");
+            mockApplicationEventPublisher.publishEvent(capture(event));
 
-        replay(mocks);
+            replay(mocks);
 
-        acmObjectLockService.createLock(objectId, objectType, lockType, 1000l, authMock);
+            acmObjectLockService.createLock(objectId, objectType, lockType, 1000l, authMock);
 
-        verify(mocks);
+            verify(mocks);
 
-        AcmObjectLockEvent captured = event.getValue();
-        assertEquals(objectId, captured.getParentObjectId());
-        assertEquals(objectType, captured.getParentObjectType());
-        assertEquals("OBJECT_LOCK", captured.getObjectType());        
+            AcmObjectLockEvent captured = event.getValue();
+            assertEquals(objectId, captured.getParentObjectId());
+            assertEquals(objectType, captured.getParentObjectType());
+            assertEquals("OBJECT_LOCK", captured.getObjectType());        
+        }
     }
 
     @Test
     public void testCreateExistingDifferentUserLock() throws Exception
     {
-        // 2019-03-18 it seems odd that the lock service's create method 
-        // just automatically overrides any existing lock, but that is in fact 
-        // what the implementation does.  Whether that's actually correct, 
-        // probably not.
+        try (MockedStatic<AuthenticationUtils> mockedAuthUtils = Mockito.mockStatic(AuthenticationUtils.class))
+        {
+            // 2019-03-18 it seems odd that the lock service's create method 
+            // just automatically overrides any existing lock, but that is in fact 
+            // what the implementation does.  Whether that's actually correct, 
+            // probably not.
 
-        Long objectId = 1L;
-        String objectType = "CASE_FILE";
-        String lockType = "OBJECT_LOCK";
-        AcmObjectLock lock = new AcmObjectLock(objectId, objectType);
-        lock.setCreator("differentUser");
+            Long objectId = 1L;
+            String objectType = "CASE_FILE";
+            String lockType = "OBJECT_LOCK";
+            AcmObjectLock lock = new AcmObjectLock(objectId, objectType);
+            lock.setCreator("differentUser");
 
-        expect(acmObjectLockDao.findLock(objectId, objectType)).andReturn(lock);
-        expect(acmObjectLockDao.save(lock)).andReturn(lock);
-        Capture<AcmObjectLockEvent> event = Capture.newInstance();
-        mockApplicationEventPublisher.publishEvent(capture(event));
+            expect(acmObjectLockDao.findLock(objectId, objectType)).andReturn(lock);
+            expect(acmObjectLockDao.save(lock)).andReturn(lock);
+            Capture<AcmObjectLockEvent> event = Capture.newInstance();
+            mockApplicationEventPublisher.publishEvent(capture(event));
 
-        replay(mocks);
+            replay(mocks);
 
-        acmObjectLockService.createLock(objectId, objectType, lockType, 1000l, authMock);
+            acmObjectLockService.createLock(objectId, objectType, lockType, 1000l, authMock);
 
-        verify(mocks);
+            verify(mocks);
 
-        AcmObjectLockEvent captured = event.getValue();
-        assertEquals(objectId, captured.getParentObjectId());
-        assertEquals(objectType, captured.getParentObjectType());
-        assertEquals("OBJECT_LOCK", captured.getObjectType());        
-        
+            AcmObjectLockEvent captured = event.getValue();
+            assertEquals(objectId, captured.getParentObjectId());
+            assertEquals(objectType, captured.getParentObjectType());
+            assertEquals("OBJECT_LOCK", captured.getObjectType());        
+            
+        }
     }
 
     @Test
     public void testCreateNotExistingLock() throws Exception
     {
-        Long objectId = 1L;
-        String objectType = "CASE_FILE";
-        String lockType = "OBJECT_LOCK";
-        AcmObjectLock lock = new AcmObjectLock(objectId, objectType);
-        lock.setLockType(lockType);
+        try (MockedStatic<AuthenticationUtils> mockedAuthUtils = Mockito.mockStatic(AuthenticationUtils.class))
+        {
+            Long objectId = 1L;
+            String objectType = "CASE_FILE";
+            String lockType = "OBJECT_LOCK";
+            AcmObjectLock lock = new AcmObjectLock(objectId, objectType);
+            lock.setLockType(lockType);
 
-        expect(acmObjectLockDao.findLock(objectId, objectType)).andReturn(null);
-        Capture<AcmObjectLock> saved = Capture.newInstance();
-        expect(acmObjectLockDao.save(capture(saved))).andReturn(lock);
-        Capture<AcmObjectLockEvent> event = Capture.newInstance();
-        mockApplicationEventPublisher.publishEvent(capture(event));
+            expect(acmObjectLockDao.findLock(objectId, objectType)).andReturn(null);
+            Capture<AcmObjectLock> saved = Capture.newInstance();
+            expect(acmObjectLockDao.save(capture(saved))).andReturn(lock);
+            Capture<AcmObjectLockEvent> event = Capture.newInstance();
+            mockApplicationEventPublisher.publishEvent(capture(event));
 
-        replay(mocks);
+            replay(mocks);
 
-        acmObjectLockService.createLock(objectId, objectType, lockType, 1000l, authMock);
+            acmObjectLockService.createLock(objectId, objectType, lockType, 1000l, authMock);
 
-        verify(mocks);
+            verify(mocks);
 
-        AcmObjectLockEvent captured = event.getValue();
-        assertEquals(objectId, captured.getParentObjectId());
-        assertEquals(objectType, captured.getParentObjectType());
-        assertEquals("OBJECT_LOCK", captured.getObjectType()); 
+            AcmObjectLockEvent captured = event.getValue();
+            assertEquals(objectId, captured.getParentObjectId());
+            assertEquals(objectType, captured.getParentObjectType());
+            assertEquals("OBJECT_LOCK", captured.getObjectType()); 
+        }
     }
 
     @Test
     public void testRemoveLock() throws Exception
     {
-        Long objectId = 1L;
-        String objectType = "CASE_FILE";
-        String lockType = "OBJECT_LOCK";
-        AcmObjectLock lock = new AcmObjectLock(objectId, objectType);
-        lock.setLockType(lockType);
-        lock.setCreator(authName);
+        try (MockedStatic<AuthenticationUtils> mockedAuthUtils = Mockito.mockStatic(AuthenticationUtils.class))
+        {
+            Long objectId = 1L;
+            String objectType = "CASE_FILE";
+            String lockType = "OBJECT_LOCK";
+            AcmObjectLock lock = new AcmObjectLock(objectId, objectType);
+            lock.setLockType(lockType);
+            lock.setCreator(authName);
 
-        expect(acmObjectLockDao.findLock(objectId, objectType)).andReturn(lock);
+            expect(acmObjectLockDao.findLock(objectId, objectType)).andReturn(lock);
 
-        acmObjectLockDao.remove(lock);
+            acmObjectLockDao.remove(lock);
 
-        Capture<AcmObjectUnlockEvent> event = Capture.newInstance();
-        mockApplicationEventPublisher.publishEvent(capture(event));
+            Capture<AcmObjectUnlockEvent> event = Capture.newInstance();
+            mockApplicationEventPublisher.publishEvent(capture(event));
 
-        replay(mocks);
+            replay(mocks);
 
-        acmObjectLockService.removeLock(objectId, objectType, lockType, authMock);
+            acmObjectLockService.removeLock(objectId, objectType, lockType, authMock);
 
-        verify(mocks);
+            verify(mocks);
 
-        AcmObjectUnlockEvent captured = event.getValue();
-        assertEquals(objectId, captured.getParentObjectId());
-        assertEquals(objectType, captured.getParentObjectType());
-        assertEquals("OBJECT_LOCK", captured.getObjectType()); 
+            AcmObjectUnlockEvent captured = event.getValue();
+            assertEquals(objectId, captured.getParentObjectId());
+            assertEquals(objectType, captured.getParentObjectType());
+            assertEquals("OBJECT_LOCK", captured.getObjectType()); 
+        }
     }
 
     @Test

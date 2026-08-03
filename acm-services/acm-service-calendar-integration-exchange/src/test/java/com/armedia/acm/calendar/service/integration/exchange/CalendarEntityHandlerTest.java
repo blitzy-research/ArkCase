@@ -28,13 +28,12 @@ package com.armedia.acm.calendar.service.integration.exchange;
  */
 
 import static com.armedia.acm.calendar.service.integration.exchange.ExchangeCalendarService.PROCESS_USER;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import com.armedia.acm.calendar.config.model.PurgeOptions;
 import com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandler.ServiceConnector;
@@ -50,9 +49,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -78,9 +77,7 @@ import microsoft.exchange.webservices.data.search.FindItemsResults;
  * @author Lazo Lazarev a.k.a. Lazarius Borg @ zerogravity Jul 26, 2017
  *
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
-@PrepareForTest({ CalendarFolder.class, FindItemsResults.class, Appointment.class })
+@RunWith(MockitoJUnitRunner.Silent.class)
 @Ignore
 public class CalendarEntityHandlerTest
 {
@@ -164,7 +161,7 @@ public class CalendarEntityHandlerTest
         // when
         entityHandler.purgeCalendars(mockedServiceConnector, PurgeOptions.RETAIN_INDEFINITELY, null);
         // then
-        verifyZeroInteractions(mockedService, mockedEm, mockedAuditPropertyEntityAdapter, mockedOutlookDao, mockedContainerEntityDao);
+        verifyNoInteractions(mockedService, mockedEm, mockedAuditPropertyEntityAdapter, mockedOutlookDao, mockedContainerEntityDao);
 
     }
 
@@ -178,39 +175,42 @@ public class CalendarEntityHandlerTest
     public void testPurgeCalendars_closed_appointmentMaster() throws Exception
     {
         // given
-        mockStatic(CalendarFolder.class, Appointment.class);
-        when(mockedEm.createQuery(anyString(), eq(AcmContainerEntity.class))).thenReturn(mockedQuery);
-        when(mockedQuery.getResultList()).thenReturn(Arrays.asList(mockedContainerEntity));
-        when(mockedContainerEntity.getContainer()).thenReturn(mockedContainer);
-        when(mockedContainer.getCalendarFolderId()).thenReturn("folderId");
-        when(CalendarFolder.bind(eq(mockedService), any(FolderId.class))).thenReturn(mockedFolder);
-        when(mockedFolder.findAppointments(any(CalendarView.class))).thenReturn(mockedFindResults);
-        ArrayList<Appointment> itemList = new ArrayList<>();
-        itemList.add(mockedAppointment);
-        when(mockedFindResults.getItems()).thenReturn(itemList);
-        when(mockedAppointment.getId()).thenReturn(mockedItemId);
-        when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
-        when(mockedAppointment.getIsRecurring()).thenReturn(true);
-        when(Appointment.bindToRecurringMaster(eq(mockedService), any(ItemId.class))).thenReturn(mockedMasterAppointment);
-        when(mockedMasterAppointment.getId()).thenReturn(mockedMasterItemId);
-        when(mockedMasterItemId.getUniqueId()).thenReturn(UNIQUE_MASTER_ITEM_ID);
-        when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));
+        try (MockedStatic<CalendarFolder> calendarFolderStatic = Mockito.mockStatic(CalendarFolder.class);
+                MockedStatic<Appointment> appointmentStatic = Mockito.mockStatic(Appointment.class))
+        {
+            when(mockedEm.createQuery(anyString(), eq(AcmContainerEntity.class))).thenReturn(mockedQuery);
+            when(mockedQuery.getResultList()).thenReturn(Arrays.asList(mockedContainerEntity));
+            when(mockedContainerEntity.getContainer()).thenReturn(mockedContainer);
+            when(mockedContainer.getCalendarFolderId()).thenReturn("folderId");
+            calendarFolderStatic.when(() -> CalendarFolder.bind(eq(mockedService), any(FolderId.class))).thenReturn(mockedFolder);
+            when(mockedFolder.findAppointments(any(CalendarView.class))).thenReturn(mockedFindResults);
+            ArrayList<Appointment> itemList = new ArrayList<>();
+            itemList.add(mockedAppointment);
+            when(mockedFindResults.getItems()).thenReturn(itemList);
+            when(mockedAppointment.getId()).thenReturn(mockedItemId);
+            when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
+            when(mockedAppointment.getIsRecurring()).thenReturn(true);
+            appointmentStatic.when(() -> Appointment.bindToRecurringMaster(eq(mockedService), any(ItemId.class))).thenReturn(mockedMasterAppointment);
+            when(mockedMasterAppointment.getId()).thenReturn(mockedMasterItemId);
+            when(mockedMasterItemId.getUniqueId()).thenReturn(UNIQUE_MASTER_ITEM_ID);
+            when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));
 
-        // when
-        entityHandler.purgeCalendars(mockedServiceConnector, PurgeOptions.CLOSED, null);
+            // when
+            entityHandler.purgeCalendars(mockedServiceConnector, PurgeOptions.CLOSED, null);
 
-        // then
-        verify(mockedEm).createQuery(
-                String.format("SELECT obj FROM %s obj WHERE obj.status IN :statuses AND obj.container.calendarFolderId IS NOT NULL",
-                        ENTITY_TYPE_FOR_QUERY),
-                AcmContainerEntity.class);
-        verify(mockedQuery).setParameter("statuses", closedStates);
-        verify(mockedQuery).getResultList();
-        verify(mockedAuditPropertyEntityAdapter).setUserId(PROCESS_USER);
-        verify(mockedOutlookDao).deleteAppointmentItem(mockedService, UNIQUE_MASTER_ITEM_ID, true, DeleteMode.MoveToDeletedItems);
-        verify(mockedFolder).delete(DeleteMode.MoveToDeletedItems);
-        verify(mockedContainer).setCalendarFolderId(null);
-        verify(mockedContainerEntityDao).save(mockedContainer);
+            // then
+            verify(mockedEm).createQuery(
+                    String.format("SELECT obj FROM %s obj WHERE obj.status IN :statuses AND obj.container.calendarFolderId IS NOT NULL",
+                            ENTITY_TYPE_FOR_QUERY),
+                    AcmContainerEntity.class);
+            verify(mockedQuery).setParameter("statuses", closedStates);
+            verify(mockedQuery).getResultList();
+            verify(mockedAuditPropertyEntityAdapter).setUserId(PROCESS_USER);
+            verify(mockedOutlookDao).deleteAppointmentItem(mockedService, UNIQUE_MASTER_ITEM_ID, true, DeleteMode.MoveToDeletedItems);
+            verify(mockedFolder).delete(DeleteMode.MoveToDeletedItems);
+            verify(mockedContainer).setCalendarFolderId(null);
+            verify(mockedContainerEntityDao).save(mockedContainer);
+        }
     }
 
     /**
@@ -223,36 +223,39 @@ public class CalendarEntityHandlerTest
     public void testPurgeCalendars_closed_appointmentInstance() throws Exception
     {
         // given
-        mockStatic(CalendarFolder.class, Appointment.class);
-        when(mockedEm.createQuery(anyString(), eq(AcmContainerEntity.class))).thenReturn(mockedQuery);
-        when(mockedQuery.getResultList()).thenReturn(Arrays.asList(mockedContainerEntity));
-        when(mockedContainerEntity.getContainer()).thenReturn(mockedContainer);
-        when(mockedContainer.getCalendarFolderId()).thenReturn("folderId");
-        when(CalendarFolder.bind(eq(mockedService), any(FolderId.class))).thenReturn(mockedFolder);
-        when(mockedFolder.findAppointments(any(CalendarView.class))).thenReturn(mockedFindResults);
-        ArrayList<Appointment> itemList = new ArrayList<>();
-        itemList.add(mockedAppointment);
-        when(mockedFindResults.getItems()).thenReturn(itemList);
-        when(mockedAppointment.getId()).thenReturn(mockedItemId);
-        when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
-        when(mockedAppointment.getIsRecurring()).thenReturn(false);
-        when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));
+        try (MockedStatic<CalendarFolder> calendarFolderStatic = Mockito.mockStatic(CalendarFolder.class);
+                MockedStatic<Appointment> appointmentStatic = Mockito.mockStatic(Appointment.class))
+        {
+            when(mockedEm.createQuery(anyString(), eq(AcmContainerEntity.class))).thenReturn(mockedQuery);
+            when(mockedQuery.getResultList()).thenReturn(Arrays.asList(mockedContainerEntity));
+            when(mockedContainerEntity.getContainer()).thenReturn(mockedContainer);
+            when(mockedContainer.getCalendarFolderId()).thenReturn("folderId");
+            calendarFolderStatic.when(() -> CalendarFolder.bind(eq(mockedService), any(FolderId.class))).thenReturn(mockedFolder);
+            when(mockedFolder.findAppointments(any(CalendarView.class))).thenReturn(mockedFindResults);
+            ArrayList<Appointment> itemList = new ArrayList<>();
+            itemList.add(mockedAppointment);
+            when(mockedFindResults.getItems()).thenReturn(itemList);
+            when(mockedAppointment.getId()).thenReturn(mockedItemId);
+            when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
+            when(mockedAppointment.getIsRecurring()).thenReturn(false);
+            when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));
 
-        // when
-        entityHandler.purgeCalendars(mockedServiceConnector, PurgeOptions.CLOSED, null);
+            // when
+            entityHandler.purgeCalendars(mockedServiceConnector, PurgeOptions.CLOSED, null);
 
-        // then
-        verify(mockedEm).createQuery(
-                String.format("SELECT obj FROM %s obj WHERE obj.status IN :statuses AND obj.container.calendarFolderId IS NOT NULL",
-                        ENTITY_TYPE_FOR_QUERY),
-                AcmContainerEntity.class);
-        verify(mockedQuery).setParameter("statuses", closedStates);
-        verify(mockedQuery).getResultList();
-        verify(mockedAuditPropertyEntityAdapter).setUserId(PROCESS_USER);
-        verify(mockedOutlookDao).deleteAppointmentItem(mockedService, UNIQUE_ITEM_ID, false, DeleteMode.MoveToDeletedItems);
-        verify(mockedFolder).delete(DeleteMode.MoveToDeletedItems);
-        verify(mockedContainer).setCalendarFolderId(null);
-        verify(mockedContainerEntityDao).save(mockedContainer);
+            // then
+            verify(mockedEm).createQuery(
+                    String.format("SELECT obj FROM %s obj WHERE obj.status IN :statuses AND obj.container.calendarFolderId IS NOT NULL",
+                            ENTITY_TYPE_FOR_QUERY),
+                    AcmContainerEntity.class);
+            verify(mockedQuery).setParameter("statuses", closedStates);
+            verify(mockedQuery).getResultList();
+            verify(mockedAuditPropertyEntityAdapter).setUserId(PROCESS_USER);
+            verify(mockedOutlookDao).deleteAppointmentItem(mockedService, UNIQUE_ITEM_ID, false, DeleteMode.MoveToDeletedItems);
+            verify(mockedFolder).delete(DeleteMode.MoveToDeletedItems);
+            verify(mockedContainer).setCalendarFolderId(null);
+            verify(mockedContainerEntityDao).save(mockedContainer);
+        }
     }
 
     /**
@@ -265,39 +268,42 @@ public class CalendarEntityHandlerTest
     public void testPurgeCalendars_closedXDays_appointmentMaster() throws Exception
     {
         // given
-        mockStatic(CalendarFolder.class, Appointment.class);
-        when(mockedEm.createQuery(anyString(), eq(AcmContainerEntity.class))).thenReturn(mockedQuery);
-        when(mockedQuery.getResultList()).thenReturn(Arrays.asList(mockedContainerEntity));
-        when(mockedContainerEntity.getContainer()).thenReturn(mockedContainer);
-        when(mockedContainer.getCalendarFolderId()).thenReturn("folderId");
-        when(CalendarFolder.bind(eq(mockedService), any(FolderId.class))).thenReturn(mockedFolder);
-        when(mockedFolder.findAppointments(any(CalendarView.class))).thenReturn(mockedFindResults);
-        ArrayList<Appointment> itemList = new ArrayList<>();
-        itemList.add(mockedAppointment);
-        when(mockedFindResults.getItems()).thenReturn(itemList);
-        when(mockedAppointment.getId()).thenReturn(mockedItemId);
-        when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
-        when(mockedAppointment.getIsRecurring()).thenReturn(true);
-        when(Appointment.bindToRecurringMaster(eq(mockedService), any(ItemId.class))).thenReturn(mockedMasterAppointment);
-        when(mockedMasterAppointment.getId()).thenReturn(mockedMasterItemId);
-        when(mockedMasterItemId.getUniqueId()).thenReturn(UNIQUE_MASTER_ITEM_ID);
-        when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));
+        try (MockedStatic<CalendarFolder> calendarFolderStatic = Mockito.mockStatic(CalendarFolder.class);
+                MockedStatic<Appointment> appointmentStatic = Mockito.mockStatic(Appointment.class))
+        {
+            when(mockedEm.createQuery(anyString(), eq(AcmContainerEntity.class))).thenReturn(mockedQuery);
+            when(mockedQuery.getResultList()).thenReturn(Arrays.asList(mockedContainerEntity));
+            when(mockedContainerEntity.getContainer()).thenReturn(mockedContainer);
+            when(mockedContainer.getCalendarFolderId()).thenReturn("folderId");
+            calendarFolderStatic.when(() -> CalendarFolder.bind(eq(mockedService), any(FolderId.class))).thenReturn(mockedFolder);
+            when(mockedFolder.findAppointments(any(CalendarView.class))).thenReturn(mockedFindResults);
+            ArrayList<Appointment> itemList = new ArrayList<>();
+            itemList.add(mockedAppointment);
+            when(mockedFindResults.getItems()).thenReturn(itemList);
+            when(mockedAppointment.getId()).thenReturn(mockedItemId);
+            when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
+            when(mockedAppointment.getIsRecurring()).thenReturn(true);
+            appointmentStatic.when(() -> Appointment.bindToRecurringMaster(eq(mockedService), any(ItemId.class))).thenReturn(mockedMasterAppointment);
+            when(mockedMasterAppointment.getId()).thenReturn(mockedMasterItemId);
+            when(mockedMasterItemId.getUniqueId()).thenReturn(UNIQUE_MASTER_ITEM_ID);
+            when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));
 
-        // when
-        entityHandler.purgeCalendars(mockedServiceConnector, PurgeOptions.CLOSED_X_DAYS, daysClosed);
+            // when
+            entityHandler.purgeCalendars(mockedServiceConnector, PurgeOptions.CLOSED_X_DAYS, daysClosed);
 
-        // then
-        verify(mockedEm).createQuery(String.format(
-                "SELECT obj FROM %s obj WHERE obj.status IN :statuses AND obj.container.calendarFolderId IS NOT NULL AND obj.modified <= :modified",
-                ENTITY_TYPE_FOR_QUERY), AcmContainerEntity.class);
-        verify(mockedQuery).setParameter("statuses", closedStates);
-        verify(mockedQuery).setParameter("modified", calculateModifiedDate(daysClosed));
-        verify(mockedQuery).getResultList();
-        verify(mockedAuditPropertyEntityAdapter).setUserId(PROCESS_USER);
-        verify(mockedOutlookDao).deleteAppointmentItem(mockedService, UNIQUE_MASTER_ITEM_ID, true, DeleteMode.MoveToDeletedItems);
-        verify(mockedFolder).delete(DeleteMode.MoveToDeletedItems);
-        verify(mockedContainer).setCalendarFolderId(null);
-        verify(mockedContainerEntityDao).save(mockedContainer);
+            // then
+            verify(mockedEm).createQuery(String.format(
+                    "SELECT obj FROM %s obj WHERE obj.status IN :statuses AND obj.container.calendarFolderId IS NOT NULL AND obj.modified <= :modified",
+                    ENTITY_TYPE_FOR_QUERY), AcmContainerEntity.class);
+            verify(mockedQuery).setParameter("statuses", closedStates);
+            verify(mockedQuery).setParameter("modified", calculateModifiedDate(daysClosed));
+            verify(mockedQuery).getResultList();
+            verify(mockedAuditPropertyEntityAdapter).setUserId(PROCESS_USER);
+            verify(mockedOutlookDao).deleteAppointmentItem(mockedService, UNIQUE_MASTER_ITEM_ID, true, DeleteMode.MoveToDeletedItems);
+            verify(mockedFolder).delete(DeleteMode.MoveToDeletedItems);
+            verify(mockedContainer).setCalendarFolderId(null);
+            verify(mockedContainerEntityDao).save(mockedContainer);
+        }
     }
 
     /**
@@ -310,36 +316,39 @@ public class CalendarEntityHandlerTest
     public void testPurgeCalendars_closedXDays_appointmentInstance() throws Exception
     {
         // given
-        mockStatic(CalendarFolder.class, Appointment.class);
-        when(mockedEm.createQuery(anyString(), eq(AcmContainerEntity.class))).thenReturn(mockedQuery);
-        when(mockedQuery.getResultList()).thenReturn(Arrays.asList(mockedContainerEntity));
-        when(mockedContainerEntity.getContainer()).thenReturn(mockedContainer);
-        when(mockedContainer.getCalendarFolderId()).thenReturn("folderId");
-        when(CalendarFolder.bind(eq(mockedService), any(FolderId.class))).thenReturn(mockedFolder);
-        when(mockedFolder.findAppointments(any(CalendarView.class))).thenReturn(mockedFindResults);
-        ArrayList<Appointment> itemList = new ArrayList<>();
-        itemList.add(mockedAppointment);
-        when(mockedFindResults.getItems()).thenReturn(itemList);
-        when(mockedAppointment.getId()).thenReturn(mockedItemId);
-        when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
-        when(mockedAppointment.getIsRecurring()).thenReturn(false);
-        when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));
+        try (MockedStatic<CalendarFolder> calendarFolderStatic = Mockito.mockStatic(CalendarFolder.class);
+                MockedStatic<Appointment> appointmentStatic = Mockito.mockStatic(Appointment.class))
+        {
+            when(mockedEm.createQuery(anyString(), eq(AcmContainerEntity.class))).thenReturn(mockedQuery);
+            when(mockedQuery.getResultList()).thenReturn(Arrays.asList(mockedContainerEntity));
+            when(mockedContainerEntity.getContainer()).thenReturn(mockedContainer);
+            when(mockedContainer.getCalendarFolderId()).thenReturn("folderId");
+            calendarFolderStatic.when(() -> CalendarFolder.bind(eq(mockedService), any(FolderId.class))).thenReturn(mockedFolder);
+            when(mockedFolder.findAppointments(any(CalendarView.class))).thenReturn(mockedFindResults);
+            ArrayList<Appointment> itemList = new ArrayList<>();
+            itemList.add(mockedAppointment);
+            when(mockedFindResults.getItems()).thenReturn(itemList);
+            when(mockedAppointment.getId()).thenReturn(mockedItemId);
+            when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
+            when(mockedAppointment.getIsRecurring()).thenReturn(false);
+            when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));
 
-        // when
-        entityHandler.purgeCalendars(mockedServiceConnector, PurgeOptions.CLOSED_X_DAYS, daysClosed);
+            // when
+            entityHandler.purgeCalendars(mockedServiceConnector, PurgeOptions.CLOSED_X_DAYS, daysClosed);
 
-        // then
-        verify(mockedEm).createQuery(String.format(
-                "SELECT obj FROM %s obj WHERE obj.status IN :statuses AND obj.container.calendarFolderId IS NOT NULL AND obj.modified <= :modified",
-                ENTITY_TYPE_FOR_QUERY), AcmContainerEntity.class);
-        verify(mockedQuery).setParameter("statuses", closedStates);
-        verify(mockedQuery).setParameter("modified", calculateModifiedDate(daysClosed));
-        verify(mockedQuery).getResultList();
-        verify(mockedAuditPropertyEntityAdapter).setUserId(PROCESS_USER);
-        verify(mockedOutlookDao).deleteAppointmentItem(mockedService, UNIQUE_ITEM_ID, false, DeleteMode.MoveToDeletedItems);
-        verify(mockedFolder).delete(DeleteMode.MoveToDeletedItems);
-        verify(mockedContainer).setCalendarFolderId(null);
-        verify(mockedContainerEntityDao).save(mockedContainer);
+            // then
+            verify(mockedEm).createQuery(String.format(
+                    "SELECT obj FROM %s obj WHERE obj.status IN :statuses AND obj.container.calendarFolderId IS NOT NULL AND obj.modified <= :modified",
+                    ENTITY_TYPE_FOR_QUERY), AcmContainerEntity.class);
+            verify(mockedQuery).setParameter("statuses", closedStates);
+            verify(mockedQuery).setParameter("modified", calculateModifiedDate(daysClosed));
+            verify(mockedQuery).getResultList();
+            verify(mockedAuditPropertyEntityAdapter).setUserId(PROCESS_USER);
+            verify(mockedOutlookDao).deleteAppointmentItem(mockedService, UNIQUE_ITEM_ID, false, DeleteMode.MoveToDeletedItems);
+            verify(mockedFolder).delete(DeleteMode.MoveToDeletedItems);
+            verify(mockedContainer).setCalendarFolderId(null);
+            verify(mockedContainerEntityDao).save(mockedContainer);
+        }
     }
 
     /**

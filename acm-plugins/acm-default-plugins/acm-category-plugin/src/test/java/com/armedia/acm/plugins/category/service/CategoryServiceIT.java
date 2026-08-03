@@ -30,13 +30,10 @@ package com.armedia.acm.plugins.category.service;
 import static com.armedia.acm.plugins.category.model.CategoryStatus.ACTIVATED;
 import static com.armedia.acm.plugins.category.model.CategoryStatus.DEACTIVATED;
 import static com.armedia.acm.plugins.category.model.CategoryStatus.DELETED;
-import static org.easymock.EasyMock.expect;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.powermock.api.easymock.PowerMock.mockStatic;
-import static org.powermock.api.easymock.PowerMock.replay;
 
 import com.armedia.acm.core.exceptions.AcmCreateObjectFailedException;
 import com.armedia.acm.core.exceptions.AcmObjectNotFoundException;
@@ -52,11 +49,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.powermock.api.easymock.annotation.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -69,8 +63,7 @@ import javax.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockRunnerDelegate(SpringJUnit4ClassRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "/spring/spring-library-category.xml",
         "/spring/spring-library-data-source.xml",
         "/spring/spring-library-user-service.xml",
@@ -85,8 +78,6 @@ import java.util.List;
 })
 @Rollback(true)
 @Transactional
-@PrepareForTest(LogManager.class)
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
 @Ignore
 public class CategoryServiceIT
 {
@@ -106,8 +97,12 @@ public class CategoryServiceIT
     private EntityManager entityManager;
     @Autowired
     private AuditPropertyEntityAdapter auditAdapter;
-    @Mock
-    private Logger mockedLogger;
+    /*
+     * Built here rather than injected: the runner declared above no longer supplies annotation-driven mock injection, so an
+     * annotated field would simply stay null. A field initialiser runs at instance construction - before Spring injection and
+     * before @Before - which is the same point in the lifecycle at which the mock used to become available.
+     */
+    private final Logger mockedLogger = Mockito.mock(Logger.class);
     private Long parentId;
     private Long childId;
     private Long grandChildId;
@@ -119,9 +114,14 @@ public class CategoryServiceIT
         assertNotNull(entityManager);
         assertNotNull(auditAdapter);
 
-        mockStatic(LogManager.class);
-        expect(LogManager.getLogger(CategoryServiceImpl.class)).andReturn(mockedLogger);
-        replay(LogManager.class);
+        // Mockito equivalent of the static log-manager stub this method used to register. The scope is deliberately closed
+        // straight away: CategoryServiceImpl obtains its logger once, from an instance field initialiser that has already run
+        // by the time Spring hands the bean over, so the stub is never consulted. Holding the scope open across the fixture
+        // building below would only cause unstubbed static LogManager calls to return null.
+        try (MockedStatic<LogManager> logManagerMock = Mockito.mockStatic(LogManager.class))
+        {
+            logManagerMock.when(() -> LogManager.getLogger(CategoryServiceImpl.class)).thenReturn(mockedLogger);
+        }
 
         auditAdapter.setUserId("creator");
 

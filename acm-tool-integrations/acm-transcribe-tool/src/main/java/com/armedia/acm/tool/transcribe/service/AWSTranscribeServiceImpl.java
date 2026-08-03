@@ -269,7 +269,7 @@ public class AWSTranscribeServiceImpl implements TranscribeIntegrationService
     {
         if (mediaEngineDTO != null)
         {
-            try (InputStream inputStream = new FileInputStream(mediaEngineDTO.getMediaEcmFileVersion()))
+            try (InputStream inputStream = openMediaStream(mediaEngineDTO.getMediaEcmFileVersion()))
             {
                 AWSTranscribeConfiguration configuration = getAwsTranscribeConfigurationService().getAWSTranscribeConfig();
 
@@ -296,6 +296,17 @@ public class AWSTranscribeServiceImpl implements TranscribeIntegrationService
         }
 
         throw new CreateMediaEngineToolException("Unable to upload media file to Amazon. Transcribe not provided.");
+    }
+
+    /**
+     * Test seam. Opens the media file for upload. Package/subclass-visible so a test can supply a
+     * stub stream: java.io.FileInputStream is loaded by the bootstrap class loader and therefore
+     * cannot be intercepted by Mockito construction mocking. Production behavior is unchanged --
+     * this method does exactly what the inlined constructor call did.
+     */
+    protected InputStream openMediaStream(File mediaFile) throws IOException
+    {
+        return new FileInputStream(mediaFile);
     }
 
     private void checkIfMediaExist(MediaEngineDTO mediaEngineDTO, String bucket) throws CreateMediaEngineToolException

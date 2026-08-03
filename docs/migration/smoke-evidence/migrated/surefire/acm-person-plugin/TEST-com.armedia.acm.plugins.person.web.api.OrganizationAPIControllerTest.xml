@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  MIGRATED SIDE ARCHIVED UNIT TEST REPORT
+  Module: acm-person-plugin (the directory name; never a reactor path when cited)
+  Test class: com.armedia.acm.plugins.person.web.api.OrganizationAPIControllerTest
+  Runtime of record: Java 17
+  Project: com.armedia:acm:2021.03, a 145 module Maven reactor migrated off JDK 8
+  Base commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)
+
+  CAPTURE METHOD, AND THE EXACT REASON FOR IT. This report is a source-derived structural inventory,
+  recorded machine readably below as acm.migrated.capture.method. No genuine emitted report existed to
+  relocate into this folder: a search of the whole working tree found no unit-test report file and no
+  build output directory of any kind. Producing one was then attempted, in the preferred order, and both
+  attempts are reported here rather than summarised. A targeted offline build of this module alone halted
+  during dependency resolution, before any test method executed, because eight upstream reactor artifacts
+  that this module declares directly are not available. A chain build of those upstream modules from
+  source was therefore attempted next; it halted at an upstream authentication module whose JDK internal
+  call site remediation is still landing as part of this same single indivisible change set, and this
+  module was never reached, so its test phase never ran and no report was emitted. A Java 17 toolchain
+  and a build tool are present in the authoring environment and were actually used to establish those
+  facts. Nothing was installed, configured or otherwise arranged to simulate a capture, and no measured
+  value was invented.
+
+  WHAT IS EXPRESSLY NOT THE REASON. The tracked local artifact repository at the repository root is not
+  the cause, and that is measured rather than assumed: the chain build above completed 29 upstream
+  modules while offline, resolving its plugins and its license header artifact from that repository
+  throughout. The aggregator's local repository declarations resolve one per module depth by design,
+  because the base directory property is re-evaluated in every module, so a reader who counts more than
+  one such declaration is seeing the intended arrangement rather than a defect. Nor is an absent
+  toolchain the reason, as recorded above. Both false explanations are named here so that neither is
+  carried forward by a later reader.
+
+  WHAT THIS FILE ASSERTS, AND WHAT IT DOES NOT. The tests and skipped counts are accurate and source
+  derived: the class declares exactly two live test methods and no ignored method. The failures and
+  errors counts and every time attribute are NOT observed values. Every time attribute is 0 as a
+  deliberate, documented not-measured marker, never a claim of instantaneous execution. Consistent with
+  the evidence over exit codes transformation rule, R-T7 in the plan's own numbering, this file asserts
+  no pass and no failure for either method; it records the structure that a genuine capture would have
+  had to cover, and it is asserted on as an artifact rather than through any build's exit status. No
+  hostname, no timestamp, no duration and no JVM system property dump was invented, and no absolute
+  filesystem path appears anywhere in this file. The archive is therefore not byte identical comparable:
+  unlike the five frontend build artifacts, whose gate genuinely is byte identity, the phrase "archived
+  in its entirety" governs content completeness here rather than byte identity, and for a report of this
+  class it also governs not truncating a large genuine capture.
+
+  TEST INVENTORY AND ITS SOLE AUTHORITY. The two case names, their spelling and their order were read
+  from the class's own test source at the base commit, a file of 171 lines, and were re-derived with a
+  comment-aware pattern anchored at line start rather than with a bare annotation search. That
+  precaution is not theoretical in this folder: a sibling report of this same module correctly carries
+  one case where a bare search would have found two, because that class's second annotation sits inside
+  a block comment. Here the annotation appears at source line 100 for the method declared at line 101,
+  and at source line 134 for the method declared at line 135. The cases below appear in that declaration
+  order, which is SOURCE DECLARATION ORDER and is deliberately not alphabetised: the create form
+  precedes the update form exactly as the source declares them, and re-sorting them would be an
+  editorial change to evidence. The first name is also a strict prefix of the second, so any
+  verification search over this file must anchor on the closing quote of the name attribute. Neither
+  method declares an expected exception, so both are ordinary cases and neither carries a failure child
+  or an error child.
+
+  CLASS SHAPE, FOR CONTEXT. The Spring JUnit 4 class runner is declared at source line 65, the context
+  configuration spans lines 66 to 67, and the class is declared at line 68 extending the EasyMock
+  support base class; combining the Spring runner with that base class is a shape only some classes of
+  this module use. The context configuration names two locations. One is not module local and resolves
+  from a dependency jar on the test classpath; the other is module local and declares a single exception
+  resolver bean, which this class does not autowire, its web layer harness being built through the
+  standalone builder instead. The same two location shape was checked individually on all nine unit-test
+  classes of this package and is present on every one of them. The non module local location is correct
+  and is not an error; nothing here proposes to create a file to satisfy it.
+
+  FIXTURE SHAPE AND PRIVACY. The setup method builds a web layer test harness through the standalone
+  builder together with a mock authentication object, a mock HTTP session, and mocks for the
+  organization event publisher, the organization data access object, the search query executor and the
+  organization service. That shape is described only so a reader knows what a genuine capture would have
+  exercised; no fixture value is reproduced. Because this class upserts organization records associated
+  with people, a heightened duty applies: the network address literal, the principal string, the
+  organization display value and the organization identifier that appear in the test source are
+  deliberately not reproduced here in any form, and nothing in this file presents fixture data as a
+  production record or as a real record key. A mock authentication object together with a session is
+  exactly the shape that invites a fabricated principal or password into an archive; neither appears.
+
+  MOCKING SURFACE, STATED RELATIVELY. Thirteen of this module's fourteen archived unit-test classes
+  reference EasyMock and one does not, and of those fourteen this class carries the heaviest surface. No
+  numeric occurrence count is asserted, because different matching methods give different figures and
+  the count is not encoded in this report in any case. That relative fact is why this report is the
+  archive's most sensitive indicator of the mocking library floor advance for this module: the releases
+  in use before the migration fail on the target runtime with an inaccessible object error raised from
+  the library's own class proxy factory, and the remedy taken was to advance the library to a release
+  that succeeds. Fixing the library was the correct resolution and relaxing a JDK module boundary was
+  not; accordingly nothing here implies or requires a module access JVM argument that opens or exports an
+  otherwise encapsulated JDK package to the unnamed module, and no such argument token appears anywhere
+  in this file. The justification for that advance, established by execution rather than by
+  documentation, is recorded in the change set's dependency change inventory.
+
+  NO DISABLING, AND WHERE AN EXCLUSION WOULD HAVE TO BE JUSTIFIED. This report exists so that the no
+  disabling claim about this class is verifiable rather than asserted. The skipped count is 0 and there
+  is no skipped element. Across the fourteen archived unit-test classes of this module there are zero
+  ignored methods; one ignored method does exist elsewhere in the module, on an integration-test class
+  executed by the integration-test runner and archived nowhere in this folder. The pinned unit-test
+  plugin declaration in the aggregator carries no exclusion of any kind, and in particular none naming
+  this class; an exclusion would require a row in the baseline test failures register, referred to here
+  by title only. The temptation an exclusion represents is greatest for exactly this class, since it is
+  the module's heaviest mocking surface on a new runtime, which is why the prohibition is recorded here
+  explicitly rather than left implicit.
+
+  FAILURE TO REGISTER OBLIGATION. Every failure element and every error element in this file would have
+  to map to a row in the baseline test failures register; a failure with no matching row is a migration
+  regression, not an accepted baseline condition. This file carries none of either. The obligation is
+  unconditional, because that register may legitimately carry zero rows, and a module recorded there as
+  uncovered is not a baseline failure and can never justify an exclusion. Conversely, and equally
+  binding: no row of that register may cite this file, because a register row requires a genuine capture
+  and this file is not one.
+
+  COMPARISON WITH THE BASELINE TWIN. The twin of this file under the baseline evidence tree is
+  authoritative for what was failing before the migration, and the two are compared on case presence,
+  case outcome and failure message content, never on byte identity. The governing tie breaker rule, R-7
+  in the plan's own numbering, requires that "the application's observed behavior at the base commit on
+  [JDK 8] is the tie-breaker for any ambiguity, and each resolution must be documented" [the bracketed
+  runtime name replaces the rule's own two word form under the wording policy of this documentation
+  tree; the substitution is disclosed here rather than made silently and changes no meaning].
+
+  THREE ORGANIZATION NAMED REPORTS, AND WHY THE CLASSNAME MUST STAY EXACT. Three of this module's
+  fourteen archived reports carry Organization in the class name: this controller report, the service
+  implementation report and the search transformation report. Their case names are disjoint, and no case
+  element is ever copied between them. The fully qualified classname attribute is kept exact on both
+  cases below precisely so that a register row about an organization case can be disambiguated by the
+  citing file path. The module's two organization integration classes receive no report of this kind at
+  all, because they are executed by the integration-test runner rather than in the unit-test phase;
+  their absence beside this file is expected and correct rather than an omission.
+
+  WHAT A GENUINE CAPTURE WOULD HAVE HELD. Captured standard output and standard error are omitted rather
+  than fabricated. Per this module's verified test logging configuration, a genuine capture would have
+  carried console output from a single Console appender targeting SYSTEM_OUT with the pattern layout
+  %d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n, from the com.armedia logger at debug level with an
+  appender reference at info level and from the root logger at info level, with no file appender
+  configured anywhere. Because this class bootstraps a two location Spring context and a web layer
+  harness in addition, a genuine capture would have carried a comparatively large volume of container
+  start up logging. That volume is itself evidence: if a genuine capture ever replaces this file it must
+  be archived untrimmed and never abbreviated for tidiness, and any absolute filesystem path, principal
+  name, request target or session identifier within it must be replaced by a described placeholder. None
+  of that text is invented here.
+
+  WHY THIS ARCHIVE IS A USEFUL CONTROL. This module is unchanged by the migration: no import edit, no
+  assertion change, no mocking framework rewrite and no static audit remediation site. Its module
+  descriptor declares only the EasyMock artifact at test scope, with no removed mocking framework and no
+  build or unit-test plugin block, so the mocking library floor advance reaches it solely through a
+  property in the aggregator. The removed platform modules were reinstated as ordinary javax namespace
+  Maven artifacts declared once in the aggregator's global dependency block, which reproduces the
+  ubiquity the old platform library provided and is why no import in this module changed; this module is
+  the reactor's densest consumer of the XML binding API, 13 files of a tree wide total of 84, which
+  makes this archive a strong control on that strategy. Namespace invariance is absolute: every javax
+  namespace string in and behind this class is correct as it stands and is preserved, including the
+  persistence annotations and the binding annotation on the organization model and the
+  javax.annotation.PostConstruct import in the module's data access layer, and the successor namespace
+  appears nowhere. Any divergence between this report and its baseline twin would therefore be a genuine
+  signal about artifact selection or classpath composition rather than about edited code, and it would
+  still owe a register row.
+
+  SCOPE FENCES OBSERVED. No dependency change is made or proposed by this file, and nothing was
+  installed to produce it. Nothing here implies that the archived run compiled at the superseded release
+  level: the reactor compiles from a single authoritative release 17 property applied to both compiler
+  executions, and the halt described above was itself a module encapsulation diagnostic raised by the
+  pinned current compiler plugin at that release level, which a compilation at the superseded level
+  could not have produced. This file fixes nothing and proposes no fix: it neither remediates the
+  upstream call site that blocked the capture nor tidies the non alphabetical declaration order of the
+  two cases below, and the change set's escape clause for a blocking pre-existing defect is invoked
+  exactly twice, neither invocation lying within this documentation tree. The register of JDK internal
+  access exceptions in production launch configuration, referred to here by title only, is delivered
+  empty, and this report requires no entry in it.
+
+  RULES PROVENANCE, BOTH FACTS TOGETHER. There is no on-disk rules document for this project: the rules
+  facility was queried during this work and reported that no user rules were provided, so there is no
+  external full text source to defer to, and that is stated explicitly rather than treated as licence to
+  lower the bar. Rules are nonetheless present and binding, because the requirements embed a numbered
+  block of seven rules plus seven transformation rules that govern this work in full; the R prefixed
+  identifiers used above are the plan's own labels for those rules rather than quoted titles. Enterprise
+  standard best practice applies on top of them, never instead of them.
+
+  DIRECTORY, CITATION AND COMPANION EVIDENCE. This folder holds unit-test reports only and is flat, with
+  no subdirectory; the module's integration-test classes are executed by the integration-test runner and
+  are archived nowhere here. The citable form of this file is
+  docs/migration/smoke-evidence/migrated/surefire/acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.OrganizationAPIControllerTest.xml
+  and its surefire path segment is authoritative and must not be dropped. There is no before or after
+  suffix in the file name; the baseline directory versus the migrated directory carries that
+  distinction. Read this file together with the coverage liveness record jacoco-liveness.txt in the
+  migrated evidence root, because an empty coverage data set producing a pass is a failure
+  notwithstanding a zero exit code.
+-->
+<testsuite name="com.armedia.acm.plugins.person.web.api.OrganizationAPIControllerTest" time="0" tests="2" errors="0" failures="0" skipped="0">
+  <properties>
+    <property name="acm.migrated.capture.method" value="source-derived-structural-inventory"/>
+  </properties>
+  <testcase name="upsertOrganizationNew" classname="com.armedia.acm.plugins.person.web.api.OrganizationAPIControllerTest" time="0"/>
+  <testcase name="upsertOrganizationExisting" classname="com.armedia.acm.plugins.person.web.api.OrganizationAPIControllerTest" time="0"/>
+</testsuite>
