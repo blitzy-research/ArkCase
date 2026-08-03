@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Archived baseline unit-test report slot for com.armedia.acm.auth.AcmLoginSuccessOperationsTest,
+  module acm-service-login, at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26.
+
+  Subject of this class: the step immediately after authentication succeeds. Six of its tests
+  cover what the login success operations write into the HTTP session (the authenticated user
+  object, the application object, the user id, the privilege collections, the login message, and
+  the negative case where no message is written); three cover role to privilege resolution,
+  including the wildcard role branch and the empty result. A difference in any of the nine is an
+  authentication or authorisation outcome change, not a minor regression.
+
+  PROVENANCE, DERIVED FROM TEST SOURCE, NOT CAPTURED FROM A RUN.
+  The base commit capture requires a JDK 8 runtime. No JDK 8 runtime is present on this host and
+  no runtime may be installed, so no run produced this document. The nine testcase elements below
+  are this class's real annotated test methods, read in source order from
+  acm-services/acm-service-login/src/test/java/com/armedia/acm/auth/AcmLoginSuccessOperationsTest.java
+  (248 lines; class declared at line 54; one fixture method at line 69).
+
+  NO OUTCOME IS ASSERTED HERE. Because nothing was observed, this document deliberately omits the
+  failures and errors attributes, every elapsed time attribute, the timestamp and hostname
+  attributes, the captured standard output and standard error payloads, and the system property
+  dump that a genuine report carries. The absence of a failure, error or skipped child on a
+  testcase below therefore records "not observed", never "passed".
+
+  The tests and skipped attributes are inventory facts read from the test source rather than
+  results: the class declares nine annotated test methods, and it carries no ignore annotation, no
+  runner annotation, no rule, no timeout or expected attribute, no context configuration and no
+  class level fixture, so nothing in it can be skipped. No test in this module is excluded, and
+  nothing in this document supplies a row for the baseline test failures register.
+
+  The full provenance record for this archive belongs in the sibling notes folder of this surefire
+  directory, not in this file.
+-->
+<testsuite name="com.armedia.acm.auth.AcmLoginSuccessOperationsTest" tests="9" skipped="0">
+  <properties>
+    <property name="acm.baseline.module" value="acm-service-login"/>
+    <property name="acm.baseline.commit" value="c8f6226105c28c2743281d26bf21ad73f7bb7f26"/>
+    <property name="acm.baseline.runtime.required" value="JDK 8"/>
+    <property name="acm.baseline.report.provenance" value="derived-from-test-source"/>
+    <property name="acm.baseline.report.outcome" value="not-observed"/>
+    <property name="acm.baseline.testcase.source" value="acm-services/acm-service-login/src/test/java/com/armedia/acm/auth/AcmLoginSuccessOperationsTest.java"/>
+    <property name="acm.baseline.testcase.count" value="9"/>
+    <property name="acm.baseline.mocking.support" value="org.easymock.EasyMockSupport"/>
+    <property name="acm.baseline.servlet.api.request" value="javax.servlet.http.HttpServletRequest"/>
+    <property name="acm.baseline.servlet.api.session" value="javax.servlet.http.HttpSession"/>
+  </properties>
+  <!-- session population, test source lines 85 to 187 -->
+  <testcase name="addAcmUserToSession" classname="com.armedia.acm.auth.AcmLoginSuccessOperationsTest"/>
+  <testcase name="addAcmApplicationObjectToSession" classname="com.armedia.acm.auth.AcmLoginSuccessOperationsTest"/>
+  <testcase name="addUserIdToSession" classname="com.armedia.acm.auth.AcmLoginSuccessOperationsTest"/>
+  <testcase name="addUserPrivilegesToSession" classname="com.armedia.acm.auth.AcmLoginSuccessOperationsTest"/>
+  <testcase name="addUserLoginMessageToSessionTest" classname="com.armedia.acm.auth.AcmLoginSuccessOperationsTest"/>
+  <testcase name="noUserLoginMessageToSessionTest" classname="com.armedia.acm.auth.AcmLoginSuccessOperationsTest"/>
+  <!-- role to privilege resolution, test source lines 202 to 228 -->
+  <testcase name="getPrivilegesForRole" classname="com.armedia.acm.auth.AcmLoginSuccessOperationsTest"/>
+  <testcase name="getPrivilegesForWildCardRole" classname="com.armedia.acm.auth.AcmLoginSuccessOperationsTest"/>
+  <testcase name="getPrivilegesForRole_noPrivileges" classname="com.armedia.acm.auth.AcmLoginSuccessOperationsTest"/>
+</testsuite>

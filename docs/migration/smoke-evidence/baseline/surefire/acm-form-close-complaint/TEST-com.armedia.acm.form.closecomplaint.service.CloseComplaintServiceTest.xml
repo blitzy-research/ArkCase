@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PROVENANCE DISCLOSURE. Read this before treating any value in this report as a measurement.
+
+  1. WHAT THIS FILE IS
+     A per-module unit-test report for the Maven module acm-form-close-complaint, a genuine
+     reactor member declared at acm-forms/pom.xml:18. It is archived in the baseline
+     (pre-migration) evidence tree of the ArkCase runtime modernisation of
+     com.armedia:acm:2021.03 onto Java 17 and Node 20 LTS.
+
+     Base commit  : c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short form c8f6226105)
+     Baseline JVM : JDK 8
+     Citable path : docs/migration/smoke-evidence/baseline/surefire/acm-form-close-complaint/TEST-com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest.xml
+     Mirror shape : docs/migration/smoke-evidence/migrated/surefire/acm-form-close-complaint/ carrying an identical filename
+
+  2. HOW IT WAS PRODUCED. DERIVED FROM TEST SOURCE, NOT EMITTED BY A TEST RUN.
+     A genuine capture was attempted first, as required, and is not possible in this checkout.
+     No JDK 8 toolchain exists on this host: the only Java runtime resolvable on the command
+     path reports OpenJDK 17.0.19, the system JVM directory holds 17.x entries only, and a
+     bounded search of the usual installation roots found no JDK 8 anywhere. A Maven 3.8.7
+     launcher and a populated user-level Maven repository are present, but neither supplies a
+     JDK 8. Installing a runtime purely to make the capture look complete is barred by this
+     change set's tooling fence, so nothing was installed.
+     The ordering precondition that the baseline be captured before any file is edited has also
+     already elapsed on this branch: the working tree sits four commits ahead of the base
+     commit, so no run performed now could be a pre-edit baseline.
+
+     This report is consequently DERIVED by reading the module's single test source file,
+     acm-forms/acm-form-close-complaint/src/test/java/com/armedia/acm/form/closecomplaint/service/CloseComplaintServiceTest.java
+     It records that module's test inventory and the baseline dormancy of its one test.
+     IT ASSERTS NO PASS AND NO FAILURE, because no run produced either. A derived report is not
+     a captured measurement and must never be cited as one.
+
+  3. WHAT WAS READ FROM THE SOURCE, VERIFIED RATHER THAN ASSUMED
+     Test source files in the module ............... 1
+     Integration test source files (IT suffix) ..... 0
+     Methods carrying the test annotation .......... 1, named testInitFormData, at line 58
+     Methods carrying the ignore annotation ........ 1, at line 57
+     Fixture annotations, before or after .......... 0
+     Runner ........................................ SpringJUnit4ClassRunner, at line 47
+
+     The ignore annotation at line 57 sits immediately above the test annotation at line 58, so
+     it is METHOD level and not class level. A method level ignore is still counted in the suite
+     total and is reported as skipped, which is why this report reads tests="1" together with
+     skipped="1" and carries exactly one skipped child element.
+     A skipped test is neither a pass nor a failure. It therefore contributes no row to the
+     baseline test-failures register, yet its baseline state still has to be on the record, and
+     putting it on the record is the entire reason this file exists.
+
+  4. VALUES DELIBERATELY NOT FABRICATED, AND EVERY SUBSTITUTION MADE
+     properties element ...... OMITTED ENTIRELY. No run produced a system property dump, so
+                               there is none to archive and inventing one would be inventing
+                               evidence. Omission also removes the three hazards that element
+                               carries in this module: resolved absolute filesystem paths, a
+                               namespace token this evidence tree audits for (a class path value
+                               is a genuine carrier of it), and captured banner text.
+     hostname, timestamp ..... OMITTED. Both would be fabricated values.
+     time .................... Rendered 0 on the suite and on the case. This is not a measured
+                               duration; it is what a method that never executes accrues. It is
+                               disclosed here rather than presented as timing.
+     absolute paths .......... NONE APPEAR. Every location is named descriptively or as a
+                               repository-relative path. The module's test Spring context
+                               resolves an optional properties file beneath the invoking user's
+                               home directory; that location is described in words and no
+                               resolved path is recorded.
+     credentials ............. NONE APPEAR. No unit-test class in this module sets a system
+                               property, so no test-set value could reach this archive.
+     module-access arguments . NONE APPEAR, and none needed replacing. The zero is earned:
+                               every accessibility failure in this migration was inside a test
+                               library and each was resolved by upgrading or removing that
+                               library, never by opening a JDK package. The register that
+                               records such exceptions is referred to by title only, since its
+                               filename embeds a token this evidence tree audits for.
+
+  5. TWO FALSE POSITIVES A REVIEWER SHOULD NOT DRAW
+     a. The reactor's spring-retry dependency is an APPLICATION library, not test-retry tooling.
+        Verified across all 145 POMs at the base commit: the surefire rerun count setting
+        appears in zero of them, the unit-test runner itself is declared in zero of them, and no
+        retry plugin is declared anywhere. A failure observed at baseline is therefore a real,
+        reproducible failure.
+     b. A COVERAGE exclusion is NOT a test exclusion. The root aggregator excludes this module's
+        package glob from coverage MEASUREMENT at pom.xml:434 as the aggregator stands at the
+        base commit, the first of exactly eight such entries; the same entry is at pom.xml:496 in
+        the current file, still first of eight. No test is disabled by either, and this folder is
+        the counter-evidence: a report exists for the class even though its package is excluded
+        from coverage measurement. Every pom.xml anchor in this comment is a base-commit line,
+        that being the state a baseline document describes; the companion note lists the current
+        line beside each one.
+
+  6. NOTHING HERE WAS FIXED, TIDIED OR RESOLVED
+     The pre-existing ignore annotation is captured exactly as it stands. The tree carries 26
+     ignore occurrences across 12 files at the base commit and must still carry 26 afterwards;
+     this is one of them. The change set's escape clause for pre-existing conditions is invoked
+     exactly twice in the whole migration, and neither invocation is in this folder.
+
+  7. COMPARISON BASIS
+     This archive is NOT byte identical comparable, and no such claim is made for it. Judge
+     baseline against migrated on testcase presence, testcase outcome and failure message
+     content. The skipped element must remain skipped on both sides; a skip that becomes a pass
+     is a real change and must be investigated, not smoothed over.
+
+  8. RULES PROVENANCE, BOTH FACTS STATED TOGETHER
+     There is no on-disk user rules document for this project: the rules facility reports that
+     none was provided. Rules nonetheless bind in full, because the requirements embed seven
+     numbered rules plus seven transformation rules, fourteen constraints in total. The
+     identifiers used to cite them elsewhere in this change set are that plan's own navigational
+     convention rather than quoted titles.
+
+  Full provenance, including the substitution log and the rules disclosure, is in the companion
+  note at docs/migration/smoke-evidence/baseline/surefire/notes/acm-form-close-complaint-CloseComplaintServiceTest.provenance.txt
+-->
+<testsuite name="com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest" tests="1" errors="0" skipped="1" failures="0" time="0">
+  <testcase name="testInitFormData" classname="com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest" time="0">
+    <skipped/>
+  </testcase>
+  <system-out>PROVENANCE DISCLOSURE, NOT CAPTURED PROCESS OUTPUT.
+This report was DERIVED by reading the module's single test source file at
+acm-forms/acm-form-close-complaint/src/test/java/com/armedia/acm/form/closecomplaint/service/CloseComplaintServiceTest.java
+It was NOT emitted by a test run. No JDK 8 toolchain exists in this checkout: the only Java
+runtime resolvable on the command path reports OpenJDK 17.0.19, and installing a runtime to make
+the capture look complete is barred by this change set's tooling fence, so nothing was installed.
+The precondition that the baseline be captured before any file is edited has also elapsed, the
+working tree being four commits ahead of the base commit.
+Base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26. Intended baseline runtime JDK 8.
+NO PASS AND NO FAILURE IS ASSERTED HERE, because no run produced either.
+The single test method testInitFormData carries a method level ignore annotation at line 57 of
+that source file, immediately above its test annotation at line 58, so it is counted in the suite
+total and reported as skipped. A skipped test is neither a pass nor a failure, so it contributes
+no row to the baseline test-failures register; recording its baseline state is why this file exists.
+The properties element is omitted entirely rather than fabricated, hostname and timestamp are
+omitted for the same reason, and the time values are 0 because no method executed rather than
+because a duration was measured. No absolute filesystem path and no credential value appears.
+A coverage exclusion is not a test exclusion: this module's package glob is excluded from coverage
+measurement at pom.xml:434 at the base commit, pom.xml:496 in the current file, yet this report
+exists, which is the counter-evidence.
+Full provenance, including the substitution log and the rules disclosure, is at
+docs/migration/smoke-evidence/baseline/surefire/notes/acm-form-close-complaint-CloseComplaintServiceTest.provenance.txt</system-out>
+</testsuite>

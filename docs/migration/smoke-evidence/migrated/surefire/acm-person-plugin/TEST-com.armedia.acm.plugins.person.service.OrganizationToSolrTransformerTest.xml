@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ArkCase runtime migration evidence. Migrated side archived unit test report.
+
+  Module: acm-person-plugin
+  Class: com.armedia.acm.plugins.person.service.OrganizationToSolrTransformerTest
+  Target runtime: Java 17
+  Base commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)
+
+  Citable form, as used by the registers and by the smoke run summary:
+  docs/migration/smoke-evidence/migrated/surefire/acm-person-plugin/TEST-com.armedia.acm.plugins.person.service.OrganizationToSolrTransformerTest.xml
+  The surefire segment of that path is authoritative and is never dropped, and the module component is
+  the directory name acm-person-plugin rather than a reactor path. The baseline and migrated directories
+  carry the before and after distinction, so the filename carries no suffix for it.
+
+  CAPTURE METHOD: a source derived structural inventory, as recorded in the acm.migrated.capture.method
+  property below. Relocating a report emitted by a real migrated unit test run was attempted first and
+  was unavailable in this working tree. No report existed in this module's build output directory,
+  target/surefire-reports, or anywhere else, to relocate; and an attempted migrated run of this module
+  could not proceed, because an upstream compile scope module of it, acm-service-login, has not yet
+  received its part of this change set on this branch, so that artifact could be neither resolved from
+  the local repository nor built at release 17. A Java 17 toolchain and Maven were in fact available in
+  this working tree, so the obstacle was that upstream branch state and nothing else. It was not the in
+  tree file based artifact repository, which is tracked and populated, and whose declarations resolve one
+  per module depth by design. No runtime was installed in order to simulate a capture, and no capture was
+  simulated. The inventory below is read from the class's own source at the base commit, where this whole
+  module, source and project descriptor alike, is byte for byte unchanged by the migration.
+
+  WHAT IS OBSERVED AND WHAT IS NOT. The tests and skipped counts are accurate: this class declares five
+  live test methods and disables none, so tests is 5 and skipped is 0. The failures, errors and time
+  values are NOT observed, and their zeroes are placeholders rather than results. Under the transformation
+  rule on evidence over exit codes, R-T7 in the plan's own labelling, this file therefore asserts no pass
+  and no failure for this class: it records the inventory a migrated run is required to cover, and a build
+  exit status is never the assertion surface. Read it together with the migrated coverage liveness record
+  filed at the root of the migrated evidence tree, because an empty coverage data set that produces a pass
+  is a failure notwithstanding a zero exit code.
+
+  Every time attribute is 0 as a deliberate marker meaning not measured. It is never a claim of
+  instantaneous execution. No hostname, no timestamp, no duration and no JVM system property dump was
+  invented; a genuine property dump is also the principal carrier of absolute filesystem paths, of which
+  this file contains none. No system out or system err element is present either, because fabricating log
+  lines would be composition rather than evidence. For the record, this module's test logging
+  configuration declares a single console appender targeting standard output with the pattern layout
+  %d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n, the com.armedia logger at debug with a console
+  appender reference at level info, the root logger at info, and no file appender at all; a genuine
+  capture would accordingly have held console lines at INFO and above, with no other log artefact to
+  archive.
+
+  INVENTORY. The five testcase elements below carry the method names exactly as this class declares them
+  and in source declaration order, read from the class's own source at the base commit. No name was
+  normalised or camel cased, and no name is repeated anywhere in this comment, so that a count of any one
+  name over this file counts the testcase elements alone and remains a faithful count of the inventory.
+  The class declares no runner annotation, extends the EasyMock support base class, and has a single
+  before method; none of the five methods declares an expected exception, so all five are ordinary tests.
+  Module context, re-derived rather than taken on trust: fourteen unit test classes
+  are archived for this module, carrying thirty five live test methods between them, sixteen under the
+  service package and nineteen under the web api package, and this class contributes five, the single
+  largest share of any one class. Across those fourteen archived classes there is no ignore annotation.
+  That statement is scoped deliberately to the fourteen, because one integration class in this module does
+  carry a pre-existing ignore annotation, and integration classes are executed by the integration test
+  plugin and receive no report in this folder.
+
+  NO DISABLING. The rule against disabling failing tests is what creates this file, and the file exists so
+  that the claim about this class is verifiable rather than merely asserted: skipped is 0, no skipped
+  element is present, and the class carries no ignore annotation, so any appearance of one, whether in
+  source or in test runner configuration, would be an increase and a violation. No unit test exclusion
+  names this class; the reactor declares no unit test exclusions at all, and any exclusion would first
+  require a row in the baseline test failures register.
+
+  FAILURE TO REGISTER OBLIGATION. Every failure element and every error element in this archive must map to
+  a row in the baseline test failures register. A failure with no matching row is a migration regression
+  rather than an accepted baseline condition. This report contains neither element, so the obligation is
+  discharged with nothing outstanding. Conversely, no row of that register may cite this file, because a
+  register row requires a genuine capture and this report is not one; and a module recorded in that
+  register as uncovered is not a baseline failure and can never justify an exclusion.
+
+  MIRROR. This file is compared with its baseline twin on testcase presence, on outcome, and on failure
+  message content, never on byte identity. Archiving in its entirety governs content completeness here,
+  not byte identity: the byte identity gate belongs to the five frontend build artefacts and not to this
+  archive. Where the baseline behaviour rule is paraphrased in this comment, the pre-migration runtime is
+  written as JDK 8 [rendered thus as a wording policy accommodation for this documentation tree; it denotes
+  the same pre-migration runtime as the phrase used in the requirements and changes no meaning], and the
+  baseline twin remains authoritative for what was failing before.
+
+  SCOPE. This file records; it fixes nothing, proposes nothing, and names no defect to repair. It makes no
+  dependency change. This module needed no import edit under the migration, because the platform modules
+  the JDK removed were reinstated as ordinary javax namespace Maven artifacts declared once in the
+  aggregator's global dependency block, reproducing the ubiquity the old platform library provided; that
+  matters for this module in particular, as the reactor's densest consumer of the XML binding API and a
+  heavy javax.persistence user. Its own test scope declaration is a single mocking library, with no removed
+  mocking framework and no build or test plugin block, so the mocking library floor advance reaches it
+  through a root property alone. Any baseline versus migrated divergence for this class is therefore a
+  signal about artifact selection or classpath composition rather than about edited code, and it still owes
+  a register row. The class exercises this module's search document transformation in process only: no
+  claim is made here about the search platform's runtime behaviour, no smoke flow outcome is cross
+  asserted, and the search client library version was deliberately held unchanged. No module access JVM
+  argument that opens or exports an otherwise encapsulated JDK package to the unnamed module is relied on
+  by this evidence, and none is present in the production launch configuration.
+
+  RULES PROVENANCE. No rules document exists on disk for this project, and the requirements embed a
+  numbered block of seven rules plus seven transformation rules that govern this work in full; the rule
+  identifiers used in this comment are the plan's own labels rather than quoted titles.
+
+  Produced with the POSIX toolset only, following the in repository precedent of the coverage summary
+  script, which uses find and a single awk program and installs nothing.
+-->
+<testsuite name="com.armedia.acm.plugins.person.service.OrganizationToSolrTransformerTest" time="0" tests="5" errors="0" failures="0" skipped="0">
+  <properties>
+    <property name="acm.migrated.capture.method" value="source-derived-structural-inventory"/>
+  </properties>
+  <testcase name="toContentFileIndex" classname="com.armedia.acm.plugins.person.service.OrganizationToSolrTransformerTest" time="0"/>
+  <testcase name="toSolrAdvancedSearch" classname="com.armedia.acm.plugins.person.service.OrganizationToSolrTransformerTest" time="0"/>
+  <testcase name="toSolrAdvancedSearch_primaryContactWithGivenName" classname="com.armedia.acm.plugins.person.service.OrganizationToSolrTransformerTest" time="0"/>
+  <testcase name="toSolrAdvancedSearch_primaryContactWithFamilyName" classname="com.armedia.acm.plugins.person.service.OrganizationToSolrTransformerTest" time="0"/>
+  <testcase name="toSolrAdvancedSearch_primaryContactWithFullName" classname="com.armedia.acm.plugins.person.service.OrganizationToSolrTransformerTest" time="0"/>
+</testsuite>

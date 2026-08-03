@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ArkCase runtime modernisation, migrated side archived unit test report.
+
+  WHAT THIS FILE IS
+  The archived unit test report for the Maven module acm-person-plugin covering the single unit test
+  class com.armedia.acm.plugins.person.service.PersonDiffTest, recorded on the Java 17 side of the
+  JDK 8 to Java 17 runtime migration of com.armedia:acm:2021.03, a 145 module Maven reactor. Its twin
+  sits at the identical relative path beneath the baseline side of this same evidence tree; the
+  baseline versus migrated directory alone carries the before and after distinction, so the filename
+  bears no suffix of its own. The citable form of this record, whose surefire path segment is
+  authoritative and must never be dropped, is
+  docs/migration/smoke-evidence/migrated/surefire/acm-person-plugin/TEST-com.armedia.acm.plugins.person.service.PersonDiffTest.xml
+  in which the module element is the directory name acm-person-plugin and never a reactor path.
+
+  BASE COMMIT
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26, short form c8f6226105. Every structural fact below was
+  read from the tree at that commit. The whole acm-person-plugin module is unchanged by the migration:
+  no import was edited, no assertion was touched, no mocking framework was rewritten and the module
+  holds no static audit remediation site. Its module descriptor declares one mocking library at test
+  scope, carries no removed mocking framework and carries no build or unit test plugin block at all,
+  so the mocking library floor advance reaches this module solely through a reactor root property.
+  A divergence between this record and its baseline twin would therefore be a signal about artifact
+  selection or classpath composition rather than about edited code, and it would still owe a row in
+  the baseline test failures register.
+
+  CAPTURE METHOD: SOURCE DERIVED STRUCTURAL INVENTORY
+  This is not a relocated report. The reason is recorded exactly as observed rather than as assumed,
+  because a reason clause that is half false is worse than no reason clause at all.
+  A JDK 17 toolchain and a Maven distribution are both present in the environment that produced this
+  record, and a genuine migrated unit test run of this module was attempted with them. That run halted
+  during dependency resolution, before the unit test plugin was reached, because eight sibling reactor
+  artifacts at version 2021.03 were absent from the local artifact cache. Tracing that to its cause,
+  one upstream module on which acm-person-plugin depends at compile scope does not yet compile at
+  release 17 on this branch: it still holds a class literal naming an internal JDK package that the
+  java.naming module does not export, and the in plan remediation of that class is a separate edit that
+  had not yet landed here. No report was emitted anywhere in the tree, so there was nothing to
+  relocate out of the module build output directory, and that directory is quoted here as text only
+  and is never recreated inside this evidence folder.
+  Three things were deliberately NOT done in response. No runtime, compiler or build tool was
+  installed to manufacture a capture. No synthetic classpath was hand assembled from a hand picked
+  subset of module sources, because that constructs a run rather than relocating one, and a hand
+  invented result is not evidence. No source file outside this record was altered to unblock the run.
+  One further clarification, because the corresponding baseline note gets it wrong and the error must
+  not be propagated: the in repository local artifact repository is NOT the blocker. It exists at the
+  repository root, is tracked, holds real artifacts, and the reactor root descriptor declares it at
+  four nested depths on purpose so that the base directory property re evaluates one declaration per
+  module depth. Naming it as a cause would be false.
+
+  WHAT IS ACCURATE HERE AND WHAT IS NOT OBSERVED
+  Accurate, because both are read directly from the class source: the test count of 2 and the skipped
+  count of 0. Not observed, and therefore disclosed as such rather than presented as measurement: the
+  failure count, the error count and every time attribute. Consistent with the evidence over exit
+  codes principle, this record asserts NO pass and NO failure for either test method. It is a
+  structural inventory of what the migrated unit test surface of this class consists of, nothing more.
+  Read it together with the coverage instrumentation liveness note held elsewhere in this migrated
+  evidence tree, since an empty coverage data set that yields a passing check is itself a failure
+  notwithstanding a zero exit code.
+
+  THE TIME ATTRIBUTES
+  Every time attribute in this file, on the suite element and on both test case elements, is the
+  literal value 0 and is a deliberate, documented marker meaning not measured. It is never a claim of
+  instantaneous execution. Nothing measured was invented: this file carries no duration, no host name,
+  no timestamp and no dump of JVM system properties, the last of which is in a real report the chief
+  carrier of absolute filesystem paths and of tokens this evidence tree gates to zero.
+
+  TEST METHOD NAMES AND THEIR ORDER
+  Both method names, and the order in which they appear, were read from the class's own source at the
+  base commit. The unit test plugin emits test case children in execution order, so the archived record
+  reflects the source as it stands.
+  First: compareTestNewAddress, annotated at source line 142 and declared at line 143.
+  Second: compareTest, annotated at source line 162 and declared at line 163.
+  THIS ORDER IS NOT ALPHABETICAL AND MUST NOT BE TIDIED. Re sorting it would be an editorial change to
+  evidence. Note also that compareTest is a strict prefix of compareTestNewAddress, so any verification
+  search over this file has to be anchored on the closing quote of the name attribute; an unanchored
+  search for the shorter name matches both entries and proves nothing. Neither method carries an
+  expected exception declaration, so both are ordinary tests. The live method count was re derived with
+  a comment aware search anchored at line start rather than a bare search for the annotation, which is
+  the unsafe pattern in this archive: one sibling class in this same folder carries the annotation
+  inside a block comment, and a naive count would inflate the module total. Re derived on that basis,
+  the authoritative module totals are 14 archived unit test classes carrying 35 live test methods
+  between them, 16 in the service package and 19 in the web api package. The figure is 35 and not 36;
+  the higher number is what a naive count yields by including that commented out annotation.
+
+  CLASS SHAPE, ALL VERIFIED BY DIRECT READ
+  The class runs under the Spring JUnit 4 class runner, declared at source line 56. Its context
+  configuration spans lines 57 to 59 and names a single location with no classpath prefix, unlike every
+  class in this module's web api package. The class declaration at line 60 extends nothing, so it does
+  not inherit a mocking support base class. A fixture setup method is annotated at line 73 and declared
+  at line 74. That method loads a YAML object diff settings resource, installs it on the injected diff
+  service, and assembles the person shaped fixtures the two tests compare.
+  This is the module's only mocking independent unit test: it uses no mocking library at all. Stated as
+  the relative fact it is, 13 of the module's 14 archived unit test classes use a mocking library and
+  this class is the sole exception, with the organisation controller test carrying the heaviest such
+  surface. That makes this record the archive's cleanest control on Spring container bootstrap and on
+  YAML driven object diff configuration under the new runtime, with no mocking library variable in
+  play. It is not claimed to be more than that, and no numeric mocking library occurrence count is
+  asserted for any class, because different matching methods give different figures.
+
+  WHAT A GENUINE CAPTURE WOULD HAVE HELD
+  The standard output and standard error elements are omitted rather than filled with fabricated log
+  lines. Per this module's verified unit test logging configuration, a real capture would have carried
+  console output and nothing else: that configuration declares a single console appender targeting
+  standard output with the pattern layout
+  %d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n
+  a logger for the com.armedia hierarchy at debug level whose appender reference is itself pinned at
+  info, and a root logger at info, with no file appender of any kind. Console lines at info and above
+  would therefore have been the whole of it, with no other log artefact anywhere to archive. Because
+  this class bootstraps a real Spring container, a genuine capture would additionally have carried
+  Spring container start up lines. That is recorded here as what would have been present; none of it
+  is reproduced as text, because none of it was observed.
+
+  PRIVACY
+  This class compares person records including a newly added postal address, so its fixtures have
+  exactly the shape of personal data. No personal name, address, contact detail or identifier from any
+  fixture is reproduced in this record, and no value from the object diff settings resource or from the
+  Spring test context is presented as though it had been observed. No absolute filesystem path appears.
+
+  RULING OF THE GOVERNING RULES ON THIS RECORD
+  Two provenance facts hold together and both must be stated. First, there is no on disk rules document
+  for this project: the rules facility reports that no user rules were provided. Second, the
+  requirements themselves nonetheless embed a numbered block of seven rules plus seven transformation
+  rules that govern this work in full; the R prefixed identifiers used to cite them are the plan's own
+  navigational labels rather than quoted titles. Enterprise standard practice is applied on top of
+  those rules, never as a substitute for them. The rules are summarised below in the plan's own words
+  and are deliberately not transcribed.
+  On no disabling of failing tests, the rule that causes this record to exist: its purpose is to make
+  the no disabling claim about this class verifiable rather than merely asserted. The skipped count is
+  0 and there is no skipped element; the class carries no ignore annotation, and any appearance of one
+  would be an increase and a violation whether it surfaced in unit test plugin configuration or in
+  source. No exclusion entry names this class, and none could, since an exclusion requires a row in the
+  baseline test failures register. The ignore invariance is worded precisely: zero across the fourteen
+  archived unit test classes of this module. It is expressly NOT claimed that the module contains no
+  ignore annotation at all, because one integration test class does carry one. For the avoidance of a
+  false tree wide inference, the same annotation was independently counted across the whole reactor at
+  21 occurrences on unit test classes and 5 on integration test classes, 26 in total; this record
+  claims only that none of them falls on any of this module's fourteen archived unit test classes.
+  On baseline behaviour as the tie breaker: this record is compared against its baseline twin on test
+  case presence, on outcome and on failure message content, never on byte identity, and the twin is
+  authoritative for what was failing beforehand. That rule also bears directly on this class's subject
+  matter. The persistence API advance was confined to two annotation container types that appear
+  nowhere in the source and was paired with an exclusion of the content identical companion artifact so
+  that exactly one API jar sits on the classpath and no mapping that generates schema is affected; this
+  class's person and address object diff comparison over persistent domain objects is one of the tests
+  that helps confirm that property. The rule is summarised, not quoted, and where the pre migration
+  runtime is named it is written as JDK 8 throughout this record as a wording policy of this evidence
+  tree that changes no meaning.
+  On justified dependency changes, as a scope fence: this record makes and proposes no dependency
+  change, and no runtime was installed in order to fabricate a capture.
+  On no escape hatch from the new release level: nothing here implies that the archived run compiled at
+  the superseded release level. The reactor compiles at release 17 from a single authoritative property.
+  On documenting discovered defects rather than fixing them: this record fixes nothing and proposes no
+  fix, and carries no deferred work marker. Concretely, the non alphabetical declaration order, the
+  context configuration location's missing classpath prefix, and the module unit test logging
+  configuration's comment referring to a log file that no appender writes are all left exactly as
+  found. The escape clause of that rule is invoked exactly twice in the whole change set and neither
+  invocation lies within this documentation tree.
+  On JDK internal access, paraphrased and never quoted: no module access JVM argument that opens or
+  exports an otherwise encapsulated JDK package to the unnamed module was added to any launch or fork
+  configuration for this module, and none was used in the attempted run. The register of such
+  exceptions is referred to here by title only, as the JDK access exceptions register, and is delivered
+  empty because production code needs no such exception.
+  On namespace invariance: every javax prefixed name in this module is correct and is preserved. This
+  module's persistence annotations remain javax.persistence, its data access layer's lifecycle
+  annotation remains javax.annotation.PostConstruct, a genuine casualty of the platform module removal
+  that the reinstated annotation API satisfies, and the module is the reactor's densest consumer of the
+  javax.xml.bind API, which makes this archive the strongest control on the reinstatement strategy.
+  That strategy is why no import changed: the removed platform modules were restored as ordinary javax
+  namespace Maven artifacts declared once in the aggregator's global dependency block, reproducing the
+  ubiquity the old platform library provided. Any such name occurring in a captured message would be
+  correct as is and must never be rewritten.
+  On evidence over exit codes: every assertion about this class is made against this archived record and
+  never against a build's exit status, and nothing measured is invented, the order of the two test cases
+  included, which is read from source rather than normalised.
+
+  THE FAILURE TO REGISTER OBLIGATION
+  Every failure element and every error element in this record must map to a row in the baseline test
+  failures register, referred to by title only. A failure with no matching row is a migration
+  regression and not an accepted baseline condition. The obligation is stated unconditionally because
+  that register may legitimately carry zero rows, and a module recorded there as uncovered is not a
+  baseline failure and can never justify an exclusion. This record contains no failure element and no
+  error element, so the obligation is satisfied vacuously. Separately and just as firmly: no row of
+  that register may cite this file, because a register row requires a genuine capture and this record
+  is a source derived structural inventory.
+
+  SCOPE OF THIS DIRECTORY
+  This directory is unit test plugin output only, and it holds fourteen such records and no
+  subdirectory. The module's seven integration test classes are executed by the integration test plugin
+  and emit their own reports elsewhere, so their absence here is correct rather than an omission. In
+  particular the person service integration test class is a different class from this package's unit
+  tests, gets no file here, and its one ignored concurrency method is not representable in this
+  directory in any form: no report, no test case element and no skipped element. Fail fast is safe for
+  this archive because no rerun count configuration and no test retry plugin exists in any of the
+  reactor's 145 module descriptors; the reactor's retry entry is an application library and not test
+  retry tooling.
+
+  COMPARABILITY
+  This archive is not byte identical comparable, unlike the five frontend build artifacts whose gate
+  genuinely is byte identity. Archived in its entirety governs content completeness here, not byte
+  identity.
+-->
+<testsuite name="com.armedia.acm.plugins.person.service.PersonDiffTest" time="0" tests="2" errors="0" failures="0" skipped="0">
+  <properties>
+    <property name="acm.migrated.capture.method" value="source-derived-structural-inventory"/>
+    <property name="acm.migrated.base.commit" value="c8f6226105c28c2743281d26bf21ad73f7bb7f26"/>
+    <property name="acm.migrated.testcase.order" value="source-declaration-order"/>
+    <property name="acm.migrated.outcome.asserted" value="none"/>
+    <property name="acm.migrated.time.attributes" value="not-measured"/>
+  </properties>
+  <testcase name="compareTestNewAddress" classname="com.armedia.acm.plugins.person.service.PersonDiffTest" time="0"/>
+  <testcase name="compareTest" classname="com.armedia.acm.plugins.person.service.PersonDiffTest" time="0"/>
+</testsuite>

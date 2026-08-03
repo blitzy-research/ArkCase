@@ -232,12 +232,10 @@ public class NiemExportServiceImpl implements NiemExportService
     {
         TransformerFactory factory = TransformerFactory.newInstance();
         /**
-         * com.sun.org.apache.xalan.internal.xsltc.trax - JDK
-         * org.apache.xalan.processor - Xalan
-         * org.apache.xalan.xsltc.trax - Xalan
-         * 
-         * those are TransformerFactory implementation providers and not sure which implementation doesn't support below XMLConstants 
-         * that's why suppressing IllegalArgumentException.
+         * The JAXP TransformerFactory implementation actually in use may be the one built into the JDK,
+         * or one supplied by Apache Xalan (either its processor or its XSLTC trax variant). It is not
+         * known which of those implementations rejects the XMLConstants access-control attributes set
+         * below, which is why IllegalArgumentException is caught and suppressed here.
          */
      
         try

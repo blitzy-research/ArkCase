@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  MIGRATED SIDE ARCHIVED UNIT TEST REPORT.
+  Maven module acm-person-plugin. Test class
+  com.armedia.acm.plugins.person.service.PersonAssociationEventPublisherTest. Runtime target Java 17.
+  Base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105).
+
+  Citable form used by the registers and by the migrated smoke run summary:
+  docs/migration/smoke-evidence/migrated/surefire/acm-person-plugin/TEST-com.armedia.acm.plugins.person.service.PersonAssociationEventPublisherTest.xml
+  The surefire path segment is authoritative and is not dropped. The module token is the directory name
+  acm-person-plugin, never a reactor path. There is no before or after suffix in the file name; the
+  baseline and migrated directories carry that distinction.
+
+  CAPTURE METHOD: source derived structural inventory.
+  A genuine capture was attempted first, and the attempt is the reason this method was needed. The attempt
+  was an offline build of this module together with its dependency chain, executed on the toolchain of
+  record. 29 upstream reactor modules built successfully. One direct upstream dependency of this module,
+  the user login and authentication service, failed to compile at release 17 because a single class in its
+  main source names a JDK internal package that the platform no longer exports to the unnamed module. That
+  one site is the only compile error in that module, and its remediation belongs to a different file of
+  this same change set which is not present at this commit. The reactor consequently skipped this module,
+  the test runner emitted no report for it, and no emitted report existed to relocate into this folder. The
+  original build output location is named here only as text, as the module's standard build output
+  subdirectory for test reports; no such directory was recreated anywhere under this evidence tree.
+
+  TWO REASONS THAT ARE EXPLICITLY NOT THE CAUSE, recorded so that no reader infers either of them:
+  1. The toolchain is NOT absent. A Java 17 development kit and a Maven distribution are both installed in
+     this environment, a populated local artifact cache is present, and all three were used for the
+     attempt described above. Absence of a toolchain is therefore not the reason for this capture method.
+  2. The in repository file based artifact library at the repository root is NOT at fault. It is tracked,
+     it is complete, and it resolved every artifact required by the 29 modules that did build. It must not
+     be blamed for this capture method.
+  No runtime, build tool or other software was installed in order to simulate or fabricate a capture.
+
+  WHAT THIS FILE ASSERTS, AND WHAT IT DOES NOT.
+  Accurate, and derived from the class source at the base commit: the test count of 3, the skipped count of
+  0, the fully qualified class name, the three method names and their declaration order.
+  NOT observed, and therefore claimed by nothing here: the failures attribute, the errors attribute, and
+  every time attribute. Every time value is 0 as a deliberate and documented not measured marker; it is
+  never a claim of instantaneous execution. This file asserts no pass and no failure.
+  R-T7, evidence over exit codes: the assertion target is this archived report rather than any build's exit
+  status, and this file is to be read together with the migrated coverage liveness record archived in the
+  parent evidence folder, because an empty coverage data set that yields a pass is a failure notwithstanding
+  a zero exit status.
+  Nothing measured was invented: no host name, no timestamp, no duration, and no dump of runtime system
+  properties. Such a dump is also the usual carrier of absolute paths and of sensitive values, which is a
+  second reason for omitting it. Absolute filesystem paths are replaced by described placeholders.
+
+  STRUCTURE READ FROM THE CLASS SOURCE, and independently recounted rather than copied from any summary.
+  Three methods carry the test annotation, at source lines 64, 88 and 111, declaring testAliasAdded,
+  testAliasEdited and testAliasRemoved at lines 65, 89 and 112. They appear below in that source
+  declaration order and were not resorted alphabetically. None of the three declares an expected
+  exception. The class declares no runner annotation, extends the EasyMock support base class at line 50,
+  and has one setup method at lines 55 and 56; the JUnit 4 class checker accepts it because at least one
+  test method is present. The class carries no ignore annotation, which is why the skipped count is 0 and
+  why no skipped element appears below.
+
+  LOGS: the system out and system err elements are omitted rather than fabricated. Per this module's
+  verified test logging configuration, a genuine capture would have held console lines only, at INFO and
+  above: one console appender targeting standard output, with the pattern layout
+  %d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n, the com.armedia logger at debug level with its
+  console appender reference pinned at info level, and the root logger at info level. There is no file
+  appender, so there is no other log artefact to archive.
+
+  RULES PROVENANCE, both facts stated together. No on disk rules document exists for this project: the
+  rules facility reports that none were provided. The requirements nevertheless embed a numbered block of
+  seven rules plus seven transformation rules which govern this work in full, and the R identifiers used
+  below are the plan's own labels rather than quoted titles.
+  R-5, no disabling of failing tests. This report makes that claim verifiable rather than asserted for this
+  class: the skipped count is 0, no skipped element is present, the class source carries no ignore
+  annotation, and the pinned unit test runner declaration carries no exclusion entry at all, so none names
+  this class. Any exclusion would first require a row in the baseline test failures register, and no
+  exclusion naming this class exists anywhere in the build configuration, so no such row is required.
+  R-7, baseline behavior is the tie breaker: the behavior observed at the base commit on [JDK 8] governs
+  any ambiguity. That bracketed rendering is a wording policy accommodation for the equivalent phrase used
+  in the requirements; it changes no meaning and is disclosed here rather than substituted silently.
+  Comparison against the baseline twin of this file is on testcase presence, on outcome, and on failure
+  message content, and never on byte identity. For this archive, archiving in full governs content
+  completeness rather than byte identity, unlike the frontend build artifacts whose gate genuinely is byte
+  identity.
+  R-3, no superseded release escape hatch: nothing here implies that anything compiled at the superseded
+  release level. The reactor declares one compiler release property targeting 17, and both compiler
+  executions consume it.
+  R-1 as a scope fence: this file makes no dependency change and proposes none.
+  R-6: this file fixes nothing and proposes no fix.
+  R-T1, namespace invariance: every javax namespace string in this tree is correct as written and is
+  preserved. This module's source is unchanged by the migration, with no import edit, no assertion change,
+  no mocking rewrite and no remediation site, because the removed platform modules were reinstated as
+  ordinary javax namespace artifacts declared once in the aggregator's global dependency block. This
+  report is therefore a control on that strategy: a divergence here would signal artifact selection or
+  classpath composition rather than edited code, and it would still owe a register row.
+
+  REGISTER OBLIGATION. Every failure element and every error element in this archive must map to a row in
+  the baseline test failures register, referred to here by title only. A failure with no matching row is a
+  migration regression rather than an accepted baseline condition. This report contains neither element, so
+  there is nothing to map. No row of that register may cite this file, because a register row requires a
+  genuine capture. That register may legitimately carry zero rows, and a module recorded there as uncovered
+  is not a baseline failure and can never justify an exclusion.
+
+  PRIVACY. This class exercises person alias add, edit and remove events, so its fixtures are alternative
+  personal names by construction. No fixture alias value, personal name, address, contact detail or other
+  identifier from any fixture is reproduced anywhere in this report, and nothing from a fixture is
+  presented as production data.
+-->
+<testsuite name="com.armedia.acm.plugins.person.service.PersonAssociationEventPublisherTest" time="0" tests="3" errors="0" failures="0" skipped="0">
+  <properties>
+    <property name="acm.migrated.capture.method" value="source-derived-structural-inventory"/>
+    <property name="acm.migrated.outcome.observed" value="false"/>
+    <property name="acm.migrated.time.semantics" value="not-measured"/>
+  </properties>
+  <testcase name="testAliasAdded" classname="com.armedia.acm.plugins.person.service.PersonAssociationEventPublisherTest" time="0"/>
+  <testcase name="testAliasEdited" classname="com.armedia.acm.plugins.person.service.PersonAssociationEventPublisherTest" time="0"/>
+  <testcase name="testAliasRemoved" classname="com.armedia.acm.plugins.person.service.PersonAssociationEventPublisherTest" time="0"/>
+</testsuite>

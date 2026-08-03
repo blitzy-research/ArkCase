@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ArkCase runtime modernisation, archived baseline unit test report.
+
+  Module            acm-service-login
+  Test class        com.armedia.acm.auth.AcmAuthenticationManagerTest
+  Intended runtime  JDK 8 at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+
+  PROVENANCE: DERIVED, NOT CAPTURED. No unit test run produced this document. A
+  genuine capture was attempted first and is impossible in this checkout on two
+  independent grounds. First, no JDK 8 runtime is present, and installing one so
+  that the capture merely looks complete is forbidden. Second, the working tree
+  already sits past the base commit, so the ordering that requires the capture to
+  be taken before any file is edited can no longer be satisfied; that ordering is
+  irreversible, which is why it is disclosed here rather than papered over.
+
+  This document therefore ASSERTS NO TEST OUTCOME. The five testcase elements are
+  an enumeration of the @Test methods read, in source order, from
+  acm-services/acm-service-login/src/test/java/com/armedia/acm/auth/AcmAuthenticationManagerTest.java
+  at source lines 94, 128, 159, 189 and 219. The absence of failure and error
+  children records that no failure and no error was observed, not that a passing
+  run was observed. Every time attribute is 0 because no duration was measured. No
+  run host and no run instant attribute is present, because no run host and no run
+  instant exist to record. The properties element is deliberately empty: no forked
+  JVM system property dump was captured, and none is invented here.
+
+  Reading guard for this class specifically. Three of the five methods are JUnit 4
+  expected exception tests, declared @Test(expected = AuthenticationServiceException.class)
+  at source lines 159, 189 and 219. Such a method passes when the declared
+  exception is thrown and fails only when it is not, so each is an ordinary
+  testcase element carrying no failure and no error child. Attaching a failure
+  element to any of the three, on the strength of its method name or of the
+  exception class its annotation names, would record authentication failures that
+  no run reported.
+
+  Provenance for this archive is recorded in the notes folder that accompanies this
+  surefire tree, and is not duplicated further into this document. Comparison
+  against the corresponding migrated report is judged on testcase presence,
+  testcase outcome and failure message content, not on byte identity.
+-->
+<testsuite name="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0" tests="5" errors="0" skipped="0" failures="0">
+  <properties/>
+  <testcase name="authenticate_firstOneWorks" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
+  <testcase name="authenticate_shouldThrowLastProviderException" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
+  <testcase name="authenticate_shouldThrowBadCredentials" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
+  <testcase name="authenticate_emptyUsername_shouldThrowBadCredentials" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
+  <testcase name="authenticate_shouldThrowExceptionAndShowEmailSentMsg" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
+</testsuite>

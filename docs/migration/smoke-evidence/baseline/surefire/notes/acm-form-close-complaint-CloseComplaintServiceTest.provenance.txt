@@ -1,0 +1,391 @@
+PROVENANCE NOTE
+Evidence file : docs/migration/smoke-evidence/baseline/surefire/acm-form-close-complaint/TEST-com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest.xml
+Module        : acm-forms/acm-form-close-complaint  (reactor member declared at acm-forms/pom.xml:18)
+Test class    : com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest
+Base commit   : c8f6226105c28c2743281d26bf21ad73f7bb7f26  (short form c8f6226105)
+Baseline JVM  : JDK 8
+Change set    : ArkCase runtime modernisation of com.armedia:acm:2021.03 onto Java 17 and Node 20 LTS
+
+This note is the primary provenance route for the evidence file named above. The same
+disclosure is also carried inside that XML file, as a comment immediately after the XML
+declaration and again in its system output payload, so the disclosure can never be orphaned
+from the evidence it qualifies.
+
+ANCHOR CONVENTION. Every pom.xml line anchor cited below is the line as it stands AT THE BASE
+COMMIT, because that is the state a baseline document describes. The aggregator has since been
+edited by this change set, so those line numbers have moved in the working file. Where an anchor
+matters to a reviewer checking the current file, the current line is given in parentheses after
+the base-commit line. Verified correspondences for this module's anchors:
+  this module's coverage exclude   base pom.xml:434  (current pom.xml:496, still the first of
+                                   exactly eight exclude entries)
+  the coverage plugin declaration  base pom.xml:427  (current pom.xml:489, artifactId at :491)
+  the agent preparation goal       base pom.xml:449  (current pom.xml:511)
+  the coverage data file           base pom.xml:452  (current pom.xml:514)
+  the coverage minimum property    base pom.xml:152  (current pom.xml:207, still 0.02)
+
+
+1. HOW THE REPORT WAS PRODUCED
+------------------------------
+DERIVED FROM THE MODULE'S TEST SOURCE. NOT EMITTED BY A TEST RUN.
+
+A genuine capture was attempted first, in that order, and is not possible in this checkout.
+Two independent reasons, both verified rather than assumed:
+
+  a. No JDK 8 toolchain exists on this host.
+     Probe commands and their actual results:
+       which java javac mvn   -> a java, a javac and a Maven launcher are all resolvable
+       java -version          -> openjdk version "17.0.19" 2026-04-21
+                                 OpenJDK Runtime Environment (build 17.0.19+10)
+       system JVM directory   -> three entries, all of the 17.x line; no entry for the 8 line
+       bounded find for javac -> nothing beyond that 17 installation
+       user Maven repository  -> present and populated
+       Maven toolchains file  -> none at user level; only the stock sample shipped with the
+                                 Maven distribution, which declares no JDK
+     A Maven launcher and a warm repository exist, but neither supplies a JDK 8, and no
+     toolchain declaration could route a build to one that is not installed.
+
+  b. The ordering precondition has already elapsed.
+     The baseline must be captured before any file is edited. On this branch the working tree
+     is four commits ahead of the base commit c8f6226105:
+       d628aa2080  Migrate the build to Java 17 and the frontend toolchain to Node 20 LTS
+       cba2d8ea58  Read inline MIME image content through java.io.InputStream
+       2e9618e005  Keep the Java 17 classpath free of duplicate EE APIs
+       4c2e4e7782  Let the reactor-wide groovy-all pin apply to acm-service-search
+     `git merge-base --is-ancestor` confirms c8f6226105 is an ancestor of HEAD. A run performed
+     now, on any runtime, could therefore not be a pre-edit baseline. The base commit was not
+     checked out, because branch and history operations are not permitted for this work.
+
+NO TOOL WAS INSTALLED. Installing a runtime purely to make the capture look complete would
+breach this change set's tooling fence, which restricts the work to the POSIX toolset already
+present. The in-repository precedent for that discipline is jacoco-summary.sh, 27 lines that
+use only find and awk, append to a text file, and install nothing. Only mkdir, find, grep,
+sed, awk, wc, od, git and the already-present python3 standard library were used here.
+
+The report was therefore derived by reading the module's single test source file:
+  acm-forms/acm-form-close-complaint/src/test/java/com/armedia/acm/form/closecomplaint/service/CloseComplaintServiceTest.java
+
+It records that module's test inventory and the baseline dormancy of its one test. It asserts
+no pass and no failure, because no run produced either. A derived report is not a captured
+measurement, and it must never be cited as one.
+
+
+2. WHAT WAS READ FROM THE SOURCE
+--------------------------------
+Every figure below was re-derived from the file itself rather than accepted from the task
+description, and each is followed by the command that produced it.
+
+  find .../src/test/java -name '*.java' | wc -l                    -> 1
+  find .../src/test/java -name '*IT.java' | wc -l                  -> 0
+  grep -c '@Test' CloseComplaintServiceTest.java                   -> 1
+  grep -c '@Ignore' CloseComplaintServiceTest.java                 -> 1
+  grep -c '@Before\|@After' CloseComplaintServiceTest.java         -> 0
+  grep -n '@Test' -A2 CloseComplaintServiceTest.java               -> line 58 @Test
+                                                                      line 59 public void
+                                                                      testInitFormData()
+  sed -n '50,62p' CloseComplaintServiceTest.java                   -> @Ignore at line 57 sits
+                                                                      immediately above @Test
+                                                                      at line 58
+  runner                                                           -> SpringJUnit4ClassRunner
+                                                                      at line 47
+
+The ignore annotation at line 57 is METHOD level, not class level. That distinction decides the
+rendering. A class level ignore would skip the whole class; a method level ignore is still
+counted in the suite total and is reported as skipped. The runner in use extends the standard
+JUnit 4 block runner, which fires the ignored notification for such a method.
+
+Rendered accordingly, and confirmed by parsing the finished file rather than by grep:
+  tests="1"  errors="0"  skipped="1"  failures="0"
+  exactly one testcase element, name testInitFormData,
+    classname com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest,
+    carrying a single skipped child element
+
+A skipped test is neither a pass nor a failure. It contributes no row to the baseline
+test-failures register. Its baseline state nevertheless has to be on the record, and putting it
+on the record is the entire reason the evidence file exists: without it, anyone later observing
+that this test does not run would have no evidence distinguishing "dormant before the
+migration" from "broken by the migration".
+
+
+3. SUBSTITUTION LOG
+-------------------
+Complete list of everything omitted, replaced or described rather than reproduced.
+
+  properties element          OMITTED ENTIRELY. Permitted disposition, and the honest one: no
+                              run produced a system property dump, so there is none to archive,
+                              and fabricating one would be inventing evidence. Omission also
+                              removes all three hazards that element carries in this module:
+                                - resolved absolute filesystem paths. The module's test Spring
+                                  context declares an optional properties file beneath the
+                                  invoking user's home directory (the context resolves it
+                                  through a property placeholder and tolerates its absence), and
+                                  a dump would additionally have carried the home, working,
+                                  runtime, temporary and base directories.
+                                - a namespace token this evidence tree audits for. A class path
+                                  value inside such a dump is a genuine carrier of it.
+                                - captured banner text, which could carry the runtime phrase
+                                  this documentation tree's wording gate forbids.
+                              Property keys a genuine dump would have carried and which are
+                              consequently absent: the class path, the runtime home, the user
+                              home, the working directory, the temporary directory, the build
+                              base directory and the local repository location. No value for
+                              any of them was invented.
+  hostname attribute          OMITTED. Would have been a fabricated value.
+  timestamp attribute         OMITTED. Would have been a fabricated value.
+  time attributes             Rendered 0 on both the suite and the case. This is not a measured
+                              duration. It is what a method that never executes accrues, and it
+                              is disclosed here rather than presented as timing.
+  system error payload        OMITTED. No run produced captured error output.
+  absolute filesystem paths   NONE APPEAR anywhere in the evidence file or in this note. Every
+                              location is either repository-relative or described in words. In
+                              particular the probe results in section 1 name the runtime and its
+                              version but describe the directories that hold it instead of
+                              quoting them, so that no host path is recorded.
+  credential values           NONE APPEAR. The smoke credential lives at README.md:155 and is
+                              not reproduced here. Independently safe for this module: no
+                              unit-test class in it sets a system property, so no test-set value
+                              could reach the archive.
+  module-access JVM arguments NONE APPEAR, and none needed replacing, so no substitution was
+                              required under that heading. The zero is earned rather than
+                              incidental: every accessibility failure encountered anywhere in
+                              this migration was inside a test library, and each was resolved by
+                              upgrading or removing that library rather than by opening a JDK
+                              package to the unnamed module. All setAccessible call sites in the
+                              codebase target the application's own classes, and there is no
+                              security manager usage. The register that records exceptions of
+                              that kind is referred to by title only, never by filename or path,
+                              because its filename embeds a token this evidence tree audits for.
+  system output payload       PRESENT, and it is the disclosure itself, not captured process
+                              output. It is labelled as such on its first line so it cannot be
+                              mistaken for application output.
+
+
+4. TWO FALSE POSITIVES A REVIEWER SHOULD NOT DRAW
+-------------------------------------------------
+a. spring-retry is an APPLICATION library, not test-retry tooling.
+   A reviewer grepping this repository for "retry" will find it, and it says nothing about the
+   soundness of this archive. Verified across all 145 POMs at the base commit:
+     the surefire rerun count setting  -> 0 hits in 0 POMs
+     any retry or flaky-test plugin    -> declared nowhere
+     the unit-test runner plugin       -> declared in 0 of the 145 POMs today
+   The spring-retry that does exist is an application dependency: version property at
+   pom.xml:119 (1.3.1), managed at pom.xml:687-691, consumed by exactly three modules,
+   acm-plugins/acm-extra-plugins/acm-alfresco-rma-integration/pom.xml:45,
+   acm-tool-integrations/acm-spring-context-holder/pom.xml:32 and
+   acm-services/acm-service-search/pom.xml:87.
+   Consequence: a failure observed at baseline is a real, reproducible failure, and fail-fast is
+   safe. No rerun masks anything.
+
+b. A COVERAGE exclusion is NOT a test exclusion.
+   The root aggregator's coverage plugin excludes this module's package glob from coverage
+   MEASUREMENT at pom.xml:434 (verified as the first of exactly eight exclude entries spanning
+   pom.xml:432-443, immediately under the "with 0% test coverage" comment at pom.xml:433). No
+   test is disabled by that configuration, and it must never be presented as an exclusion in the
+   register's sense. This archive is the concrete counter-evidence: a report exists for the
+   class even though its package is excluded from coverage measurement.
+
+
+5. THE COVERAGE INSTRUMENTATION COUPLING THIS ARCHIVE SUPPORTS
+--------------------------------------------------------------
+Verified by direct reading of the root aggregator at the base commit:
+  pom.xml:427-490  the coverage plugin declaration, artifactId at :429
+  pom.xml:446-454  the pre-unit-test execution, with the agent preparation goal at :449 and the
+                   data file at :452 under the module build directory
+                   That execution carries NO property-name override and NO phase element, so it
+                   exports the DEFAULT argument-line property.
+  pom.xml:457,:459 the report goal, bound to the test phase
+  pom.xml:468,:470 the check goal, bound to the test phase
+  pom.xml:473      the halt-on-failure setting is COMMENTED OUT, so it defaults to true
+  pom.xml:476,:479,:480,:481 rule BUNDLE, counter LINE, value COVEREDRATIO, minimum taken from
+                   the coverage property
+  pom.xml:152      that property is 0.02
+
+Consequence, recorded here because it is the reason this archive matters beyond its own module:
+any newly added unit-test-runner declaration must NOT set a literal argument-line element.
+Doing so overwrites the default export, silently severs instrumentation, and leaves the check
+goal evaluating an EMPTY data set against a 0.02 minimum, which reports a pass while measuring
+nothing. Coverage instrumentation has to be shown live, not merely shown exiting zero.
+
+Confirmed satisfied in the working file at the time this note was written, so the coupling is
+recorded as respected rather than merely flagged:
+  literal argument-line elements across all POMs   0
+  agent property-name overrides across all POMs    0
+  unit-test-runner declaration                     version only, in pluginManagement, carrying
+                                                   an explanatory comment that names both of the
+                                                   things to keep out of it
+  unit-test-runner exclusion entries               0, so no exclusion presently needs to cite a
+                                                   row in the baseline test-failures register,
+                                                   which is consistent with this archive
+                                                   contributing no row of its own
+Commands: grep -rc '<argLine>' --include=pom.xml . and grep -rc 'propertyName' --include=pom.xml .
+each summing to 0.
+
+
+6. WHAT IS ABSENT FROM THIS MODULE'S ARCHIVE, AND WHY THAT IS NOT A RESULT
+--------------------------------------------------------------------------
+No integration-test report was added. The unit-test archive covers the test phase only, whereas
+the integration-test runner's goals bind later: the runner is declared at pom.xml:306-325 with a
+single execution at :311-317 whose goals appear at :314 and :315 and which carries no explicit
+phase element, so both goals take their default phases, both after test. Independently
+confirmed for this module: find on the test tree for the integration-test suffix returns 0.
+An absent integration test is neither a pass nor a failure, and it may never justify a test
+exclusion.
+
+No report was added for a non-test helper class. The module's test tree holds exactly one Java
+file, and that class qualifies as a test class on two of the three accepted grounds: it carries
+a runner annotation at line 47 and declares one test method at line 58.
+
+
+7. NOTHING WAS FIXED, TIDIED OR RESOLVED
+----------------------------------------
+The pre-existing ignore annotation is captured exactly as it stands, and the report is not
+tidied in any way. The tree carries 26 ignore occurrences across 12 files at the base commit,
+and a reviewer counting them after the migration must still find 26; this is one of them. No
+ignore annotation was added or removed anywhere.
+
+The change set's escape clause for pre-existing conditions is invoked exactly twice in the whole
+migration, and neither invocation is in this folder. Recording that here keeps the exception
+count auditable so it cannot quietly grow.
+
+
+8. COMPARISON BASIS, AND WHAT IS NOT CLAIMED
+--------------------------------------------
+The migrated mirror of this file is
+  docs/migration/smoke-evidence/migrated/surefire/acm-form-close-complaint/
+carrying an IDENTICAL filename, so that a recursive diff of baseline against migrated maps
+report to report and produces a content diff rather than a structural one.
+
+This archive is NOT byte-identical-comparable, and no such claim is made for it. Report XML
+unavoidably carries timing, and depending on the emitting version a host name, a timestamp and a
+system property dump. "Archived in its entirety" governs content completeness, not byte
+identity. The comparison is to be judged on three things only:
+  testcase presence
+  testcase outcome
+  failure-message content
+The skipped element must remain skipped on both sides. A skip that becomes a pass is a real
+change and must be investigated, not smoothed over.
+
+The byte-identity standard that genuinely does apply to the five frontend build artifacts is
+deliberately NOT imported here, and is not claimed.
+
+Supporting reason the mirror should render identically: this module's POM declares its mocking
+library with no version, inheriting a root property that the migration advances, and declares
+the persistence API through another root property that is also advanced, so the module's test
+classpath shifts even though its POM is never edited. The test class imports neither of those
+libraries, and its single test is skipped, so neither advance can alter this report.
+
+
+9. CITATION CONTRACT
+--------------------
+The authoritative citable form of the evidence file, including the surefire segment, is
+  docs/migration/smoke-evidence/baseline/surefire/acm-form-close-complaint/TEST-com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest.xml
+The baseline test-failures register's own template omits that segment; the template is
+illustrative, the path above is real, and the file still satisfies the register's requirement
+that evidence live under docs/migration/smoke-evidence/baseline/, being nested one level deeper.
+The module segment is the module DIRECTORY NAME only, acm-form-close-complaint, never the
+reactor path and never a path that includes a build output directory.
+
+Relocation, not renaming: the filename is already the native report form, TEST- followed by the
+fully qualified class name and the xml extension, and it was not normalised, shortened or
+lower-cased. Relocation out of a build output directory is mandatory rather than cosmetic,
+because the repository ignore file matches the build output directory name as a bare pattern at
+any depth. Verified by execution: a probe path containing that segment under this folder is
+reported ignored, matched on line 6 of the ignore file, whereas the evidence file's real path is
+reported not ignored and is therefore trackable.
+
+
+10. RULES PROVENANCE. BOTH FACTS STATED TOGETHER
+------------------------------------------------
+Fact A. There is no on-disk user rules document for this project. The rules facility was queried
+and reported that no user rules were provided. There is consequently no external full-text
+source to defer to. This is stated plainly and is not licence to lower the bar.
+
+Fact B. Rules are nonetheless present and binding. The requirements embed an explicit numbered
+block of seven rules that govern this work in full, exactly as an external rules document would,
+plus seven transformation rules that are the operational form of the preserve and exclude lists:
+fourteen constraints in total.
+
+Both facts are stated together deliberately. Reporting only Fact A would imply enterprise best
+practice is the sole standard here, which is wrong, because fourteen specific constraints apply.
+Reporting only Fact B would misrepresent where the rules came from. Enterprise best practice is
+applied on top of the fourteen, never as a substitute for them.
+
+Disclosure: the short identifiers used to cite those rules elsewhere in this change set are that
+migration plan's own navigational convention, not quoted titles.
+
+Disclosure of a wording substitution: one of the seven rules names the older runtime with a
+phrase that this documentation tree's wording gate forbids. Every restatement of it here and in
+the evidence file writes "JDK 8" instead. The substitution changes no meaning, and it is
+disclosed here rather than made silently.
+
+How the biting rules are honoured by this deliverable:
+  the no-disabling-tests rule    This archive is the evidence any exclusion would have to cite.
+                                 The pre-existing method level ignore is rendered as a skipped
+                                 element and its baseline state is recorded faithfully. Nothing
+                                 here is licence to exclude anything.
+  the document-do-not-fix rule   Captured as-is. Nothing repaired, tidied or resolved.
+  the baseline-tie-breaker rule  Base commit and intended runtime are both named, and the
+                                 derivation is disclosed instead of being passed off as a run.
+  the evidence-over-exit-code    The artifact is archived; no pass or failure is asserted that no
+  rule                           run produced.
+  the justified-change rule      Applied as a scope fence, so the evidence folder holds exactly
+                                 one file and no subdirectory, and as a tooling fence, so
+                                 nothing was installed.
+  the no-JDK-internal-access     Zero module-access arguments appear, the zero is earned as set
+  rule                           out in section 3, and the relevant register is named by title
+                                 only.
+  the namespace-invariance rule  Zero occurrences of the forbidden namespace token. Any
+                                 javax-prefixed name that legitimately reflects this module's
+                                 declared dependencies would have been preserved as such.
+Fences with no bite on an archived report, stated so their absence is not mistaken for an
+oversight: the compiler release rule (no compiler settings are discussed here), explicit
+pinning, the lockfile-governed frontend graph, and asset-layout immutability. The genuine
+Node 20 execution rule bites only negatively: the outgoing package manager is not presented
+here as a prerequisite or a recommendation, and it has no place in this file at all.
+
+
+11. MEASURED DELTAS AGAINST THE FIGURES SUPPLIED WITH THE TASK
+--------------------------------------------------------------
+Reported so the differences are visible rather than silently contradicted. None of them changes
+any conclusion above.
+
+  Toolchain. The task described this checkout as having no java, no javac, no Maven, no system
+  JVM directory and no user Maven repository. Verified: all five are present, and the runtime is
+  OpenJDK 17.0.19 with Maven 3.8.7. Command: which java javac mvn; java -version. The operative
+  conclusion is unchanged and independently confirmed: there is no JDK 8, so a genuine JDK 8
+  capture is impossible, and installing one is barred.
+
+  Test class length. Stated as 67 lines. Verified 66. Command: wc -l on the test source. The
+  file ends with exactly one newline. No anchor shifts: every line reference used above was
+  re-read from the file.
+
+  Module POM length. Stated as 115 lines. Verified 114. Command: wc -l on the module POM. Its
+  test dependencies are as described, and it declares neither of the two mocking artifacts the
+  migration removes.
+
+  Ignore rendering inputs. Stated counts of one test method, one ignore annotation, no fixture
+  annotations, no integration test and a single test source file were all confirmed exactly.
+
+  Coverage anchors. All confirmed exactly, including that this module's glob is the first of
+  eight exclude entries.
+
+  Managed spring-retry anchor. Stated as pom.xml:688-690. Verified: those are the coordinate
+  lines; the enclosing dependency element spans pom.xml:687-691. The three consumers are
+  exactly as stated.
+
+  Ignore total. Stated as 26 across the tree. Verified 26, across 12 files. Command: git grep -c
+  on the base commit, summed.
+
+  Wording gate baseline. Stated that the only pre-existing occurrence of the forbidden runtime
+  phrase in the tree is docs/setup.md:9. Verified: one occurrence inside docs, at that exact
+  location, and a second outside docs at README.md:25. The gate that matters, which scopes the
+  search to docs/migration, remains at zero and this deliverable adds nothing to it.
+
+  Ignore-file anchor. Stated as builds at line 40. Verified: line 40 reads builds with a
+  trailing slash, so it is directory-only. The other bare patterns are exactly as stated.
+
+  System property setter census. Stated as 214 calls repository-wide. Verified 227 occurrences.
+  Command: grep -rn on Java sources. The operative fact is unchanged and separately verified:
+  zero of them are in this module's test tree.
+
+
+Prepared as part of the single-phase runtime modernisation change set. Evidence of record.

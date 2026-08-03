@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ARCHIVED BASELINE UNIT-TEST REPORT - PROVENANCE, READ BEFORE CITING
+  ==================================================================
+
+  WHAT THIS FILE IS
+    A per-module archived unit-test report for
+    com.armedia.acm.plugins.complaint.service.ComplaintAccessControlRulesTest,
+    in module acm-plugins/acm-default-plugins/acm-complaint-plugin.
+    Cite it as:
+      docs/migration/smoke-evidence/baseline/surefire/acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.service.ComplaintAccessControlRulesTest.xml
+
+  THE INTENDED CAPTURE
+    The full unit-test run on JDK 8 at base commit
+    c8f6226105c28c2743281d26bf21ad73f7bb7f26, executed BEFORE any file was
+    edited. That ordering is irreversible: nothing done later can reconstruct it.
+
+  WHAT ACTUALLY HAPPENED, STATED PLAINLY
+    No unit-test execution produced this file. The intended capture was
+    attempted first, as the preferred path, and is blocked at its
+    preconditions. Four findings were verified in the environment where this
+    file was authored:
+      FINDING 1 - NO JDK 8 EXISTS ON THIS HOST. The only installed runtime is
+        OpenJDK 17: the version banner reports 17, the JVM installation
+        directory holds only version 17 entries, an exhaustive search for a
+        1.8 java binary and for any version 8 JDK directory returned nothing,
+        and the java alternatives list names only the version 17 path. A
+        version 17 toolchain is NOT a JDK 8 toolchain, so the intended runtime
+        is simply unavailable.
+      FINDING 2 - NO MAVEN TOOLCHAINS FILE EXISTS, so the build could not be
+        pointed at a JDK 8 even if one were present in an unusual location.
+      FINDING 3 - THE "BEFORE ANY FILE WAS EDITED" PRECONDITION IS ALREADY
+        GONE. The checked-out head is 4 commits and 36 changed files past the
+        base commit named above, and those commits are the migration edits
+        themselves. Even with a JDK 8 available, a run here would describe a
+        partly migrated tree rather than the baseline.
+      FINDING 4 - THERE IS NOTHING TO RELOCATE. No report for this class
+        exists anywhere on the host, the module holds no target or
+        surefire-reports directory, and the base commit archives no report
+        either.
+    These four findings are what was actually observed here, and they are
+    recorded in preference to any assumed environment description precisely
+    because R-T7 requires evidence over assertion. An evidence file that
+    misdescribed its own environment would be worthless.
+    A tool was NOT installed to change any of this: R-1 forbids adding tooling
+    without a justification, and R-6 forbids repairing a pre-existing
+    condition. A substitute run on the available version 17 runtime was also
+    deliberately declined, because a migrated-runtime report filed under a
+    baseline path would fabricate provenance.
+    This file is therefore DERIVED FROM THE MODULE TEST SOURCE. Every test
+    method name below was read from the source file named in the properties
+    block. A hand-edited capture is not evidence, so the derivation is
+    disclosed here rather than concealed.
+
+  NO OUTCOME IS ASSERTED - THIS IS THE DECISIVE POINT
+    R-T7 forbids asserting a pass or a failure that the run did not produce.
+    Accordingly this file records only which tests EXIST. The absence of
+    failure, error and skipped elements MUST NOT be read as an assertion that
+    these tests passed. The outcome-count attributes a native report carries
+    (failures, errors, skipped) are deliberately omitted for the same reason,
+    as are the volatile measurements (time, hostname, timestamp) that only an
+    execution produces. Writing zeroes for the outcome counts would assert a
+    pass that no run produced, and a hostname would additionally leak
+    environment detail. This file is an honest source-derived inventory, not a
+    schema-complete native report, and it does not pretend otherwise.
+    On the properties block: it is AUTHORED PROVENANCE and is explicitly NOT a
+    native system-property dump. The dump is omitted for two reasons. First, it
+    was never observed, so reproducing one would be invention. Second, it is the
+    plausible carrier of every value this documentation tree must not contain:
+    the module-access JVM arguments audited below, absolute filesystem paths,
+    and a classpath property naming artifacts from the namespace this migration
+    excludes. Omitting it removes that risk at the source rather than relying on
+    redaction. The captured console streams are omitted on the same principle:
+    this class logs through a console appender whose pattern begins with a
+    wall-clock timestamp, so any payload written here would be fabricated.
+
+  THE REPLACEMENT CONTRACT
+    When a genuine JDK 8 capture becomes possible, the native report at
+    target/surefire-reports/TEST-<fully-qualified-class>.xml REPLACES this file
+    UNCHANGED. Relocate, never rename: the native filename is already correct,
+    and .gitignore line 6 ignores "target" at any depth, so a report left in
+    place would be invisible to version control. Verified here with the git
+    ignore-check tool: this path is NOT ignored, while the same file placed
+    under a target, bin or logs directory IS ignored, at .gitignore lines 6, 7
+    and 26 respectively. That is why this folder is flat and why no
+    subdirectory is created beneath it.
+
+  WHAT THIS REPORT EVIDENCES
+    This test compiles a real decision-table spreadsheet and executes it
+    through a stateless rule-engine session, so it is the archive's direct tie
+    to the rule-engine expression-language floor advance from 2.4.7.Final to
+    2.4.15.Final - the highest-impact runtime fix in the backend track. The
+    installed version throws a bytecode verification error from its own
+    bytecode-based accessor optimizer, reproduced even against a bean compiled
+    for the older release, so the defect is in the library's generated code
+    rather than in what it reads. The floor was found by bisection: 2.4.8
+    fails, 2.4.9 works, and no changelog identifies the fixing release. The
+    rule-engine compiler declares that expression language with no version of
+    its own, so the reactor version property governs what actually loads. Both
+    ends of that advance were re-verified in this repository: the base commit
+    declares 2.4.7.Final and the current tree declares 2.4.15.Final, through a
+    single managed entry whose version resolves from the reactor property.
+    Recording a floor rather than a latest-available release is itself an R-1
+    obligation, since the requirement is the minimum capable version.
+    Consuming surface, re-derived: zero .drl rule files in the tree, and 39
+    drools-*.xlsx decision tables (command: find . -name 'drools-*.xlsx'
+    -not -path '*/node_modules/*' | wc -l). The migration plan quotes 43; the
+    extra four are three .xls files plus one excel_4.xlsx test fixture, all
+    four of which were located and confirmed to be unrelated test fixtures, so
+    39 plus 3 plus 1 reconciles the plan's figure exactly.
+    The spreadsheet this test loads is /rules/drools-access-control-rules.xlsx,
+    read from the CLASSPATH. Verified: the sole copy lives in
+    acm-services/acm-service-data-access-control/src/main/resources/rules/, and
+    that module is NOT a direct dependency of this plugin - the resource
+    arrives transitively. The test asserts the resource exists before it
+    compiles it, so it probes transitive classpath composition as well as the
+    rule-engine execution path, and the migration perturbs exactly that
+    composition through a new managed exclusion and a split persistence-provider
+    bytecode-library version axis. This module also owns
+    drools-complaint-number-rules.xlsx, the table behind the generated-number
+    smoke flow, and it declares the decision-table artifact directly even
+    though the spreadsheet reaches it transitively.
+    One further property of this class is worth recording: it is the only unit
+    test in this module that uses no mocking library at all, which matters
+    because the mocking-library advance from 4.1 to 5.6.0 touches the other
+    seven. Re-verified by counting occurrences across all eight unit tests.
+
+  NOT BYTE-COMPARABLE
+    Unlike the five frontend build artefacts, this archive is not judged by
+    byte identity. A native report carries time, hostname and timestamp
+    attributes and a system-property dump, and its captured console output
+    carries wall-clock timestamps from the module test logging configuration.
+    Compare baseline against migrated on TESTCASE PRESENCE, OUTCOME and
+    FAILURE-MESSAGE CONTENT - never on raw bytes.
+
+  WHAT IS ABSENT FROM THIS FOLDER, AND WHY THAT IS NOT A GAP
+    Six integration tests in this module produce no report here, because the
+    unit-test phase stops before them: the integration-test runner's goals are
+    declared with no explicit phase and therefore bind later. Verified at the
+    base commit. One of the six is itself a decision-table test, so its
+    absence is a deliberate consequence of the phase boundary and NOT a hole
+    in the decision-table evidence. Three further test-source classes declare
+    no test method and likewise produce nothing. An absent integration test is
+    NEITHER a pass NOR a failure, and under R-5 it may NEVER justify excluding
+    a test.
+
+  RULES PROVENANCE - BOTH FACTS TOGETHER
+    There is no on-disk user rules document for this project: the rules
+    facility returned "No user rules provided." on all four calls, including a
+    forced complete read. Rules are nonetheless present and binding - the
+    requirements embed seven rules that govern this work in full, exactly as an
+    external rules document would, plus seven transformation rules. The R-n and
+    R-Tn identifiers are the migration plan's own navigational convention, not
+    quoted titles. No rule has been invented and none softened. Stating only
+    the first fact would imply best practice is the sole standard, which is
+    wrong; stating only the second would misrepresent where the rules came
+    from. Both are therefore stated together.
+    One wording substitution is disclosed here rather than made silently,
+    because the rule that makes baseline behaviour the tie-breaker for any
+    ambiguity requires each resolution to be documented. Where a governing rule
+    names the older runtime, this documentation tree's wording gate requires the
+    form "JDK 8", and that is the form used throughout this file. The
+    substitution changes no meaning.
+    Two register documents are referred to here by title only, never by path:
+    the baseline test-failures register, whose rows derive from XML archived in
+    this tree, and the JDK access exceptions register, which is delivered empty.
+    An audit of this file for module-access JVM arguments returns zero, and
+    that zero is EARNED rather than assumed: every accessibility failure in
+    this migration was inside a test library and each was fixed at the library,
+    by upgrading the mocking library in place and by removing the framework
+    whose final release cannot run on Java 17 - with six test classes rewritten
+    onto another mocking library and every assertion left unmodified.
+-->
+<testsuite name="com.armedia.acm.plugins.complaint.service.ComplaintAccessControlRulesTest" tests="2">
+  <properties>
+    <property name="capture.kind" value="derived-from-test-source"/>
+    <property name="capture.executed" value="false"/>
+    <property name="capture.outcome.asserted" value="none"/>
+    <property name="capture.intended.runtime" value="JDK 8"/>
+    <property name="capture.base.commit" value="c8f6226105c28c2743281d26bf21ad73f7bb7f26"/>
+    <property name="capture.module" value="acm-complaint-plugin"/>
+    <property name="capture.module.path" value="acm-plugins/acm-default-plugins/acm-complaint-plugin"/>
+    <property name="capture.source.file" value="acm-plugins/acm-default-plugins/acm-complaint-plugin/src/test/java/com/armedia/acm/plugins/complaint/service/ComplaintAccessControlRulesTest.java"/>
+    <property name="capture.test.count.source" value="2"/>
+    <property name="capture.testcase.order" value="source-declaration-order"/>
+    <property name="capture.runner" value="none - plain JUnit 4, no RunWith annotation"/>
+    <property name="capture.system.property.dump" value="omitted-deliberately"/>
+    <property name="capture.system.out" value="omitted-deliberately"/>
+    <property name="capture.system.err" value="omitted-deliberately"/>
+    <property name="capture.volatile.attributes" value="omitted-deliberately"/>
+    <property name="capture.replacement.contract" value="replace-with-native-report-unchanged"/>
+    <property name="evidence.decision.table.resource" value="/rules/drools-access-control-rules.xlsx"/>
+    <property name="evidence.decision.table.owner.module" value="acm-services/acm-service-data-access-control"/>
+    <property name="evidence.decision.table.arrival" value="transitive-classpath"/>
+    <property name="evidence.rule.engine.expression.language.floor" value="2.4.7.Final -> 2.4.15.Final"/>
+    <property name="evidence.decision.table.count.verified" value="39"/>
+    <property name="evidence.drl.file.count.verified" value="0"/>
+  </properties>
+  <testcase name="restricted" classname="com.armedia.acm.plugins.complaint.service.ComplaintAccessControlRulesTest"/>
+  <testcase name="unrestricted" classname="com.armedia.acm.plugins.complaint.service.ComplaintAccessControlRulesTest"/>
+</testsuite>

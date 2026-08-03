@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ArkCase runtime modernization : archived JDK 8 baseline unit test report
+
+  Module           : acm-consultation-plugin
+  Test class       : com.armedia.acm.plugins.consultation.service.ConsultationAccessControlRulesTest
+  Derived from     : acm-plugins/acm-default-plugins/acm-consultation-plugin/src/test/java/com/armedia/acm/plugins/consultation/service/ConsultationAccessControlRulesTest.java
+  Base commit      : c8f6226105c28c2743281d26bf21ad73f7bb7f26
+  Intended runtime : JDK 8, the pre-migration runtime, unit test phase only
+
+  PROVENANCE, STATED PLAINLY
+  This file is DERIVED FROM TEST SOURCE. It is NOT a captured test run. The pre-migration
+  runtime named above is not installed in the checkout where this archive was assembled, that
+  checkout already carries commits made after the base commit, and no report of this kind exists
+  anywhere in the repository or in its recorded history, so the unit test phase could not be
+  captured at the base commit. Installing a toolchain in order to make the capture look complete
+  is forbidden. A hand edited capture is not evidence, which is why this provenance is recorded
+  in the artifact itself rather than only alongside it.
+
+  NO OUTCOME IS ASSERTED
+  Validation asserts on produced artifacts and captured output, never on process exit status
+  alone, and it may not assert a pass or a failure that the run did not produce. In this report
+  format a testcase element carrying no child element means PASSED, so every testcase below
+  carries an explicit not executed marker instead. That marker records absence of execution and
+  nothing more. It is not a disabled test and not a baseline skip: the source class declares no
+  disabled test, no expected exception form and no test assumption.
+
+  DELIBERATE OMISSIONS, DISCLOSED RATHER THAN SILENT
+  1. No elapsed time, host name or timestamp attribute. No run produced them, and inventing
+     them would be fabrication.
+  2. No system property block. Its values were never observed, it is the plausible carrier both
+     of an absolute filesystem path and of a namespace token this migration forbids, and the
+     coverage agent argument that would appear inside it is itself an absolute path.
+  3. No standard output and no standard error payload. No run produced one, so there is nothing
+     to retain verbatim.
+
+  MODULE ACCESS AUDIT
+  This file was searched for JVM arguments that open or export an otherwise encapsulated JDK
+  package to the unnamed module. The result is zero. It is an earned zero rather than an assumed
+  one, because the plausible carrier named in omission 2 above is absent by design. The register
+  of such exceptions is delivered empty and is referred to here by title only, as the JDK
+  internal access exceptions register.
+
+  BASELINE FAILURES ARE NEVER TIDIED
+  A test failing at baseline is captured as failing, and is never fixed, skipped or reworded.
+  None is recorded here because no run occurred, and the absence of a recorded failure must not
+  be read as a pass.
+
+  ABSOLUTE PATH HAZARD, RECORDED FOR ANY GENUINE CAPTURE THAT REPLACES THIS FILE
+  The setup method of this class throws a runtime exception whose message embeds the absolute
+  filesystem path of the decision table when that table fails to compile, at source line 84. If
+  a genuine capture ever replaces this file and that failure occurs, the absolute path must be
+  replaced with a described placeholder and the substitution logged as a plain text note in the
+  archive notes folder. No such path appears in this file, because no run occurred.
+
+  INTEGRATION TESTS PRODUCE NO REPORT
+  ConsultationDaoIT and ConsultationPipelineIT are absent from this archive by design. The unit
+  test phase stops before the integration test goals bind, and the unit test runner is declared
+  in no project file, so its default include patterns match neither class. An absent integration
+  test is neither a pass nor a failure and may never justify a test exclusion.
+
+  HOW TO COMPARE THIS FILE AGAINST THE MIGRATED REPLAY
+  This archive is NOT byte comparable, unlike the five frontend build artifacts. Report XML
+  carries elapsed time, host name and timestamp values that legitimately differ between runs.
+  Judge baseline against migrated on testcase presence, on outcome, and on failure message
+  content, never on raw bytes. The migrated mirror must carry this identical file name so that a
+  recursive directory comparison maps report to report.
+
+  WHY THIS MODULE IS ARCHIVED
+  1. The change set edits this module's POM to remove the retired mocking framework's test
+     dependencies. Note the asymmetry: no test rewrite is required in this module, unlike the
+     six classes elsewhere in the repository that genuinely used that framework. The dependency
+     was declared here without any corresponding usage.
+  2. This class drives the rule engine. It compiles a spreadsheet decision table and executes a
+     stateless session, which ties it to the expression language floor advance whose installed
+     version throws a bytecode verification error from its own accessor optimizer on the target
+     runtime. The access control decision table is inside the verified live set.
+
+  CITATION FORM used by the baseline test failures register
+  docs/migration/smoke-evidence/baseline/surefire/acm-consultation-plugin/TEST-com.armedia.acm.plugins.consultation.service.ConsultationAccessControlRulesTest.xml
+-->
+<testsuite name="com.armedia.acm.plugins.consultation.service.ConsultationAccessControlRulesTest" tests="2" failures="0" errors="0" skipped="2">
+  <testcase name="restricted" classname="com.armedia.acm.plugins.consultation.service.ConsultationAccessControlRulesTest">
+    <skipped message="NOT EXECUTED. Enumerated from the test annotation at ConsultationAccessControlRulesTest.java line 92, method declared at line 93. No unit test run was performed at the base commit, so no outcome is asserted. This is not a disabled test and not a baseline skip."/>
+  </testcase>
+  <testcase name="unrestricted" classname="com.armedia.acm.plugins.consultation.service.ConsultationAccessControlRulesTest">
+    <skipped message="NOT EXECUTED. Enumerated from the test annotation at ConsultationAccessControlRulesTest.java line 118, method declared at line 119. No unit test run was performed at the base commit, so no outcome is asserted. This is not a disabled test and not a baseline skip."/>
+  </testcase>
+</testsuite>
