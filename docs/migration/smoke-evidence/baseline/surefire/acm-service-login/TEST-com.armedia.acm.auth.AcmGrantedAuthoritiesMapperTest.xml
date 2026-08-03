@@ -1,36 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  Archived per-class unit-test report, JDK 8 baseline, module acm-service-login.
+  Native Surefire report, JDK 8 baseline, module acm-service-login.
 
-  DERIVED FROM TEST SOURCE, NOT CAPTURED FROM A RUN. The JDK 8 unit-test run at base
-  commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 could not be executed in this
-  checkout. NO PASS, NO FAILURE AND NO SKIP IS ASSERTED BELOW.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  tests and skipped are manifest facts read from
-  acm-services/acm-service-login/src/test/java/com/armedia/acm/auth/AcmGrantedAuthoritiesMapperTest.java
-  (exactly one @Test method, mapAuthorities, at line 69; no @Ignore anywhere).
-  Every attribute only an executed run can supply carries the literal value
-  not-captured in place of a number, so this file cannot be read as an observed pass.
-  The empty properties, system-out and system-err elements stand for nothing captured,
-  not for content removed.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  Full provenance for this archive belongs in the sibling notes folder, not here.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
+
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
+
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite
-    name="com.armedia.acm.auth.AcmGrantedAuthoritiesMapperTest"
-    tests="1"
-    skipped="0"
-    failures="not-captured"
-    errors="not-captured"
-    time="not-captured"
-    timestamp="not-captured"
-    hostname="not-captured">
+<testsuite tests="1" failures="0" name="com.armedia.acm.auth.AcmGrantedAuthoritiesMapperTest" time="5.392" errors="0" skipped="0">
   <properties/>
-  <testcase
-      name="mapAuthorities"
-      classname="com.armedia.acm.auth.AcmGrantedAuthoritiesMapperTest"
-      time="not-captured"
-      status="not-captured"/>
-  <system-out/>
-  <system-err/>
+  <testcase classname="com.armedia.acm.auth.AcmGrantedAuthoritiesMapperTest" name="mapAuthorities" time="5.392"/>
 </testsuite>

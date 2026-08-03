@@ -1,0 +1,41 @@
+ArkCase migration smoke evidence — baseline against migrated comparison
+this-capture: <CAPTURE-DIR>
+other-capture: docs/migration/smoke-evidence/baseline
+
+REQUIRED comparisons (a mismatch in any of these is a regression):
+  match    flow-1-login verdict: SKIPPED
+  match    flow-2-views verdict: SKIPPED
+  match    flow-3-alfresco-roundtrip verdict: SKIPPED
+  match    flow-4-solr-search verdict: SKIPPED
+  match    flow-5-activemq-event verdict: SKIPPED
+  match    flow-6-generated-number verdict: SKIPPED
+  match    flow-7-workflow-start verdict: SKIPPED
+  match    flow-8-queue-transition verdict: SKIPPED
+
+REQUIRED artifact digest comparisons:
+  match    application.js: 3c0aeb4d2b02dc740e733e5ed89c87bf0d229cc19489ee0f023c04af611391b8
+  match    application.min.js: c1a4cb56e4b644c4d6e356698a222f9de2b57dc0114eec86d93323e0a9b41dc2
+  match    vendors.min.js: 70187246b480eebb6f920732ce84356fb719b2db9694c10ed20388ff6f5e3be4
+  match    application.min.css: 04228704205f51db7eac073b0001c87e54473f372865a031b910b989c8891ea1
+  match    home.html: 43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9
+
+ADVISORY differences (reported, never failing):
+  the source map is excluded by design; it embeds file paths.
+  provenance key not compared: capture-directory
+  provenance key not compared: target-base-url
+  provenance key not compared: tls-verification
+  toolchain banners differ, which is EXPECTED and is the point of the
+    migration; see env/toolchain.txt in both captures.
+
+summary:
+  required-comparisons: 13
+  required-matched: 13
+  required-mismatched: 0
+  advisory-differences: 1
+  this-capture-readiness: NEVER-READY
+  this-capture-artifact-gate: PASSED
+
+result: INCONCLUSIVE-STACK-NEVER-READY
+Every required comparison agreed, but the stack never answered, so the
+agreement is between two sets of no-response observations and carries no
+behavioural information.  This is deliberately NOT reported as a match.

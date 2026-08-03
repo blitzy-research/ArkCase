@@ -1,247 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ARCHIVED UNIT TEST REPORT, MIGRATED RUN SLOT. Read this disclosure before treating any attribute
-  below as an observation.
+  Native Surefire report, migrated run, Java 17, module acm-service-notification.
 
-  IDENTITY
-    Module directory : acm-service-notification
-    Test class       : com.armedia.acm.services.notification.service.NotificationUtilsTest
-    Base commit      : c8f6226105
-    Citable form     : docs/migration/smoke-evidence/migrated/surefire/acm-service-notification/TEST-com.armedia.acm.services.notification.service.NotificationUtilsTest.xml
-  This record occupies the migrated run slot of the smoke evidence archive, the side whose runtime is
-  Java 17; its counterpart on the JDK 8 side of the same archive bears an identical file name,
-  because the baseline or migrated directory alone carries the before and after distinction and no
-  file name suffix does. In the citable form above the surefire path segment is authoritative and
-  must never be dropped, and the module segment is the module directory name alone, never a reactor
-  path and never a build output directory. The baseline test failures register cites evidence by that
-  path form, and its own standard treats a citation to a file that does not exist as a failure, so
-  this layout is load bearing for a document other than this one.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
+  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
+  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
+  from a prebuilt repository:
 
-  HOW THIS RECORD WAS PRODUCED. A GENUINE CAPTURE WAS ATTEMPTED FIRST, AND WHAT FOLLOWS IS THE
-  OUTCOME OF THAT ATTEMPT RATHER THAN A TIDIER ACCOUNT OF IT.
-  This is not a relocated report; it was DERIVED FROM TEST SOURCE. The reason is recorded as
-  observed rather than as assumed, because a reason clause that is partly false is worse than no
-  reason clause at all.
-  The specification for this record described its authoring environment as having no Java launcher,
-  no Java compiler and no build tool. That description belongs to the planning environment. In THIS
-  checkout all three are present, together with a warm local artifact cache, so a capture was
-  attempted with them instead of being waved off. Building this module's dependency closure offline
-  enumerated 60 reactor modules and installed 29 of them, then halted at module 30 of 60 inside one
-  upstream module, on a single main source file that still holds a class literal naming an internal
-  JDK naming package which the platform no longer makes visible outside the module that declares it.
-  The remediation of that file is a separate edit of this same change set and had not landed in this
-  checkout. Every remaining module was therefore skipped, this one among them, the unit test runner
-  was never reached, and no report directory was written anywhere in the tree, so there was nothing
-  to relocate. The original build output location is named here as text only and is never recreated
-  inside this evidence folder, because the repository ignore file carries that directory name as a
-  bare pattern which version control matches at any depth; a report left where the runner wrote it
-  would be silently uncommitted and the citation contract above would break without a warning.
-  Three things were deliberately NOT done in response. No runtime, compiler or build tool was
-  installed to manufacture a capture. No source file outside this record's own scope was edited to
-  unblock the closure. No result was hand invented and presented as measurement.
-  The in repository local artifact repository is explicitly NOT implicated and naming it as a cause
-  would be false. It exists at the repository root, is tracked in version control, holds real
-  artifacts, and the reactor root descriptor declares it at four nested depths on purpose so that
-  the base directory property re evaluates one declaration per module depth. Confirmed against the
-  attempt log: all 29 modules that did build resolved without one unresolved artifact and without
-  one resolution error.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  WHAT IS AUTHORITATIVE HERE: THE ELEMENT INVENTORY
-  The package name, the class name, all five test method names and the order in which they appear
-  were read directly from
-  acm-services/acm-service-notification/src/test/java/com/armedia/acm/services/notification/service/NotificationUtilsTest.java
-  at the base commit, and were re derived from that same file immediately before publication. The
-  package is declared on line 1 and the class on line 48, where it extends the EasyMock support base
-  class and carries no runner annotation. The five test methods are annotated on lines 69, 95, 121,
-  130 and 139 and declared on the lines that follow. THE ORDER BELOW IS SOURCE DECLARATION ORDER AND
-  MUST NOT BE TIDIED; re sorting it would be an editorial change to evidence.
-  Four further methods are declared in this class and not one of them is a case element here,
-  because not one carries the JUnit test annotation: the fixture preparation method, annotated on
-  line 55 with the JUnit before annotation instead and declared on line 56, and three helper methods
-  declared on lines 145, 173 and 186 to which the five test methods delegate. One of those three is a
-  standing trap for a careless inventory, because the word test sits inside its own name as a
-  capitalised interior fragment, so a search for that word rather than for the annotation would
-  promote a helper into this list. It is excluded, and so are the other three.
-  A divergence is recorded rather than silently absorbed. The specification for this record counted
-  two such helpers; re derivation from source found three, the additional one being the package
-  private branch selector on line 145 through which three of the five test methods reach the shared
-  assertion helper. The re derived count governs. The case list below is unaffected either way,
-  because all four unannotated methods were always excluded from it.
-  The tests count of 5 and the skipped count of 0 are accordingly ACCURATE. The count was re derived
-  with a word boundary match, so the JUnit test annotation is recognised only where it stands as a
-  complete word; a looser search over this archive would also match the EasyMock test subject
-  annotation and would over report, and although that annotation happens to occur nowhere in this
-  module it occurs six times across the repository's test sources, so the hazard is real in sibling
-  modules. The skipped count is corroborated independently by the verified absence of any JUnit
-  ignore annotation in this class and in this module's test tree as a whole, a count that must stay
-  at zero: an ignore annotation appearing here would be an increase on the 26 the repository carried
-  under its test source trees at baseline, not one of which is this module's, and therefore a
-  violation of the rule against disabling failing tests, whether it surfaced in unit test runner
-  configuration or in source. No exclusion entry names this class, and none names any single one of
-  its five methods, because a per method exclusion disables a test exactly as a class level one does;
-  an exclusion is permissible only when it cites a row of the baseline test failures register.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor halting at the first red module, which is what
+  allows archiving every module's reports in one pass.
 
-  COLLISION GUARD, THE SHARPEST HAZARD IN THIS CLASS
-  These five names carry the highest collision risk in the module, and presence comparison against
-  the baseline twin is only meaningful if every one of them is transcribed in full. Two pairs share
-  long leading fragments. The first two names differ only in their closing fragment, one standing for
-  a related object type that is null and the other for one that is not. The third and fourth diverge
-  only after their shared leading fragment, one standing for an object type that is not found at all
-  and the other for one that is found but does not match. The first two name a related object type;
-  the third and fourth name an object type with no related qualifier, and that qualifier is neither
-  added nor dropped. The fifth stands alone and concerns absent url values. None of the five opens
-  with the word test, which is the original author's naming choice: it is preserved exactly, it is
-  not normalised, and it is not reported as a defect, because this change set documents pre existing
-  conditions rather than tidying them.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace. No
+  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
+  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
 
-  WHAT IS NOT OBSERVED HERE AND THEREFORE ASSERTS NOTHING
-  The failures count, the errors count and every time attribute, on the suite element and on all
-  five case elements alike. They carry zero values only because the report shape requires the
-  attributes to be present. A zero time is a documented marker meaning not measured and is never a
-  claim of instantaneous execution. This record asserts NO pass and NO failure for any of the five
-  methods; it is a structural inventory of what the migrated unit test surface of this class consists
-  of, and nothing beyond that.
+  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
+  discovered. The system property dump the reporter writes inside the properties element is emptied - it
+  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
+  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
+  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
+  both, no absolute path of this machine survives anywhere in this archive.
 
-  DELIBERATE OMISSIONS, EACH WITH ITS REASON
-  The system property dump is omitted. Fabricating one would assert environment facts no run
-  produced, and it is in a real report the single most plausible carrier of an absolute filesystem
-  path, of a classpath entry naming a successor namespace artifact, and of a module access JVM
-  argument, meaning an argument that opens or exports an otherwise encapsulated JDK package to the
-  unnamed module. Standard output and standard error are omitted because they cannot be reproduced
-  without executing; that is additionally safe for this class specifically, since the only print call
-  anywhere in this module's test sources sits in the templating engine test, a different class, so
-  this class writes nothing on either stream. The host name attribute and the run instant attribute
-  are omitted, which avoids fabricating them and avoids leaking an environment identifier; a
-  fabricated host name would be doubly wrong in a module whose sender classes address mail and
-  exchange hosts.
-  No credential value, mailbox address, mail host, service account or authentication material
-  appears anywhere in this record, and neither does any absolute filesystem path. One omission is
-  specific to this class and is grounded rather than precautionary: the unit under test builds deep
-  links into the application out of stored path patterns, so a captured assertion message from a
-  failing comparison would plausibly have carried a link. This record therefore carries no link of
-  any kind. Had one been carried it would have had to be free of any user information component,
-  meaning no credential bearing prefix ahead of a host and no mailbox address embedded in a path or a
-  query, and free of any real environment host name; carrying none at all is the stronger outcome and
-  is the one taken here.
+  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
+  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
+  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
+  failure regardless of exit status.
 
-  REPORT FORMAT ASSUMPTION, DISCLOSED RATHER THAN ASSERTED
-  At the base commit the unit test runner plugin was declared in none of the reactor's 145 build
-  files, so the JDK 8 baseline ran on whichever version the build tool implicitly binds, and both
-  sides of this archive use that era's classic suite and case element shape for comparability. This
-  change set pins that plugin in the aggregator, a build file change owned and justified elsewhere;
-  it is noted here only because it is the reason the shape assumption has to be stated rather than
-  assumed. NO plugin version is asserted anywhere in this record, because none can be verified from
-  an archived run that did not happen. Nothing here implies which release level any source was
-  compiled at, and nothing here decides or proposes a dependency change.
-
-  THE FAILURE TO REGISTER OBLIGATION
-  Every failure element and every error element that ever appears in this record must map to a row in
-  docs/migration/baseline-test-failures.md. One that maps to no row is a migration regression and not
-  an accepted baseline condition. The obligation is stated unconditionally because that register may
-  legitimately carry zero rows, and because a module recorded there as uncovered is not a baseline
-  failure and can never justify an exclusion. This record contains no failure element and no error
-  element, so the obligation is satisfied vacuously here; it is stated all the same, because it
-  governs any future genuine capture placed at this path.
-
-  HOW THIS RECORD MUST AND MUST NOT BE COMPARED
-  Judge it against its JDK 8 baseline twin on test case presence, on test case outcome and on failure
-  message content. It is NOT byte comparable, because duration, host name, run instant and any
-  property dump legitimately vary between two runs; the archive's obligation to preserve a report in
-  its entirety governs completeness of content, not sameness of bytes. Read it together with the
-  coverage instrumentation liveness note, jacoco-liveness.txt, in the migrated directory above this
-  surefire directory: an empty coverage data set that yields a passing check is a failure
-  notwithstanding a zero exit code. Assert on this archived document, never on a build's exit status.
-  The smoke run summary beside that note is a convenience index and not an authority, and every body
-  of evidence in this tree is judged on its own record. Full provenance is recorded in the notes
-  directory of the migrated evidence tree, which sits beside this surefire directory at the migrated
-  level rather than inside it.
-
-  SHAPE CONFORMANCE
-  This record is not the shape reference; it follows the one this module folder's first report sets,
-  the report for the Microsoft Exchange sender class, and it departs from that exemplar only in the
-  suite name, in the class name carried by each case, in the tests count and in the case list itself.
-  Copied from there without variation: one XML declaration, a single provenance comment placed before
-  the root element, the suite attribute set and its ordering, self closing case elements carrying
-  exactly a name, a classname and a time, and two space indentation. The folder stays flat, the
-  service and web api package split of this module's test tree is never mirrored as directories, and
-  the folder admits report XML and nothing else; no marker file, no index, no summary, no manifest,
-  no digest, no notification template and no rendered message body belongs in it.
-
-  MODULE NOTES, STATED AS PRECISELY AS THEY WERE VERIFIED
-  This module is a well covered clean control: ten unit test classes carrying 27 test methods between
-  them, no skip at baseline, no rewritten test and no static audit remediation site. This class
-  contributes five of those 27, the second largest count in the module. Its test source is unchanged
-  by the migration, byte for byte against the base commit, so any divergence from the baseline twin is
-  attributable to the runtime and the dependency graph alone, and would still owe a register row.
-  Nine of the ten classes extend the EasyMock support base class, this one included, and the module
-  declares that library without a version of its own, so the library floor advance reaches all nine
-  through a reactor root property with no child build file version edit.
-  A dependency removal touched this module's build file but NOT its tests. The module is one of twelve
-  declaring the retired bytecode mocking framework, removed outright because its final release fails
-  on the new runtime with an inaccessible object error and that release is the project's last, so
-  there is no version to upgrade to. Not one of this module's ten classes references that framework's
-  API, so the removal is a pure build file deletion with zero source impact; this module needs no test
-  rewrite and consequently receives no static mocking companion dependency. Every assertion in all ten
-  classes is unchanged, the five in this class included. A reviewer who notices the build file change
-  must not expect test edits here.
-  This class exercises pure link construction against a mocked application configuration, so it
-  corroborates the reinstated API strategy from the quietest possible angle: the removed platform
-  modules were restored as ordinary javax namespace Maven artifacts declared once in the aggregator's
-  global dependency block, which left this module's consumers with zero import edits, and this class
-  needed none of its own. The linkage must be stated accurately. This module reaches the javax
-  persistence and javax servlet families directly in its own sources, in five files each, and has zero
-  direct occurrences of the mail and activation families; that linkage is at the collaborator level,
-  through the module's dependencies on the SMTP email module and the email module. Every javax
-  prefixed name in this module is correct as it stands and is preserved; the platform removal was
-  compensated by ADDING javax namespace artifacts, never by rewriting source, and no successor
-  namespace name appears anywhere in this record.
-  One documented and deliberately unremoved finding touches this module's declared dependency set: a
-  legacy XML data binding library, declared at test scope here and in six other child build files, has
-  zero Java imports, zero configuration references and zero mapping files anywhere in the repository.
-  It is never loaded and presents no runtime risk, and it is registered as pre existing cruft rather
-  than removed, because altering the declared dependency set would change classpath composition in
-  ways this change set did not audit. Nothing in this folder proposes its removal, and nothing in this
-  record fixes anything, proposes a fix, proposes a dependency change or carries a deferred work
-  marker. The mail library in particular is held at its current version, and nothing here should be
-  read as implying otherwise.
-  Two false positives, pre empted so this archive is not misjudged. The reactor's retry library is
-  application code and is NOT test retry tooling: no build file configures a rerun count and no retry
-  plugin is declared anywhere, so fail fast is safe here and an observed failure would be real and
-  reproducible. And coverage exclusions are NOT test exclusions: the root coverage plugin declares
-  eight measurement exclusion globs, not one of which matches this module's package. Bindingly
-  related, the coverage agent preparation goal communicates with the test runner through the default
-  argument line property export, so a unit test runner declaration that set a literal argument line
-  element would silently sever instrumentation and leave the check goal evaluating an empty data set,
-  which is a false pass. Verified across the reactor's 145 build files: no argument line element and
-  no argument line property name is declared in any of them.
-  The module's single integration test correctly has NO report in this folder. It is executed by the
-  integration test runner, whose goals fall after the unit test phase, and it emits its own report
-  elsewhere. An absent integration test is neither a pass nor a failure and can never justify an
-  exclusion. The messaging smoke flow, which observes an event transiting the message broker with an
-  identical payload, bears on this module's dispatch surface rather than on this class, whose subject
-  is link construction; the broker's client library is unchanged by design.
-
-  GOVERNING RULES PROVENANCE. TWO FACTS THAT MUST BE HELD TOGETHER, BECAUSE EITHER ALONE MISLEADS.
-  First, there is no on disk user rules document for this project: the rules facility reports plainly
-  that no user rules were provided, so there is no external full text source to defer to. Second,
-  rules are present and binding nonetheless: the requirements themselves embed a numbered block of
-  seven rules plus seven transformation rules that govern this work in full, and the identifiers and
-  descriptive labels used to cite them are the migration plan's own navigational convention rather than
-  quoted titles. The absence of a document lowers no standard applied here; enterprise standard
-  practice is applied on top of those rules, never as a substitute for them. The rules bearing on this
-  record are summarised in this record's own words above and are deliberately not transcribed. The rule
-  governing JDK internal access in production launch configuration is paraphrased and never quoted,
-  and the migration's register of JDK internal access exceptions is referred to by title only, never by
-  file name or path, because that path embeds the very literal this evidence tree gates to zero. That
-  zero is earned rather than incidental: every accessibility failure encountered in this migration was
-  inside a test library and was resolved by upgrading or removing that library, no reflective
-  accessibility call site in the application targets an encapsulated JDK package, and so production
-  code has nothing to open and that register is delivered empty and says so.
+  Read against the twin report of the same name under the sibling baseline directory, which carries the
+  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
+  content - never on byte identity, since duration, host name and run instant legitimately vary between
+  two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.services.notification.service.NotificationUtilsTest" tests="5" errors="0" skipped="0" failures="0" time="0">
-  <testcase name="createLinkWhenRelatedObjectTypeIsNull" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0"/>
-  <testcase name="createLinkWhenRelatedObjectTypeNotNull" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0"/>
-  <testcase name="createLinkWhenObjectTypeNotFound" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0"/>
-  <testcase name="createLinkWhenObjectTypeDoesNotMatch" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0"/>
-  <testcase name="createLinkWhenUrlValuesNotFound" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0"/>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0.047" tests="5" errors="0" skipped="0" failures="0">
+  <properties/>
+  <testcase name="createLinkWhenRelatedObjectTypeNotNull" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0.044"/>
+  <testcase name="createLinkWhenRelatedObjectTypeIsNull" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0.0"/>
+  <testcase name="createLinkWhenObjectTypeNotFound" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0.0"/>
+  <testcase name="createLinkWhenObjectTypeDoesNotMatch" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0.0"/>
+  <testcase name="createLinkWhenUrlValuesNotFound" classname="com.armedia.acm.services.notification.service.NotificationUtilsTest" time="0.0"/>
 </testsuite>

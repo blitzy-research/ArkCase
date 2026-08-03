@@ -1,0 +1,75 @@
+frontend artifact comparison - how both sides were produced, and what the result
+does and does not prove
+
+RESULT
+All five compared artifacts are byte-identical between the two builds, and so are
+the content-hash filenames the cache-busting task derives from them:
+  application.ef1612bbd7993382.js
+  application.min.2fa1cd12f2c4077f.js
+  application.min.1ae47d39c0d9d836.css
+  vendors.min.59439035604af96f.js
+  application.min.js.56da89159ec1b11a.map
+The source map is byte-identical too.  It is still EXCLUDED from the required
+comparison set, because it embeds file paths and the caveat could bite on a host
+where the two builds do not share a relative layout; it happening not to bite here
+is not a reason to start depending on it.
+
+HOW THE BASELINE SIDE WAS PRODUCED
+  tree            base commit c8f6226105, extracted with git archive
+  manifest        the base-commit package.json, unmodified, with its 76 git
+                  dependency specifications in owner/repo#<semver-range> form
+  lockfile        the base-commit lockfile of the superseded package manager
+  install         that package manager, version 1.22.22, invoked with the exact
+                  command the base-commit runtime wiring used
+  build           the Grunt default task graph, unmodified
+
+HOW THE MIGRATED SIDE WAS PRODUCED
+  tree            this checkout
+  manifest        the migrated package.json, with its specifications pinned to
+                  exact commits
+  lockfile        the committed package-lock.json at lockfileVersion 3
+  install         npm 10.8.2, clean install from that lockfile
+  build           the Grunt default task graph, unmodified
+
+WHAT THIS PROVES
+The two sides used DIFFERENT package managers, DIFFERENT lockfiles and DIFFERENT
+dependency-specification forms, and produced identical bytes.  That is direct
+evidence that the manifest rewrite and the package-manager change resolved to the
+same dependency graph and drove the pipeline to the same output.  It is the
+strongest behavioural evidence available for this track, and it has to be, because
+the frontend tree contains no spec files at all.
+
+WHAT THIS DOES NOT PROVE, STATED PLAINLY
+Both builds ran on the SAME Node runtime, v20.20.2, and on the same npm-era host.
+The historical Node 6-8 runtime is not installed here and was not used.  This
+comparison therefore isolates the variable the migration actually changed - the
+package manager, the lockfile and the specification form - and it says NOTHING
+about whether the historical runtime would have produced these same bytes.  A
+reader must not extend it into a claim about Node 6-8 equivalence.  The reason the
+comparison is still meaningful is precisely that Node is held constant: with the
+runtime fixed, an identical result cannot be explained by a compensating runtime
+difference.
+
+TWO CONDITIONS ENCOUNTERED ON THE BASELINE SIDE, RECORDED RATHER THAN SMOOTHED OVER
+1. The baseline install FAILED its native compilation step.  The failing package
+   was node-sass, reached transitively from the Sass Grunt plugin that the
+   base-commit manifest declares; its native compiler cannot build under Node 20.
+   This is the same condition that justified removing that plugin, observed here
+   independently rather than taken on trust.  It did NOT prevent the five
+   artifacts from being produced: 742 packages installed, all eight pipeline
+   packages among them, all 75 component directories the asset-layout contract
+   references were present, and the Gruntfile declares no Sass task for the
+   missing compiler to serve.  That is the same reasoning the removal rests on,
+   now with an observation behind it.
+2. profiles.js is not tracked at the base commit and the build requires it, so it
+   was created with exactly the content the deployed runtime writes for it.
+   Without that step the baseline build could not have run at all - which is the
+   condition recorded as one of the two escape-clause invocations, observed here
+   rather than argued.
+
+A NOTE ON EXIT STATUS, SINCE THIS RUN DEMONSTRATED IT
+The baseline Grunt run exited ZERO while reporting a warning: a missing
+modules_config/config/modules.json, followed by "Used --force, continuing."  That
+is the forced-execution setting masking a task failure, in a real run, exactly as
+the governing evidence rule describes.  It is the reason every assertion here is
+made against the artifacts and their digests rather than against an exit status.

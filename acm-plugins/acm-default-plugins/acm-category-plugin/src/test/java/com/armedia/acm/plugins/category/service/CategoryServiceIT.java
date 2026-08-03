@@ -98,9 +98,9 @@ public class CategoryServiceIT
     @Autowired
     private AuditPropertyEntityAdapter auditAdapter;
     /*
-     * Built here rather than injected: the runner declared above no longer supplies annotation-driven mock injection, so an
-     * annotated field would simply stay null. A field initialiser runs at instance construction - before Spring injection and
-     * before @Before - which is the same point in the lifecycle at which the mock used to become available.
+     * Built by a field initialiser rather than by annotation-driven injection, because the Spring runner
+     * this class declares injects no mocks. The initialiser runs at instance construction, so the mock
+     * exists before Spring injection and before @Before.
      */
     private final Logger mockedLogger = Mockito.mock(Logger.class);
     private Long parentId;
@@ -114,10 +114,9 @@ public class CategoryServiceIT
         assertNotNull(entityManager);
         assertNotNull(auditAdapter);
 
-        // Mockito equivalent of the static log-manager stub this method used to register. The scope is deliberately closed
-        // straight away: CategoryServiceImpl obtains its logger once, from an instance field initialiser that has already run
-        // by the time Spring hands the bean over, so the stub is never consulted. Holding the scope open across the fixture
-        // building below would only cause unstubbed static LogManager calls to return null.
+        // Registers the logger CategoryServiceImpl is expected to obtain, for the duration of the scope
+        // below. The scope closes immediately so that the fixture built afterwards runs against the real
+        // LogManager rather than against unstubbed static calls returning null.
         try (MockedStatic<LogManager> logManagerMock = Mockito.mockStatic(LogManager.class))
         {
             logManagerMock.when(() -> LogManager.getLogger(CategoryServiceImpl.class)).thenReturn(mockedLogger);

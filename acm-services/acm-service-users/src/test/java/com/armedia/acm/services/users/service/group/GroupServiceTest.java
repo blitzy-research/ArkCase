@@ -205,7 +205,16 @@ public class GroupServiceTest
         when(group.getSupervisor()).thenReturn(user);
         when(group.getAscendantsList()).thenReturn("");
         when(mockedMemberGroup1.getSupervisor()).thenReturn(null);
-        when(groupService.save(mockedMemberGroup1)).thenReturn(mockedMemberGroup1);
+        // The sub-group is persisted by createGroup, which calls groupDao.save directly rather than the service's
+        // own save method, so the dao is where the sub-group has to be handed back for saveAdHocSubGroup to pass a
+        // group on to the parent. Older Mockito supplied that answer, and the matching interaction record, by
+        // accident: stubbing a spy runs the real save, and the nested dao call it made was the invocation the
+        // answer attached to, which left the spy call itself recorded as though production had made it. Mockito
+        // now attaches the answer to the spy method that was actually named. Both halves of that accident are
+        // therefore written out against the real collaborator: the answer here, and the interaction check below.
+        // GroupServiceImpl.save is itself nothing but a call to groupDao.save, so the expectation is unchanged -
+        // the sub-group is still required to be saved exactly once, with the same argument.
+        when(mockedGroupDao.save(mockedMemberGroup1)).thenReturn(mockedMemberGroup1);
 
         // when
         AcmGroup resultGroup = groupService.saveAdHocSubGroup(mockedMemberGroup1, GROUP);
@@ -214,7 +223,7 @@ public class GroupServiceTest
         verify(mockedMemberGroup1).setSupervisor(user);
         verify(mockedMemberGroup1).setAscendantsList("");
         verify(groupService).createGroup(mockedMemberGroup1);
-        verify(groupService).save(mockedMemberGroup1);
+        verify(mockedGroupDao).save(mockedMemberGroup1);
         verify(group).addGroupMember(mockedMemberGroup1);
 
         assertThat(resultGroup, is(mockedMemberGroup1));

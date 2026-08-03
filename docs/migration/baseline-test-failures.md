@@ -6,7 +6,7 @@ Its completion condition is a citation contract. **Every exclusion in the migrat
 
 Without this page, every claim that the test suite's behaviour was preserved would be unfalsifiable. There would be no recorded prior state to compare a migrated run against, and any exclusion could be justified after the fact by asserting that the test "was already broken". That is precisely the failure mode R-5 exists to prevent, which is why this is an authoritative reference measured against rather than a report written afterwards.
 
-**Read the register section before citing it.** It records **zero rows**, and the provenance of the archive it derives from is disclosed there in full. A zero-row register is not licence to exclude anything — it is the strongest available prohibition on doing so.
+**Read the register section before citing it.** It records **four rows**, one per test that was already red on JDK 8 at the base commit, and each row names the archived report that evidences it. Four rows is not licence to exclude four tests: an exclusion still has to be argued on its own terms, and none is present in the migrated build. What the rows do license is the one classification a migrated run needs — a red test that matches a row is an accepted baseline condition, and a red test that matches no row is a migration regression.
 
 ## Rules Provenance
 
@@ -33,38 +33,58 @@ Four further rules shape this page.
 
 - **R-7 — Baseline Behavior Is the Tie-Breaker.** Quoted with the wording substitution disclosed above: *"The application's observed behavior at the base commit on JDK 8 is the tie-breaker for any ambiguity, and each resolution must be documented."* This is why the capture must precede every edit. The ordering is **irreversible**: once a file is edited the prior state stops being observable, and nothing done afterwards can reconstruct it. Baseline capture is consequently the first executable action of the implementation, not a validation afterthought.
 - **R-T7 — Evidence over exit codes.** *"Validation asserts on produced artifacts and captured output, never on process exit status alone."* Applied here as a hard constraint on provenance: every statement below derives from archived Surefire XML read element by element. A summary line and a zero exit status are both inadmissible — and the same rule forbids asserting an outcome that no run actually produced, which is what makes the provenance disclosure further down mandatory rather than optional candour.
-- **R-1 — Justified Dependency Changes.** *"Every dependency version change must have a specific Java 17 or Node 20 compatibility reason… A change without a reason is out of scope."* Relevant because the test-library changes that make this suite runnable on Java 17 — an EasyMock floor advance, a PowerMock removal, and a Mockito advance with an added inline mock maker — are each recorded as rows in [Dependency Change Inventory](dependency-change-inventory.md). None is a discretionary upgrade, and JUnit itself does not move.
+- **R-1 — Justified Dependency Changes.** *"Every dependency version change must have a specific Java 17 or Node 20 compatibility reason… A change without a reason is out of scope."* Relevant because the library changes that make this suite runnable on Java 17 — an EasyMock floor advance, a PowerMock removal, a Mockito advance with an added inline mock maker, and the two floors the runtime itself forced, on the object mapper and on the rule engine — are each recorded as rows in [Dependency Change Inventory](dependency-change-inventory.md), with the failure each one fixes. None is a discretionary upgrade, and JUnit itself does not move.
 - **R-6 — Document Discovered Bugs, Do Not Fix Them.** Encountering a genuinely broken test at baseline is a **documentation** event, not a repair event. The change set invokes R-6's escape clause exactly twice, and **neither invocation is in this folder**: both belong to the frontend track and are recorded in [Pre-existing Defects](pre-existing-defects.md). Nothing on this page is an escape-clause invocation, so the count stays auditable at two.
 
 ## How the Baseline Was Captured
 
 The capture target is the reactor exactly as it stood at base commit **`c8f6226105`** — full hash `c8f6226105c28c2743281d26bf21ad73f7bb7f26` — on **JDK 8**, **before a single file of the migration was edited**.
 
-The command shape matches the migration's own backend build step: the full reactor installs with tests skipped, and only then does the full unit-test run execute, so that a compilation failure anywhere in the 145 modules cannot be mistaken for a test failure.
+The command shape matches the migration's own backend build step: the full reactor installs with tests skipped, and only then does the full unit-test run execute, so that a compilation failure anywhere in the 145 modules cannot be mistaken for a test failure. The base commit was extracted into a tree of its own and pointed at a local artefact repository of its own, so the capture could not resolve anything from the migrated working tree and the migrated tree could not be perturbed by the capture:
 
 ```bash
-git checkout c8f6226105
-export JAVA_HOME=<jdk-8>
-mvn -B clean install -DskipTests
-mvn -B test
+git archive c8f6226105 | tar -x -C <capture-tree>
+export JAVA_HOME=<jdk-8>                       # OpenJDK 1.8.0_492, Maven 3.8.7
+mvn -B clean install -DskipTests           -Dmaven.repo.local=<capture-repo>
+mvn -B -fae test -Dmaven.test.failure.ignore=true -Djacoco.haltOnFailure=false \
+                                           -Dmaven.repo.local=<capture-repo>
 ```
 
-Per-module Surefire XML is archived **in its entirety** under `smoke-evidence/baseline/surefire/`, one directory per Maven module, each holding the reports for that module's test classes under their native filenames. The citation form used throughout this page is `smoke-evidence/baseline/surefire/<module>/TEST-<fully.qualified.Class>.xml`, where `<module>` is the module directory name alone — never the reactor path that carries its parent directory, and never a path threaded through a build output directory, because the repository ignores build output at any depth and a report left in place would be invisible to version control. Two per-report provenance notes sit alongside the reports in `smoke-evidence/baseline/surefire/notes/`.
+Both commands reported BUILD SUCCESS, the first across all 142 reactor modules. The three additions to the second command deserve to be named rather than buried, because each is a completeness measure and none can change a test outcome: `-fae` and the failure-ignore flag stop the reactor abandoning the remaining modules at the first red one, and the coverage-halt flag stops the coverage check ending the run before later modules have been reached. Without them the capture would stop at the first failing module and the archive would be a fragment. A test that fails still fails, and it is still archived as failing.
 
-The archive currently holds **66 per-module reports across 20 module directories**, enumerating **192 test methods**.
+Per-module Surefire XML is archived **in its entirety** under `smoke-evidence/baseline/surefire/`, one directory per Maven module, each holding the reports for that module's test classes under their native filenames. The citation form used throughout this page is `smoke-evidence/baseline/surefire/<module>/TEST-<fully.qualified.Class>.xml`, where `<module>` is the module directory name alone — never the reactor path that carries its parent directory, and never a path threaded through a build output directory, because the repository ignores build output at any depth and a report left in place would be invisible to version control. The folder admits report XML and nothing else: no index, no summary, no notes file, each report carrying its own provenance in a comment ahead of its root element.
+
+The archive holds **278 per-module reports across 66 module directories**, enumerating **892 test methods**, of which **3 failed, 1 errored and 21 were skipped**. Those are the run's own numbers, read back out of the archived XML rather than off a build log.
 
 ### Provenance of the archive, disclosed rather than assumed
 
-R-T7 forbids asserting an outcome that no run produced, so the archive's own provenance is stated plainly here instead of being left for a reader to infer.
+R-T7 forbids asserting an outcome that no run produced, so the archive's provenance is stated plainly here instead of being left for a reader to infer.
 
-Every archived report declares itself **derived from the module's test source rather than captured from a test run**. Two independently verified reasons, both recorded inside the reports and in the provenance notes:
+**Every archived report is a native Surefire document captured from the run described above.** None is derived from test source. The capture was taken in an isolated tree — the base commit extracted on its own, built and tested against its own local artefact repository — so that nothing in the migrated working tree could reach the classpath the run exercised. That isolation matters: an observation whose classpath provenance is not established is not evidence about the base commit, and would have been inadmissible here.
 
-- **No JDK 8 toolchain exists on this host.** The only development kit installed is a Java 17 one; the system directory that holds JVM installations holds only the 17 line, and no other Java candidate is offered. No JDK 8 was installed to close the gap, because installing a runtime purely so the capture would look complete is a change without a reason — out of scope under R-1 — and it would manufacture evidence rather than gather it.
-- **The working tree already sits past the base commit.** It carries the migration commits that stack on top of `c8f6226105`, so the irreversible ordering constraint that the baseline be taken before any edit has already passed. That ordering cannot be re-run retroactively, which is exactly why R-7 makes it the first executable action.
+What each report therefore asserts is what the runner observed: the suite counts, the per-test durations, the testcase names in execution order, and every `failure`, `error` and `skipped` element with its message, its type and its complete stack trace. **A baseline failure is archived as failing** — R-6 requires it to be documented rather than tidied away, and nothing here softens one.
 
-What each report therefore asserts is a **structural inventory** read from test source: the fully-qualified class name, the declared test methods in declaration order, and the skip count that follows from an `@Ignore` annotation, which is a source fact rather than a measurement. What no report asserts is an outcome. Read the consequence exactly as the reports themselves state it: **the absence of a failure, error or skipped child element records "outcome not captured", and emphatically not "passed".** Several reports omit their `failures`, `errors`, `time`, `hostname` and `timestamp` attributes for the same reason — writing a zero would affirmatively claim an absence of failures, and a fabricated duration or hostname would be worse than a missing one.
+One normalisation is applied, uniformly to every file, and it is disclosed in each file's own header as well as here: **the system property dump the reporter writes inside the `properties` element is emptied.** That element carried the whole JVM environment and the capture tree's absolute paths, neither of which is evidence about this codebase. After emptying it, no absolute path of the capture tree survives anywhere in the archive. Nothing else is altered: no attribute is removed, no outcome is added, reshaped or deleted, and no value is invented — there is no placeholder text and no non-numeric literal standing in for a count anywhere in the archive.
 
-This page consequently never presents the archive as a pass claim, and the register below is scoped to what the archive genuinely evidences. The replacement obligation is recorded with it: when a JDK 8 toolchain becomes available, each derived report is to be replaced by the genuine report relocated unchanged out of the module's build output directory, retaining every test case, every failure or error body with its full stack trace, every skipped element and the console output payload — and above all retaining a baseline failure **as failing**, because R-6 requires it to be documented rather than tidied away.
+Two consequences for how the archive is read:
+
+- **Comparison against the migrated half is on testcase presence, testcase outcome and failure message content — never on byte identity.** Duration, host name and run instant legitimately vary between two runs of the same suite, and EasyMock 5 renders an unmet expectation more verbosely than EasyMock 4 while reporting the same unmet expectation. "Archived in its entirety" governs completeness of content, not sameness of bytes.
+- **The two halves pair by filename.** 278 of the 279 migrated reports have a baseline twin of the identical name, and no baseline report lacks a migrated twin. The single unpaired migrated file is `smoke-evidence/migrated/surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml`: the implicitly bound Surefire at the baseline did not match a `*Tests.java` name, and the pinned 3.5.2 does. That class now runs and passes. It is recorded here because a reviewer diffing the two trees will find it, and because it is the one direction of difference that cannot be a regression — a test that never ran before and passes now.
+
+### Test classes added after the archived migrated run
+
+Six unit-test classes reach the reactor from the code-review remediations that landed after the migrated capture above, so they have no report in the archived migrated half and no baseline twin — they did not exist at the base commit. They are named here rather than left to be discovered from a count mismatch, and their outcome is stated from a measurement rather than assumed:
+
+| Module | Test class | Tests | Outcome |
+| --- | --- | --- | --- |
+| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest` | 13 | all pass |
+| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest` | 9 | all pass |
+| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest` | 7 | all pass |
+| `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest` | 7 | all pass |
+| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest` | 14 | all pass |
+| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest` | 6 | all pass |
+
+The full reactor unit run over the current tree produces **285 reports and 949 test methods, 3 failures, 1 error and 21 skips** — the 279 archived migrated reports reproduced, plus these six, and 893 + 56 = 949 methods. **All four red outcomes are the four rows registered below**, so the delta against the archive is additive coverage and not a regression. The archive itself is deliberately left as the single coherent capture it documents: adding reports from a later run would break the provenance statement above, which is worth more than a matching count.
 
 ### The environment precondition that gates a complete run
 
@@ -72,7 +92,7 @@ Three artifacts do not resolve from Maven Central and are supplied instead from 
 
 This condition is **JDK-independent and identical at the JDK 8 baseline** — it is **not** a migration defect. It is registered as an environment precondition in [Pre-existing Defects](pre-existing-defects.md), and its binding constraint is repeated here because a red build invites exactly the wrong shortcut: **under no circumstances may the module, the dependency, or the repository declarations be deleted to make the build green.** Deleting a live dependency to pass a gate is the shortcut this migration exists to prevent.
 
-In this checkout the precondition is **satisfied** rather than outstanding. The backing repository is present in the tree at `arkcase-lib` and carries all three artifacts, so it did not constrain the capture's completeness. The absent JDK 8 toolchain did, and that is recorded above rather than attributed here.
+In this checkout the precondition is **satisfied** rather than outstanding. The backing repository is present in the tree at `arkcase-lib`, is tracked in version control, and carries all three artifacts; it resolved every request the capture made of it without one error. **Nothing constrained the capture's completeness**: all 142 modules installed, every module with a test tree was reached, and the archive covers all 66 modules that executed a Surefire test.
 
 ## The Test Corpus at Baseline
 
@@ -102,13 +122,16 @@ Five points follow from that table and each one binds something.
 
 ## Register of Baseline Failures
 
-**The register has zero rows.**
+**The register has four rows.** Every one is a test that was already red on JDK 8 at the base commit, read out of the archived report named in its last column, and every one is still red on Java 17 with the same outcome kind and the same cause. None is excluded, disabled or ignored in the migrated build.
 
-Stated positively, in the same spirit as the JDK access exceptions register, which ships empty because empty is the truthful state: **the archived JDK 8 baseline reports record zero `<failure>` elements and zero `<error>` elements across all 66 files. There is therefore no baseline failure to register; consequently no exclusion in the migrated Surefire configuration can be justified, and none is present.** No row has been fabricated to fill the space, and the section is not left ambiguous — the absence is the finding.
+| Module | Test class | Test method | Failure kind | Message excerpt | Archived Surefire XML |
+| --- | --- | --- | --- | --- | --- |
+| `acm-services/acm-service-ecm` | `com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest` | `downloadFileByIdAndVersion_successful` | `failure` | Expectation failure on verify: `ContentStream.getFileName(): expected: at least 1, actual: 0` | `smoke-evidence/baseline/surefire/acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml` |
+| `acm-services/acm-service-ecm` | `com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest` | `downloadFileById_successful` | `failure` | Expectation failure on verify: `ApplicationEventPublisher.publishEvent(capture(Nothing captured yet)): expected: 1, actual: 0` | `smoke-evidence/baseline/surefire/acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml` |
+| `acm-services/acm-service-ecm` | `com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest` | `override_mime_type` | `failure` | Expectation failure on verify: `ApplicationEventPublisher.publishEvent(capture(Nothing captured yet)): expected: 1, actual: 0` | `smoke-evidence/baseline/surefire/acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml` |
+| `acm-services/acm-service-compress-folder` | `com.armedia.acm.compressfolder.FolderCompressorTest` | `testCompressFolderMaxSize` | `error` | `java.lang.NullPointerException: Deflater has been closed` | `smoke-evidence/baseline/surefire/acm-service-compress-folder/TEST-com.armedia.acm.compressfolder.FolderCompressorTest.xml` |
 
-Read together with the provenance disclosure above, that conclusion is *stronger* than a zero-failures claim rather than weaker. The archive asserts no outcomes at all, so it cannot be read as a positive pass claim for any test; what it establishes is that **nothing in it can ever be cited to justify an exclusion, because there is no row here to cite.** An exclusion added on the strength of this page fails on inspection.
-
-Any row added later must populate all six columns of the register's column contract, so that the citation from a Surefire `<excludes>` entry resolves to a single test method backed by a single evidence file:
+The column contract those rows satisfy, restated so a later row cannot be added in a looser shape — a citation from a Surefire `excludes` entry has to resolve to a single test method backed by a single evidence file:
 
 | Column | Content required |
 | --- | --- |
@@ -119,29 +142,52 @@ Any row added later must populate all six columns of the register's column contr
 | Message excerpt | A short single-line excerpt of the element's `message` attribute |
 | Archived Surefire XML | The relative path of the evidencing report, as inline code, in the form `smoke-evidence/baseline/surefire/<module>/TEST-<fully.qualified.Class>.xml` |
 
-A multi-line stack trace never belongs in a table cell — it breaks the pipe table. Where a trace matters, it goes in a fenced block below the table under a sub-heading naming the test.
+A multi-line stack trace never belongs in a table cell — it breaks the pipe table. The traces for these four live in the archived reports, at full length, and the two distinct causes are worth naming here because a reader classifying a migrated red needs to recognise them.
+
+### `FolderCompressorTest.testCompressFolderMaxSize`
+
+The compressor's own close path re-enters a deflater it has already closed, so the max-size condition the test exercises surfaces as a null-pointer error out of the platform's zip stream instead of the failure the test expects. The trace is identical on both runtimes down to the production line numbers — `DefaultFolderCompressor.compressFolder` at the same three frames — which is what places it here rather than in a regression report. It is a **pre-existing defect in application code**, and it is deliberately not fixed: R-6 makes a broken test found at baseline a documentation event rather than a repair event, and the row above is that documentation. [Pre-existing Defects](pre-existing-defects.md) is the companion register for defects that are not test failures.
+
+### `FileDownloadAPIControllerTest`, three methods
+
+All three end in an unmet EasyMock expectation: the controller does not invoke the collaborator the fixture insists on. Same three methods, same expectations, same outcome kind on both runtimes. The only difference between the two halves of the archive is presentational — EasyMock 5 prefixes the mock's interface into the message where EasyMock 4 did not — which is precisely why the comparison contract above is on message *content* and never on bytes. Also a **pre-existing defect**, documented in the row above rather than fixed, for the same reason.
+
+**Neither cause is a licence to exclude anything.** A row here classifies a red test as pre-existing; it does not authorise removing it from the run. All four still execute in the migrated build, and the migrated Surefire declaration carries no `excludes` element at all.
 
 ### Skipped test methods, and why none of them is a row
 
-The archive records **45 `<skipped>` elements**, and they divide into two kinds that must not be conflated. Neither kind is a baseline failure and neither may justify an exclusion.
+The archive records **21 `<skipped>` elements**, and every one is a genuine inherited `@Ignore`. There is no second kind: no skip in this archive is a provenance marker, a placeholder or a not-executed note, because every report is a native capture of a run that actually executed. A skipped test is not a failing test, so an `@Ignore` is not a licence to add an exclusion for the same class.
 
-- **8 bare skip elements correspond to genuine inherited `@Ignore` annotations.** Each maps to a real annotation site in test source, and each is evidenced by a report that exists in the archive: a class-level `@Ignore` in `AcmCryptoUtilsImplTest` (`smoke-evidence/baseline/surefire/acm-encryption/TEST-com.armedia.acm.crypto.AcmCryptoUtilsImplTest.xml`, four methods), in `CalendarEntityHandlerTest` (`smoke-evidence/baseline/surefire/acm-service-calendar-integration-exchange/TEST-com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest.xml`) and in `OutlookFolderCreatorPasswordMd5ToSha256UpdateExecutorTest` (`smoke-evidence/baseline/surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.service.OutlookFolderCreatorPasswordMd5ToSha256UpdateExecutorTest.xml`), and a method-level one in `CloseComplaintServiceTest` (`smoke-evidence/baseline/surefire/acm-form-close-complaint/TEST-com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest.xml`) and in `ZylabProductionFileExtractorTest` (`smoke-evidence/baseline/surefire/acm-zylab-integration/TEST-com.armedia.acm.tool.zylab.service.ZylabProductionFileExtractorTest.xml`). These are part of the inherited 26 recorded in the corpus table. A skipped test is not a failing test, so an `@Ignore` is not a licence to add an exclusion for the same class.
-- **37 skip elements carry an explicit not-executed message** placed there by the derivation. They record that the method was enumerated from source and never run. They are provenance markers, not observations, and they are the mechanism by which the archive avoids claiming a pass it cannot evidence.
+They map to real annotation sites in test source, and each is evidenced by a report in the archive. All nine reports that carry a skip, with the count each one carries, so the 21 is auditable rather than asserted:
+
+| Skips | Archived Surefire XML |
+| --- | --- |
+| 13 | `smoke-evidence/baseline/surefire/acm-foia/TEST-com.armedia.acm.plugins.casefile.service.CaseFileEnterQueueBusinessRuleTest.xml` |
+| 1 | `smoke-evidence/baseline/surefire/acm-encryption/TEST-com.armedia.acm.crypto.AcmCryptoUtilsImplTest.xml` |
+| 1 | `smoke-evidence/baseline/surefire/acm-foia/TEST-gov.foia.service.ResponseFolderCompressorServiceTest.xml` |
+| 1 | `smoke-evidence/baseline/surefire/acm-form-close-complaint/TEST-com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest.xml` |
+| 1 | `smoke-evidence/baseline/surefire/acm-service-calendar-integration-exchange/TEST-com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest.xml` |
+| 1 | `smoke-evidence/baseline/surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.service.OutlookFolderCreatorPasswordMd5ToSha256UpdateExecutorTest.xml` |
+| 1 | `smoke-evidence/baseline/surefire/acm-service-email/TEST-com.armedia.acm.services.email.service.AcmFilesystemMailTemplateConfigurationServiceTest.xml` |
+| 1 | `smoke-evidence/baseline/surefire/acm-task-plugin/TEST-com.armedia.acm.plugins.task.service.impl.ActivitiTaskDaoTest.xml` |
+| 1 | `smoke-evidence/baseline/surefire/acm-zylab-integration/TEST-com.armedia.acm.tool.zylab.service.ZylabProductionFileExtractorTest.xml` |
+
+The 13 in one file are the FOIA business-rule concentration named in the corpus table, reported as 13 skipped methods rather than as one class-level skip because the annotation sits on the methods. Four of the nine are class-level instead — `AcmCryptoUtilsImplTest`, `CalendarEntityHandlerTest`, `OutlookFolderCreatorPasswordMd5ToSha256UpdateExecutorTest` and `ActivitiTaskDaoTest` — and a class-level skip is reported as a single element regardless of how many methods the class declares. All 21 are part of the inherited 26 recorded in the corpus table, and **the migrated run reports the same 21 skips from the same nine reports**.
+
+One reporting difference between the two halves is recorded here so it is not mistaken for a changed outcome: for a **class-level** `@Ignore`, the implicitly bound Surefire at the baseline named the skipped testcase after the class, while the pinned 3.5.2 leaves that name empty. Both report one skipped testcase for the same class. The outcome is identical; only the label differs.
 
 ### Uncovered modules — neither passed nor failed
 
-An **uncovered** module is one for which the archive holds no report at all. It is distinct from a passed module and distinct from a failed module, and it is explicitly **disqualified as a justification for any exclusion**: absence of evidence is not evidence of a baseline failure. The same disqualification applies to the enumerated-but-not-executed methods above.
+An **uncovered** module is one for which the archive holds no report at all. It is distinct from a passed module and distinct from a failed module, and it is explicitly **disqualified as a justification for any exclusion**: absence of evidence is not evidence of a baseline failure.
 
-The archive covers **20 of the 76 test-source-bearing modules**. The remaining **56 are uncovered**, listed here in full so the boundary is auditable rather than approximate:
+The archive covers **66 of the 76 test-source-bearing modules**. The remaining **10 are uncovered**, listed here in full so the boundary is auditable rather than approximate:
 
-- `acm-forms` — `acm-form-report-of-investigation`
-- `acm-plugins/acm-default-plugins` — `acm-admin-plugin`, `acm-audit-plugin`, `acm-category-plugin`, `acm-dashboard-plugin`, `acm-object-association-plugin`, `acm-object-lock-plugin`, `acm-profile-plugin`, `acm-report-plugin`
-- `acm-plugins/acm-extra-plugins` — `acm-alfresco-rma-integration`, `acm-ms-outlook-plugin`, `acm-onlyoffice-plugin`, `acm-personnel-security-plugin`
-- `acm-services` — `acm-service-audit`, `acm-service-authentication-token`, `acm-service-calendar`, `acm-service-comprehend-medical`, `acm-service-configuration`, `acm-service-correspondence`, `acm-service-costsheet`, `acm-service-ecm`, `acm-service-electronic-signature`, `acm-service-email`, `acm-service-form-configuration`, `acm-service-functional-access-control`, `acm-service-holiday`, `acm-service-ms-outlook-integration`, `acm-service-note`, `acm-service-object-history`, `acm-service-ocr`, `acm-service-participants`, `acm-service-plugin-manager`, `acm-service-protect-url`, `acm-service-sequence-manager`, `acm-service-state-of-arkcase`, `acm-service-subscription`, `acm-service-timesheet`, `acm-service-transcribe`, `acm-service-users`, `acm-service-webdav`
-- `acm-standard-applications` — `acm-foia`, `arkcase`
-- `acm-tool-integrations` — `acm-activemq-configuration`, `acm-activiti-configuration`, `acm-comprehend-medical`, `acm-configuration`, `acm-drools-rule-monitor`, `acm-ephesoft`, `acm-files-folder-watcher`, `acm-files-property-file-manager`, `acm-object-diff`, `acm-pdf-utilities`, `acm-proxy-http`, `acm-report-configuration`, `acm-spring-context-holder`, `acm-spring-data-source`
+- `acm-plugins/acm-default-plugins` — `acm-category-plugin`
+- `acm-services` — `acm-service-participants`, `acm-service-protect-url`, `acm-service-sequence-manager`
+- `acm-standard-applications` — `arkcase`
+- `acm-tool-integrations` — `acm-activemq-configuration`, `acm-ephesoft`, `acm-files-property-file-manager`, `acm-spring-context-holder`, `acm-spring-data-source`
 
-The twenty covered module directories are `acm-case-file-plugin`, `acm-complaint-plugin`, `acm-consultation-plugin`, `acm-encryption`, `acm-form-close-complaint`, `acm-object-converter`, `acm-person-plugin`, `acm-service-calendar-integration-exchange`, `acm-service-compress-folder`, `acm-service-config`, `acm-service-data-access-control`, `acm-service-data-update`, `acm-service-email-smtp`, `acm-service-login`, `acm-service-notification`, `acm-service-object-lock`, `acm-service-search`, `acm-task-plugin`, `acm-transcribe-tool` and `acm-zylab-integration`.
+Every one of the ten is uncovered for the same benign reason: its test tree holds no Surefire-eligible test class. The tests there are `*IT` classes, which Failsafe executes in the integration-test phase and which emit their own reports, so they are correctly absent from a Surefire-only archive; the few remaining files in those trees are fixtures, entities and message listeners with no test method at all, which the runner correctly declines to run. **Nothing was skipped, excluded or lost to reach this boundary** — the run reached every module, and the migrated archive covers exactly the same 66 modules, so the covered set is identical on both sides.
 
 ## The Migrated Surefire Declaration
 
@@ -149,7 +195,7 @@ The migration adds a `maven-surefire-plugin` declaration to the root `pom.xml` `
 
 ### Constraint 1 — exclusions must cite a row, and the declaration ships with none
 
-The declaration **ships with no exclusions at all, and it may carry none unless a row in this register justifies one.** As delivered it carries a `groupId`, an `artifactId` and a `version` and nothing else — no `<configuration>` element, and therefore no `<excludes>` element. That is not an oversight; it is the only state this register permits, because the register has zero rows and an exclusion with no row **fails**.
+The declaration **ships with no exclusions at all, and it may carry none unless a row in this register justifies one.** As delivered it carries a `groupId`, an `artifactId` and a `version` and nothing else — no `<configuration>` element, and therefore no `<excludes>` element. The register having four rows does not change that: a row classifies a red test as pre-existing, it does not authorise removing it from the run, and all four of those tests still execute in the migrated build. An exclusion with no row **fails**; an exclusion with a row still has to be argued, and none has been.
 
 Any exclusion added later must cite its row here **by class and by method**, so the citation resolves to one test method and one evidence file rather than to a module or a package. This is the mechanism by which R-5 becomes reviewable instead of aspirational: at the baseline, Surefire was declared in zero of the 145 POMs, so there was no location where an exclusion could even be written down, let alone audited. The pinned declaration creates that single auditable location, and this page is what fills it.
 
@@ -167,7 +213,9 @@ Every `pom.xml` line anchor below is the line **as it stands at base commit `c8f
 
 The corresponding validation obligation follows, and it is R-T7 applied to coverage: the migrated build must be checked for **JaCoCo liveness** — a non-empty `jacoco.exec` and a `check` goal that demonstrably evaluated a real data set. **An empty data set that produces a pass is a FAILURE of the gate, notwithstanding a zero exit code.** Liveness is confirmed by inspecting the artifact, never inferred from the process having exited cleanly.
 
-One adjacent false positive is named so it is not mistaken for a test exclusion. The JaCoCo configuration carries **eight package glob `<excludes>`** covering the close-complaint form, the ActiveMQ tools, the crypto utilities, the Zylab tool, the data package, the calendar service, the admin plugin and the Outlook service. Those suppress **coverage measurement only**. They disable no test whatsoever, they are pre-existing and unchanged by this migration, and they are not exclusions in R-5's sense.
+Two adjacent false positives are named so neither is mistaken for a test exclusion. The JaCoCo configuration carries **eight package glob `<excludes>`** covering the close-complaint form, the ActiveMQ tools, the crypto utilities, the Zylab tool, the data package, the calendar service, the admin plugin and the Outlook service. Those suppress **coverage measurement only**. They disable no test whatsoever, they are pre-existing and unchanged by this migration, and they are not exclusions in R-5's sense.
+
+The migration adds **one** further exclusion beside them, on the `prepare-agent` execution alone, naming the rule engine's ANTLR-generated lexer and parser package. Its reason is mechanical: those generated methods already sit close to the per-method bytecode ceiling, so instrumenting them overflows it and the agent reports an instrumentation error on every module that compiles a decision table, after which the class loads uninstrumented regardless. It **cannot move any measured figure**, because report and check analyse the module's own classes and never a dependency's, and it disables no test — every test still runs, and still runs instrumented, which the liveness check above confirms. It is recorded in [Dependency Change Inventory](dependency-change-inventory.md) and it is **not** an R-5 exclusion, so it needs no row on this page.
 
 ## The Six PowerMock Classes Were Rewritten, Not Excluded
 
@@ -193,42 +241,70 @@ The facts that make this the register's centrepiece:
 - **The ordering was mandatory, not incidental.** PowerMock had to be **removed before** Mockito could advance, because PowerMock hard-pinned `mockito-core:3.3.3` and `junit:4.12`. The mocking-stack edits form an ordered chain rather than a set of independent bumps, and reversing two links leaves the reactor unable to resolve a coherent mocking stack. Each link is a row in [Dependency Change Inventory](dependency-change-inventory.md).
 - **A companion removal carried zero test risk, and that was verified rather than assumed.** `easymockclassextension` is declared in five modules and has **zero usages** across all 402 Java test source files, so deleting it could not disable anything and nothing was rewritten to accommodate it.
 
-The net effect on this register: **the six classes contribute zero rows.** No archived report for any of them records a failure or an error. Four of the six sit in modules the archive covers, and their reports can be read directly:
+The net effect on this register: **the six classes contribute zero rows.** No archived report for any of them records a failure or an error, on either runtime. **Five of the six** are Surefire-eligible and are covered by the archive on both sides, so each can be read directly and compared against its migrated twin of the same name:
 
-- `smoke-evidence/baseline/surefire/acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.dao.QueuePropertyFileChangeWatcherTest.xml`
-- `smoke-evidence/baseline/surefire/acm-service-object-lock/TEST-com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest.xml`
-- `smoke-evidence/baseline/surefire/acm-service-calendar-integration-exchange/TEST-com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest.xml`
-- `smoke-evidence/baseline/surefire/acm-transcribe-tool/TEST-com.armedia.acm.tool.transcribe.AWSTranscribeServiceTest.xml`
+- `smoke-evidence/baseline/surefire/acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.dao.QueuePropertyFileChangeWatcherTest.xml` — 1 test, green on both
+- `smoke-evidence/baseline/surefire/acm-service-object-lock/TEST-com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest.xml` — 8 tests, green on both
+- `smoke-evidence/baseline/surefire/acm-service-calendar-integration-exchange/TEST-com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest.xml` — 1 test, skipped on both under its inherited class-level `@Ignore`
+- `smoke-evidence/baseline/surefire/acm-transcribe-tool/TEST-com.armedia.acm.tool.transcribe.AWSTranscribeServiceTest.xml` — 6 tests, green on both
+- `smoke-evidence/baseline/surefire/acm-comprehend-medical/TEST-com.armedia.acm.tool.comprehendmedical.AWSComprehendMedicalServiceTest.xml` — 8 tests, green on both
 
-The other two — `CategoryServiceIT` in `acm-category-plugin` and `AWSComprehendMedicalServiceTest` in `acm-comprehend-medical` — sit in uncovered modules, which under the rule above disqualifies them as exclusion justifications just as firmly. None of the six was registered as failing at the JDK 8 baseline, and none is excluded in the migrated build.
+The sixth, `CategoryServiceIT` in `acm-category-plugin`, is an **integration** test executed by Failsafe rather than Surefire, so it is correctly absent from a Surefire-only archive on both sides; absence of a report disqualifies it as an exclusion justification just as firmly. None of the six was registered as failing at the JDK 8 baseline, none is excluded in the migrated build, and none changed outcome across the migration.
 
 ## How to Use This Register
 
 The reviewer procedure, in the order that catches the most.
 
-- **Every test failure in the migrated Java 17 run must map to a row here.** A failure with no matching row is a **migration regression**, not an accepted baseline condition. Since the register has zero rows, any failure in the migrated run is a regression until proven otherwise by a genuine baseline capture.
+- **Every test failure in the migrated Java 17 run must map to a row here.** A failure with no matching row is a **migration regression**, not an accepted baseline condition. The migrated run reports exactly the four reds in the table above and nothing else, so the mapping is complete and **the regression count is zero**. That comparison was made programmatically, over both archives, on the (suite, testcase, outcome-kind) triple rather than by eye.
 - **Every exclusion in the migrated Surefire configuration must cite a row here**, by class and by method. An exclusion with no row **fails**. The declaration as delivered carries no `<configuration>` element at all, so the current expected finding is no exclusions.
 - **The `@Ignore` count must be unchanged** from the 26 recorded in the corpus table. Any increase violates R-5 whether it appears in build configuration or in source.
 - **JaCoCo liveness must be confirmed, not inferred from an exit code**: a non-empty `jacoco.exec` and a `check` goal that evaluated a real data set. A pass over an empty data set is a gate failure.
-- **The archived baseline XML under `smoke-evidence/baseline/surefire/` is the tie-breaker** for any dispute about what was failing before the migration — subject to the provenance disclosure above, which records that the archive currently evidences structure rather than outcomes, and which must be re-read before any report in it is cited as an observation.
+- **The archived baseline XML under `smoke-evidence/baseline/surefire/` is the tie-breaker** for any dispute about what was failing before the migration. It is a native capture of a real JDK 8 run, so a report in it may be cited directly as an observation — subject only to the one disclosed normalisation and to the comparison contract above, both recorded in the provenance section and in every file's own header.
+- **Read the two halves together.** For any class, the report of the same name under `smoke-evidence/migrated/surefire/` is its Java 17 twin. The pairing is total in one direction — no baseline report lacks a migrated twin — and the single migrated file with no baseline twin is named in the provenance section.
 
 The figures published on this page are re-derivable. Run from the repository root; the base commit is `c8f6226105`.
 
 ```bash
-find . -type d -path "*/src/test/java" | wc -l                                  # 76
-find . -path "*/src/test/java/*" -name "*.java" | wc -l                         # 402
-find . -path "*/src/test/java/*" -name "*Test.java" | wc -l                     # 280
-find . -path "*/src/test/java/*" -name "*IT.java" | wc -l                       # 86
-grep -rl "org.junit.Test" --include=*.java . | grep -c "/src/test/java/"        # 366
-grep -rl "org.junit.jupiter" --include=*.java . | wc -l                         # 0
-grep -rn "@Ignore" --include=*.java . | wc -l                                   # 26
-grep -rn "rerunFailingTestsCount" --include=pom.xml . | wc -l                   # 0
-git grep -l "org.powermock" c8f6226105 -- '*.java' | wc -l                      # 6
-grep -rn "org.easymock.classextension" --include=*.java . | wc -l               # 0
-find docs -path "*baseline/surefire/*" -name "TEST-*.xml" | wc -l               # 66
-grep -rc "<failure" $(find docs -path "*baseline/surefire/*" -name "TEST-*.xml") | grep -v ':0$'   # no output
-grep -rc "<error" $(find docs -path "*baseline/surefire/*" -name "TEST-*.xml") | grep -v ':0$'     # no output
+BASE=docs/migration/smoke-evidence/baseline/surefire
+MIG=docs/migration/smoke-evidence/migrated/surefire
+
+# the corpus, from the working tree
+git ls-files | grep -oE '^.*/src/test/java/' | sed 's|/src/test/java/||' | sort -u | wc -l   # 76
+git ls-files '*.java' | grep -c '/src/test/java/'                                            # 402
+git ls-files '*Test.java' | grep -c '/src/test/java/'                                        # 280
+git ls-files '*IT.java'   | grep -c '/src/test/java/'                                        # 86
+git ls-files '*.java' | xargs grep -l 'org.junit.Test'    | grep -c '/src/test/java/'         # 366
+git ls-files '*.java' | xargs grep -l 'org.junit.jupiter' | wc -l                             # 0
+git ls-files '*.java' | xargs grep -c '@Ignore' | awk -F: '{s+=$2} END {print s}'             # 26
+git ls-files 'pom.xml' '*/pom.xml' | xargs grep -l rerunFailingTestsCount | wc -l             # 0
+git grep -l 'org.powermock' c8f6226105 -- '*.java' | wc -l                                    # 6
+git ls-files '*.java' | xargs grep -l 'org.easymock.classextension' | wc -l                    # 0
+
+# the archive, element by element - these are the figures published above
+find $BASE -name 'TEST-*.xml' | wc -l                                                         # 278
+find $BASE -mindepth 1 -maxdepth 1 -type d | wc -l                                            # 66
+grep -rho '<testcase' $BASE | wc -l                                                           # 892
+grep -rho '<skipped'  $BASE | wc -l                                                           # 21
+grep -rho '<failure'  $BASE | wc -l                                                           # 3
+grep -rho '<error'    $BASE | wc -l                                                           # 1
+find $MIG  -name 'TEST-*.xml' | wc -l                                                         # 279
+find $MIG  -mindepth 1 -maxdepth 1 -type d | wc -l                                            # 66
+
+# provenance gates: no derived-report residue, and no path of the machine that ran the capture.
+# The third command looks for the checkout root specifically, not for every temporary path: one
+# report legitimately prints a scratch file the test itself writes under the system temp directory,
+# and that is the test's own captured output rather than leaked environment.
+grep -rl 'not-captured' $BASE $MIG | wc -l                                                    # 0
+grep -rho 'status="[^"]*"' $BASE $MIG | wc -l                                                 # 0
+grep -rl '/tmp/blitzy' $BASE $MIG | wc -l                                                     # 0
+find $BASE $MIG -type f ! -name '*.xml' | wc -l                                               # 0
+
+# the four rows above, re-derived from the archive rather than read off this page
+grep -rl -e '<failure' -e '<error' $BASE | sort                                               # 2 files
+grep -rl -e '<failure' -e '<error' $MIG  | sort                                               # the same 2 class names
 ```
+
+Each `#` value is the expected output, and each is asserted rather than remembered: the last pair of commands must return the two file names behind the four register rows — `FileDownloadAPIControllerTest` under `acm-service-ecm` and `FolderCompressorTest` under `acm-service-compress-folder` — from **both** halves of the archive, which is the same statement as "zero regressions" expressed as a command.
 
 Two wording gates apply to this page and both are checkable:
 

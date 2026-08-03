@@ -99,11 +99,10 @@
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
         </dependency>
-        <!-- The three test classes in this module use Mockito directly (ArgumentMatchers, MockitoJUnitRunner and
-            Mockito.when). Until now Mockito reached them only as a transitive of the retired static-mocking
-            framework's api-mockito2 artifact; with that framework removed, the module has to declare Mockito itself
-            or its test sources no longer compile. Test scope only, and the version comes from dependencyManagement
-            in the root pom. No inline mock maker is needed here: none of these tests mock statics or constructors. -->
+        <!-- This module's test classes use Mockito directly (ArgumentMatchers, MockitoJUnitRunner and
+            Mockito.when), so it declares Mockito core itself. Test scope only, and the version comes from
+            dependencyManagement in the root pom. The inline mock maker is deliberately not declared here:
+            none of these tests mock static methods or constructors. -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>

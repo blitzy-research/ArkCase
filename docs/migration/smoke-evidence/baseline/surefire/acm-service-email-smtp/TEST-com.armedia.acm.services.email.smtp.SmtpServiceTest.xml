@@ -1,175 +1,36 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ARCHIVED BASELINE UNIT TEST REPORT.
+  Native Surefire report, JDK 8 baseline, module acm-service-email-smtp.
 
-  WHAT THIS FILE IS. This is the archived baseline unit test report for the Maven module
-  acm-service-email-smtp, test class com.armedia.acm.services.email.smtp.SmtpServiceTest, recorded
-  for base commit c8f6226105 on JDK 8, that is to say for the state of the reactor before any file in
-  the repository was edited by the behaviour preserving migration of this platform from JDK 8 onto
-  Java 17 and from its legacy Node runtime onto Node 20 LTS. It is a record of the prior state of one
-  module's unit tests. It is evidence, not application code. It exists because R-5 limits any future
-  test exclusion to a failure already present at baseline, and because R-7 makes baseline behaviour
-  the tie-breaker for every ambiguity. Without an archive of this kind the register of baseline test
-  failures would be unfalsifiable and every claim of preserved behaviour would be unverifiable.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  HOW IT WAS PRODUCED. It was derived from the module's real test source rather than relocated from a
-  run, because a genuine baseline run is impossible in this checkout for three independent reasons.
-  First, the only runtime present on this host is a Java 17 one; no JDK 8 runtime is installed
-  anywhere on it, and none was installed, because installing a runtime so that a capture would look
-  complete is a change with no compatibility reason behind it and therefore out of scope under R-1.
-  Second, the checkout is no longer at the base commit, since the migration commits are already
-  present in history, so the required condition of running before any file was edited cannot be
-  reached from here, and reaching it by altering branches or rewriting history is prohibited. Third,
-  the pre-migration source cannot be compiled by the only available runtime at all: the Active
-  Directory context source site that names an internal JNDI factory is rejected as not visible under
-  the platform's stronger encapsulation, which is precisely the condition this migration exists to
-  remove, so a reactor run started here would halt before reaching this module and would in any case
-  be a Java 17 run rather than a baseline one. As a deliberate restraint, this module's tests were NOT
-  executed on the available Java 17 runtime and no such result is offered here as baseline evidence,
-  because presenting a post-migration run as a pre-migration one would be fabrication rather than
-  capture. Only tools already present were used, no tool was installed, and no build output directory
-  was mirrored into this documentation tree. This paragraph reports the verified state of this host:
-  where the planning input for this file described the host as carrying no compiler and no build tool
-  at all, the verified state is recorded instead, because a statement about provenance that does not
-  match the host would defeat the entire purpose of an evidence artefact.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  WHAT IS SOURCE ACCURATE AND WHAT WAS NOT MEASURED. The fully qualified class name, the count of test
-  methods, their names and their declaration order, and the skipped count are read directly from the
-  module's test source at the base commit and are accurate. In that source the package declaration is
-  on line 1, the class declaration on line 75, the runner annotation on line 74, and the five test
-  annotations on lines 123, 175, 250, 333 and 341, with each method declared on the line that follows
-  its annotation. The module's test tree contains no ignore annotation, which is why the skipped count
-  is zero and why no skipped marker element appears. The class declares exactly one before-each
-  fixture method, which is not a test and correctly has no test case element of its own. Durations
-  were not measured and are recorded as zero, both for the suite and for every test case. A machine
-  identity attribute, a wall clock timestamp attribute, the system property dump element and the two
-  captured stream elements are all absent because nothing was captured; inventing any of them would
-  fabricate evidence. The suite element carries no namespace declaration, no schema location and no
-  format version attribute, because at the base commit not one of the 145 module descriptors in the
-  reactor declared a unit test runner, so the baseline suite ran on the version the build tool binds
-  implicitly, whose report is the bare form reproduced below. The pinned runner declaration is added
-  by the migration and did not exist at baseline, so decorating this element with a newer format's
-  attributes would misrepresent the runtime that produced the baseline.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  WHY THE SYSTEM PROPERTY DUMP IS ABSENT, SPECIFICALLY. Its omission is a deliberate content decision
-  rather than an oversight. That element is the only one in this report format that could carry an
-  absolute filesystem path, a runtime banner naming the older platform in a phrasing this
-  documentation tree's wording gate forbids, a module-access JVM argument that opens or exports an
-  otherwise-encapsulated JDK package to the unnamed module, or the successor enterprise namespace
-  token that R-T1 excludes from every artefact including archived XML. The exposure was real rather
-  than theoretical: the module's test source resolves a classpath resource to an absolute location
-  twice, on lines 210 and 288, so a genuine capture could plausibly have printed a host specific path.
-  No absolute filesystem path appears anywhere in this file, and no placeholder substitution for a
-  path was needed, because no captured payload is reproduced here at all.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-  OUTCOME SEMANTICS, STATED UNAMBIGUOUSLY. Read the counts precisely. The absence of failure and error
-  children records that no failure was observed because no run was observed. It is NOT an assertion
-  that this suite passed, and it must never be cited as one. Consequently no test exclusion may be
-  justified from this module's report: the report records no baseline failure, which under R-5 is the
-  correct and expected outcome, because R-5 permits an exclusion only for a failure already present at
-  baseline. R-6 is honoured here without invoking its escape clause: no test was fixed, skipped,
-  tidied or otherwise altered in this module, and no assertion anywhere in it was modified. Had a
-  genuine capture been possible and had it contained a failure, then every test case, the complete
-  failure or error body together with its full stack trace, every skipped marker and the captured
-  output payload would have been retained verbatim, because the obligation to archive a report in its
-  entirety governs content completeness. R-T7 requires validation to assert on produced artefacts and
-  captured output rather than on a process exit status alone; accordingly this file archives a report
-  and asserts no outcome that a run did not produce.
-
-  AN HONEST CAVEAT, DISCLOSED RATHER THAN ASSERTED. In the generation of the retained mocking library
-  that was in force at the base commit, the runner named on line 74 of the test source is the strict
-  runner, so an unnecessary stubbing condition would surface on a genuine run as a class level failure
-  rather than as the failure of an individual test method. That condition was neither observed nor
-  ruled out here. It is not invented into this report, and no claim is made that its absence was
-  measured.
-
-  COMPARISON CRITERION. This archive is not byte identical comparable, unlike the five frontend build
-  artefacts whose gate genuinely is byte identity. A report of this kind unavoidably carries duration
-  values, a machine identity and a timestamp in any real capture, so the baseline against migrated
-  comparison must be judged on test case presence, on test case outcome and on failure message
-  content, never on byte equality. The counterpart of this file for the migrated side belongs at the
-  same relative position beneath the migrated tree, so that a recursive directory comparison maps
-  report to report and produces a content difference rather than a structural one.
-
-  COMPANION PROVENANCE SINK. The directory docs/migration/smoke-evidence/baseline/surefire/notes/ is
-  the plain text provenance sink for this archive, and the same disclosure belongs there, written by
-  the agent that owns that directory. No file was created there by the author of this report, and no
-  second file was created in this folder: only report XML lives here, so there is no index, no
-  summary, no digest sidecar, no status file and no placeholder.
-
-  WHY THIS MODULE IS IN THE BASELINE ARCHIVE. Its module descriptor is one of the twelve that declared
-  the removed mocking framework as a test scoped dependency, yet its test source never imports that
-  framework, so the removal is a pure descriptor level deletion with no source impact. This module is
-  not one of the six whose test classes are rewritten, it does not gain an inline mocking dependency,
-  and none was added to it, since adding one would be a change without a reason under R-1. That makes
-  this report a clean control: an identical set of test case outcomes is expected on the migrated
-  side, so any difference isolates the descriptor edit or the runtime rather than a test rewrite. The
-  retained mocking library is additionally this module's only mocking framework, which makes this an
-  unusually isolated before picture for the advance of that library's floor, an advance forced by the
-  fact that static mocking of a class at the newer class file version fails on the installed release's
-  inline mock maker and succeeds on the newer one. Finally, the send path this class exercises depends
-  on message construction and MIME handling, so an unchanged report on the migrated side is evidence
-  that the reinstated activation artefact chosen by the migration is the reference implementation that
-  ships the MIME and mailcap default resources, rather than the API only jar that was verified to lack
-  them. Every namespace in that area is preserved exactly as it was, and the successor namespace token
-  appears nowhere in this file. No integration test report belongs in this folder either: the module
-  declares no integration test class, and the integration test goals bind to phases that follow the
-  unit test phase, so an absent integration test is neither a pass nor a failure and can never justify
-  a test exclusion.
-
-  CONTENT DELIBERATELY EXCLUDED. The module's test source assigns credential shaped literals to the
-  sender configuration inside its before-each fixture, and it contains e-mail address literals used by
-  two validation assertions. None of those values is reproduced here, because a report needs only
-  method names. This test class makes no system property assignment of its own, so nothing in it would
-  legitimately have carried such values into a captured property dump even if a dump had been
-  captured.
-
-  TWO FALSE POSITIVES A REVIEWER SHOULD NOT DRAW. First, this reactor contains no test retry tooling
-  whatsoever. The rerun count setting appears in none of the 145 module descriptors, indeed nowhere in
-  the repository, and no retry plugin is declared anywhere, so a failure observed at baseline would be
-  real and reproducible and a fail fast reading of this archive is safe. The reactor does contain an
-  application level retry library, declared through a version property in the root aggregator, a
-  managed entry alongside it and exactly three consuming child modules; it governs application retry
-  semantics and has nothing at all to do with re-running tests. This is worth stating explicitly in a
-  mail sending module, where mail send retry semantics make the wrong inference especially tempting.
-  Second, the coverage plugin configuration in the root aggregator carries eight package glob
-  exclusions, annotated there as packages with zero or sub threshold coverage; they exclude those
-  packages from coverage measurement only and disable no test. Relatedly and bindingly, the coverage
-  agent's preparation step communicates with the test runner through the default argument line
-  property export, and no module descriptor sets that property, so the runner declaration the
-  migration adds must not set a literal argument line element; doing so would silently sever
-  instrumentation and leave the coverage check goal evaluating an empty data set, which is a false
-  pass rather than a pass.
-
-  AN EARNED ZERO. This file contains no module-access JVM argument that opens or exports an
-  otherwise-encapsulated JDK package to the unnamed module, and that zero is earned rather than
-  incidental. Every accessibility failure encountered anywhere in this migration was inside a test
-  library and was resolved by upgrading or replacing that library, never by widening module access,
-  which is what R-2 and R-T3 require; the audited production launch configuration in the project
-  readme contains no such argument either, so the register of documented exceptions of that kind is
-  delivered empty with a positive statement that none are required. That register is referred to here
-  by description only and never by filename, because its filename embeds a token this documentation
-  tree excludes.
-
-  THE RULE THAT MAKES THIS ARCHIVE NECESSARY. R-7 reads: "The application's observed behavior at the
-  base commit on JDK 8 is the tie-breaker for any ambiguity, and each resolution must be documented."
-  One substitution is disclosed alongside that quotation rather than made silently: the rule's own
-  text names the older runtime with a phrasing that this documentation tree's wording gate forbids,
-  and the form JDK 8 is substituted for it. The substitution changes no meaning.
-
-  RULES PROVENANCE, BOTH FACTS STATED TOGETHER. The project's rules facility was consulted twice, once
-  plainly and once with a forced complete read, and both times reported that no user rules were
-  provided. There is therefore no on-disk user rules document for this project and no external full
-  text source to defer to, and that absence is not licence to lower the bar. Rules are nonetheless
-  present and binding: the requirements embed seven numbered rules and seven transformation rules that
-  govern this work in full, exactly as an external document would, and enterprise practice is applied
-  on top of them rather than in place of them. The identifiers used above, such as R-1, R-5, R-6, R-7,
-  R-T1, R-T3 and R-T7, are the migration plan's own navigational convention and are not quoted titles.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.services.email.smtp.SmtpServiceTest" time="0" tests="5" errors="0" skipped="0" failures="0">
-  <testcase name="testSendEmailWithEmbeddedLinks" classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" time="0"/>
-  <testcase name="testSendEmailWithAttachments" classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" time="0"/>
-  <testcase name="testSendEmailWithEmbeddedLinksAndAttachments" classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" time="0"/>
-  <testcase name="testValidEmail" classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" time="0"/>
-  <testcase name="testInvalidEmail" classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" time="0"/>
+<testsuite tests="5" failures="0" name="com.armedia.acm.services.email.smtp.SmtpServiceTest" time="7.025" errors="0" skipped="0">
+  <properties/>
+  <testcase classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" name="testValidEmail" time="6.649"/>
+  <testcase classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" name="testSendEmailWithEmbeddedLinks" time="0.196"/>
+  <testcase classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" name="testInvalidEmail" time="0.001"/>
+  <testcase classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" name="testSendEmailWithEmbeddedLinksAndAttachments" time="0.096"/>
+  <testcase classname="com.armedia.acm.services.email.smtp.SmtpServiceTest" name="testSendEmailWithAttachments" time="0.083"/>
 </testsuite>

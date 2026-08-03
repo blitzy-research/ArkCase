@@ -1,0 +1,29 @@
+frontend artifact digest gate
+
+state: PASSED
+digests-required: 5
+digests-produced: 5
+digests-failed: 0
+artifact-directory-probed: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
+home-html-probed: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/home.html
+
+gate rule: all five compared artifacts must exist and must each yield a
+  well-formed 64-character lower-case hexadecimal digest.  A missing file,
+  an unavailable digest tool, an empty digest or a malformed digest is a
+  GATE FAILURE and is never recorded as a row of evidence.
+
+why the gate is a hard failure rather than a note: a capture taken without
+  a completed frontend build would otherwise write five rows each reading
+  ABSENT, two such captures would compare byte-identical, and the
+  comparison would report the frontend unchanged when it had never been
+  built at all.  Identical absence is not identity of behaviour.  The
+  frontend tree contains no spec files, so these five digests are the only
+  behavioural evidence this track has, and evidence that passes when
+  absent is worse than none because it is trusted.
+
+the source map is digested but deliberately EXCLUDED from these counters,
+  because it embeds file paths and is not one of the five compared
+  artifacts; see notes/determinism-basis.txt for that caveat in full.
+
+to satisfy the gate, build the frontend first:
+  cd <frontend resources dir> && npm ci && npm run build

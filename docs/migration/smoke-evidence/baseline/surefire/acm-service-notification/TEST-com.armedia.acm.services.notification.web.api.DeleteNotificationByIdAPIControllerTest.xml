@@ -1,40 +1,33 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  PROVENANCE DISCLOSURE. Read this before treating any attribute below as an observation.
+  Native Surefire report, JDK 8 baseline, module acm-service-notification.
 
-  Derivation, not capture. This report was derived from the module's own unit test source at
-  base commit c8f6226105. It was not produced by executing the test class, so it is not a
-  relocated Surefire artifact and it must not be read as one.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  Runtime availability. No JDK 8 runtime was available in the authoring environment: the only
-  Java virtual machine present is a Java 17 one, no JDK 8 installation exists on the host, and
-  no Surefire report directory exists anywhere in the checkout. None was installed, because
-  installing a runtime solely to make the capture look complete would be a change without a
-  reason and would manufacture evidence.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  Element inventory is authoritative. The package name, the class name, and both of the two test
-  method names below in their declaration order, were read directly from
-  acm-services/acm-service-notification/src/test/java/com/armedia/acm/services/notification/web/api/DeleteNotificationByIdAPIControllerTest.java
-  and were re-derived from that same file immediately before publication. The package is declared
-  on line 1, the class on line 60, and the two test methods on lines 87 and 111.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  Outcome, timing and environment attributes were NOT observed and assert nothing. The tests,
-  errors, skipped, failures and time values on the suite element, and the time value on every
-  testcase element, carry no claim whatsoever about what a run produced. No pass is claimed here
-  and no failure is claimed here.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-  The skipped count of zero is additionally corroborated by the verified absence of any JUnit
-  ignore annotation anywhere in this module's source tree.
-
-  A system property dump, standard output, standard error, and the hostname and timestamp
-  attributes are deliberately omitted rather than fabricated. This class emits no standard output
-  of its own: it writes only through the logging facade, and this module's test resources contain
-  no logging configuration at all, so nothing is being suppressed.
-
-  Full provenance, including the report format assumption and every substitution made, is recorded
-  in the sibling folder surefire/notes/.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.services.notification.web.api.DeleteNotificationByIdAPIControllerTest" tests="2" errors="0" skipped="0" failures="0" time="0">
-  <testcase name="deleteNotificationById" classname="com.armedia.acm.services.notification.web.api.DeleteNotificationByIdAPIControllerTest" time="0"/>
-  <testcase name="deleteNotificationById_notFound" classname="com.armedia.acm.services.notification.web.api.DeleteNotificationByIdAPIControllerTest" time="0"/>
+<testsuite tests="2" failures="0" name="com.armedia.acm.services.notification.web.api.DeleteNotificationByIdAPIControllerTest" time="0.189" errors="0" skipped="0">
+  <properties/>
+  <testcase classname="com.armedia.acm.services.notification.web.api.DeleteNotificationByIdAPIControllerTest" name="deleteNotificationById_notFound" time="0.099"/>
+  <testcase classname="com.armedia.acm.services.notification.web.api.DeleteNotificationByIdAPIControllerTest" name="deleteNotificationById" time="0.09"/>
 </testsuite>

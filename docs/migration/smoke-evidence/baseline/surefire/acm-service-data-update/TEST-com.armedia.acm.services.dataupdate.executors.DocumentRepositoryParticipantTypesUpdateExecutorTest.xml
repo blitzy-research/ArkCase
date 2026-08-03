@@ -1,56 +1,33 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  PROVENANCE DISCLOSURE. Read this before treating anything below as a captured result.
+  Native Surefire report, JDK 8 baseline, module acm-service-data-update.
 
-  WHAT THIS FILE IS. This report was DERIVED from the module's own unit test source at base
-  commit c8f6226105. It was NOT captured from an executed test run. The suite name, the class
-  name and both test method names were read directly from the source file
-  acm-services/acm-service-data-update/src/test/java/com/armedia/acm/services/dataupdate/executors/DocumentRepositoryParticipantTypesUpdateExecutorTest.java
-  as it stands at that commit: the package declaration on its first line, the class declaration,
-  the fixture method annotated for setup, and the two methods annotated as tests. The fixture
-  method is not a test method and therefore contributes no test case below. The first of the two
-  test method names recorded below is spelled with a single p in its middle syllable; that is the
-  spelling used in the source, and it is reproduced verbatim rather than corrected, so that a
-  citation to this report resolves against a method that genuinely exists. This module's test tree
-  is untouched by the migration change set, so the names recorded below match the base commit
-  exactly.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  WHY IT WAS DERIVED. The authoritative production path is to run this module's unit tests on
-  JDK 8 at the base commit, before any file is edited, and then relocate the resulting report
-  here unchanged. That path was attempted and is not available in this checkout. The only Java
-  toolchain present here is a Java 17 one; no JDK 8 installation exists on this machine, and no
-  JDK 8 build toolchain is registered for the build to select. Installing a runtime so that the
-  capture would merely look complete is out of scope and was not done. The working tree also
-  already carries the migration edits, so the pre-edit state that a baseline capture requires is
-  no longer reproducible here. Executing the tests on the Java 17 toolchain and filing the
-  result as a JDK 8 baseline was considered and rejected, because that would be fabricated
-  evidence.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  WHAT IS DELIBERATELY OMITTED, so that nothing here can be read as an assertion about a run
-  that did not happen:
-    1. Every time attribute is a structural placeholder of zero. None of them is a measurement.
-    2. The optional hostname and timestamp attributes are omitted rather than invented, since a
-       derivation has neither a machine name nor a clock reading to record. The core attributes
-       that identify and quantify the suite are all present.
-    3. The system property dump that a captured report carries is omitted. A derived report has
-       no captured dump to retain, and emitting one would both fabricate evidence and inject
-       machine specific values that have no place in a committed evidence file.
-    4. The standard output and standard error payloads are omitted rather than fabricated. This
-       module configures a console appender on standard output, with its own package logger at
-       debug level and a root logger at info level, so a genuine run does emit real output; that
-       output is simply unknown here.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  HOW TO READ THE COUNTS. The source declares exactly two test methods and suppresses neither,
-  so this suite records two test cases and a zero for failures, for errors and for skips. Those
-  zeros record that no failure, no error and no skip was observed, because no run was observed.
-  They are not a claim that an executed run passed, and no failure has been invented to make the
-  report look thorough. Both test methods set their expectations through the mock support base
-  class the test class extends, then call its replay helper and execute the executor under test;
-  neither calls the verify helper. That is recorded as an observed property of the source at this
-  commit, not as a defect: nothing in the source or in this report has been fixed, tidied or
-  corrected.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
+
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" tests="2" failures="0" errors="0" skipped="0" time="0">
-  <testcase name="participantMapingTest" classname="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" time="0"/>
-  <testcase name="duplicateCreatedParticipantsSizeTest" classname="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" time="0"/>
+<testsuite tests="2" failures="0" name="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" time="3.693" errors="0" skipped="0">
+  <properties/>
+  <testcase classname="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" name="participantMapingTest" time="3.69"/>
+  <testcase classname="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" name="duplicateCreatedParticipantsSizeTest" time="0.003"/>
 </testsuite>

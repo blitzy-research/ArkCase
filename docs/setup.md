@@ -72,28 +72,29 @@ In your Tomcat 9 installation, edit `conf/server.xml` and add a TLS connector be
 
 ### Tomcat `setenv.sh`
 
-Create `bin/setenv.sh`, mark it executable, and set environment variables for `JAVA_OPTS`, `NODE_ENV`, and `CATALINA_OPTS`. **Do not check real keystore or trust-store passwords into source control — set them through environment variables or a secret manager in any non-local environment.**
+This block is a duplicate of the one in the upstream README, and the README is the authoritative copy. It is reproduced verbatim so the two cannot drift; the Java 17 migration changed only the paragraph that follows it, and deliberately left the command itself exactly as the README states it, including its pre-existing formatting and quoting. Pre-existing defects in it are registered in the migration notes rather than corrected here.
+
+Create the file `bin/setenv.sh`, mark it executable, and set the contents as the following, *being careful to set the correct path to the Tomcat native library*:
 
 ```bash
 #!/bin/sh
 
-# macOS: replace ${user.home} with the actual path to your home folder.
-export JAVA_OPTS="-Djava.net.preferIPv4Stack=true \
-  -Duser.timezone=GMT \
-  -Djavax.net.ssl.keyStorePassword=<REDACTED> \
-  -Djavax.net.ssl.trustStorePassword=<REDACTED> \
-  -Djavax.net.ssl.keyStore=${user.home}/.arkcase/acm/private/arkcase.ks \
-  -Djavax.net.ssl.trustStore=${user.home}/.arkcase/acm/private/arkcase.ts \
-  -Dspring.profiles.active=ldap \
-  -Dacm.configurationserver.propertyfile=${user.home}/.arkcase/acm/conf.yml \
-  -Xms1024M -Xmx1024M"
+### MacOS X note: replace {user.home} with the actual path to your home folder, e.g. /Users/dmiller
+export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Duser.timezone=GMT  -Djavax.net.ssl.keyStorePassword=password -Djavax.net.ssl.trustStorePassword=password -Djavax.net.ssl.keyStore=${user.home}/.arkcase/acm/private/arkcase.ks -Djavax.net.ssl.trustStore=${user.home}/.arkcase/acm/private/arkcase.ts -Dspring.profiles.active=ldap -Dacm.configurationserver.propertyfile="${user.home}/.arkcase/acm/conf.yml -Xms1024M -Xmx1024M"
 
 export NODE_ENV=development
-export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)"
+
+export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)
+# MacOS Example: export CATALINA_OPTS=/usr/local/opt/tomcat-native/lib"
+
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
 
-This launch configuration deliberately contains no argument that opens or exports an encapsulated JDK package, and Java 17 needs none: nothing above relies on JDK internal access. That is why the [JDK access exceptions register](migration/add-opens-exceptions.md) is delivered empty. Every strong encapsulation failure found during the Java 17 migration was inside a test library and was resolved by upgrading or removing that library rather than by opening a JDK module to the application; ArkCase's own reflective code only ever targets ArkCase classes, and ArkCase installs no `SecurityManager`.
+This launch configuration deliberately contains no argument that opens or exports an encapsulated JDK package, and Java 17 needs none: nothing above relies on JDK internal access. That is why the register of applied exceptions in [JDK Access Exceptions](migration/add-opens-exceptions.md) is empty; that page also records the one dependency-side requirement for such access that was measured during the migration and deliberately not satisfied, so its emptiness is not mistaken for an absence of the problem. Every strong encapsulation failure found during the Java 17 migration was inside a test library and was resolved by upgrading or removing that library rather than by opening a JDK module to the application; ArkCase's own reflective code only ever targets ArkCase classes, and ArkCase installs no `SecurityManager`.
+
+`NODE_ENV=development` explicitly selects the non-production branch of the front-end build that Tomcat runs at startup: `Gruntfile.js` tests only for the exact value `production` when it decides which asset lists to render into `home.html`, so every other value — including an unset variable — follows the same development branch. The export is therefore documentation of the intended branch rather than a strict requirement, and it is kept for that reason. That build now installs its dependencies with `npm ci` on Node 20.
+
+On MacOS X, you have to replace `file:${user.home}` in the above script, with the actual full path to your home folder.
 
 ### Start and Stop Tomcat
 

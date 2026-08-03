@@ -55,7 +55,20 @@
         <com.google.guava.version>30.0-jre</com.google.guava.version>
         <docx4j.core>3.3.7</docx4j.core>
         <docx4j.export.fo>3.3.6</docx4j.export.fo>
-        <drools.version>7.34.0.Final</drools.version>
+        <!-- 7.34.0.Final cannot compile or fire a rule on JDK 17: ClassGenerator, the ASM consequence-invoker
+            generator the decision-table path reaches through KnowledgeBuilderImpl.addPackageFromDecisionTable,
+            asks in its static initialiser for reflective access to the protected ClassLoader.defineClass and the
+            platform declines because java.base does not open java.lang to the unnamed module. Every one of the
+            live .xlsx decision tables is on that path, so this is a runtime blocker and not a test-only one. The
+            floor was found by bisection rather than from a changelog: 7.34 through 7.40 fail in ClassGenerator's
+            own initialiser, 7.41 through 7.48 defer the same reflective lookup to a holder class and still fail
+            when the first rule fires, and 7.49.0.Final is the earliest release that compiles and fires a real
+            decision table on JDK 17 (it reaches defineClass through the drools-owned ByteArrayClassLoader
+            instead). Stay on the 7.x line: it keeps the javax namespace and the existing rule semantics.
+            drools-decisiontables is the only artifact managed with this property; drools-core, drools-compiler,
+            drools-mvel, drools-templates, drools-ecj, kie-api, kie-internal, kie-memory-compiler and the
+            kie-soup family all follow it transitively, and mvel2 stays pinned at ${org.mvel.version}. -->
+        <drools.version>7.49.0.Final</drools.version>
         <!-- easymock 4.1 and 4.3 both fail on JDK 17 with an inaccessible-object error raised from EasyMock's
             class proxy factory, because java.lang is not opened to the unnamed module; 5.6.0 succeeds. -->
         <easymock.version>5.6.0</easymock.version>
@@ -68,22 +81,39 @@
         <eclipselink-jpa.version>2.7.16</eclipselink-jpa.version>
         <ehcache.version>2.6.9</ehcache.version>
         <exchange-web-services.version>2.0</exchange-web-services.version>
-        <fasterxml-jackson-core.version>2.10.3</fasterxml-jackson-core.version>
+        <!-- 2.10.3 fails on JDK 17 whenever a bean deserializer is built for a type that carries a java.time
+            property and the JSR-310 module is not registered: ClassUtil.checkAndFixAccess calls setAccessible on
+            LocalDate's private fields and java.base does not open java.time to the unnamed module. The 2.12 line
+            is the earliest that does not reflect into those types at all - it installs a lazily failing
+            unsupported-type deserializer instead - so 2.11.4 still fails and 2.12.7 succeeds. Serialisation
+            output is unchanged: the same modules are registered from the same classpath as before. This property
+            drives jackson-core, jackson-databind, jackson-annotations, jackson-datatype-jsr310,
+            jackson-module-jsonSchema and jackson-datatype-hibernate5, all of which publish 2.12.7. -->
+        <fasterxml-jackson-core.version>2.12.7</fasterxml-jackson-core.version>
         <fop.version>2.0</fop.version>
         <freemarker.version>2.3.28</freemarker.version>
         <frevvo.forms.version>6.3</frevvo.forms.version>
         <google-collections.version>1.0</google-collections.version>
         <gps.pointlocations.version>4.1</gps.pointlocations.version>
-        <!-- groovy-all reaches 79 of the 142 reactor modules, 78 of them transitively through acm-service-search,
-            which declares it for IDE support only: no source file imports groovy, and no .groovy script exists
-            anywhere in the tree. It is loaded all the same, because Spring's DelegatingSmartContextLoader switches
-            to GenericGroovyXmlContextLoader whenever groovy.lang.Closure is on the test classpath, and that loader
-            constructs a GroovyBeanDefinitionReader even for .xml locations. On JDK 17 the 1.8.6 that resolved
-            before this pin fails there with an inaccessible-object error, because Groovy's CachedClass calls
-            setAccessible on Object.finalize() while java.lang is not opened to the unnamed module. Bisected against
-            spring-context 5.3.39 on JDK 17: 1.8.6, 2.1.8, 2.3.2 and 2.3.11 all fail and 2.4.0 is the first release
-            that succeeds, so 2.4 is the minimum capable line and 2.4.21 is its final patch. Do not advance past the
-            2.4 line: groovy-all became a pom-only aggregator at 2.5.0 and would no longer resolve as a jar. -->
+        <!-- groovy-all reaches 79 of the 142 reactor modules and 78 of them receive it transitively, through
+            acm-service-search, which declares it for IDE support only: no source file imports groovy, and no
+            .groovy script exists anywhere in the tree. It is loaded all the same, because Spring's
+            DelegatingSmartContextLoader switches to GenericGroovyXmlContextLoader whenever groovy.lang.Closure is
+            on the test classpath, and that loader constructs a GroovyBeanDefinitionReader even for .xml locations.
+            On JDK 17 the 1.8.6 that resolved before this pin fails there with an inaccessible-object error, because
+            Groovy's CachedClass calls setAccessible on Object.finalize() while java.lang is not opened to the
+            unnamed module. Bisected against spring-context 5.3.39 on JDK 17: 1.8.6, 2.1.8, 2.3.2 and 2.3.11 all
+            fail and 2.4.0 is the first release that succeeds, so 2.4 is the minimum capable line and 2.4.21 is its
+            final patch. Do not advance past the 2.4 line: groovy-all became a pom-only aggregator at 2.5.0 and
+            would no longer resolve as a jar.
+            Scope, stated precisely because the distinction is easy to misread: the managed entry below governs a
+            transitively resolved copy, so it reaches exactly those 78 modules. It does not reach
+            acm-service-search itself, whose own direct declaration wins locally, so that declaration references
+            this property instead of the literal it used to carry. Measured rather than assumed: with the literal
+            1.8.6, 12 of that module's 23 unit tests error with "Could not initialize class groovy.lang.GroovySystem"
+            raised from GroovyBeanDefinitionReader's constructor, across its four @ContextConfiguration classes
+            under web/api; with this property all 23 pass. The measurements and the alternatives considered are
+            recorded in docs/migration/dependency-change-inventory.md. -->
         <groovy.version>2.4.21</groovy.version>
         <gson.version>1.7.1</gson.version>
         <h2.version>1.3.169</h2.version>
@@ -512,6 +542,20 @@
                         </goals>
                         <configuration>
                             <destFile>${project.build.directory}/jacoco-reports/jacoco.exec</destFile>
+                            <!-- Agent-scoped exclusion, and the only one. The rule engine's ANTLR-generated
+                                lexers and parsers already sit close to the 64 KB per-method ceiling, so adding
+                                probes to them overflows it: on JDK 17 the agent raises MethodTooLargeException
+                                for org/drools/compiler/lang/DRL6Lexer.mID and reports an instrumentation error
+                                on every module that compiles a decision table. Excluding that generated package
+                                cannot change any measured figure, because report and check analyse this module's
+                                own classes and never a dependency's. Note the notation: the agent matches VM
+                                class names with its own wildcard matcher, so entries here are dotted package
+                                patterns and not the Ant-style paths used by the report excludes above. This is
+                                not a test exclusion - no test is skipped, and every one still runs
+                                instrumented. -->
+                            <excludes>
+                                <exclude>org.drools.compiler.lang.*</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                     <execution>
@@ -1041,6 +1085,14 @@
                         <groupId>com.sun.xml.bind</groupId>
                         <artifactId>jaxb-impl</artifactId>
                     </exclusion>
+                    <!-- jaxb-impl was already excluded here; jaxb-core was not, so a 2.1 vintage copy of the XML
+                        binding implementation still arrived through cxf-rt-databinding-jaxb and duplicated classes
+                        that the pinned jaxb-runtime 2.3.1 graph already provides at a much later patch level. The
+                        exclusion completes the one already present rather than introducing a new policy. -->
+                    <exclusion>
+                        <groupId>com.sun.xml.bind</groupId>
+                        <artifactId>jaxb-core</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
 
@@ -1092,6 +1144,26 @@
                     <exclusion>
                         <groupId>com.sun.activation</groupId>
                         <artifactId>jakarta.activation</artifactId>
+                    </exclusion>
+                    <!-- the third route, and the one that mattered most: camel-spring-boot reaches camel-xml-jaxb,
+                        which declares its own copy of the XML binding reference implementation - jaxb-impl 2.3.3 and
+                        jaxb-core 2.3.0 - alongside the org.glassfish.jaxb:jaxb-runtime 2.3.1 this reactor pins. Those
+                        are two DIFFERENT patch levels of the SAME implementation: they share 641 and 105 classes
+                        respectively with jaxb-runtime, and jaxb-impl additionally publishes its own
+                        META-INF/services/javax.xml.bind.JAXBContextFactory entry, so which provider served a
+                        JAXBContext depended on classpath order rather than on configuration. Excluding them leaves
+                        exactly one implementation graph. It removes no capability: jaxb-core 2.3.0 is a strict subset
+                        of the jaxb-runtime 2.3.1 graph, the only classes unique to jaxb-impl 2.3.3 are the bytecode
+                        injecting accessor optimiser that 2.3.1 deliberately dropped for JDK 9 and up - nothing in
+                        2.3.1 references them - and camel-xml-jaxb itself makes no direct reference to any
+                        com.sun.xml.bind or com.sun.istack class, so it needs a provider rather than that provider. -->
+                    <exclusion>
+                        <groupId>com.sun.xml.bind</groupId>
+                        <artifactId>jaxb-impl</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.xml.bind</groupId>
+                        <artifactId>jaxb-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1289,10 +1361,12 @@
                 <version>${xmlunit.version}</version>
                 <!-- do not use scope test -->
             </dependency>
-            <!-- groovy. Managed here so that every module which receives groovy-all transitively resolves a
-                JDK-17-capable release instead of the 1.8.6 that fails Spring's Groovy-aware test context loader;
-                the groovy.version property records the bisection that fixed the floor. Groovy is not used by any
-                application code, so the pin changes no behaviour beyond letting that loader initialise. -->
+            <!-- groovy. Managed here so that each of the 78 modules which receive groovy-all transitively
+                resolves a JDK-17-capable release instead of the 1.8.6 that fails Spring's Groovy-aware test
+                context loader; the groovy.version property records the bisection that fixed the floor. A managed
+                version does not override a direct declaration, so acm-service-search references that property from
+                its own declaration instead. Groovy is not used by any application code, so the pin changes no
+                behaviour beyond letting that loader initialise. -->
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy-all</artifactId>

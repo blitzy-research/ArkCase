@@ -1,177 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ARCHIVED JDK 8 BASELINE UNIT TEST REPORT
-  Suite   : com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest
-  Module  : acm-person-plugin (acm-plugins/acm-default-plugins/acm-person-plugin)
-  Baseline: base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26, the state of the repository
-            before any file was edited for the runtime migration of com.armedia:acm 2021.03
-            from JDK 8 to Java 17 on the backend and from a legacy era frontend build
-            toolchain to Node 20 LTS.
+  Native Surefire report, JDK 8 baseline, module acm-person-plugin.
 
-  PROVENANCE. This file is a SOURCE DERIVED STRUCTURAL INVENTORY. It is NOT a captured run,
-  and it asserts NO pass and NO failure for any test method. Two independent facts made a
-  genuine JDK 8 capture impossible in this environment, and both are recorded here rather
-  than glossed over:
-    1. Only one Java toolchain is installed, OpenJDK 17.0.19. No JDK 8 toolchain exists on
-       this host. Installing one to make the capture look complete is forbidden by the scope
-       fence, so nothing was installed and no runtime was simulated. Contrary to the working
-       assumption recorded in this file's own task brief, a Java compiler, a Java launcher, a
-       Maven distribution and a populated local artifact repository ARE present here; what is
-       absent is specifically the JDK 8 toolchain the baseline requires. The brief's audit is
-       corrected here rather than repeated as fact.
-    2. The checkout is no longer at the base commit. Its head is four commits ahead of
-       c8f6226105c28c2743281d26bf21ad73f7bb7f26 and the root aggregator already carries the
-       migration edits, so any run executed now would record post edit state on the target
-       runtime, which is by definition not the baseline.
-  MITIGATING FACT, stated because it bounds what this inventory is worth: the module directory
-  acm-plugins/acm-default-plugins/acm-person-plugin is byte identical between the base commit
-  and the current head, so the test source this inventory was read from IS the base commit
-  source. The suite name, the test count and every method name below are therefore accurate;
-  only the outcomes and the measurements are unavailable.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  TIME ATTRIBUTES. Every time attribute, at suite level and at case level, is the literal 0
-  and is a deliberate, documented NOT MEASURED marker. It is not a duration, not a rounded
-  duration and not an estimate. Nothing measured has been invented anywhere in this file:
-  there is no hostname attribute, no timestamp attribute, no JVM system property dump, no
-  fabricated duration and no fabricated stack trace. The properties block below carries
-  provenance markers only, every name prefixed acm.baseline, so it cannot be mistaken for the
-  system property dump a genuine capture would have emitted.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  TESTCASE INVENTORY AND ORDERING BASIS. The three cases appear in SOURCE DECLARATION ORDER,
-  read directly from
-  acm-plugins/acm-default-plugins/acm-person-plugin/src/test/java/com/armedia/acm/plugins/person/web/api/SavePersonAPIControllerTest.java
-  which is 278 lines long and is the longest test class in the module. The annotated methods
-  are declared at lines 103, 180 and 209 in the order listed below. Declaration order is used
-  because it is deterministic and re verifiable against the source, whereas the runner's actual
-  execution order was not observed and would have to be guessed. The class is eligible for
-  the unit test runner on two independent grounds: it carries a class runner annotation and it
-  declares three test annotations.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  OUTCOMES ARE NOT ASSERTED, AND TWO CASES MUST NOT BE MISREAD. No case below carries a
-  failure child, an error child or a skipped child, because no run produced one. Two of the
-  three methods deliberately exercise an error path: one injects a plain runtime exception
-  through a mock of the save transaction and asserts an internal server error response with a
-  plain text content type, and the other injects Spring's transaction creation exception and
-  asserts a bad request response with a plain text content type. In both cases the exception is
-  the FIXTURE, not a defect: a test that exercises an exception path and asserts the resulting
-  response is a PASSING test and yields an ordinary case element with no failure or error
-  child. Neither method uses an expected exception declaration.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-  SKIPPED IS ZERO, AND THE IGNORED METHOD ELSEWHERE IN THE MODULE IS NOT REPRESENTABLE HERE.
-  This class contains no ignore annotation, so skipped is 0 and no skipped element appears.
-  Across the whole source tree the ignore annotation occurs 26 times, and the correct
-  arithmetic is 21 representable plus 5 sitting on integration test classes, which totals 26.
-  One of those 5 sits on a concurrency oriented method of this module's person service
-  integration test class. It is thematically adjacent to this suite, which is exactly why the
-  temptation to represent it arises here, and it has been resisted: integration test classes
-  produce no unit test report at all, because the integration test runner declared in the root
-  aggregator binds its goals with no explicit phase and therefore takes default phases that
-  both fall after the unit test phase. Seven integration test classes in this module produce no
-  report, none has been fabricated, and an absent integration test is NEITHER a pass NOR a
-  failure and may never justify a test exclusion.
-
-  WHAT A GENUINE CAPTURE WOULD HAVE CARRIED. The captured output elements are OMITTED rather
-  than fabricated. Had the run executed, they would have been shaped by
-  src/test/resources/log4j2.xml, which declares exactly one Console appender targeting the
-  standard output stream with the pattern layout
-  %d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n
-  a com.armedia logger at debug with a console appender reference pinned at info, a root logger
-  at info, and no file appender. This suite loads a two location Spring test context, one
-  location resolving from a dependency jar on the test classpath and one module local, so a
-  genuine capture would carry a comparatively large volume of Spring application context
-  startup logging at info. The transaction exception case would additionally log a substantial
-  stack trace while still PASSING; a genuine capture must preserve that payload verbatim and
-  untrimmed, and its size is not a reason to abbreviate it.
-
-  CITATION. No row of the baseline test failures register, referred to here by title only, may
-  be derived from or cite this file, because a register row requires a genuine capture. The
-  citable path shape for a genuine report is stable and is
-  docs/migration/smoke-evidence/baseline/surefire/{module-directory}/TEST-{fully.qualified.ClassName}.xml
-  where the module segment is the module directory name only. Because a method named
-  invalidInput is declared both here and in the sibling PersonAssociationAPIControllerTest of
-  this same module, any register row concerning that method must be disambiguated by the citing
-  file path; a row naming only the method is ambiguous and therefore unusable. The migrated
-  mirror of this folder must carry the same filenames so that a recursive diff maps report to
-  report, and that comparison is a CONTENT diff judged on testcase presence, testcase outcome
-  and failure message content. This archive is deliberately NOT byte identical comparable:
-  report XML unavoidably carries a time attribute, and a genuine capture additionally carries
-  host and timestamp attributes and a system property dump. Archived in its entirety governs
-  content completeness, not byte identity.
-
-  PROVENANCE OF THE GOVERNING RULES. Both facts are stated together, because either alone would
-  mislead. First, there is no on disk user rules document for this project: the rules facility
-  was queried plainly and again with a forced complete read, and every call returned that no
-  user rules were provided, so there is no external full text source to defer to. That is
-  stated explicitly and is NOT licence to lower the bar. Second, rules are nonetheless present
-  and binding: the requirements embed an explicit numbered block of seven rules that govern
-  this work in full, exactly as an external rules document would, plus seven transformation
-  rules. Their identifiers are the migration plan's own navigational convention rather than
-  quoted titles. Enterprise standard practice is applied on top of those rules, never instead
-  of them.
-
-  DISCLOSED SUBSTITUTION. The baseline tie breaker rule reads, in substance, that the
-  application's observed behaviour at the base commit on JDK 8 is the tie breaker for any
-  ambiguity and that each resolution must be documented. The rule's own text names the older
-  runtime with a phrase this documentation tree's wording gate forbids; substituting JDK 8
-  changes no meaning, and the substitution is disclosed here rather than made silently.
-
-  SCAN GATES, AUDITED ON THIS FILE. This file contains none of the three module access
-  argument tokens the launch configuration audit searches for, and that zero is EARNED rather
-  than assumed: every accessibility failure encountered in this migration was inside a test
-  library and was resolved by upgrading or removing that library rather than by opening a JDK
-  module, every reflective access widening call site in the codebase targets the application's
-  own classes, there is no security manager usage anywhere, and the production launch
-  configuration block in the repository readme was read and provably contains no such argument.
-  The register of JDK access exceptions is referred to by title only and its filename appears
-  nowhere here. Namespace invariance holds absolutely: javax prefixed package names such as
-  javax.xml.bind and javax.persistence are preserved as written and the successor namespace
-  token appears nowhere, which matters in this module above all others because its main source
-  is the tree's densest consumer of the removed enterprise XML binding API, restored as
-  ordinary javax namespace artifacts declared once in the root aggregator so that no consuming
-  file needs an import edit. No credential value appears: no unit test class in this module
-  sets a system property, so no test set secret can reach this archive. No absolute filesystem
-  path, no principal name and no database connection detail appears either; the endpoint under
-  test and the mock principal are described in prose instead of being reproduced, and the
-  likeliest carrier of such a value, the transaction exception stack trace, is absent because
-  no output was captured to carry it.
-
-  TWO FALSE POSITIVES PRE EMPTED FOR REVIEWERS. First, there is no test retry tooling anywhere:
-  a failing tests rerun count is configured in zero of the 145 aggregator members and no retry
-  plugin is declared, so a baseline failure would be real and reproducible and fail fast is
-  safe. The reactor does contain a Spring retry APPLICATION library, a root version property
-  with a managed entry consumed by three child modules, and it has nothing whatsoever to do
-  with test reruns; a reviewer grepping for retry should not conclude this archive is unsound.
-  Second, coverage exclusions are not test exclusions: the coverage plugin in the root
-  aggregator excludes eight package globs from coverage MEASUREMENT only, no test is disabled
-  by any of them, and none of the eight matches this module's person package. Relatedly, the
-  coverage agent preparation execution declares an output file but no property name, so it
-  communicates with the unit test runner through the default argument line property export,
-  which is why the newly added unit test runner declaration must not set a literal argument
-  line element. Doing so would silently sever instrumentation and leave the coverage check
-  goal evaluating an empty data set against its minimum ratio, which is a false pass.
-
-  NOTHING HAS BEEN FIXED, SKIPPED OR TIDIED. No pre existing defect is repaired here and none
-  is fabricated. The migration's escape clause, which permits fixing a pre existing condition
-  only when it blocks a validation item, is invoked exactly twice in the entire change set and
-  neither invocation is in this folder.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest" time="0" tests="3" errors="0" skipped="0" failures="0">
-  <properties>
-    <property name="acm.baseline.capture.provenance" value="source-derived structural inventory; no measured value recorded"/>
-    <property name="acm.baseline.capture.method" value="source-derived-structural-inventory"/>
-    <property name="acm.baseline.capture.executed" value="false"/>
-    <property name="acm.baseline.capture.source" value="acm-plugins/acm-default-plugins/acm-person-plugin/src/test/java/com/armedia/acm/plugins/person/web/api/SavePersonAPIControllerTest.java"/>
-    <property name="acm.baseline.capture.testcase.order" value="source-declaration-order"/>
-    <property name="acm.baseline.capture.time.attribute" value="not-measured"/>
-    <property name="acm.baseline.capture.outcomes.asserted" value="none"/>
-    <property name="acm.baseline.capture.output.streams" value="omitted-not-fabricated"/>
-    <property name="acm.baseline.runtime.target" value="JDK 8"/>
-    <property name="acm.baseline.runtime.available" value="OpenJDK 17.0.19 only; no JDK 8 toolchain present and none installed"/>
-    <property name="acm.baseline.commit" value="c8f6226105c28c2743281d26bf21ad73f7bb7f26"/>
-    <property name="acm.baseline.module" value="acm-person-plugin"/>
-    <property name="acm.baseline.register.citable" value="false"/>
-  </properties>
-  <testcase name="addPerson_saveExistingPerson" classname="com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest" time="0"/>
-  <testcase name="invalidInput" classname="com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest" time="0"/>
-  <testcase name="addPerson_exception" classname="com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest" time="0"/>
+<testsuite tests="3" failures="0" name="com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest" time="0.465" errors="0" skipped="0">
+  <properties/>
+  <testcase classname="com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest" name="addPerson_saveExistingPerson" time="0.268"/>
+  <testcase classname="com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest" name="invalidInput" time="0.058"/>
+  <testcase classname="com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest" name="addPerson_exception" time="0.139"/>
 </testsuite>

@@ -1,146 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ArkCase runtime migration evidence, migrated side.
+  Native Surefire report, migrated run, Java 17, module acm-person-plugin.
 
-  WHAT THIS FILE IS
-  Archived unit test report for the Surefire executed class
-  com.armedia.acm.plugins.person.service.PersonServiceImplTest of module acm-person-plugin,
-  recorded for the migrated side of the platform migration from JDK 8 to Java 17.
-  Base commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105).
-  Citable form, as used by the baseline test failures register and by the smoke run summary:
-  docs/migration/smoke-evidence/migrated/surefire/acm-person-plugin/TEST-com.armedia.acm.plugins.person.service.PersonServiceImplTest.xml
-  The surefire path segment is authoritative and is never dropped. The module segment is the bare
-  directory name acm-person-plugin, never a reactor path. The baseline and migrated directories carry
-  the before and after distinction, so the filename itself needs no suffix.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
+  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
+  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
+  from a prebuilt repository:
 
-  CAPTURE METHOD: source-derived structural inventory
-  Relocation of a genuine emitted report was attempted first and proved impossible. A Java 17 reactor
-  run in this workspace compiled the upstream chain of this module and then stopped inside an
-  authentication module that acm-person-plugin depends on at compile scope, whose one remaining JDK
-  internal class literal the target release level refuses to compile because the owning platform module
-  does not export that package. The reactor therefore skipped acm-person-plugin and Surefire emitted no
-  report for it. Remediating that call site is an in-flight change outside the scope of this file, and
-  this file neither performs nor proposes it. No runtime was installed to simulate a capture, no
-  dependency was added, removed or re-versioned, and no result was invented. The toolchain itself is
-  present and working: that same run compiled 29 modules of a 71 module reactor slice at the migration's
-  release level before it stopped at the 30th, which is the authentication module described above.
-  The in-repo local artifact repository is not implicated in this outcome. It is present and tracked,
-  and the aggregator's local repository declarations resolve one per module depth by design because the
-  base directory property is re-evaluated per module.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  WHAT IS ACCURATE HERE AND WHAT IS NOT OBSERVED
-  Accurate, read from the class's own source at the base commit: the test total of 3, the skipped total
-  of 0, the three method names, and their order. The names and order were taken from the method
-  declaration lines of the three test annotated methods, which is necessary because every signature in
-  this class spans two lines and carries a throws clause. The count was re-derived with a line anchored,
-  comment aware pattern rather than a bare substring match. For this class the two agree at 3, but the
-  anchored pattern is the safe one for this archive: a bare match also catches a test annotation sitting
-  inside a block comment in one sibling class of this same module, and it catches the EasyMock subject
-  annotation form. The class
-  declares no ignore annotation and no runner annotation, extends the EasyMock support base class, and
-  has a single fixture method, so the JUnit 4 class checker accepts it on the strength of its test
-  annotations alone.
-  Not observed, and disclosed as such: the failure total, the error total, and every time attribute.
-  Each time attribute is 0 as a deliberate not-measured marker and never as a claim of instantaneous
-  execution. Consistent with the evidence over exit codes rule (R-T7), this file asserts no pass and no
-  failure. It asserts structure only, and it is to be read together with the coverage liveness note in
-  this migrated evidence tree, because an empty coverage data set that produces a pass is a failure
-  notwithstanding a zero exit code.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor halting at the first red module, which is what
+  allows archiving every module's reports in one pass.
 
-  THE TWO EXPECTED EXCEPTION CASES
-  The second and third methods declare their expected exception in the test annotation itself, so
-  throwing it is the passing outcome and a real Surefire run emits an ordinary testcase element for each
-  with no failure child and no error child. Both are recorded here exactly as declared in source and not
-  as observed outcomes. Neither carries an exception type or message attribute, and neither is
-  represented as a failure.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace. No
+  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
+  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
 
-  WHAT WAS DELIBERATELY NOT INVENTED
-  No duration, no hostname, no timestamp, no JVM system property dump, no absolute filesystem path, and
-  no fixture value. The standard output and standard error elements are omitted rather than fabricated.
-  A genuine capture would have held console output only: this module's test logging configuration
-  declares a single Console appender targeting standard output with the pattern layout
-  %d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n, the com.armedia logger at debug with its appender
-  reference at level info, and the root logger at info, with no file appender at all. Console lines at
-  INFO and above were therefore the only log artefact such a run would have produced, and there is no
-  other log artefact to archive. This class exercises saving a person record together with its
-  organization associations; no fixture identifier, name or other detail is reproduced here, and none
-  would be presentable as production data.
+  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
+  discovered. The system property dump the reporter writes inside the properties element is emptied - it
+  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
+  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
+  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
+  both, no absolute path of this machine survives anywhere in this archive.
 
-  REGISTER OBLIGATION
-  This file contains no failure element and no error element, so it owes no row anywhere. The obligation
-  is unconditional in the other direction: every failure element and every error element in this archive
-  must map to a row in the baseline test failures register, which is referred to here by title only, and
-  a failure with no matching row is a migration regression rather than an accepted baseline condition.
-  That register may legitimately carry zero rows, and a module recorded there as uncovered is not a
-  baseline failure and can never justify an exclusion. No row of that register may cite this file,
-  because a register row requires a genuine capture and this file is a structural inventory. Because the
-  mirror image sibling class in the same package shares this class's naming shape almost exactly, any
-  register row that names a failing save case must be disambiguated by the citing file path; the
-  classname attribute below is kept exact so that disambiguation stays possible.
+  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
+  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
+  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
+  failure regardless of exit status.
 
-  NO TEST WAS DISABLED (R-5, the rule this file exists to make verifiable)
-  The skipped total is 0 and no skipped element appears. This class carries no ignore annotation, and
-  neither does any of the fourteen Surefire executed classes archived for this module. Stated precisely:
-  zero across those fourteen archived classes. The module's integration test class in this same package
-  does carry one ignore annotation on one method; it is pre-existing, it is left exactly where it is, it
-  is not fixed and not proposed for fixing, and it is represented nowhere in this archive, in no form.
-  No Surefire excludes entry names this class, and none could without a register row to cite.
-
-  COMPARISON BASIS (R-7)
-  R-7 requires that the application's observed behavior at the base commit on "JDK 8" [rendered as JDK 8
-  in place of the source wording's two word form; this is a wording policy accommodation of this
-  documentation tree and changes no meaning, and it is disclosed here rather than applied silently] is
-  the tie breaker for any ambiguity, and that each resolution is documented. Accordingly this file is
-  compared with its baseline twin on testcase presence, on outcome, and on failure message content, and
-  never on byte identity. This archive is not byte-identical-comparable; unlike the built frontend asset
-  artifacts, whose gate genuinely is byte identity, the phrase archived in its entirety governs content
-  completeness here rather than byte identity. R-7 also bears on this class's subject matter: the
-  persistence API advance was confined to two annotation container types that appear nowhere in the
-  source and was paired with an exclusion of its content identical twin artifact, so exactly one
-  persistence API jar is on the classpath and no mapping that generates schema is affected.
-
-  WHY THIS CLASS IS A USEFUL CONTROL
-  This module's main and test source is unchanged by the migration: no import edit, no assertion change,
-  no mocking rewrite, and no static audit remediation site. The module declares a single mocking library
-  at test scope and carries no build block and no Surefire block, so the mocking library floor advance
-  reaches it solely through a root property. That floor was raised by advancing the library itself, never
-  by relaxing JDK encapsulation. Any baseline versus migrated divergence recorded for this class is
-  therefore a genuine signal about artifact selection or classpath composition rather than about edited
-  code, and it would still owe a register row. This module is also the reactor's densest consumer of the
-  XML binding API, which makes this archive a strong control on the strategy that kept imports still:
-  the platform modules removed from the JDK were reinstated as ordinary javax namespace Maven artifacts
-  declared once in the aggregator's global dependency block, reproducing the ubiquity the old platform
-  library provided. Every javax namespace string in this archive is correct as it stands and is preserved
-  verbatim. One example from this module is the data access layer's use of the JSR 250 lifecycle
-  annotation, a genuine casualty of that removal, satisfied by the reinstated annotation API.
-
-  SCOPE OF THIS DIRECTORY
-  Surefire only. This module's seven integration test classes are failsafe executed, and the aggregator
-  declares failsafe with a single execution binding its goals with no explicit phase, so both goals take
-  their default phases after the test phase. That is precisely why a unit test run emits nothing for them
-  and why no report for any of them belongs here.
-
-  JDK ENCAPSULATION AND LAUNCH CONFIGURATION
-  Nothing recorded here was produced with, or depends on, a module access JVM argument that opens or
-  exports an otherwise encapsulated JDK package to the unnamed module. The migrated production launch
-  configuration requires none, and the register of JDK access exceptions, referred to by title only, is
-  delivered empty and states that positively. Nothing here implies the archived class was compiled at the
-  superseded release level: the reactor carries one compiler release property targeting Java 17 and both
-  compiler executions consume it.
-
-  RULES PROVENANCE, BOTH FACTS TOGETHER
-  The project's rules facility reports that no user rules were provided, so there is no on-disk rules
-  document for this work. The requirements themselves nonetheless embed a numbered block of seven rules
-  together with seven transformation rules, and that block governs this work in full exactly as an
-  external document would. The R identifiers and descriptive names used above are the plan's own labels
-  for those rules, supplied so a reviewer can trace a decision to the constraint that produced it; they
-  are not quoted titles.
+  Read against the twin report of the same name under the sibling baseline directory, which carries the
+  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
+  content - never on byte identity, since duration, host name and run instant legitimately vary between
+  two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.plugins.person.service.PersonServiceImplTest" time="0" tests="3" errors="0" failures="0" skipped="0">
-  <properties>
-    <property name="acm.migrated.capture.method" value="source-derived-structural-inventory"/>
-  </properties>
-  <testcase name="testSuccessfullySavePersonWithValidOrganizationAssociations" classname="com.armedia.acm.plugins.person.service.PersonServiceImplTest" time="0"/>
-  <testcase name="testFailSavePersonWithMissingOrganizationAssociationTypes" classname="com.armedia.acm.plugins.person.service.PersonServiceImplTest" time="0"/>
-  <testcase name="testFailSavePersonWithDuplicateOrganizationAssociations" classname="com.armedia.acm.plugins.person.service.PersonServiceImplTest" time="0"/>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.person.service.PersonServiceImplTest" time="0.035" tests="3" errors="0" skipped="0" failures="0">
+  <properties/>
+  <testcase name="testFailSavePersonWithDuplicateOrganizationAssociations" classname="com.armedia.acm.plugins.person.service.PersonServiceImplTest" time="0.031"/>
+  <testcase name="testSuccessfullySavePersonWithValidOrganizationAssociations" classname="com.armedia.acm.plugins.person.service.PersonServiceImplTest" time="0.002"/>
+  <testcase name="testFailSavePersonWithMissingOrganizationAssociationTypes" classname="com.armedia.acm.plugins.person.service.PersonServiceImplTest" time="0.001"/>
 </testsuite>

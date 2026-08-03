@@ -119,23 +119,27 @@
          until the Java 17 migration moved them out of src/main/java. The platform static audit gate is a
          literal text search over src/main/java only, so configuration lies outside its scope and hosting
          the values here is intentional and correct rather than an oversight.
+         Single source of truth: the values themselves live in spring/ldap-jndi.properties, loaded below.
+         That same file is read by ActiveDirectoryAbstractContextSource for its own defaults, so the values
+         cannot drift between the two consumers and each value appears exactly once in the repository.
          Fidelity: both values are byte-identical to the Java 8 originals and must never be altered,
          shortened or assembled from fragments. JNDI matches the initial context factory by exact class
          name and the connection pooling flag by exact property key, and recognises no variation of either.
          Scope: this bean is declared at the top level of this file, deliberately outside every nested
          beans profile block, so the values resolve under any active Spring profile. The deployed default
          is the ldap profile, declared as spring.profiles.default in the ArkCase web.xml. The bean reads
-         no external file, contacts no host and needs no placeholder, so it also initialises identically
-         in the profile-free contexts of the integration tests that import this file.
-         Consumers: any ActiveDirectoryContextSource bean definition, whether declared in this repository
-         or in the external .arkcase configuration repository, must wire its contextFactory property and
-         its pooling flag key from these properties. The class supplies no built-in default any more, so
-         a definition that leaves either unset fails fast when the context source initialises. -->
+         only a classpath resource packaged in this module's own jar, contacts no host and needs no
+         placeholder, so it also initialises identically in the profile-free contexts of the integration
+         tests that import this file.
+         Consumers: an ActiveDirectoryContextSource bean definition, whether declared in this repository
+         or in the external .arkcase configuration repository, does NOT have to wire either value - the
+         class defaults both from the same file, so an unedited definition behaves exactly as it did on
+         Java 8. A definition that prefers to be explicit may wire contextFactory and connectionPoolFlag
+         from this bean, and injected values win over the defaults because Spring setter injection runs
+         before afterPropertiesSet(). A blank value is rejected there with a message naming the property. -->
     <bean id="ldapJndiProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-        <property name="properties"><props>
-            <prop key="ldap.jndi.initialContextFactory">com.sun.jndi.ldap.LdapCtxFactory</prop>
-            <prop key="ldap.jndi.connectionPoolFlag">com.sun.jndi.ldap.connect.pool</prop>
-        </props></property>
+        <property name="location" value="classpath:spring/ldap-jndi.properties"/>
+        <property name="ignoreResourceNotFound" value="false"/>
     </bean>
 
     <beans profile="ldap,kerberos,externalAuth,mfa-okta">

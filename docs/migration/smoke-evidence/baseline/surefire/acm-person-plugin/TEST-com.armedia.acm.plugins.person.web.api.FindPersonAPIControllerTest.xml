@@ -1,164 +1,33 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ARCHIVED JDK 8 BASELINE UNIT TEST REPORT
+  Native Surefire report, JDK 8 baseline, module acm-person-plugin.
 
-  Suite        : com.armedia.acm.plugins.person.web.api.FindPersonAPIControllerTest
-  Module       : acm-person-plugin, at acm-plugins/acm-default-plugins/acm-person-plugin
-  Base commit  : c8f6226105c28c2743281d26bf21ad73f7bb7f26, the repository state before any file
-                 was edited for the runtime migration from JDK 8 to Java 17 on the backend and
-                 from the Node 6 to 8 era to Node 20 LTS in the frontend build toolchain
-  Derived from : the class source under acm-plugins/acm-default-plugins/acm-person-plugin, in the
-                 tree src/test/java, package com/armedia/acm/plugins/person/web/api, file name
-                 FindPersonAPIControllerTest.java, 152 lines; the unwrapped repository relative
-                 path is recorded in the provenance properties block below
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  PROVENANCE. This file is a SOURCE DERIVED STRUCTURAL INVENTORY. It is NOT a genuine run.
-  A genuine capture was attempted first and is impossible in this checkout, on two independent
-  grounds, both verified rather than assumed.
-  1. Runtime. The only Java runtime present is a release 17 runtime. No JDK 8 runtime exists on
-     this host, and none was installed: installing a runtime, a compiler or a build tool solely
-     to make the capture look complete falls outside the scope fence of the justified change
-     rule, and it would have captured from the wrong runtime in any case.
-  2. Tree state. This checkout already sits several commits beyond the base commit named above,
-     so the "before any file is edited" state that a baseline capture requires no longer exists
-     here, and re-pointing or rewriting history to reach it is prohibited.
-  No test execution was performed for this file, and no output produced on a runtime other than
-  the baseline runtime has been presented here as baseline evidence.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  WHAT THIS FILE ASSERTS, AND WHAT IT DOES NOT. The evidence over exit codes rule requires that
-  validation assert on produced artifacts and captured output rather than on process exit status
-  alone, and it therefore forbids asserting an outcome that the run did not produce. Accordingly
-  this file asserts NO pass and NO failure. The counters carry the structural truth read from the
-  class source, namely two test methods, and they must not be read as an observed result. Nothing
-  measured has been invented: there is no host name, no timestamp, no elapsed duration and no
-  JVM system property dump anywhere in this file.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  TIME ATTRIBUTES. Every time attribute, at suite level and at case level, is the literal 0. That
-  is a deliberate and documented "not measured" marker, not a claim that the suite ran in zero
-  seconds. A genuine capture would carry real elapsed values in those positions.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-  TEST CASE INVENTORY AND ORDERING BASIS. The class declares exactly two test methods and no
-  ignored method, so tests is 2 and skipped is 0. The two case names are reproduced character for
-  character from the source, including the underscore separated suffix convention, and they are
-  listed in SOURCE DECLARATION ORDER, which is deterministic and re-derivable from the class
-  itself. The class is accepted by the unit-test runner's JUnit 4 class checker on two
-  independent grounds: it carries a runner annotation naming the Spring JUnit 4 class runner
-  together with an XML context configuration, and it carries at least one test annotation. The
-  class extends the EasyMock support base class and declares no expected exception, which is why
-  no case below carries a failure or an error child element.
-
-  WHAT A GENUINE CAPTURE WOULD ADDITIONALLY HAVE CARRIED. The standard output and standard error
-  payloads are OMITTED here rather than fabricated. The module's test logging configuration at
-  src/test/resources/log4j2.xml declares a single Console appender targeting SYSTEM_OUT with the
-  layout pattern %d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n, the logger com.armedia at
-  debug with an appender reference at level info, a root logger at info, and no file appender. A
-  genuine capture of this suite would therefore have carried console output on that pattern, and
-  because this is a controller suite that bootstraps a Spring test context, it would additionally
-  have carried Spring context bootstrap logging at info. A genuine capture would also have
-  carried host name and timestamp attributes on the suite element and a full JVM system property
-  dump in the properties block. None of that is reconstructible, so none of it appears.
-
-  NOT REPRESENTABLE IN THIS ARCHIVE. The module holds 21 test source files: 14 unit test classes,
-  each of which has exactly one report file in this folder, and 7 integration test classes named
-  OrganizationIT, OrganizationPipelineIT, PersonAssociationIT, PersonContactIT, PersonIT,
-  SavePersonAliasIT and service/PersonServiceIT. The unit test phase stops before the integration
-  test runner's goals bind, so those 7 classes produce no unit test report and none may be
-  invented. PersonServiceIT carries a pre-existing ignore annotation at line 148, on
-  saveNewPersonConcurrencyTest, and that ignore is simply not representable here: no skipped
-  child element for it can ever exist in this archive. The tree-wide arithmetic is stated as
-  21 representable plus 5 sitting on integration test classes, which is 26. An absent integration
-  test is neither a pass nor a failure, it may never justify a test exclusion, and an ignore that
-  is unreachable because it sits on an integration test class may never be cited as a baseline
-  failure. There are zero non test helper classes in this module, so no further report is missing.
-
-  CITATION. No row of the baseline test-failures register, referred to here by title only, may be
-  derived from or cite this file, because a register row requires a genuine capture. This file is
-  a structural reference point for the report inventory and for the content level comparison
-  against the mirrored migrated archive; it is not failure evidence.
-
-  WHY THIS SUITE IS IN THE ARCHIVE. This module's main source is the reactor's densest consumer
-  of the enterprise XML binding API that the platform removed, at 13 files, and the remedy
-  restores that API and its companions as ordinary javax namespace artifacts declared once in the
-  root aggregator and inherited by every child module, so that every consuming file keeps its
-  javax imports unchanged. Nine of the 14 classes in this folder, this one among them, are API
-  controller suites, and they are the module level evidence for the requirement that REST API
-  contracts be preserved: paths, verbs, request and response shapes and authentication behaviour,
-  with no controller signature, request mapping or serialised field change. This suite exercises
-  the find person by association identifier lookup through a standalone mock servlet layer with a
-  mocked search query service and a mocked authentication principal, asserting the HTTP status
-  and the JSON content type in both the populated and the empty result case, so result shape
-  stability on both paths is part of what the archive protects. The module also carries a heavy
-  EasyMock surface, 13 of its 14 unit test files, and that library's floor advance has the widest
-  build file footprint in the migration; every assertion in these suites is unmodified by it.
-  The module's own build file is untouched by the migration: it declares neither of the removed
-  mocking artifacts, has no build block of its own, and takes junit, spring-test, spring-web,
-  spring-webmvc, easymock and the test scoped XML binding helpers from the root aggregator.
-
-  TWO FALSE POSITIVES PRE-EMPTED. First, there is no test retry tooling anywhere: the rerun count
-  setting appears in zero build files and no retry plugin is declared, so a baseline failure is
-  real and reproducible. The reactor does contain a Spring retry application library, a root
-  version property consumed by three child modules, which has nothing to do with test reruns.
-  Second, coverage exclusions are not test exclusions: the coverage plugin excludes eight package
-  globs from measurement only, none of them matching the person plugin package, and no test is
-  disabled by them. Relatedly, the coverage agent preparation execution declares a destination
-  file but no property name, so it communicates with the test runner through the default argument
-  line property export, which is why the unit-test runner declaration must not set a literal
-  argument line element; doing so would silently sever instrumentation and leave the coverage
-  check evaluating an empty data set, a false pass.
-
-  GOVERNING RULES AND THEIR PROVENANCE. Two facts hold together and are stated together. First,
-  there is no on-disk user rules document for this project: the rules facility was queried
-  plainly and with a forced complete read and returned, each time, that no user rules were
-  provided, so there is no external full text source to defer to. That is stated explicitly and
-  is not licence to lower the bar. Second, rules are nonetheless present and binding: the
-  requirements embed a numbered block of seven rules that govern this work in full, exactly as an
-  external rules document would, alongside seven transformation rules; the identifiers used for
-  them are the migration plan's own navigational convention rather than quoted titles.
-  The rule that creates this archive reads: "Failing tests must not be disabled, and exclusions
-  are limited to failures already present at baseline." The baseline tie-breaker rule reads: "The
-  application's observed behavior at the base commit on JDK 8 is the tie-breaker for any
-  ambiguity, and each resolution must be documented." [The rule's own text names the older
-  runtime with a phrase this documentation tree's wording gate forbids; the substitution changes
-  no meaning and is disclosed here rather than made silently.]
-  The document rather than fix rule is honoured in full: nothing in this archive has been fixed,
-  skipped or tidied, a suite failing at baseline would be captured as failing with its complete
-  failure body, and the migration's escape clause is invoked exactly twice in the whole change
-  set, neither invocation being in this folder. The scope fence rule is honoured by placing only
-  report XML in this folder, with no index, summary, manifest or placeholder file and no
-  subdirectory, and by using only POSIX shell tooling that installs nothing. Namespace invariance
-  is absolute: every javax import in the migrated source stays a javax import, the removed
-  platform modules are compensated by adding javax namespace artifacts, and the successor
-  namespace appears nowhere in this file.
-  The launch configuration rule was audited against this file and the result is an earned zero:
-  this file names no module-access JVM argument that opens or exports an otherwise encapsulated
-  JDK package to the unnamed module. It is earned because every accessibility failure in the
-  migration sat inside a test library and was resolved by advancing or removing that library,
-  every reflective access widening call site in the codebase targets the application's own
-  classes, there is zero security manager usage, and the production launch configuration block in
-  the repository README was read and provably carries none of those arguments. The JDK access
-  exceptions register, referred to here by title only, is therefore delivered empty.
-
-  REDACTION STATEMENT. No absolute filesystem path, no credential value, no request URL literal
-  and no header value appears in this file, so no redaction placeholder was needed and no
-  substitution had to be logged. The enabling fact is that no unit test class in this module sets
-  a system property, so no test set secret could reach this archive, and the standard output
-  payload that a controller suite would otherwise carry is omitted here in any case.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.plugins.person.web.api.FindPersonAPIControllerTest" time="0" tests="2" errors="0" skipped="0" failures="0">
-  <properties>
-    <property name="acm.baseline.capture.provenance" value="source derived from the test class source; not a genuine test run"/>
-    <property name="acm.baseline.capture.method" value="source-derived-structural-inventory"/>
-    <property name="acm.baseline.capture.executed" value="false"/>
-    <property name="acm.baseline.runtime.target" value="JDK 8; the runtime this baseline archive represents, not observed here"/>
-    <property name="acm.baseline.commit" value="c8f6226105c28c2743281d26bf21ad73f7bb7f26"/>
-    <property name="acm.baseline.module" value="acm-person-plugin"/>
-    <property name="acm.baseline.source.path" value="acm-plugins/acm-default-plugins/acm-person-plugin/src/test/java/com/armedia/acm/plugins/person/web/api/FindPersonAPIControllerTest.java"/>
-    <property name="acm.baseline.testcase.order.basis" value="source declaration order"/>
-    <property name="acm.baseline.time.semantics" value="not measured; every time attribute is the literal 0 by convention"/>
-    <property name="acm.baseline.systemout.captured" value="false; omitted rather than fabricated"/>
-    <property name="acm.baseline.failure.register.citable" value="false; a register row requires a genuine capture"/>
-    <property name="acm.baseline.rules.provenance" value="no on-disk user rules document exists for this project; the requirements own numbered rules block governs in full"/>
-  </properties>
-  <testcase name="find_byPersonAssociationId" classname="com.armedia.acm.plugins.person.web.api.FindPersonAPIControllerTest" time="0"/>
-  <testcase name="find_byPersonAssociationId_empty" classname="com.armedia.acm.plugins.person.web.api.FindPersonAPIControllerTest" time="0"/>
+<testsuite tests="2" failures="0" name="com.armedia.acm.plugins.person.web.api.FindPersonAPIControllerTest" time="0.164" errors="0" skipped="0">
+  <properties/>
+  <testcase classname="com.armedia.acm.plugins.person.web.api.FindPersonAPIControllerTest" name="find_byPersonAssociationId_empty" time="0.106"/>
+  <testcase classname="com.armedia.acm.plugins.person.web.api.FindPersonAPIControllerTest" name="find_byPersonAssociationId" time="0.058"/>
 </testsuite>

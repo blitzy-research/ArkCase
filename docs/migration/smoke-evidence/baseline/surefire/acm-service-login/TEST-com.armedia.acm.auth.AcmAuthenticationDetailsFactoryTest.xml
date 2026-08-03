@@ -1,42 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  Archived unit-test report. Module acm-service-login, test class
-  com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest, base commit
-  c8f6226105c28c2743281d26bf21ad73f7bb7f26, baseline runtime JDK 8.
+  Native Surefire report, JDK 8 baseline, module acm-service-login.
 
-  PROVENANCE: DERIVED FROM TEST SOURCE. NOT CAPTURED FROM A RUN.
-  No JDK 8 runner is present in this workspace and none was installed to make the capture look
-  complete. The capture was attempted on the only runtime available, which is not the baseline
-  runtime, and it produced no report file: compilation halted before the test phase was reached.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  OUTCOME NOT ESTABLISHED FOR ANY TESTCASE BELOW.
-  Each testcase is recorded without an outcome. No failure, error or skipped child element is
-  present on any of them, and no failures, errors or time attribute is written on the suite or on
-  a testcase. The absence of those children MUST NOT be read as a pass. Neither a pass nor a
-  failure is asserted for any testcase, because no run produced one. It follows that no
-  baseline-failure row may be derived from this file and no test exclusion may cite it.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  WHAT IS DERIVED, AND FROM WHERE.
-  The suite name, tests="4", skipped="0" and the four testcase names in source order are read
-  from the repository-relative path
-    acm-services/acm-service-login/src/test/java/com/armedia/acm/auth/AcmAuthenticationDetailsFactoryTest.java
-  a 114-line class declaring package com.armedia.acm.auth at line 1 and extending EasyMockSupport
-  at line 41. It declares exactly four methods annotated with Test, at source lines 56, 63, 70 and
-  78, and one Before fixture at line 48. It carries no Ignore, no RunWith, no Rule, no timeout
-  attribute and no expected attribute, so nothing in it can report as skipped; skipped="0" is
-  therefore a property of the source and not a claim about a run.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  WHAT IS OMITTED, AND WHY.
-  The time, timestamp and hostname attributes, the system-property dump, and the captured
-  standard output and standard error streams are produced only by an executing runner. They are
-  omitted rather than invented.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-  The provenance record for this archive is kept in the sibling notes folder that sits beside the
-  per-module folders under surefire/.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest" tests="4" skipped="0">
-  <testcase name="remoteIpAddress_shouldBeFromRequest_whenNoXForwardedForHeader" classname="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest"/>
-  <testcase name="remoteIpAddress_shouldBeHeader_whenXForwardedForHeaderHasOneValue" classname="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest"/>
-  <testcase name="remoteIpAddress_shouldBeHeader_whenXForwardedForHeaderHasDifferentCase" classname="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest"/>
-  <testcase name="remoteIpAddress_shouldBeFirstValue_whenXForwardedForHeaderHasMultipleValues" classname="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest"/>
+<testsuite tests="4" failures="0" name="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest" time="0.004" errors="0" skipped="0">
+  <properties/>
+  <testcase classname="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest" name="remoteIpAddress_shouldBeHeader_whenXForwardedForHeaderHasDifferentCase" time="0.003"/>
+  <testcase classname="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest" name="remoteIpAddress_shouldBeHeader_whenXForwardedForHeaderHasOneValue" time="0"/>
+  <testcase classname="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest" name="remoteIpAddress_shouldBeFirstValue_whenXForwardedForHeaderHasMultipleValues" time="0"/>
+  <testcase classname="com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest" name="remoteIpAddress_shouldBeFromRequest_whenNoXForwardedForHeader" time="0.001"/>
 </testsuite>

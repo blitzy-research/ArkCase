@@ -1,185 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ARCHIVED UNIT TEST REPORT, MIGRATED SIDE OF THE SMOKE EVIDENCE MIRROR.
+  Native Surefire report, migrated run, Java 17, module acm-person-plugin.
 
-  Maven module: acm-person-plugin, named by its directory, which is the module identifier used when
-  citing this report and is never a reactor path. Test class:
-  com.armedia.acm.plugins.person.web.api.DeletePersonAssocByIdAPIControllerTest.
-  Runtime of record for this side of the mirror: Java 17. The runtime of record for the baseline side,
-  against which this report is compared, is JDK 8.
-  Base commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26, short form c8f6226105.
-  Citable form of this artifact, in which the surefire path segment is authoritative and must never be
-  dropped:
-  docs/migration/smoke-evidence/migrated/surefire/acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.DeletePersonAssocByIdAPIControllerTest.xml
-  No suffix distinguishes the two sides of the mirror; the baseline and migrated directories carry
-  that distinction by themselves.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
+  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
+  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
+  from a prebuilt repository:
 
-  CAPTURE METHOD, STATED AS OBSERVED RATHER THAN ASSUMED.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  This report is a source derived structural inventory, as declared by the acm.migrated.capture.method
-  property in the properties block below. It is not a transcript of an observed process. No genuine
-  unit test report emitted by a real run of this module was available to relocate into this archive,
-  so nothing was relocated, nothing was renamed and nothing was trimmed. The reason was established by
-  execution in the environment where this archive was assembled, rather than presumed: the module
-  could not be compiled or executed there, because eight upstream reactor artifacts that
-  acm-person-plugin requires were absent as built artifacts, and the decisive one among them does not
-  itself compile at the target release level in that environment, its JDK internal reference site
-  being remediated by a different file of this change set and therefore lying outside the change
-  surface of this file. No runtime was installed to simulate a capture. No dependency version was
-  changed or proposed. No source file outside this archive was altered in order to manufacture a
-  result. The local artifact repository that the reactor declares from within the tree is expressly
-  not the cause: it is present at the repository root, it is tracked, and its declarations resolve as
-  designed because the base directory property is re evaluated once per module depth.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor halting at the first red module, which is what
+  allows archiving every module's reports in one pass.
 
-  WHAT THIS FILE ASSERTS, AND WHAT IT DELIBERATELY DOES NOT.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace. No
+  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
+  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
 
-  Evidence is what was produced and captured. It is never a build process exit status, and never a
-  figure quoted by some other document. This report therefore asserts no pass and no failure for the
-  test method it names; it records structure, meaning which test methods this class actually declares
-  as executable. The tests count and the skipped count are accurate, because both are structural facts
-  read from the class itself. The failure count, the error count and the elapsed time were not
-  observed, and that is disclosed here rather than papered over. Every time attribute carries the
-  literal value 0 as a deliberate and documented marker meaning not measured; it is never a claim of
-  instantaneous execution. No hostname, no timestamp, no duration and no dump of JVM system properties
-  was invented; those elements are absent rather than fabricated, which also keeps this archive free
-  of absolute filesystem paths. The method name and the method count were read from the source of the
-  test class at the base commit, and were re derived independently before this file was written.
+  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
+  discovered. The system property dump the reporter writes inside the properties element is emptied - it
+  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
+  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
+  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
+  both, no absolute path of this machine survives anywhere in this archive.
 
-  THE DIVERGENCE FROM THE FOLDER REQUIREMENTS TABLE AND FROM THE BASELINE TWIN, DELIBERATE AND
-  DISCLOSED.
+  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
+  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
+  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
+  failure regardless of exit status.
 
-  This test class declares exactly one executable test method, deletePersonAssociationById, marked as
-  a test on source line 98 and declared on line 99. A second method of the same family, whose
-  identifier is that same name extended with a suffix denoting the record not being located, exists in
-  the source only inside a block comment that opens on line 124 and closes on line 138 of a class
-  whose final brace is on line 140; the annotation that would have marked it as a test sits on line
-  125, inside that same commented region. Because it is commented out it is never compiled, it is
-  invisible to the class checker of the test framework, and it can never be executed. Its exact
-  identifier is described here rather than spelled out, and that is on purpose, so that no consumer of
-  this archive which searches these files textually can mistake this report for one that carries such
-  a testcase entry. Both the folder requirements table for this evidence directory and the
-  corresponding report on the baseline side record two test methods for this class. This report
-  deliberately records one. A testcase entry emitted for a method that cannot execute would be
-  fabricated evidence, and excluding fabricated evidence is the entire purpose of this archive; the
-  second entry on the baseline side is therefore the anomaly, and that file belongs to another author
-  and was not edited. The source of the class at the base commit is the sole authority, and the count
-  was re derived with a comment aware, line anchored search for the test annotation, which yields one,
-  rather than with a bare textual search, which yields two and is wrong. The filename mirror between
-  the two sides remains exact, fourteen identically named files in a flat directory on each side, so a
-  recursive directory comparison still maps report to report mechanically. The resulting difference of
-  content in this one report is a truthful record and a transcription correction, not a change of
-  observed outcome. Consistently with that correction, the live test method total of this module is 35
-  and not 36; a total of 36 counts the method that cannot execute.
-
-  A METHOD THAT IS COMMENTED OUT IS NOT A DISABLED ONE.
-
-  That commented out method is a pre existing condition of the source at the base commit, and not
-  something this migration disabled, so it is not recorded as skipped, ignored or disabled anywhere in
-  this file; recording it so would misattribute it. It contributes nothing to the skipped count and it
-  produces no element of its own. It is recorded factually here and nothing further is done about it:
-  it is not uncommented, it is not restored, no restoration is proposed, and no marker of deferred
-  work is left behind.
-
-  RULES PROVENANCE, AND THE RULINGS APPLIED TO THIS FILE.
-
-  Two facts hold together and are therefore stated together. There is no rules document on disk for
-  this project; the rules facility reports that no user rules were provided. Rules nonetheless govern
-  this work in full, because the requirements themselves embed a numbered block of seven rules
-  together with seven transformation rules; the identifiers used for them are the plan's own labels
-  rather than quoted titles.
-  Evidence over exit codes is the decisive rule for this file, and it is that rule which forbids an
-  entry for the method that cannot execute: nothing here is asserted from an exit status, and no count
-  is invented. It is read together with the coverage liveness note filed elsewhere on this migrated
-  side, on the same principle: an empty coverage data set that yields a pass is a failure regardless of
-  a zero exit code, and a plausible looking artifact that measures nothing real is worse than an
-  honest smaller one.
-  The rule against disabling failing tests is why this report exists at all: it makes the claim that
-  nothing was disabled in this class verifiable rather than merely asserted. The skipped count is 0 and
-  no skipped element appears; the class carries no ignore annotation, and any appearance of one would
-  be an increase and a violation. No test exclusion entry in the reactor's unit test plugin
-  configuration names this class. Across the fourteen archived unit test classes of this module the
-  count of ignore annotations is zero, and that statement is scoped to those fourteen deliberately,
-  because one integration test class of the same module does carry one and is executed by the
-  integration test plugin instead.
-  The rule to document a discovered condition rather than repair it governs the commented out method,
-  exactly as recorded above; no escape clause is available under this documentation tree.
-  Baseline behaviour is the tie breaker, and it is applied to the behaviour observed at the base
-  commit rather than to the transcription of that behaviour in some other document. Quoting that rule
-  with one disclosed wording substitution: the observed behaviour of the application at the base
-  commit on JDK 8 [the older runtime is rendered as JDK 8 here in place of the original two word
-  phrasing, a wording policy accommodation that changes no meaning and is disclosed rather than made
-  silently] is the tie breaker for any ambiguity, and each resolution must be documented. At the base
-  commit the commented out method did not execute, so recording one test method is the faithful
-  answer. Comparison against the baseline side is judged on testcase presence, on outcome, and on the
-  content of any failure message, and never on byte identity; this archive is not a byte comparable
-  artifact, and archiving in its entirety governs completeness of content rather than identity of
-  bytes.
-  On dependency scope: no dependency change is made or proposed by this file, and no runtime was
-  installed in order to fabricate a capture.
-  On the compiler contract: nothing here implies that any archived run compiled at the superseded
-  release level. The reactor carries a single authoritative release 17 compiler setting, applied to
-  both of its compiler executions.
-  On access to JDK internals, paraphrased and never quoted: this archive carries no literal module
-  access JVM argument token of any kind, that is, no argument which opens or exports an otherwise
-  encapsulated JDK package to the unnamed module. The register of such exceptions in production launch
-  configuration is referred to by title only, because its filename embeds one of those tokens.
-  On namespace invariance: every reference in the javax namespace is correct as it stands and is
-  preserved. The person association model behind this controller is annotated with the javax
-  persistence API and consumes the XML binding API, so any such string in a captured message would be
-  correct as it is.
-
-  THE OBLIGATION THAT TIES A FAILURE TO A REGISTER ROW.
-
-  Every failure and every error recorded in a report of this archive must map to a row of the baseline
-  test failures register, which is referred to by title only and never by filename or path; a failure
-  with no matching row is a migration regression rather than an accepted baseline condition. This
-  report records neither a failure nor an error, so the obligation is not engaged, and no row of that
-  register may cite this file. That register may legitimately carry no rows at all, and a module
-  recorded there as uncovered is not a baseline failure and can never justify an exclusion. No row may
-  ever cite the method that cannot execute as a test method of this class, because no such entry exists
-  here; a row claiming otherwise would itself be the error.
-
-  WHAT A GENUINE CAPTURE WOULD HAVE CONTAINED, DESCRIBED AND NOT INVENTED.
-
-  The standard output and standard error elements are omitted rather than filled with fabricated log
-  lines. A genuine capture would have carried console output shaped by the verified test logging
-  configuration of this module: a single console appender targeting standard output, a pattern layout
-  whose pattern is %d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n, a logger for the com.armedia
-  hierarchy at debug level whose appender reference is pinned at info level, a root logger at info
-  level, and no file appender at all. Because this class is driven by the Spring test runner and
-  initialises a Spring context from two locations, a genuine capture would additionally have carried
-  container start up lines. That is stated as what would have been present, and never as invented
-  text.
-
-  CLASS SHAPE, FOR CONTEXT ONLY.
-
-  The class is driven by the Spring JUnit 4 class runner declared on source line 57, and is configured
-  from two context locations declared immediately below it: one which is not module local and resolves
-  from a dependency jar on the test classpath, and one which is module local and contributes a single
-  exception resolver bean matching the injected field of the class. That two location form is normal
-  for every class of this package in the module; the location which is not module local is not an
-  error, and no perceived missing file should be repaired on account of it. The class is declared on
-  line 63 and extends the mock support base class of the mocking library used throughout the module.
-  The live test method carries no expected exception attribute; it is an ordinary test. Thirteen of the
-  fourteen archived unit test classes of this module use that mocking library, a single class of the
-  service package being the sole exception, and the organization controller test carries the heaviest
-  mocking surface; no numeric occurrence count is asserted, because different methods of matching
-  yield different figures. The source of this module is unchanged by the migration: no import was
-  edited, no assertion was altered, no rewrite of a mocking framework applies, and it holds no site of
-  the static audit remediation. The platform modules that the JDK removed were reinstated as ordinary
-  javax namespace Maven artifacts, declared once in the global dependency block of the aggregator,
-  which reproduces the ubiquity that the former platform library provided and is why no import of this
-  module needed to change.
-
-  DIRECTORY SCOPE.
-
-  This directory archives unit test reports only. The seven integration test classes of this module
-  are executed by the integration test plugin and emit their own reports elsewhere, so none of them
-  has a file here. The directory is flat, holds fourteen files, and holds no subdirectory.
+  Read against the twin report of the same name under the sibling baseline directory, which carries the
+  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
+  content - never on byte identity, since duration, host name and run instant legitimately vary between
+  two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.plugins.person.web.api.DeletePersonAssocByIdAPIControllerTest" time="0" tests="1" errors="0" failures="0" skipped="0">
-  <properties>
-    <property name="acm.migrated.capture.method" value="source-derived-structural-inventory"/>
-  </properties>
-  <testcase name="deletePersonAssociationById" classname="com.armedia.acm.plugins.person.web.api.DeletePersonAssocByIdAPIControllerTest" time="0"/>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.person.web.api.DeletePersonAssocByIdAPIControllerTest" time="0.088" tests="1" errors="0" skipped="0" failures="0">
+  <properties/>
+  <testcase name="deletePersonAssociationById" classname="com.armedia.acm.plugins.person.web.api.DeletePersonAssocByIdAPIControllerTest" time="0.087">
+    <system-out><![CDATA[2026-08-03 09:34:24,617 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+2026-08-03 09:34:24,617 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@4a2eb2e, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@16ae647d, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@7843efc5, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@4f6cf902, org.springframework.test.context.support.DirtiesContextTestExecutionListener@5c84805a, org.springframework.test.context.transaction.TransactionalTestExecutionListener@39ec9a3b, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@5eb66704, org.springframework.test.context.event.EventPublishingTestExecutionListener@76ba2139]
+2026-08-03 09:34:24,707 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 09:34:24,708 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 09:34:24,708 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-03 09:34:24,709 [INFO ] [main] com.armedia.acm.plugins.person.web.api.DeletePersonAssocByIdAPIController - Finding person association by id:'958'
+2026-08-03 09:34:24,713 [INFO ] [main] com.armedia.acm.plugins.person.web.api.DeletePersonAssocByIdAPIController - Deleting person association by id:'958'
+]]></system-out>
+  </testcase>
 </testsuite>

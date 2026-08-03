@@ -1,48 +1,36 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ArkCase runtime modernisation, archived baseline unit test report.
+  Native Surefire report, JDK 8 baseline, module acm-service-login.
 
-  Module            acm-service-login
-  Test class        com.armedia.acm.auth.AcmAuthenticationManagerTest
-  Intended runtime  JDK 8 at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  PROVENANCE: DERIVED, NOT CAPTURED. No unit test run produced this document. A
-  genuine capture was attempted first and is impossible in this checkout on two
-  independent grounds. First, no JDK 8 runtime is present, and installing one so
-  that the capture merely looks complete is forbidden. Second, the working tree
-  already sits past the base commit, so the ordering that requires the capture to
-  be taken before any file is edited can no longer be satisfied; that ordering is
-  irreversible, which is why it is disclosed here rather than papered over.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  This document therefore ASSERTS NO TEST OUTCOME. The five testcase elements are
-  an enumeration of the @Test methods read, in source order, from
-  acm-services/acm-service-login/src/test/java/com/armedia/acm/auth/AcmAuthenticationManagerTest.java
-  at source lines 94, 128, 159, 189 and 219. The absence of failure and error
-  children records that no failure and no error was observed, not that a passing
-  run was observed. Every time attribute is 0 because no duration was measured. No
-  run host and no run instant attribute is present, because no run host and no run
-  instant exist to record. The properties element is deliberately empty: no forked
-  JVM system property dump was captured, and none is invented here.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  Reading guard for this class specifically. Three of the five methods are JUnit 4
-  expected exception tests, declared @Test(expected = AuthenticationServiceException.class)
-  at source lines 159, 189 and 219. Such a method passes when the declared
-  exception is thrown and fails only when it is not, so each is an ordinary
-  testcase element carrying no failure and no error child. Attaching a failure
-  element to any of the three, on the strength of its method name or of the
-  exception class its annotation names, would record authentication failures that
-  no run reported.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-  Provenance for this archive is recorded in the notes folder that accompanies this
-  surefire tree, and is not duplicated further into this document. Comparison
-  against the corresponding migrated report is judged on testcase presence,
-  testcase outcome and failure message content, not on byte identity.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0" tests="5" errors="0" skipped="0" failures="0">
+<testsuite tests="5" failures="0" name="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0.223" errors="0" skipped="0">
   <properties/>
-  <testcase name="authenticate_firstOneWorks" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
-  <testcase name="authenticate_shouldThrowLastProviderException" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
-  <testcase name="authenticate_shouldThrowBadCredentials" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
-  <testcase name="authenticate_emptyUsername_shouldThrowBadCredentials" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
-  <testcase name="authenticate_shouldThrowExceptionAndShowEmailSentMsg" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0"/>
+  <testcase classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" name="authenticate_shouldThrowExceptionAndShowEmailSentMsg" time="0.112"/>
+  <testcase classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" name="authenticate_emptyUsername_shouldThrowBadCredentials" time="0.004"/>
+  <testcase classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" name="authenticate_firstOneWorks" time="0.051"/>
+  <testcase classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" name="authenticate_shouldThrowBadCredentials" time="0.001"/>
+  <testcase classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" name="authenticate_shouldThrowLastProviderException" time="0.055"/>
 </testsuite>

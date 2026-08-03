@@ -1,306 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ARCHIVED BASELINE UNIT TEST REPORT
-  ArkCase platform (com.armedia:acm:2021.03, a 145 module Maven reactor).
-  Runtime migration: JDK 8 to Java 17, and Node 6 to 8 era frontend tooling to Node 20 LTS.
-  Pure behaviour preserving refactor; nothing about the application's observable behaviour changes.
+  Native Surefire report, JDK 8 baseline, module acm-task-plugin.
 
-  THIS IS THE SKIP EXEMPLAR OF THIS FOLDER. It is the one report here that carries a skipped child
-  element, and it records the module's single pre-existing dormant test. Read section 3 first: the
-  rendering decision settled there is the most consequential and the most error prone in this folder,
-  and a recursive search of the whole evidence tree confirms this is the first and only report in it
-  that renders a skip.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  1. WHAT THIS FILE IS
-  A JUnit report in Maven Surefire form for the unit test class
-  com.armedia.acm.plugins.task.service.impl.ActivitiTaskDaoTest
-  of Maven module acm-task-plugin. The module segment of this file's path is the module DIRECTORY NAME
-  only, never the reactor path and never a path naming a build output or report directory.
-  It records the JDK 8 baseline picture at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26, that is,
-  the state of the tree BEFORE any file was edited for the migration.
-  Source of record for every name, count and line number below:
-  acm-plugins/acm-default-plugins/acm-task-plugin/src/test/java/com/armedia/acm/plugins/task/service/impl/ActivitiTaskDaoTest.java
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  2. HOW IT WAS PRODUCED
-  A genuine capture was attempted first, as the production procedure requires: run this module's unit
-  tests on JDK 8 at the base commit and relocate the native report here unchanged, using only a POSIX
-  toolset (mkdir, find, cp) and installing nothing. The repository itself sets that precedent: its
-  coverage summary script is built from find and awk and installs no tool at all. Relocation, never
-  renaming, is mandatory because the native filename already has the TEST prefix plus fully qualified
-  class name form, and because the root ignore file lists the build output directory as a bare pattern
-  that git matches at any depth, so a report left where the runner wrote it is invisible to version
-  control and every citation to it breaks silently.
-  The attempt failed on three independent grounds, each re-verified in this checkout rather than assumed.
-  The verified facts are recorded here in place of the assumption the plan carried, because a fact that
-  was re-derived and differs must be published rather than repeated:
-    (a) this checkout DOES provide a Java runtime, a Java compiler and Maven on the executable search
-        path, and it does provide a populated local artifact cache, all of which the plan expected to be
-        absent. Every runtime it provides reports 17.0.19. The platform's virtual machine directory,
-        whose absolute path is deliberately described rather than written because this archive carries no
-        absolute filesystem path, holds three entries and all three resolve to that same 17 release; a
-        search of the filesystem for an 8 release returns nothing. There is therefore no runtime here on
-        which the baseline could be executed.
-    (b) a recursive search for report files in the TEST prefix form returns zero results outside this
-        documentation tree, a search for build output directories returns zero results, and a search for
-        report directories in the runner's own naming returns zero results. There is no native report to
-        relocate and none to be recovered from an earlier run.
-    (c) the checked out revision already carries six migration commits on top of the base commit named
-        above, so the pre-edit state cannot be re-executed in place. The baseline capture is
-        irreversible: nothing done later reconstructs it, which is why it belongs at the head of an
-        implementation rather than at the end of one.
-  No runtime was installed to make the capture look complete. Installing a tool is out of scope, and a
-  hand edited or fabricated capture is not evidence. This report is therefore DERIVED from the test
-  source named above, and the derivation is disclosed here rather than left to be inferred.
-  The derivation reads the ignore annotation and the class declaration, and nothing else:
-    grep -n '@Ignore' on the source yields the single result 99:@Ignore and no other line;
-    sed -n '92,106p' on the source shows line 96 opening and line 98 closing the class comment, line 99
-      holding the ignore annotation alone, and line 100 reading
-      public class ActivitiTaskDaoTest extends EasyMockSupport;
-    grep -c '@Test' on the source yields 12, and those twelve methods are DELIBERATELY NOT enumerated in
-      this report; section 3 explains why;
-    grep -n 'org.junit.Ignore' on the source places the import at line 85, so the annotation is the
-      JUnit 4 one and not a same named annotation from elsewhere.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  3. THE PRE-EXISTING SKIP, AND WHY THE RENDERING IS ONE CASE AND NOT TWELVE
-  The single skipped entity in this report records a CLASS LEVEL ignore annotation at line 99 of the test
-  source, present at the base commit and untouched by this migration.
-  The placement decides the shape of the whole file, so it was verified in context rather than taken on
-  trust. A CLASS LEVEL ignore annotation makes the JUnit 4 runner route the entire class through its
-  ignored class runner, which fires exactly ONE skip event and carries the CLASS description. The
-  resulting report has tests 1, skipped 1, failures 0 and errors 0, and holds exactly one test case
-  element whose name attribute and class name attribute are BOTH the fully qualified class name, with a
-  single skipped child. A METHOD LEVEL ignore annotation would instead have produced a total equal to the
-  declared method count, a skipped count equal to the ignored method count, and one skipped child per
-  ignored method. This class takes the first form.
-  Its twelve test methods are therefore NOT enumerated as individual test case elements, because the
-  runner never reaches them. Emitting them would assert twelve outcomes that no run produced, and would
-  misreport a class the runner treats as one indivisible skip.
-  The skip is PRE-EXISTING, and it is CAPTURED, NOT RESOLVED. Pre-existing defects are documented rather
-  than fixed, so nothing here removes the annotation, relocates it, records the class as passing, or
-  quietly enumerates the twelve methods to make the report look fuller. No ignore annotation was added to
-  or removed from any test class anywhere in the tree.
-  A DORMANT TEST IS NOT A BASELINE FAILURE, and it may NEVER be cited as justification for a test
-  exclusion. Only a failure observed at the baseline can justify one, and no failure is observed here.
-  SKIPPED, FAILED and UNCOVERED are three distinct states, and this archive keeps them distinct rather
-  than collapsing them into two: this class is SKIPPED; nothing in this module is recorded as FAILED; and
-  the module's five integration classes, discussed in section 11, are UNCOVERED.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-  4. WHAT IS NOT ASSERTED
-  This file asserts NO pass and NO failure:
-    the zero values on failures and errors are SCHEMA REQUIREMENTS of the report form, NOT observations
-      of a run, and the value 1 on tests and on skipped follows from the annotation's verified placement
-      rather than from an observed skip event;
-    durations were not measured, so every time attribute is zero rather than an invented figure;
-    the timestamp and hostname attributes are OMITTED rather than fabricated;
-    system output, system error and the system property dump element are OMITTED, because no captured
-      payload exists and inventing an environment dump would assert facts no run ever produced;
-    no failure child element and no error child element appears. A fabricated pass would be especially
-      damaging in this file, because it would appear to clear a risk that section 11 records as
-      explicitly unverified.
-  Validation of this migration asserts on produced artifacts and on captured output, never on a process
-  exit status alone. Archiving the report rather than a pass or fail claim about a run is that principle
-  applied to this file.
-
-  5. HOW THE SIBLING REGISTER MUST READ THIS FILE
-  The baseline test failures register, referred to by TITLE ONLY and never by path because its own path
-  embeds a token this documentation tree audits for, must treat this class and this module as UNCOVERED:
-  neither passed nor failed. An UNCOVERED module may NEVER justify a test exclusion, and neither may a
-  dormant test; only a failure observed at the baseline can, and none is observed here. Nothing in this
-  file disables a test. The tree holds 26 pre-existing ignore annotations, exactly one of which is in
-  this module and is the annotation this report captures, and a reviewer counting after the migration
-  must still find 26.
-
-  6. THE EARNED ZERO ON JDK INTERNAL ACCESS
-  No module-access JVM argument token appears anywhere in this file. By a module-access JVM argument this
-  archive means an argument that opens or exports an otherwise encapsulated JDK package to the unnamed
-  module; such tokens are DESCRIBED rather than written, so that a recursive audit of this documentation
-  tree returns zero. The zero is EARNED, not incidental: every accessibility failure met anywhere in this
-  migration was raised inside a TEST library, and each was resolved by upgrading or removing that library
-  rather than by widening module access in production launch configuration, while the workflow engine's
-  own reflection targets the application's own domain classes. The system property dump element, which
-  would have been the plausible carrier for such a token or for an absolute filesystem path, is omitted
-  by construction, and the one place an absolute path would otherwise have appeared, the location of the
-  installed runtimes in section 2, is described in words instead. The register of JDK internal access
-  exceptions is likewise named by TITLE ONLY, because its own path embeds one of the tokens under audit;
-  it is delivered empty, with a positive statement that the migrated production launch configuration
-  requires none.
-
-  7. WHY THIS DISCLOSURE LIVES INSIDE THE REPORT
-  The archive's designated provenance directory, surefire then notes, is a SIBLING of this folder and is
-  outside this file's scope. This folder is fenced to report XML alone: no index, no summary, no
-  manifest, no notes file, no placeholder file and no subdirectory. The disclosure therefore travels
-  inside the artifact it describes.
-
-  8. RULES PROVENANCE, BOTH FACTS STATED TOGETHER
-  The project's rules facility was queried during planning and again while this file was written, both
-  with no range and with a forced complete read, and every time it reported that no user rules were
-  provided. There is NO on-disk rules document for this project, so there is no external full text source
-  to defer to. That is stated plainly, and it is NOT licence to lower the bar.
-  Rules are nonetheless present and binding. The requirements embed an explicit numbered block of seven
-  rules, plus seven transformation rules, and they govern this work in full exactly as an external rules
-  document would. The identifiers R-1 through R-7 and R-T1 through R-T7 used across this migration's
-  documents are the migration plan's OWN navigational convention, not quoted titles. Enterprise standard
-  practice is applied on top of those rules, never as a substitute for them, and no rule is invented or
-  softened here.
-  The rules that govern this file, summarised rather than transcribed:
-    failing tests must not be disabled, and exclusions are limited to failures already present at the
-      baseline. This is the rule that creates this folder, and in this file it is the rule that forbids
-      the dormant test in section 3 from ever being offered as an exclusion justification;
-    pre-existing defects are documented rather than fixed, so nothing here is corrected, tidied or worked
-      around, and the ignore annotation is captured as it stands. Where a genuine capture exists it is
-      archived verbatim, failure bodies and stack traces included. The change set's escape clause is
-      invoked exactly twice in the whole migration, and neither invocation is in this folder;
-    the observed behaviour at the base commit on JDK 8 is the tie breaker for any ambiguity, and each
-      resolution is documented. That rule is what settles section 3: the rendering is what the runner
-      would actually have emitted at the baseline, determined by reading line 99 in context;
-    validation asserts on produced artifacts and captured output, never on a process exit status alone;
-    a dependency version changes only for a specific Java 17 or Node 20 compatibility reason, and a
-      change without such a reason is out of scope. That is why the workflow engine keeps its version,
-      why this folder holds report XML alone, and why no tool was installed to produce this file;
-    production launch configuration must not rely on module-access JVM arguments or other JDK internal
-      access except where a pinned third party dependency documentedly requires it, with each exception
-      documented. This rule is paraphrased, never quoted, because its own text carries a literal this
-      documentation tree's wording gate forbids;
-    where a dependency fails under the platform's stronger encapsulation, the resolution is to upgrade or
-      replace that dependency, never to widen module access in production launch configuration.
-    The fences are honoured too, and are named so their absence is not mistaken for oversight: one
-      authoritative compile release setting with no release 8 escape hatch named or reintroduced here;
-      namespace invariance, with zero successor namespace tokens in this archived XML; explicit version
-      pinning in the root aggregator; a lockfile governed frontend graph, with the outgoing package
-      manager never presented here as a prerequisite or a recommendation; and an immutable layout
-      contract, whose binding analogue for this archive is section 13.
-  Disclosed substitution: the tie breaker rule's own wording names the older runtime with a phrase this
-  documentation tree's wording gate forbids. Every reference to that runtime in this archive is written
-  JDK 8 instead. The substitution changes no meaning, and it is disclosed here rather than made silently.
-
-  9. WHAT THIS REPORT EXERCISES
-  This report is this module's IGNORE OF RECORD: the module declares exactly one ignore annotation across
-  its whole test tree, and it is the one this file captures. That is the criterion on which this class
-  earns its place in the archive.
-  The class under test is the module's WORKFLOW ENGINE DATA ACCESS component. It extends EasyMockSupport
-  and stands its collaborators up as mocks, the majority of them engine types, so had it run it would have
-  been the module's most engine proximate unit test. Because it is dormant it contributes NO EXECUTED
-  ASSERTION to the baseline, and section 11 states plainly what follows from that.
-  It is nevertheless part of the before picture for the mocking library whose floor advance carries the
-  widest POM footprint in the whole migration: the installed release AND the intermediate release fail
-  identically on the target runtime with an inaccessible object error raised from the library's own class
-  proxy factory, and only a much later release succeeds. The root aggregator records that finding beside
-  the property it moved.
-  Every assertion in this class is unmodified by the migration. The module declares junit, spring-test, h2
-  and easymock as its testing dependencies, and zero static mocking or bytecode mocking frameworks; a
-  fifth test scoped dependency, jmimemagic, is a MIME detection library rather than a testing framework.
-  Consequently no test rewrite touches this module, and its POM changes not at all: comparing the module
-  directory between the base commit and the migrated revision reports no change to the POM and no change
-  to the test source, this class included.
-
-  10. VERIFIED FIGURES, WITH THEIR COMMANDS AND THE STATED FIGURES NOTED
-  Every figure below was re-derived in this checkout rather than copied. Where a verified figure differs
-  from the figure the requirements or the plan state, the verified one is published and the stated one is
-  noted, so the delta is visible rather than silently contradicted.
-    Unit test classes in this module: 16.
-      find acm-plugins/acm-default-plugins/acm-task-plugin/src/test/java -name '*Test.java' | wc -l
-      One report per unit test class, which is why the complete folder holds sixteen reports.
-    Unit test classes referencing the EasyMock package: 14. The folder requirement states 15.
-      grep -rl 'org\.easymock' acm-plugins/acm-default-plugins/acm-task-plugin/src/test/java | grep 'Test\.java$' | wc -l
-      The two that do NOT reference it are CorrectiveActionPlanTest and TaskRulesTest.
-    Test methods declared by this class: 12, and none of them is emitted as a test case element.
-      grep -c '@Test' on the source.
-    Mock collaborators this class stands up: 33 fields whose names carry the mock prefix, matched by 33
-      mock creation calls, of which 18 are typed from the workflow engine's core package and 23 from all
-      of that engine's packages taken together. The requirement states 12 mocked engine collaborators; 12
-      is exactly this class's test method count, which is the likely origin of that figure. The verified
-      counts are published here and the stated one is noted.
-    Unit test classes carrying the Spring test runner or a context configuration annotation: 11 of 16.
-    Decision table spreadsheets on the rules path: 39. The plan's prose states 43.
-      find . -name '*.xlsx' | grep -ci 'rules'
-      The delta is exactly three legacy format spreadsheets plus one unrelated fixture; all four live
-      under the ECM service's test resources and are office format samples rather than decision tables.
-      Rule files in the older textual rule format: 0. This module's own table is drools-task-rules.xlsx.
-    Ignore annotations across the whole tree: 26, before and after. A recursive grep for the annotation
-      over the tree's Java sources yields that figure, and exactly one of the 26 is in this module.
-    Namespace invariance: this class's source carries zero javax package references and zero successor
-      namespace tokens, and across all sixteen unit test classes both counts are likewise zero. The
-      module's only two javax references are trust store system property keys inside one integration
-      class; they name packages the platform retains, and they are correct and preserved, not rewritten.
-    Credential safety by construction: no unit test class in this module sets a system property, so no
-      value configured by a test fixture can reach this archive.
-    Workflow engine version: identical at the base commit and at the migrated revision. Reading the
-      engine's version property out of the root aggregator at both revisions returns the same value.
-    Process definitions that engine drives: 36, with zero script tasks and zero script format
-      declarations anywhere in that corpus.
-
-  11. HONEST LIMITS OF THIS EVIDENCE, AND THE POINTED COINCIDENCE
-  Five integration classes in this module produce NO file in this folder: CandidateGroupIT,
-  TaskActivitiIT, TaskDiagramIT, BuckslipActivitiIT and BuckslipArkcaseIT, re-derived with
-  find acm-plugins/acm-default-plugins/acm-task-plugin/src/test/java -name '*IT.java'.
-  A unit test run stops at the test phase, while the integration test runner's goals bind later: the root
-  aggregator declares that runner with no explicit phase, so both of its goals take their default phases,
-  and both of those fall after the test phase. An absent integration test is neither a pass nor a failure
-  and may NEVER justify a test exclusion.
-  THE POINTED COINCIDENCE, RECORDED PLAINLY RATHER THAN GLOSSED. The dormant test this file captures sits
-  on the WORKFLOW ENGINE DATA ACCESS class, so the module's most engine proximate unit test is DORMANT at
-  the baseline. The five classes that emit no report here are precisely the ones that exercise that same
-  engine end to end. The two facts compound rather than offset each other, and the conclusion is stated
-  without hedging: UNIT TEST EVIDENCE IN THIS FOLDER DOES NOT CLEAR THE WORKFLOW ENGINE RESIDUAL RISK.
-  That risk is assigned to the deployment and smoke gates. This folder supplies the module level before
-  picture only, and reading it as a clearance would be a clearance drawn from an empty set.
-  The engine is the oldest load bearing engine in the reactor, drives the 36 process definitions counted
-  in section 10, and could not be bootstrapped for testing without a database, so it is classified as
-  RESIDUAL UNVERIFIED RISK rather than declared safe, and this archive preserves that distinction rather
-  than blurring it. Three findings BOUND the concern without eliminating it: the process definition corpus
-  contains zero script tasks and zero script format declarations, so the engine never requests a scripting
-  engine and the platform's removal of the bundled script engine cannot reach it; its persistence layer
-  reflects over the application's OWN domain classes through ordinary unrestricted reflection; and it
-  reads no class bytes and touches no platform internal packages. Its version does not change: a bump
-  without a demonstrated incompatibility is out of scope just as firmly as an unjustified omission.
-  Because that engine version is constant, and because this module's source and POM are untouched, any
-  difference between this report and its migrated counterpart points at the runtime itself or at a root
-  level library change: the mocking library discussed in section 9, the Spring test runner used by 11 of
-  the 16 classes, or the expression language library on the decision table path, whose accessor optimizer
-  failure reproduced even against a bean compiled at the JDK 8 target and was therefore a defect in that
-  library's own generated code rather than in the classes it reads.
-  One property of the migrated counterpart of THIS file is worth stating in advance, because it is the
-  cheapest available check on the rule this folder exists to serve: it must still render a single skip. If
-  it renders twelve test cases, or renders none, or renders a pass, then the annotation has been moved,
-  removed or overridden, and that is itself the finding.
-
-  12. TWO FALSE POSITIVES A REVIEWER SHOULD NOT DRAW
-  First, this reactor contains NO test retry tooling. A recursive search of all 145 POMs for a rerun count
-  setting returns zero, and no retry plugin is declared anywhere, so a failure observed at the baseline is
-  real and reproducible, and failing fast is safe. The reactor does carry a Spring retry APPLICATION
-  library, declared as a root version property and consumed by exactly three child modules, which has
-  nothing whatever to do with rerunning tests. In a task and workflow module, where retry semantics are
-  part of the domain vocabulary, that inference is especially tempting and especially wrong.
-  Second, coverage exclusions are NOT test exclusions. The root coverage plugin configuration excludes
-  eight package globs from coverage MEASUREMENT only and disables no test, and none of the eight names a
-  package of this module. Bindingly related: the coverage agent hands its configuration to the test runner
-  through the default argument line property export, so the pinned unit test runner declaration must NOT
-  set a literal argument line element. Setting one would silently sever instrumentation and leave the
-  coverage check goal evaluating an empty data set, which reports a pass while measuring nothing.
-  Instrumentation must be verifiably live. As it stands that declaration carries a version and nothing
-  else, with neither a literal argument line nor an excludes entry, which is the correct state.
-  A third reading is worth foreclosing while the first two are being foreclosed, because this is the one
-  report here that invites it: the skipped element below is NOT a migration exclusion and NOT a
-  suppression introduced by this work. It is the faithful rendering of an annotation that predates this
-  migration by years.
-
-  13. LAYOUT AND COMPARISON CONTRACT
-  The archive layout surefire, then module directory name, then TEST prefix plus fully qualified class
-  name plus the xml extension, is itself contract, exactly as the frontend asset layout is contract. This
-  folder stays FLAT: the sixteen reports are not sub grouped by package, because any nesting breaks every
-  citation to them and misaligns the mirror comparison. The canonical citation form is
-  docs/migration/smoke-evidence/baseline/surefire/acm-task-plugin/TEST-<fully qualified class name>.xml,
-  and a citation to a non existent evidence file fails the citing register's own standard, so a dropped or
-  misspelled report here is a likely cause of a broken citation.
-  The migrated side must mirror this folder with identical filenames, so that a recursive comparison maps
-  report to report. That comparison is judged on test case presence, test case outcome and failure message
-  content: archived in its entirety governs CONTENT COMPLETENESS, not byte identity. Byte identity is the
-  standard the five built frontend artifacts are held to, and it is deliberately not the standard applied
-  to this archive. For this file specifically, the skipped element must remain written as the same empty
-  element on both sides, so that the outcome comparison matches on form as well as on meaning.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.plugins.task.service.impl.ActivitiTaskDaoTest" tests="1" errors="0" failures="0" skipped="1" time="0">
-  <testcase name="com.armedia.acm.plugins.task.service.impl.ActivitiTaskDaoTest" classname="com.armedia.acm.plugins.task.service.impl.ActivitiTaskDaoTest" time="0">
+<testsuite tests="1" failures="0" name="com.armedia.acm.plugins.task.service.impl.ActivitiTaskDaoTest" time="0.001" errors="0" skipped="1">
+  <properties/>
+  <testcase classname="com.armedia.acm.plugins.task.service.impl.ActivitiTaskDaoTest" name="com.armedia.acm.plugins.task.service.impl.ActivitiTaskDaoTest" time="0.001">
     <skipped/>
   </testcase>
 </testsuite>

@@ -1,0 +1,19 @@
+reference-stack reachability, observed statuses read back from
+notes/reference-stack.status
+
+solr-url: https://arkcase-ce.local/solr
+solr-observed: 000
+alfresco-share-url: https://arkcase-ce.local/share
+alfresco-share-observed: 000
+pentaho-url: https://arkcase-ce.local/pentaho
+pentaho-observed: 000
+virtualviewer-url: https://arkcase-ce.local/VirtualViewerJavaHTML5
+virtualviewer-observed: 000
+virtualviewer-expectation: HTTP 503.  Documented pre-existing condition at
+  README.md:L53 and docs/setup.md:L33 at the base commit (now README.md:L50
+  and docs/setup.md:L30).  Captured as observed under R-6: not repaired, not
+  retried into submission, not hidden, and not a migration regression.
+
+assertion: for every row above, the only requirement is that the migrated
+  observation equals the baseline observation.  No status is judged good or
+  bad by this script.

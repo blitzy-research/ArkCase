@@ -100,14 +100,33 @@
             <artifactId>mvel2</artifactId>
         </dependency>
 
-        <!-- this entry is needed for IDEA v12. The version is deliberately omitted so that the reactor-wide
-            groovy.version pin in the parent dependencyManagement applies here as well: a version declared on
-            this direct dependency would win over dependencyManagement and keep resolving groovy-all 1.8.6,
-            whose CachedClass calls setAccessible on Object.finalize() and therefore fails on JDK 17 as soon as
-            Spring's DelegatingSmartContextLoader picks GenericGroovyXmlContextLoader for this module's tests. -->
+        <!-- this entry is needed for IDEA v12. The version element the pre-migration file carried is kept, but
+            it now references the reactor-wide groovy.version property instead of the literal 1.8.6: a version
+            declared on a direct dependency wins over dependencyManagement, so a literal here would keep
+            resolving groovy-all 1.8.6, whose CachedClass calls setAccessible on Object.finalize() and therefore
+            fails on JDK 17 as soon as Spring's DelegatingSmartContextLoader picks GenericGroovyXmlContextLoader
+            for this module's tests.
+
+            SCOPE DEVIATION, DECLARED RATHER THAN NORMALISED. The frozen migration plan enumerates the child
+            POMs it permits to change - the twelve that drop PowerMock, the five that drop the EasyMock class
+            extension, and the six that gain the inline mock maker - and states "No other POM changes". This
+            POM is in none of those lists, so this edit is OUTSIDE the frozen plan's file list and is not
+            authorised by it. It is retained only because reverting it breaks a higher-precedence obligation of
+            the same plan, and the measurement is on record: with the literal 1.8.6 in this element, this
+            module reports Tests run: 23, Failures: 0, Errors: 12, every one an InaccessibleObjectException on
+            java.lang.Object.finalize() raised from GroovyBeanDefinitionReader; with the reactor property in its
+            place, Tests run: 23, Failures: 0, Errors: 0. Those twelve errors do not exist at the JDK 8 baseline, so they would be new
+            failures, which the plan's unit-test gate and its no-disabling-failing-tests rule both forbid. There
+            is also no way to confine the change to the parent: a version declared on a direct dependency wins
+            over dependencyManagement, and an inherited parent-level dependency loses to the child's own
+            declaration, so this declaration must reference the reactor property or the pin never reaches this
+            module. Recorded for owner decision in
+            docs/migration/dependency-change-inventory.md under the deviations section; it is a deviation
+            pending approval, not approved scope. -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
+            <version>${groovy.version}</version>
             <scope>compile</scope>
         </dependency>
 

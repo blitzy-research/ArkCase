@@ -1,0 +1,62 @@
+flow: 4
+slug: 4-solr-search
+title: search round-trip through the search engine
+
+===== search-through-application =====
+request-method: GET
+request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=*%3A*&start=0&n=5
+auth-mode: basic
+observed-http-status: 000
+observed-content-type: unknown
+observed-body-bytes: 0
+observed-session-cookie: absent
+tls-verification-state: verified-system
+transport-exit-status-observed: 6
+observed-body-sha256: empty-body
+observed-body-shape: empty
+observed-body-lines: 0
+----- allowlisted-body-fields -----
+  (empty body)
+----- end allowlisted-body-fields -----
+correlation-token-present-in-body: no
+raw-body: not captured (allowlisted fields and a digest are recorded instead)
+----- transport-diagnostics -----
+curl: (6) Could not resolve host: arkcase-ce.local
+----- end transport-diagnostics -----
+----- allowlisted-response-headers -----
+  (none)
+----- end allowlisted-response-headers -----
+
+===== search-engine-direct =====
+request-method: GET
+request-url: https://arkcase-ce.local/solr
+auth-mode: anon
+observed-http-status: 000
+observed-content-type: unknown
+observed-body-bytes: 0
+observed-session-cookie: absent
+tls-verification-state: verified-system
+transport-exit-status-observed: 6
+observed-body-sha256: empty-body
+observed-body-shape: empty
+observed-body-lines: 0
+----- allowlisted-body-fields -----
+  (empty body)
+----- end allowlisted-body-fields -----
+correlation-token-present-in-body: no
+raw-body: not captured (allowlisted fields and a digest are recorded instead)
+----- transport-diagnostics -----
+curl: (6) Could not resolve host: arkcase-ce.local
+----- end transport-diagnostics -----
+----- allowlisted-response-headers -----
+  (none)
+----- end allowlisted-response-headers -----
+
+===== search-through-application (SKIPPED) =====
+SKIPPED
+reason: no HTTP response from the application search endpoint
+note: this flow could not be executed.  The record is deliberate: an
+  unexecuted flow is reported rather than omitted, so that the
+  eight-flow completion condition stays verifiable and the gap is
+  visible in a directory diff (R-5).
+

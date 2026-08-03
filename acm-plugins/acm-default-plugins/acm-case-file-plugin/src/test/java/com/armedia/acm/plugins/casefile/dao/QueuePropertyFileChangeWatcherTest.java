@@ -113,7 +113,7 @@ public class QueuePropertyFileChangeWatcherTest extends EasyMockSupport
         // acmQueueDao.save(..) calls that live inside that callback still execute and still feed capturedArgs.
         // The status is resolved with the transactionTemplate built above rather than with the constructed mock, because
         // TransactionTemplate.equals compares the definition description and also requires the same transaction manager.
-        // The template built above satisfies both, so the expectation above matches just as it did against the real template.
+        // The template built above satisfies both, so the expectation registered above matches.
         try (MockedConstruction<TransactionTemplate> ignored = Mockito.mockConstruction(TransactionTemplate.class,
                 (mock, context) -> Mockito.doAnswer(invocation ->
                 {

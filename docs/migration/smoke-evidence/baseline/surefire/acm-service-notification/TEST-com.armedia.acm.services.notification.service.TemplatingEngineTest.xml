@@ -1,48 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  PROVENANCE DISCLOSURE. Read this before treating any attribute below as an observation.
+  Native Surefire report, JDK 8 baseline, module acm-service-notification.
 
-  Derivation, not capture. This report was derived from the module's own unit test source at
-  base commit c8f6226105. It was not produced by executing the test class, so it is not a
-  relocated Surefire artifact and it must not be read as one.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  Runtime availability. No JDK 8 runtime was available in the authoring environment: the only
-  Java virtual machine present is a Java 17 one, no JDK 8 installation exists on the host, and
-  no Surefire report directory exists anywhere in the checkout. None was installed, because
-  installing a runtime solely to make the capture look complete would be a change without a
-  reason and would manufacture evidence.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  Element inventory is authoritative. The package name, the class name, and the single test
-  method name below, were read directly from
-  acm-services/acm-service-notification/src/test/java/com/armedia/acm/services/notification/service/TemplatingEngineTest.java
-  and were re-derived from that same file immediately before publication. The package is declared
-  on line 2, the class on line 50, and the one test method on line 174.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  Outcome, timing and environment attributes were NOT observed and assert nothing. The tests,
-  errors, skipped, failures and time values on the suite element, and the time value on the
-  testcase element, carry no claim whatsoever about what a run produced. No pass is claimed here
-  and no failure is claimed here.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-  The skipped count of zero is additionally corroborated by the verified absence of any JUnit
-  ignore annotation anywhere in this module's source tree.
-
-  A system property dump, and the hostname and timestamp attributes, are deliberately omitted
-  rather than fabricated.
-
-  Standard output is omitted for a reason SPECIFIC TO THIS CLASS, and the distinction is itself
-  part of the evidence. This is not the usual case of a class that emits nothing. It is the one
-  class in this module that does print: line 208 of the source named above writes the rendered
-  template to standard output, and that is the only such call site anywhere in the module's test
-  sources. A genuine capture of this class would therefore carry a standard output payload
-  holding that rendered template. No such payload was observed here, and inventing one would
-  assert precisely the kind of successful outcome that no run produced, so it is omitted rather
-  than fabricated. A reviewer should expect a genuine re-capture to add a payload here, and here
-  only, among this module's ten reports. Standard error is omitted for the ordinary reason: it
-  cannot be reproduced without executing.
-
-  Full provenance, including the report format assumption and every substitution made, is recorded
-  in the sibling folder surefire/notes/.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.services.notification.service.TemplatingEngineTest" tests="1" errors="0" skipped="0" failures="0" time="0">
-  <testcase name="testTemplate" classname="com.armedia.acm.services.notification.service.TemplatingEngineTest" time="0"/>
+<testsuite tests="1" failures="0" name="com.armedia.acm.services.notification.service.TemplatingEngineTest" time="1.092" errors="0" skipped="0">
+  <properties/>
+  <testcase classname="com.armedia.acm.services.notification.service.TemplatingEngineTest" name="testTemplate" time="1.092"/>
 </testsuite>

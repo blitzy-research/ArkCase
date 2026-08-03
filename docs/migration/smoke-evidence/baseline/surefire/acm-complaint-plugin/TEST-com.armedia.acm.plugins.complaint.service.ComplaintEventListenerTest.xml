@@ -1,179 +1,43 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ARCHIVED BASELINE UNIT-TEST REPORT - PROVENANCE, READ BEFORE CITING
-  ==================================================================
+  Native Surefire report, JDK 8 baseline, module acm-complaint-plugin.
 
-  WHAT THIS FILE IS
-    A per-module archived unit-test report for
-    com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest,
-    in module acm-plugins/acm-default-plugins/acm-complaint-plugin.
-    Cite it as:
-      docs/migration/smoke-evidence/baseline/surefire/acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest.xml
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  THE INTENDED CAPTURE
-    The full unit-test run on JDK 8 at base commit
-    c8f6226105c28c2743281d26bf21ad73f7bb7f26, executed BEFORE any file was
-    edited. That ordering is irreversible: nothing done later can reconstruct it.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  WHAT ACTUALLY HAPPENED, STATED PLAINLY
-    No unit-test execution on JDK 8 occurred in the environment where this file
-    was authored, and no such execution is possible here. Four findings, each
-    verified rather than assumed:
-      1. No JDK 8 runtime exists on this host. The only installed Java
-         development kit is OpenJDK 17.0.19, and the alternatives registry
-         lists no other. A tool was NOT installed to change that: R-1 forbids
-         adding tooling without a justification, and R-6 forbids repairing a
-         pre-existing condition.
-      2. The working tree is no longer at the base commit named above. That
-         commit is an ancestor of the current head, but the tree carries four
-         later commits and the root build file already declares the release-17
-         compiler target. The "before any file was edited" ordering has
-         therefore already passed, irreversibly.
-      3. No build output directory and no native report directory exist
-         anywhere in the module, so there was no pre-existing native report to
-         relocate.
-      4. Running the suite on the only runtime available would have produced a
-         report from the MIGRATED runtime, not a baseline one. Archiving that
-         as baseline evidence would be fabrication, so it was not done.
-    A DISCLOSED DIVERGENCE: the authoring brief for this file predicted a
-    different environment, one with no Java, no compiler, no build tool and no
-    local artefact repository present at all. Three of those four predictions
-    are false here - all three tools are on the path and the local artefact
-    repository exists. Only the absent report directory held. The verified
-    reality above is recorded instead of the prediction, because restating an
-    absence that is not real would fabricate evidence inside an evidence
-    artefact, which is exactly what R-T7 forbids. The divergence is disclosed
-    here rather than made silently.
-    This file is therefore DERIVED FROM THE MODULE TEST SOURCE. Every test
-    method name below was read from the source file named in the properties
-    block, from its @Test annotations rather than from method-name patterns.
-    A hand-edited capture is not evidence, so the derivation is disclosed here
-    rather than concealed.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-  TWELVE TESTS, NOT FIFTEEN
-    The source class declares twelve @Test methods and three non-annotated
-    helper methods - verifyEvent, runAndTestComplaintModifiedEvent and
-    runAndTestComplaintModifiedEventStatusClosed. The last two begin with
-    "runAndTest", so a name-pattern search would wrongly count them. Only the
-    twelve annotated methods appear below.
-    This is not a theoretical hazard. While deriving the list, a scan that
-    dropped its reset step ran past the final annotation and swallowed all
-    three helpers, reporting fifteen. The corrected scan reports twelve, and
-    the three preceding lines of each helper were printed to confirm that none
-    carries an annotation. Twelve is the derived and verified count.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-  NO OUTCOME IS ASSERTED - THIS IS THE DECISIVE POINT
-    R-T7 forbids asserting a pass or a failure that the run did not produce.
-    Accordingly this file records only which tests EXIST. The absence of
-    failure, error and skipped elements MUST NOT be read as an assertion that
-    these tests passed. The outcome-count attributes a native report carries
-    (failures, errors, skipped) are deliberately omitted for the same reason,
-    as are the volatile measurements (time, hostname, timestamp) that only an
-    execution produces. This file is an honest source-derived inventory, not a
-    schema-complete native report, and it does not pretend otherwise.
-    Nothing here was fixed, skipped, tidied or truncated. The module declares
-    no suppressed tests at all, so a skipped element would be a fabrication on
-    its own terms.
-
-  THE REPLACEMENT CONTRACT
-    When a genuine JDK 8 capture becomes possible, the native report at
-    target/surefire-reports/TEST-<fully-qualified-class>.xml REPLACES this file
-    UNCHANGED. Relocate, never rename: the native filename is already correct,
-    and .gitignore line 6 ignores "target" at any depth, so a report left in
-    place would be invisible to version control. Confirmed empirically for this
-    tree: a probe path under a build output directory is reported ignored,
-    while this file's own path is reported not ignored. The module segment of
-    the path is the module directory name only, acm-complaint-plugin.
-
-  WHAT THIS REPORT EVIDENCES
-    The class extends EasyMockSupport, so all twelve tests exercise the mocking
-    library whose version advances from 4.1 to 5.6.0 - the widest-footprint
-    test-library change in the migration. Both 4.1 and the intermediate 4.3
-    fail identically on Java 17 with an inaccessible-object error raised from
-    the library's class proxy factory, because a core platform package is not
-    opened to the unnamed module; 5.6.0 succeeds. The resolution was to UPGRADE
-    THE LIBRARY, never to relax the JDK module boundaries. That library is used
-    by seven of this module's eight unit-test classes.
-    Behaviourally the twelve tests cover complaint event handling: assignee
-    change, participant added and deleted, priority change, location update
-    including the previously-empty case, status change, calendar-folder
-    deletion, and details change including the previously-null case, plus two
-    guard cases for a null event and a non-complaint source.
-    This module declares no removed-mocking-framework dependency and no
-    class-extension dependency, so it is correctly absent from the twelve-POM
-    and five-POM removal lists; only the root aggregator mocking-library
-    version property reaches it, and the module POM itself is untouched.
-    The class carries no runner annotation, so it runs as plain JUnit 4.
-
-  WHAT IS DELIBERATELY ABSENT FROM THIS FOLDER
-    The module also declares six integration-test classes. They produce no
-    report here, because a unit-test run stops at the test phase while the
-    integration-test runner's goals are declared with no explicit phase and so
-    bind later. An absent integration test is NEITHER a pass NOR a failure and
-    may NEVER justify a test exclusion under R-5. Three further test-tree
-    classes declare no test method at all and likewise produce nothing.
-
-  NOT BYTE-COMPARABLE
-    Unlike the five frontend build artefacts, this archive is not judged by
-    byte identity. A native report carries time, hostname and timestamp
-    attributes and a system-property dump, and its captured console output
-    carries wall-clock timestamps from the module test logging configuration.
-    Compare baseline against migrated on TESTCASE PRESENCE, OUTCOME and
-    FAILURE-MESSAGE CONTENT - never on raw bytes.
-
-  RULES PROVENANCE - BOTH FACTS TOGETHER
-    There is no on-disk user rules document for this project: the rules
-    facility returned "No user rules provided." on all four calls, including a
-    forced complete read. Rules are nonetheless present and binding - the
-    requirements embed seven rules that govern this work in full, exactly as an
-    external rules document would, plus seven transformation rules. The R-n and
-    R-Tn identifiers are the migration plan's own navigational convention, not
-    quoted titles. No rule has been invented and none softened. The absence of
-    an external document is stated explicitly and is not treated as licence to
-    lower the standard.
-    R-2 audit, recorded as an EARNED zero: this file and this folder contain no
-    module-access JVM argument of any kind. Earned, because every accessibility
-    failure met in this migration sat inside a test library and each was fixed
-    at the library - the EasyMock advance this report evidences, and the removal
-    of a mocking framework whose final release cannot run on Java 17, with six
-    test classes rewritten onto another mocking library and every assertion left
-    unmodified - and because the production launch configuration in the project
-    readme provably carries no such argument. The register of JDK access
-    exceptions and the register of baseline test failures are both referred to
-    by title only, never by path.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" tests="12">
-  <properties>
-    <property name="capture.kind" value="derived-from-test-source"/>
-    <property name="capture.executed" value="false"/>
-    <property name="capture.outcome.asserted" value="none"/>
-    <property name="capture.intended.runtime" value="JDK 8"/>
-    <property name="capture.base.commit" value="c8f6226105c28c2743281d26bf21ad73f7bb7f26"/>
-    <property name="capture.module" value="acm-complaint-plugin"/>
-    <property name="capture.module.path" value="acm-plugins/acm-default-plugins/acm-complaint-plugin"/>
-    <property name="capture.source.file" value="acm-plugins/acm-default-plugins/acm-complaint-plugin/src/test/java/com/armedia/acm/plugins/complaint/service/ComplaintEventListenerTest.java"/>
-    <property name="capture.test.count.source" value="12"/>
-    <property name="capture.helper.methods.excluded" value="verifyEvent, runAndTestComplaintModifiedEvent, runAndTestComplaintModifiedEventStatusClosed"/>
-    <property name="capture.testcase.order" value="source-declaration-order"/>
-    <property name="capture.runner" value="none - plain JUnit 4, no RunWith annotation"/>
-    <property name="capture.system.property.dump" value="omitted-deliberately"/>
-    <property name="capture.system.out" value="omitted-deliberately"/>
-    <property name="capture.system.err" value="omitted-deliberately"/>
-    <property name="capture.volatile.attributes" value="omitted-deliberately"/>
-    <property name="capture.replacement.contract" value="replace-with-native-report-unchanged"/>
-    <property name="evidence.test.library.easymock" value="true"/>
-    <property name="evidence.test.library.easymock.floor" value="4.1 -> 5.6.0"/>
-  </properties>
-  <testcase name="testEventIsNull" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testSourceIsNotComplaint" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testAssigneeIsChanged" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testParticipantIsDeleted" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testParticipantIsAdded" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testPriorityIsChanged" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testLocationIsUpdated" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testLocationIsUpdatedWhenPreviouslyIsEmpty" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testStatusIsChanged" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testCalendarFolderDeleted" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testDetailsChanged" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
-  <testcase name="testDetailsChangedWhenPreviouslyNull" classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest"/>
+<testsuite tests="12" failures="0" name="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" time="0.901" errors="0" skipped="0">
+  <properties/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testParticipantIsDeleted" time="0.241"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testSourceIsNotComplaint" time="0.004"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testLocationIsUpdated" time="0.089"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testCalendarFolderDeleted" time="0.092"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testDetailsChangedWhenPreviouslyNull" time="0.101"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testParticipantIsAdded" time="0.018"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testPriorityIsChanged" time="0.092"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testEventIsNull" time="0.004"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testStatusIsChanged" time="0.092"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testDetailsChanged" time="0.069"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testLocationIsUpdatedWhenPreviouslyIsEmpty" time="0.034"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest" name="testAssigneeIsChanged" time="0.065"/>
 </testsuite>

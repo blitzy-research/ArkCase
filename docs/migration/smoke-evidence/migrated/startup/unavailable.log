@@ -1,0 +1,27 @@
+startup log not captured
+state: MISSING
+reason: CATALINA_LOG is unset or does not name a readable file
+configured-value: <unset>
+
+THIS IS A GAP IN THE EVIDENCE, NOT AN OPTIONAL EXTRA.
+
+The container log is the ONLY place three things can be observed, and
+each of them is load-bearing for a claim this migration makes:
+  * the startup frontend build, which is the one and only place the
+    runtime package-manager wiring executes.  The frontend pipeline is
+    invoked at container startup and not by the build, so without this
+    log there is no evidence whatever that the migrated wiring runs the
+    lockfile-respecting clean install rather than the superseded package
+    manager it replaced.  A capture missing this log cannot support the
+    claim that the frontend genuinely runs on the new runtime.
+  * process-engine initialisation and the loading of every process
+    definition, which is where flow 7 residual risk is discharged or
+    left standing.
+  * every ERROR and SEVERE line, without which a regression can hide
+    behind a healthy readiness probe and a set of 200 responses.
+
+Supply CATALINA_LOG pointing at the container log for both runs.  Until
+then the startup-derived observations in flows 5 and 7 record this
+unavailability explicitly rather than asserting anything about a log that
+was never read, and no claim about the startup frontend build may be
+made from this capture.

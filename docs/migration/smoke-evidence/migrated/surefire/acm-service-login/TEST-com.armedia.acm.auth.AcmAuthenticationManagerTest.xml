@@ -1,284 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  2A PROVENANCE
+  Native Surefire report, migrated run, Java 17, module acm-service-login.
 
-  WHAT THIS FILE IS
-  The archived migrated side unit test report for the single test class
-  com.armedia.acm.auth.AcmAuthenticationManagerTest in the module directory
-  acm-service-login, whose reactor targets JDK 17. It is part of the evidence that makes the
-  no disabling of failing tests rule, labelled R-5 here, verifiable rather than merely
-  asserted. The unit under test is the authentication decision itself, the bean
-  acmAuthenticationManager declared at line 16 of the module's user login Spring library,
-  wiring the context holder, the authentication event publisher, the user data access object
-  and the authentication mapper, and consumed in that same library at lines 33 and 173. It
-  stands above the role to authority mapper declared at line 11 and the authentication
-  details factory declared at line 28, whose reports are mapped ahead of this one; together
-  with the login success operations it is the reason this folder is one of the two bearing
-  directly on the preservation of authentication outcomes.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
+  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
+  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
+  from a prebuilt repository:
 
-  Citable form of this file, as the registers refer to it:
-  docs/migration/smoke-evidence/migrated/surefire/acm-service-login/TEST-com.armedia.acm.auth.AcmAuthenticationManagerTest.xml
-  The surefire segment of that path is authoritative and is never dropped, and the module
-  component is the module directory name acm-service-login rather than a reactor path. The
-  baseline and migrated directories carry the before and after distinction, so the filename
-  carries no suffix for it, and the package root is com.armedia.acm.auth with no services
-  segment even though the module directory name has one.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  PRODUCTION PATH
-  Derived from the test class source at base commit c8f6226105 (full form
-  c8f6226105c28c2743281d26bf21ad73f7bb7f26). NO RUN OCCURRED. Nothing recorded below was
-  measured or observed, and nothing was invented to stand in for a measurement. That the
-  derivation is genuinely a base commit derivation was checked rather than assumed: the base
-  commit is an ancestor of the current branch tip, and the test class is identical at the two,
-  so no later edit stands between the source read here and the source the baseline side of
-  this archive describes.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor halting at the first red module, which is what
+  allows archiving every module's reports in one pass.
 
-  WHY NO RUN OCCURRED, STATED AS VERIFIED RATHER THAN ASSUMED
-  Relocating a report emitted by a genuine migrated run was attempted first, and no such
-  report exists anywhere in this working tree to relocate. That was checked across the whole
-  checkout rather than in the one module: there is no test report directory anywhere in the
-  tree, and the only report files present are this evidence archive's own derived reports.
-  The point is put that precisely because the brief for this file described the checkout as
-  holding no report file whatsoever, which held when the brief was written and is no longer
-  literally true now that the archive itself holds derived reports; the substantive fact, that
-  no report emitted by a build exists to relocate, is unaffected.
-  A targeted migrated run of this module was then executed offline and restricted to this one
-  test class. Every dependency the module needs resolved from the local cache, and the run
-  then halted during main source compilation of the module's directory context class, at the
-  single occurrence there that the compiler can see, reporting that the package concerned is
-  declared in the platform's naming module and is not exported by it. It never reached the
-  test phase, so the test runner emitted no report for the module and created no report
-  directory, and not one method of this class executed. That is the whole of the obstacle.
-  The remediation for that occurrence belongs to a different file of this same change set, and
-  the state observed here is an intermediate one in which exactly half of it has landed. The
-  configuration half is present: the module's user login Spring library now hosts both
-  externalized values in its property placeholder block, unchanged in value. The source half
-  is not present, which is precisely why the module does not compile in this checkout. Both
-  halves must land together or the module deploys without them, and recording which half is
-  outstanding is what makes this obstacle a checked fact rather than an impression.
-  Two candidate explanations are recorded as checked and untrue, so that this file blames
-  neither. First, the toolchain is not absent from this checkout. The brief for this file
-  anticipated an absent toolchain as the reason, naming an absent runtime, an absent compiler,
-  an absent build tool and an absent local dependency cache; that premise was tested and no
-  part of it held. A JDK 17 runtime, a compiler, a build tool and a populated local dependency
-  cache are all present here, and they were the very instruments of the attempt described
-  above. The established style in this evidence tree is to state the verified fact and note
-  what the plan anticipated, never to repeat an unverified premise silently, because recording
-  an anticipated reason in place of an observed one would place a falsehood in an evidence
-  file, which is the one thing this archive exists to prevent. Second, the local file based
-  artifact repository is not implicated: it is present, tracked in version control, holds real
-  artifacts, and its declarations resolve one per module depth by design. The attempt above was
-  deliberately run offline so that this could be established, and the sole error it reported
-  was the encapsulated package at the compiler visible occurrence.
-  No runtime was installed in order to fabricate a capture, no capture was simulated, and no
-  dependency change is made or proposed by this file, in keeping with the scope and tooling
-  fence of the rule labelled R-1 here. Only the POSIX toolset and interpreters already present
-  were used, following the in repository precedent of the coverage summary script, which relies
-  on find and a single awk program and installs nothing.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace. No
+  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
+  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
 
-  WHAT IS ACCURATE
-  The tests count, the skipped count, the suite name, the class name and the five testcase
-  names in source order are manifest facts read from the test class source at the base commit,
-  at the repository relative path
-  acm-services/acm-service-login/src/test/java/com/armedia/acm/auth/AcmAuthenticationManagerTest.java
-  a 256 line class declaring its package at line 1 and extending the mocking library's support
-  base class at line 64. Counting used a token boundary pattern rather than a plain substring
-  match, because a plain match for the test annotation also strikes the mocking library's
-  similarly prefixed field annotation and over reports elsewhere in this archive. For this
-  class the two agree, since it declares no such field annotation, and that agreement was
-  verified rather than assumed. So derived: exactly five methods carry the test annotation, at
-  source lines 94, 128, 159, 189 and 219, giving tests as 5; one fixture method carries the
-  before annotation, at line 75; and the class declares no ignore annotation, no runner
-  annotation, no rule, no class level fixture and no timeout attribute, giving skipped as 0.
-  The skipped zero is therefore a property of the source and not a claim about a run: nothing
-  in this class can report as skipped. The module owns none of the 26 ignore annotations counted
-  across the repository's Java sources, and any appearance of one here, whether in source or in
-  test runner configuration, would be an increase and therefore a violation.
-  The five names are recorded in source order and are neither reordered, abbreviated nor
-  normalised, and the count has not been rounded up to look fuller.
+  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
+  discovered. The system property dump the reporter writes inside the properties element is emptied - it
+  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
+  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
+  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
+  both, no absolute path of this machine survives anywhere in this archive.
 
-  THE READING GUARD THAT MATTERS MOST FOR THIS CLASS
-  Three of the five methods declare an expected exception, at source lines 159, 189 and 219,
-  each naming the same authentication service exception type. Under the JUnit 4 generation this
-  module uses, such a method PASSES when the declared exception is thrown and fails only when
-  it is not thrown. Their method names contain the word shouldThrow, which reads like a failure
-  and is not one. Each of the three is therefore an ordinary testcase element carrying no
-  failure and no error child, exactly like the other two, and the absence of those children for
-  them is correct rather than an omission awaiting repair. Attaching a failure element to any of
-  the three, on the strength of its method name or of the exception type its annotation names,
-  would record authentication failures that no run reported: three fabricated failures in the
-  migration's only security adjacent module, and under the rule labelled R-5 here three phantom
-  failures with no register row, which is to say three fictitious migration regressions.
-  The annotation level occurrence of the expected attribute is confined to those three lines.
-  The same word also appears as a local variable name at six further lines, three declarations
-  and three uses, so a plain search for the word overstates the annotation count. The brief for
-  this file put those further lines at three; the verified figure of six is stated here with the
-  plan's noted, rather than the plan's figure being repeated silently.
+  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
+  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
+  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
+  failure regardless of exit status.
 
-  WHAT WAS NOT OBSERVED
-  The failures count, the errors count and every notion of elapsed time. The zeroes on failures
-  and on errors are the arithmetic consequence of this file containing no failure element and no
-  error element, and it contains none because no run occurred, not because a run observed none.
-  Under the transformation rule on evidence over exit codes, labelled R-T7 here, this file
-  therefore records testcase presence and testcase identity and does NOT record a verified pass;
-  it asserts no pass and no failure for any of the five testcases, and a build exit status is
-  never the assertion surface. Read it together with the migrated coverage liveness record filed
-  at the root of this migrated evidence tree, because an empty coverage data set that produces a
-  pass is a failure notwithstanding a zero exit code. The reactor's new test runner declaration
-  sets no literal argument line property, which is what keeps the coverage agent's own export
-  intact; verified as delivered, that declaration carries a group identifier, an artifact
-  identifier and a version and nothing else, so it has no configuration element and therefore no
-  exclusions element either. The reactor declared no test runner at all at the base commit, which
-  is why only the migrated side of this archive carries that companion record.
-  Fail fast is safe here: no rerun count configuration and no retry plugin exists in any reactor
-  project descriptor, so an observed failure would be real and reproducible. The reactor's retry
-  support library is an application dependency and not test retry tooling, a false positive that
-  is especially easy to misread in a login module and easier still in the authentication
-  manager's own report.
-
-  WHAT WAS DELIBERATELY OMITTED RATHER THAN FABRICATED
-  No elapsed time attribute appears on the suite or on any testcase, because writing a zero
-  there would assert a measurement never taken. No hostname and no timestamp appear. No system
-  property dump appears, and none was invented; a genuine property dump is also the principal
-  carrier of absolute filesystem paths and of environment specific tokens, of which this file
-  contains none. No captured standard output or standard error element appears, because
-  composing log lines would be composition rather than evidence.
-  No fixture value from the test class appears anywhere in this file either. That class holds
-  bare user name literals and an expired password notification message, and a report of
-  testcase presence needs none of them, so not one is transcribed. Nor does any credential of
-  any kind appear, which is the strictest reading available and the right one for a class that
-  tests authentication: no user name paired with a password, no directory bind identity or bind
-  password, no directory URL, no multi factor secret, no enrollment code, no API token, no
-  session identifier and no smoke credential value. Such values exist elsewhere in this
-  repository's own documentation and none was copied here. Nothing written here stands in for a
-  value to be supplied later.
-
-  COMPARISON SEMANTICS AND THE MIRROR
-  This file is not byte identical comparable with its baseline twin, and was never meant to be.
-  Archiving in its entirety governs content completeness here, not byte identity; byte identity
-  is a gate for the frontend build artefacts and not for this archive. Judge the two on testcase
-  presence, on testcase outcome and on failure message content. The baseline twin remains
-  authoritative for what was failing before. It carries the same five testcase names in the same
-  source order under the same class name, it establishes no outcome for any of them, and it
-  carries no failure element and no error element; so the two sides agree on all three comparison
-  surfaces, and there is no failure message on either side to compare. Its comment states the
-  same reading guard about the three expected exception methods, independently reached, which is
-  itself worth noting: the trap was seen from both sides of the archive.
-  One disclosed difference in shape: the baseline twin carries a zero elapsed time attribute on
-  the suite and on each of its testcases together with an empty properties element, whereas this
-  file omits those attributes and that element outright and keeps only the numeric count
-  attributes the report schema expects. The intent is identical on both sides and the honesty is
-  stricter here, since an omitted attribute cannot be misread as a measurement. The filenames and
-  the flat per module layout match exactly, so a recursive comparison of the two directories maps
-  report to report mechanically.
-  Where the baseline behaviour rule, labelled R-7 here, is paraphrased in this comment, the
-  pre-migration runtime is written as JDK 8. That is a wording policy accommodation for this
-  documentation tree, disclosed here rather than made silently; it denotes the same pre-migration
-  runtime as the phrase used in the requirements and changes no meaning. This file attributes no
-  compiler release level to the run it describes, because there was no run, and nothing here may
-  be read as implying the superseded release level. For completeness, and re derived rather than
-  taken on trust: the migrated reactor sets its release target exactly once, in the root
-  aggregator, and none of its 145 project descriptors restates it.
-
-  FAILURE TO ROW OBLIGATION
-  Every failure element and every error element in this archive must map to a row of the baseline
-  test failures register, referred to by title. A failure with no matching row is a migration
-  regression rather than an accepted baseline condition. That obligation holds unconditionally,
-  because the register may legitimately carry zero rows, and because a module the register records
-  as uncovered is not a baseline failure and can never justify an exclusion. As delivered the
-  register carries zero rows and counts this module among those its archive covers. This report
-  carries no failure element and no error element, so the obligation is discharged with nothing
-  outstanding. No unit test exclusion names this class, which was verified across every project
-  descriptor in the reactor, none may, and nothing in this file should be read as suggesting one
-  does.
-
-  MODULE CONTEXT
-  This module contains the migration's only security adjacent source edit, and this folder of
-  reports is the module's regression net. Because the module's main source was edited, an
-  unregistered failure here is a security outcome regression and is blocking rather than a note,
-  and that applies with full force to this report, which covers the authentication decision
-  itself. Described neutrally, and without reproducing any audited text, the edit is this: a class
-  literal reference to a vendor internal naming factory was replaced by the identical class name
-  as a string, and two values were externalized into Spring configuration unchanged. Of the three
-  occurrences in that class, only the class literal field initializer is visible to the compiler;
-  the other two are a configuration string literal and a Javadoc block. That distinction matters
-  because the static audit gate is textual rather than semantic, so a build that compiles, deploys
-  and passes every functional flow can still fail it on the two occurrences no compiler ever sees.
-  The remediation changes the context factory field from a class type to a string type with a
-  matching accessor and mutator and passes the class name at its single functional use, which the
-  naming environment consumes identically; it is therefore a representation change and not a
-  behaviour change. The asymmetry that makes the fix possible is a property of the platform and
-  not a workaround: compiling against the encapsulated class fails, while a runtime lookup of the
-  same class by its name succeeds. That is why the register of platform internal access exceptions
-  in production launch configuration, referred to by title only, is delivered empty and says so.
-  The zero there is earned: every accessibility failure in this migration sat inside a test
-  library and was resolved by upgrading or removing that library, every reflective access widening
-  call site in the codebase targets the application's own classes, and no platform security
-  manager is installed anywhere in the codebase. Those last two points were checked precisely
-  rather than by name: the four reflective access widening call sites all widen a field of an
-  application class, and the only types in the tree whose names end in security manager belong to
-  a third party document sharing library and to the application interface that adapts it, while
-  the platform type of that name is installed nowhere.
-  This module is the clearest illustration in the whole change set of the transformation rule
-  labelled R-T3 here, paraphrased rather than quoted: where a dependency fails under the platform's
-  stronger encapsulation the resolution is to upgrade or replace that dependency, and platform
-  internal call sites are rewritten to supported APIs rather than accommodated by widening module
-  access. The related rule labelled R-2 here is likewise paraphrased and never quoted, so that this
-  file carries no literal module access argument token. No module access JVM argument that opens or
-  exports an otherwise encapsulated JDK package to the unnamed module is relied on by this
-  evidence, and none is present in the production launch configuration. Such an argument was never
-  a viable shortcut in any case, quite apart from being forbidden: because the audit gate is
-  textual, it would have left every occurrence in place and failed the gate on an otherwise working
-  build, so the rule and the gate independently foreclose the same shortcut.
-  This report is NOT offered as proof that the directory context edit preserves behaviour. None of
-  the module's seven unit test classes exercises the remediated class, this one included, which was
-  verified across the module's whole test tree rather than assumed. That evidence belongs to the
-  authenticated login smoke flow and to the deployment gate's startup observation that the
-  externalized values resolve from the module's own property block and that the context factory is
-  constructed from its class name. Those companions are referenced here conceptually and their
-  content is not duplicated.
-  Namespace invariance, labelled R-T1 here, is intact: this file contains no reference to the
-  successor namespace, and the module's existing javax namespace references are correct as they
-  stand and are preserved unchanged in source, in class names and in any captured text. That
-  inventory was re derived rather than taken on trust, and for this module it is javax.servlet,
-  javax.servlet.http, javax.servlet.request and the javax.naming family comprising javax.naming
-  itself with javax.naming.directory, javax.naming.ldap and javax.naming.spi. The brief for this
-  file listed two further packages, one for security and one for secure sockets; neither occurs
-  anywhere in this module, so both are recorded here as checked and absent rather than repeated on
-  trust. The test class this report describes imports no such package at all. The naming family is
-  the pertinent one, being the namespace the directory context class imports and therefore the
-  namespace the remediation sits beside while leaving it untouched.
-  Scope, matching the rule labelled R-6 here: this file records. It fixes nothing, proposes no fix
-  and names no defect to repair. A test failing at the baseline would have been captured as failing.
-  Verified module facts, re derived rather than taken on trust: the module presents seven unit test
-  classes, which is exactly the set archived in its baseline counterpart folder, and this report is
-  one of the seven. Its single integration class is executed by the integration test plugin and is
-  therefore represented here by no report, no testcase entry and no skipped element; an absent
-  integration test is neither a pass nor a failure and may never justify an exclusion, so no eighth
-  report belongs in this folder. The module's project descriptor carries zero references to the
-  retired partial mocking framework, to its class extension companion and to the replacement
-  mocking library alike, which is why this module is correctly absent from the change set's mocking
-  stack removal lists; its mocking library floor is governed solely by a root aggregator property.
-  Its testing block names three entries, JUnit, the Spring test support module and the mocking
-  library, the first and the third taking their test scope from the root aggregator rather than
-  restating it; the brief for this file described two, so the verified figure is stated here with
-  the plan's noted rather than repeated silently.
-
-  RULES PROVENANCE
-  Both facts hold together, and stating either one alone would mislead. First, this project has no
-  rules document on disk: the rules facility reports, verbatim, that no user rules were provided.
-  Second, the requirements nonetheless embed a numbered block of seven rules together with seven
-  transformation rules, and those fourteen constraints govern this work in full, exactly as an
-  external document would. Reporting only the first would imply that general best practice is the
-  sole standard, which is wrong; reporting only the second would misrepresent where the rules came
-  from. The R identifiers used throughout this comment are the migration plan's own navigational
-  labels and not quoted rule titles. Enterprise best practice is applied on top of those fourteen
-  constraints and never as a substitute for them.
+  Read against the twin report of the same name under the sibling baseline directory, which carries the
+  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
+  content - never on byte identity, since duration, host name and run instant legitimately vary between
+  two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.auth.AcmAuthenticationManagerTest" tests="5" errors="0" skipped="0" failures="0">
-  <testcase name="authenticate_firstOneWorks" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest"/>
-  <testcase name="authenticate_shouldThrowLastProviderException" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest"/>
-  <testcase name="authenticate_shouldThrowBadCredentials" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest"/>
-  <testcase name="authenticate_emptyUsername_shouldThrowBadCredentials" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest"/>
-  <testcase name="authenticate_shouldThrowExceptionAndShowEmailSentMsg" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest"/>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0.188" tests="5" errors="0" skipped="0" failures="0">
+  <properties/>
+  <testcase name="authenticate_shouldThrowExceptionAndShowEmailSentMsg" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0.113"/>
+  <testcase name="authenticate_emptyUsername_shouldThrowBadCredentials" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0.01"/>
+  <testcase name="authenticate_firstOneWorks" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0.029"/>
+  <testcase name="authenticate_shouldThrowBadCredentials" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0.0"/>
+  <testcase name="authenticate_shouldThrowLastProviderException" classname="com.armedia.acm.auth.AcmAuthenticationManagerTest" time="0.035">
+    <system-out><![CDATA[09:31:25.017 [main] ERROR com.armedia.acm.auth.AcmAuthenticationManager - No authentication provider found for [EasyMock for interface org.springframework.security.core.Authentication]
+]]></system-out>
+  </testcase>
 </testsuite>

@@ -299,10 +299,18 @@ public class AWSTranscribeServiceImpl implements TranscribeIntegrationService
     }
 
     /**
-     * Test seam. Opens the media file for upload. Package/subclass-visible so a test can supply a
-     * stub stream: java.io.FileInputStream is loaded by the bootstrap class loader and therefore
-     * cannot be intercepted by Mockito construction mocking. Production behavior is unchanged --
-     * this method does exactly what the inlined constructor call did.
+     * Opens the media file whose bytes are uploaded to the media bucket. Declared protected so a
+     * subclass in a test can supply a stub stream instead: java.io.FileInputStream is loaded by the
+     * bootstrap class loader and therefore cannot be intercepted by Mockito construction mocking.
+     * The method reads no configuration, touches no injected collaborator and logs nothing, so
+     * overriding it changes nothing else on the upload path.
+     *
+     * @param mediaFile
+     *            the media file to read, taken from the media engine DTO being uploaded.
+     * @return an open stream over mediaFile; the caller closes it through try-with-resources.
+     * @throws IOException
+     *             if the file cannot be opened. The caller's handler reports that as an upload
+     *             failure exactly as it reports any other failure raised while uploading.
      */
     protected InputStream openMediaStream(File mediaFile) throws IOException
     {

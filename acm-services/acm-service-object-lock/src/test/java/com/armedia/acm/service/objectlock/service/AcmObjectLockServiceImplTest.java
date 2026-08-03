@@ -128,7 +128,7 @@ public class AcmObjectLockServiceImplTest
             AcmObjectLockEvent captured = event.getValue();
             assertEquals(objectId, captured.getParentObjectId());
             assertEquals(objectType, captured.getParentObjectType());
-            assertEquals("OBJECT_LOCK", captured.getObjectType());        
+            assertEquals("OBJECT_LOCK", captured.getObjectType());
         }
     }
 
@@ -137,9 +137,9 @@ public class AcmObjectLockServiceImplTest
     {
         try (MockedStatic<AuthenticationUtils> mockedAuthUtils = Mockito.mockStatic(AuthenticationUtils.class))
         {
-            // 2019-03-18 it seems odd that the lock service's create method 
-            // just automatically overrides any existing lock, but that is in fact 
-            // what the implementation does.  Whether that's actually correct, 
+            // 2019-03-18 it seems odd that the lock service's create method
+            // just automatically overrides any existing lock, but that is in fact
+            // what the implementation does.  Whether that's actually correct,
             // probably not.
 
             Long objectId = 1L;
@@ -162,8 +162,8 @@ public class AcmObjectLockServiceImplTest
             AcmObjectLockEvent captured = event.getValue();
             assertEquals(objectId, captured.getParentObjectId());
             assertEquals(objectType, captured.getParentObjectType());
-            assertEquals("OBJECT_LOCK", captured.getObjectType());        
-            
+            assertEquals("OBJECT_LOCK", captured.getObjectType());
+
         }
     }
 
@@ -193,7 +193,7 @@ public class AcmObjectLockServiceImplTest
             AcmObjectLockEvent captured = event.getValue();
             assertEquals(objectId, captured.getParentObjectId());
             assertEquals(objectType, captured.getParentObjectType());
-            assertEquals("OBJECT_LOCK", captured.getObjectType()); 
+            assertEquals("OBJECT_LOCK", captured.getObjectType());
         }
     }
 
@@ -225,7 +225,7 @@ public class AcmObjectLockServiceImplTest
             AcmObjectUnlockEvent captured = event.getValue();
             assertEquals(objectId, captured.getParentObjectId());
             assertEquals(objectType, captured.getParentObjectType());
-            assertEquals("OBJECT_LOCK", captured.getObjectType()); 
+            assertEquals("OBJECT_LOCK", captured.getObjectType());
         }
     }
 

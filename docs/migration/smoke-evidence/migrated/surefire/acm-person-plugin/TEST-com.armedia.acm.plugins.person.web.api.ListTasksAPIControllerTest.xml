@@ -1,279 +1,191 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  MIGRATED SIDE ARCHIVED UNIT TEST REPORT
-  Class    : ListTasksAPIControllerTest, a unit test class of the person plugin
-  Package  : com.armedia.acm.plugins.person.web.api
-  Module   : acm-person-plugin (the directory name; never a reactor path when cited)
-  Runtime of record : Java 17
-  Project  : com.armedia:acm:2021.03, a 145 module Maven reactor migrated off JDK 8
-  Base commit : c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)
+  Native Surefire report, migrated run, Java 17, module acm-person-plugin.
 
-  CAPTURE METHOD, WITH ITS REASON OBSERVED RATHER THAN ASSUMED
-  This file is a source-derived structural inventory, recorded machine-readably in the
-  properties block below as acm.migrated.capture.method. The preferred path was taken
-  first and is exhausted, and every step of it was executed rather than presumed.
-  Step one: the whole working tree was searched for a genuine emitted unit test report
-  that could be relocated into this folder. There is none, and no report output directory
-  exists anywhere in the tree, so nothing could be archived exactly as emitted.
-  Step two: an offline unit test run scoped to this module alone was executed on Java 17.
-  It stopped inside dependency resolution, before any test method executed and before any
-  report directory was created, because eight of the module's declared upstream reactor
-  dependencies have no installed artifact.
-  Step three: that attempt was escalated so the upstream modules would be built too. 29
-  modules built successfully and the reactor then stopped in an upstream module of this
-  same single indivisible change set, whose main source still names a platform internal
-  package that the platform module declaring it does not export, so that module cannot
-  compile at the release level this reactor now targets. This module was reported skipped,
-  so its unit test phase was never reached and again no report was emitted. That
-  remediation belongs to the same change set and is landing on its own; nothing here
-  attempts it, waits on it or reports on it.
-  A Java 17 toolchain is present in the authoring environment and was used only to
-  establish those three facts. No runtime, build tool or library was installed, configured
-  or otherwise arranged to simulate a capture, and no measured value was invented to make
-  this archive look complete.
-  The tracked local artifact repository at the repository root is expressly NOT the cause
-  and must never be recorded as one. Its artifacts resolved exactly as committed, and the
-  four local repository declarations in the aggregator resolve one per module depth by
-  design, because the base directory property is re-evaluated in every module. The
-  artifacts that failed to resolve were reactor siblings, which only a reactor build
-  produces.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
+  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
+  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
+  from a prebuilt repository:
 
-  WHAT THIS FILE ASSERTS, AND WHAT IT DOES NOT
-  The tests count and the skipped count are accurate structural facts read from source:
-  the class declares exactly two live test methods and carries no ignore annotation. The
-  failures count, the errors count and every time attribute are NOT observed values.
-  Every time attribute is 0 as a deliberate, documented not-measured marker, never a claim
-  of instantaneous execution. Consistent with the evidence over exit codes transformation
-  rule (R-T7 in the plan's own numbering), this file asserts no pass and no failure for
-  either method; it records the structure that a genuine capture would have had to cover,
-  and it is judged on its own record rather than on any neighbouring body of evidence or on
-  any build's exit status. No hostname, no timestamp, no duration and no JVM
-  system-property dump was invented, and no absolute filesystem path appears anywhere in
-  this file. The archive is therefore not byte-identical-comparable: unlike the five
-  frontend build artifacts, whose gate genuinely is byte identity, the phrase "archived in
-  its entirety" governs content completeness here rather than byte identity.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  TEST INVENTORY AND ITS SOLE AUTHORITY
-  The two case names, their spelling and their order were read from the class's own test
-  source at the base commit, a file of 179 lines, and were re-derived with a comment-aware
-  pattern anchored at line start rather than with a bare annotation search, which is
-  unsafe in this archive because an annotation of the mocking library shares the same
-  prefix and because a sibling class in this very folder carries an annotation inside a
-  block comment. The re-derivation returns two. The annotation appears at source line 105
-  for the method declared at line 106, and at source line 152 for the method declared at
-  line 153; the two cases below appear in that declaration order. The first name is a
-  strict prefix of the second, so any verification search over this file must anchor on
-  the closing quote of the name attribute. The suffix of the second name is
-  underscore-separated and is not a camel-cased variant of the first. Neither method
-  declares an expected exception, so both are ordinary cases and neither carries a failure
-  child or an error child. Class shape for context: the Spring JUnit 4 class runner is
-  declared at line 68, the context configuration spans lines 69 to 71, and the class is
-  declared at line 73 extending the EasyMock support base class.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor halting at the first red module, which is what
+  allows archiving every module's reports in one pass.
 
-  THE TWO LOCATION CONTEXT CONFIGURATION IS CORRECT AS IT STANDS
-  That context configuration names two locations. One is not module-local and resolves
-  from a dependency jar on the test classpath, supplied by a declared module dependency.
-  The other is module-local and declares the single exception-resolver bean this class
-  autowires. The same two location shape was checked individually on all nine unit test
-  classes of this package and is present on every one of them, so an earlier description
-  of this class as single location understates it. The non-module-local location is correct
-  and is not an error; nothing here proposes to create a file to satisfy it.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace. No
+  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
+  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
 
-  THE SECOND CASE IS A PASSING CASE, WHICH IS EASY TO MISREAD
-  The second method exercises an error path: the data access collaborator is programmed to
-  throw a persistence exception and the test asserts the response that the module's own
-  exception-resolver bean produces, an internal server error status with a plain text
-  content type. A test that drives an error path and asserts the resulting response is a
-  passing test, so it appears below as an ordinary case element with no failure child, no
-  error child, no exception type attribute and no message attribute. Nothing here remarks
-  on how that assertion could have been expressed instead.
+  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
+  discovered. The system property dump the reporter writes inside the properties element is emptied - it
+  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
+  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
+  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
+  both, no absolute path of this machine survives anywhere in this archive.
 
-  FILING: THIS CLASS BELONGS TO THE PERSON PLUGIN DESPITE ITS TASK FLAVOURED NAME
-  This is the most important structural point about this report. The class name, and the
-  legacy plugin label in the class's own licence header, both evoke a sibling plugin, and a
-  reader scanning file names will be tempted to move this report there. It must not be
-  moved. The class genuinely lives in the person plugin's web API package: this folder is
-  acm-person-plugin, the suite name and both case classname attributes below are the fully
-  qualified name in that package, and the sibling module that the class name evokes has its
-  own archive folder on each side of this evidence tree, to which this report does not
-  belong and which must never receive it. The fully qualified classname attribute is the
-  safeguard and is kept exact on every case below, so that a citing row can always be
-  disambiguated by module directory and classname together.
+  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
+  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
+  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
+  failure regardless of exit status.
 
-  ADJACENCY DISCIPLINE: NO ENGINE CLAIM IS MADE HERE
-  The subject matter of this class is thematically adjacent to the platform's workflow
-  surface, and that adjacency must not be allowed to become borrowed confidence. This is a
-  unit test of a controller whose collaborators are mocks created in the fixture, wired
-  through a standalone mock request setup; it neither exercises nor certifies any workflow
-  or process engine. Accordingly this report makes no claim whatsoever about such an
-  engine's behaviour on the target runtime, states no count of deployed process
-  definitions, and cites no result from any deployment or smoke flow. The migration's
-  residual unverified risk on that surface is assigned to the deployment and smoke gates
-  and is neither confirmed nor discharged by anything in this file.
-
-  PRIVACY
-  A heightened duty applies because this class lists work items for a principal. The
-  fixture principal name, the fixture item identifier and the fixture session attribute
-  value that appear in the test source are deliberately not reproduced here in any form,
-  and nothing in this file presents fixture data as a production record, a real record key
-  or a real person. No personal name, address, contact detail or identifier appears
-  anywhere in this file, no credential value appears anywhere in it, and no absolute
-  filesystem path appears anywhere in it; where a path had to be discussed it is described
-  rather than reproduced. Nothing needed redacting from captured output, because there is
-  no captured output here, and because no unit test class in this module sets a system
-  property, so no environment value could have been captured in the first place.
-
-  NO DISABLING, AND WHERE AN EXCLUSION WOULD HAVE TO BE JUSTIFIED
-  This report exists so that the no disabling claim about this class is verifiable rather
-  than asserted. The skipped count is 0 and there is no skipped element. Across the
-  fourteen archived unit test classes of this module there are zero ignore annotations; one
-  ignore annotation does exist elsewhere in the module, on an integration test class that
-  the integration test runner executes and that is archived nowhere in this folder, so the
-  precise statement is about the fourteen archived classes rather than about the module as
-  a whole. The pinned unit test plugin declaration in the aggregator carries no
-  configuration block at all, and therefore carries no exclusion of any kind and in
-  particular none naming this class; an exclusion would require a row in the baseline test
-  failures register, referred to here by title only, and a case whose name mentions an
-  exception is emphatically not such a row.
-
-  FAILURE TO REGISTER OBLIGATION, AND THE CITATION LIMIT
-  Every failure element and every error element in this file would have to map to a row in
-  the baseline test failures register; a failure with no matching row is a migration
-  regression, not an accepted baseline condition. This file carries none of either. The
-  obligation is unconditional, because that register may legitimately carry zero rows, and
-  a module recorded there as uncovered is not a baseline failure and can never justify an
-  exclusion. Conversely, and equally binding: no row of that register may cite this file,
-  because a register row requires a genuine capture and this file is not one.
-
-  COMPARISON WITH THE BASELINE TWIN
-  The twin of this file under the baseline evidence tree is authoritative for what was
-  failing before the migration, and the two are compared on case presence, case outcome
-  and failure message content, never on byte identity. The governing tie-breaker rule (R-7
-  in the plan's own numbering) requires that "the application's observed behavior at the
-  base commit on [JDK 8] is the tie-breaker for any ambiguity, and each resolution must be
-  documented." Editorial note: [the rule's own text names the older runtime with a two
-  word phrase that this documentation tree's wording gate holds at zero; the bracketed
-  substitution is disclosed here rather than made silently and changes no meaning.]
-
-  WHAT A GENUINE CAPTURE WOULD HAVE HELD
-  Captured standard output and standard error are omitted rather than fabricated. Per this
-  module's verified test logging configuration, a genuine capture would have carried
-  console output from a single Console appender targeting SYSTEM_OUT with the pattern
-  layout %d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n, from the com.armedia logger at
-  debug level with an appender reference pinned at info level and from the root logger at
-  info level, with no file appender configured anywhere. Because this class bootstraps a
-  two location Spring test context and logs the response body of its first case, a genuine
-  capture would additionally have carried container start-up lines at info level. One
-  consequence deserves stating so that a future reader does not misread a real capture when
-  one becomes available: because the second case drives an error path, a genuine capture's
-  standard output could legitimately contain a logged stack trace belonging to a PASSING
-  test, and such a payload would have to be preserved verbatim and never mistaken for a
-  failure. No such text is invented here.
-
-  WHY THIS ARCHIVE IS A USEFUL CONTROL
-  This module is unchanged by the migration: no import edit, no assertion change, no
-  mocking framework rewrite and no remediation site of the static audit. Its module
-  descriptor declares only the EasyMock artifact at test scope, with no removed mocking
-  framework and no build block and no unit test plugin block of its own, so the mocking
-  library floor advance reaches it solely through a property in the aggregator. Thirteen of
-  the fourteen archived unit test classes in this module reference EasyMock and one does
-  not; no numeric occurrence count is asserted, because different matching methods give
-  different figures. The removed platform modules were reinstated as ordinary javax
-  namespace Maven artifacts declared once in the aggregator's global dependency block,
-  which reproduces the ubiquity the old platform library provided and is why no import in
-  this module changed: this class's own javax.persistence import and the
-  javax.annotation.PostConstruct import in the module's data-access layer are both correct
-  as they stand and are preserved, and the successor namespace is named nowhere in this
-  file. This module's main source is the reactor's densest consumer of the reinstated XML
-  binding API, at 13 files, which makes this archive the strongest available control on
-  that reinstatement strategy. Any divergence between this report and its baseline twin
-  would therefore be a genuine signal about artifact selection or classpath composition
-  rather than about edited code, and it would still owe a register row.
-
-  THREE FALSE POSITIVES PRE-EMPTED
-  First, the coverage plugin's excludes are not test exclusions. The aggregator lists eight
-  package globs and they exclude those packages from coverage MEASUREMENT only; no test is
-  disabled by them and none of the eight matches this module's packages.
-  Second, and bindingly, the coverage agent preparation execution declares a destination
-  file but no property name, so it communicates with the unit test plugin through the
-  default argument line property export. A literal argument line element in that plugin's
-  declaration would silently sever instrumentation and leave the coverage check goal
-  evaluating an empty data set against its minimum line coverage ratio of 0.02, which is a
-  false pass rather than a pass. Instrumentation must be verifiably live.
-  Third, the reactor's retry library is an application library and not test retry tooling:
-  a rerun count setting appears in zero of the 145 module descriptors and no retry plugin
-  is declared anywhere, so a failure would be real and reproducible and failing fast is
-  safe.
-
-  WHAT IS NOT REPRESENTABLE IN THIS ARCHIVE
-  This folder holds unit test reports only. The module's seven integration test classes are
-  executed by the integration test runner, emit no unit test report and are archived
-  nowhere here, and none has been fabricated. The one ignore annotation in the module sits
-  on such a class, so no skipped element for it can ever exist in this archive, it may
-  never be cited as a baseline failure, and an absent integration test is neither a pass
-  nor a failure. Non test helper classes also produce no report; this module has none,
-  because all 21 files under its test source tree are unit test or integration test
-  classes, 14 of the former and 7 of the latter.
-
-  SCOPE FENCES OBSERVED
-  No dependency change is made or proposed by this file and nothing was installed to
-  produce it; in particular the engine behind the surface this class touches is nowhere
-  described as upgraded, since a version change without a demonstrated compatibility
-  blocker would itself breach the justified dependency changes rule. Nothing here implies
-  that the archived run compiled at the superseded release level: the reactor compiles at
-  release 17 from a single authoritative property applied to both compiler executions. This
-  file fixes nothing and proposes no fix: it does not propose renaming this class, it does
-  not propose relocating this report to match the class name, and it registers no defect
-  of its own. The migration's escape clause, which permits repairing a pre-existing defect
-  only where it blocks a validation item, is invoked exactly twice in the whole change set,
-  and neither invocation is in this documentation tree. Nothing here implies or requires a
-  module-access JVM argument that opens or exports an otherwise encapsulated JDK package to
-  the unnamed module; the register of JDK internal access exceptions in production launch
-  configuration is referred to by title only, and the production launch configuration
-  recorded in the repository was read and provably carries no such argument, which is why
-  that register is legitimately empty.
-  Nothing here concerns the frontend toolchain.
-
-  RULES PROVENANCE, BOTH FACTS TOGETHER
-  Either fact alone would mislead, so both are stated. First, there is no on-disk rules
-  document for this project: the rules facility was queried while producing this file and
-  returned exactly that no user rules were provided, so there is no external full text
-  source to defer to, and that absence is explicitly not a licence to lower the bar.
-  Second, rules are nonetheless present and binding, because the requirements embed a
-  numbered block of seven rules plus seven transformation rules that govern this work in
-  full, exactly as an external rules document would. The R prefixed identifiers used above
-  are the plan's own navigational labels for those rules rather than quoted titles.
-
-  DIRECTORY, CITATION AND COMPANION EVIDENCE
-  This folder is flat and holds no subdirectory, no index, no README, no summary, no
-  manifest and no digest; nothing was written into the sibling directories of the migrated
-  evidence root, which other agents own. The citable form of this report is its path under
-  docs/migration/smoke-evidence/migrated/surefire/ followed by the module directory name
-  acm-person-plugin and then this file's own name; the surefire segment of that path is
-  authoritative and must not be dropped, and the module segment is the directory name only,
-  never a reactor path and never the sibling module that this class name evokes, a citation
-  which would point at a file that does not exist. There is no before or after suffix in
-  the file name: the baseline directory versus the migrated directory carries that
-  distinction. Read this file together with the coverage liveness record jacoco-liveness.txt
-  in the migrated evidence root, because an empty coverage data set producing a pass is a
-  failure notwithstanding a zero exit code.
+  Read against the twin report of the same name under the sibling baseline directory, which carries the
+  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
+  content - never on byte identity, since duration, host name and run instant legitimately vary between
+  two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest" time="0" tests="2" errors="0" failures="0" skipped="0">
-  <properties>
-    <property name="acm.migrated.capture.method" value="source-derived-structural-inventory"/>
-    <property name="acm.migrated.capture.attempted" value="preferred-path-attempted-first-module-scoped-run-stopped-in-dependency-resolution"/>
-    <property name="acm.migrated.capture.blocker" value="no-emitted-report-exists-module-skipped-by-the-reactor-upstream-of-its-test-phase"/>
-    <property name="acm.migrated.runtime.target" value="Java 17"/>
-    <property name="acm.migrated.base.commit" value="c8f6226105c28c2743281d26bf21ad73f7bb7f26"/>
-    <property name="acm.migrated.module" value="acm-person-plugin"/>
-    <property name="acm.migrated.testcase.order" value="source-declaration-order"/>
-    <property name="acm.migrated.outcome.asserted" value="none-no-pass-and-no-failure-asserted"/>
-    <property name="acm.migrated.time.semantics" value="not-measured"/>
-    <property name="acm.migrated.systemout.systemerr" value="omitted-not-fabricated"/>
-    <property name="acm.migrated.register.citation" value="not-citable-a-register-row-requires-a-genuine-capture"/>
-  </properties>
-  <!-- Two case elements in source declaration order. Both time attributes are
-       not-measured markers rather than durations; see the provenance comment above. -->
-  <testcase name="tasksForUser" classname="com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest" time="0"/>
-  <testcase name="tasksForUser_exception" classname="com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest" time="0"/>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest" time="0.145" tests="2" errors="0" skipped="0" failures="0">
+  <properties/>
+  <testcase name="tasksForUser" classname="com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest" time="0.095">
+    <system-out><![CDATA[2026-08-03 09:34:24,262 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+2026-08-03 09:34:24,263 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@69919fed, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@17574caa, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@555b43ba, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@3ce3b176, org.springframework.test.context.support.DirtiesContextTestExecutionListener@59e83ff0, org.springframework.test.context.transaction.TransactionalTestExecutionListener@74f70a7b, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@7bbec1cc, org.springframework.test.context.event.EventPublishingTestExecutionListener@5a77b7cc]
+2026-08-03 09:34:24,325 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 09:34:24,325 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 09:34:24,326 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-03 09:34:24,328 [INFO ] [main] com.armedia.acm.plugins.person.web.api.ListTasksAPIController - Finding tasks assigned to user 'user'
+2026-08-03 09:34:24,338 [INFO ] [main] com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest - results: [{"@id":"1","taskId":500,"priority":null,"title":null,"dueDate":1785749664326,"attachedToObjectType":null,"attachedToObjectName":null,"attachedToObjectId":null,"assignee":null,"owner":null,"businessProcessName":null,"businessProcessId":null,"adhocTask":false,"completed":false,"status":null,"pendingStatus":null,"percentComplete":0,"details":null,"type":null,"createDate":null,"taskStartDate":null,"taskFinishedDate":null,"taskDurationInMillis":null,"workflowRequestType":null,"workflowRequestId":null,"reviewDocumentPdfRenditionId":null,"reviewDocumentFormXmlId":null,"documentUnderReview":null,"documentsToReview":null,"childObjects":null,"reworkInstructions":null,"outcomeName":null,"availableOutcomes":[],"taskOutcome":null,"participants":null,"container":null,"ecmFolderPath":null,"parentObjectId":null,"parentObjectType":null,"parentObjectTitle":null,"parentObjectName":null,"candidateGroups":[],"nextAssignee":null,"legacySystemId":null,"buckslipTask":false,"buckslipFutureApprovers":null,"buckslipFutureTasks":null,"buckslipPastApprovers":null,"restricted":false,"references":[]}]
+]]></system-out>
+  </testcase>
+  <testcase name="tasksForUser_exception" classname="com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest" time="0.048">
+    <system-out><![CDATA[2026-08-03 09:34:24,402 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-03 09:34:24,402 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-03 09:34:24,402 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-03 09:34:24,405 [INFO ] [main] com.armedia.acm.plugins.person.web.api.ListTasksAPIController - Finding tasks assigned to user 'user'
+2026-08-03 09:34:24,405 [ERROR] [main] com.armedia.acm.plugins.person.web.api.ListTasksAPIController - List Tasks Failed: testMessage
+javax.persistence.PersistenceException: testMessage
+	at org.easymock.internal.MockInvocationHandler.invoke(MockInvocationHandler.java:48) ~[easymock-5.6.0.jar:5.6.0]
+	at org.easymock.internal.ObjectMethodsFilter.invoke(ObjectMethodsFilter.java:100) ~[easymock-5.6.0.jar:5.6.0]
+	at jdk.proxy2.$Proxy126.tasksForUser(Unknown Source) ~[?:?]
+	at com.armedia.acm.plugins.person.web.api.ListTasksAPIController.tasksForUser(ListTasksAPIController.java:79) [classes/:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.lang.reflect.Method.invoke(Method.java:569) ~[?:?]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205) [spring-web-5.3.39.jar:5.3.39]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150) [spring-web-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:903) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:809) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1072) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:898) [spring-webmvc-5.3.39.jar:5.3.39]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:687) [javax.servlet-api-3.1.0.jar:3.1.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72) [spring-test-5.3.39.jar:5.3.39]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:790) [javax.servlet-api-3.1.0.jar:3.1.0]
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201) [spring-test-5.3.39.jar:5.3.39]
+	at com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest.tasksForUser_exception(ListTasksAPIControllerTest.java:169) [test-classes/:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.lang.reflect.Method.invoke(Method.java:569) ~[?:?]
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59) [junit-4.13.1.jar:4.13.1]
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56) [junit-4.13.1.jar:4.13.1]
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84) [spring-test-5.3.39.jar:5.3.39]
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84) [spring-test-5.3.39.jar:5.3.39]
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97) [spring-test-5.3.39.jar:5.3.39]
+	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70) [spring-test-5.3.39.jar:5.3.39]
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:413) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190) [spring-test-5.3.39.jar:5.3.39]
+	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:316) [surefire-junit4-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeWithRerun(JUnit4Provider.java:240) [surefire-junit4-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:214) [surefire-junit4-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:155) [surefire-junit4-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) [surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) [surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) [surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) [surefire-booter-3.5.2.jar:3.5.2]
+2026-08-03 09:34:24,406 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - List Objects Failed: Could not list tasks.
+Server encountered exception: testMessage
+Exception type was: 'com.armedia.acm.core.exceptions.AcmListObjectsFailedException'.
+com.armedia.acm.core.exceptions.AcmListObjectsFailedException: Could not list tasks.
+Server encountered exception: testMessage
+Exception type was: 'com.armedia.acm.core.exceptions.AcmListObjectsFailedException'.
+	at com.armedia.acm.plugins.person.web.api.ListTasksAPIController.tasksForUser(ListTasksAPIController.java:94) ~[classes/:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.lang.reflect.Method.invoke(Method.java:569) ~[?:?]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205) ~[spring-web-5.3.39.jar:5.3.39]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150) ~[spring-web-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) ~[spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:903) ~[spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:809) ~[spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1072) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:898) [spring-webmvc-5.3.39.jar:5.3.39]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:687) [javax.servlet-api-3.1.0.jar:3.1.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883) [spring-webmvc-5.3.39.jar:5.3.39]
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72) [spring-test-5.3.39.jar:5.3.39]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:790) [javax.servlet-api-3.1.0.jar:3.1.0]
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201) [spring-test-5.3.39.jar:5.3.39]
+	at com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest.tasksForUser_exception(ListTasksAPIControllerTest.java:169) [test-classes/:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.lang.reflect.Method.invoke(Method.java:569) ~[?:?]
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59) [junit-4.13.1.jar:4.13.1]
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56) [junit-4.13.1.jar:4.13.1]
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84) [spring-test-5.3.39.jar:5.3.39]
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84) [spring-test-5.3.39.jar:5.3.39]
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97) [spring-test-5.3.39.jar:5.3.39]
+	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61) [spring-test-5.3.39.jar:5.3.39]
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70) [spring-test-5.3.39.jar:5.3.39]
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306) [junit-4.13.1.jar:4.13.1]
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:413) [junit-4.13.1.jar:4.13.1]
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190) [spring-test-5.3.39.jar:5.3.39]
+	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:316) [surefire-junit4-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeWithRerun(JUnit4Provider.java:240) [surefire-junit4-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:214) [surefire-junit4-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:155) [surefire-junit4-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) [surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) [surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) [surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) [surefire-booter-3.5.2.jar:3.5.2]
+Caused by: javax.persistence.PersistenceException: testMessage
+	at org.easymock.internal.MockInvocationHandler.invoke(MockInvocationHandler.java:48) ~[easymock-5.6.0.jar:5.6.0]
+	at org.easymock.internal.ObjectMethodsFilter.invoke(ObjectMethodsFilter.java:100) ~[easymock-5.6.0.jar:5.6.0]
+	at jdk.proxy2.$Proxy126.tasksForUser(Unknown Source) ~[?:?]
+	at com.armedia.acm.plugins.person.web.api.ListTasksAPIController.tasksForUser(ListTasksAPIController.java:79) ~[classes/:?]
+	... 57 more
+]]></system-out>
+  </testcase>
 </testsuite>

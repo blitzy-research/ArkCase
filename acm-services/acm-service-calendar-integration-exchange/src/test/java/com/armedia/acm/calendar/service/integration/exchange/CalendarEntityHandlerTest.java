@@ -190,7 +190,8 @@ public class CalendarEntityHandlerTest
             when(mockedAppointment.getId()).thenReturn(mockedItemId);
             when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
             when(mockedAppointment.getIsRecurring()).thenReturn(true);
-            appointmentStatic.when(() -> Appointment.bindToRecurringMaster(eq(mockedService), any(ItemId.class))).thenReturn(mockedMasterAppointment);
+            appointmentStatic.when(() -> Appointment.bindToRecurringMaster(eq(mockedService), any(ItemId.class)))
+                    .thenReturn(mockedMasterAppointment);
             when(mockedMasterAppointment.getId()).thenReturn(mockedMasterItemId);
             when(mockedMasterItemId.getUniqueId()).thenReturn(UNIQUE_MASTER_ITEM_ID);
             when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));
@@ -283,7 +284,8 @@ public class CalendarEntityHandlerTest
             when(mockedAppointment.getId()).thenReturn(mockedItemId);
             when(mockedItemId.getUniqueId()).thenReturn(UNIQUE_ITEM_ID);
             when(mockedAppointment.getIsRecurring()).thenReturn(true);
-            appointmentStatic.when(() -> Appointment.bindToRecurringMaster(eq(mockedService), any(ItemId.class))).thenReturn(mockedMasterAppointment);
+            appointmentStatic.when(() -> Appointment.bindToRecurringMaster(eq(mockedService), any(ItemId.class)))
+                    .thenReturn(mockedMasterAppointment);
             when(mockedMasterAppointment.getId()).thenReturn(mockedMasterItemId);
             when(mockedMasterItemId.getUniqueId()).thenReturn(UNIQUE_MASTER_ITEM_ID);
             when(mockedServiceConnector.connect(any(Long.class))).thenReturn(Optional.of(mockedService));

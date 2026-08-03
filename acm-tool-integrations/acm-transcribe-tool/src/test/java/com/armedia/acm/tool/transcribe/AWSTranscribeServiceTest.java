@@ -106,13 +106,12 @@ public class AWSTranscribeServiceTest
     private MediaEngineIntegrationEventPublisher mediaEngineIntegrationEventPublisher;
 
     /**
-     * Stub stream handed to the service under test through its {@code openMediaStream} seam, which is
-     * overridden in {@link #setUp()}. A test assigns this before exercising {@code create}; while it is
-     * unset the seam delegates to the production implementation so the real code path still runs.
-     * <p>
-     * The seam replaces the constructor interception this class used previously: {@code FileInputStream}
-     * is loaded by the bootstrap class loader, so Mockito construction mocking cannot intercept it.
-     * JUnit builds a fresh test instance per method, so no explicit teardown is required.
+     * Stub stream handed to the service under test through the {@code openMediaStream} override
+     * installed in {@link #setUp()}. A test assigns this before exercising {@code create}; while it is
+     * null the override delegates to the production implementation, so the real file-opening path still
+     * runs. The override is the only way to substitute the stream, because {@code FileInputStream} is
+     * loaded by the bootstrap class loader and Mockito construction mocking cannot intercept it. JUnit
+     * builds a fresh test instance per method, so no explicit teardown is required.
      */
     private InputStream mediaStreamOverride;
 

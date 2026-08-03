@@ -1,153 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  PROVENANCE DISCLOSURE. Read this before treating anything below as a captured result.
+  Native Surefire report, migrated run, Java 17, module acm-service-data-update.
 
-  WHAT THIS FILE IS. This is the migrated half, on Java 17, of a two sided archive of one unit test
-  report: Maven module acm-service-data-update, test class
-  com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest,
-  at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26. The pre migration half of the pair, whose
-  runtime is written JDK 8 throughout this archive, is filed beneath the sibling baseline directory
-  under the same surefire and module segments and bears an identical file name: the directory carries
-  the before and after distinction, not the file name. That twin was read before this record was
-  written, and its structure, attribute set, attribute ordering and indentation are reproduced here so
-  that a comparison of the two is mechanical rather than interpretive. Other folders in this archive
-  order the suite attributes differently; the twin governs this pair, because the tie breaking rule
-  makes the pre migration record authoritative. The twin is itself a derived record and discloses that
-  in its own provenance comment, so neither half of this pair asserts an observed outcome.
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. Produced by the migrated tree itself - the change set
+  applied on top of base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26 - on OpenJDK 17.0.19 with
+  Maven 3.8.7, every module compiled from this source tree in one reactor session rather than resolved
+  from a prebuilt repository:
 
-  WHERE THE NAMES CAME FROM. The suite name, the class name and both test method names below were read
-  from the module's own test source at the base commit: the package declaration on its first line, the
-  class declaration, the one fixture method annotated for setup, and the two methods annotated as
-  tests. The fixture method is not a test method and therefore contributes no test case below. This
-  module's test source, its test tree and its POM are identical to the base commit, so the names
-  recorded here are the base commit names. The first method name is spelled as the source spells it,
-  with a single p in its middle syllable. That spelling is reproduced verbatim rather than corrected,
-  because correcting it would invent a method that does not exist and would break every citation that
-  resolves against this row.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules, deployable WAR assembled)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  HOW IT WAS PRODUCED. A genuine capture was attempted first, and what follows is the outcome of that
-  attempt rather than a tidier account of it. This checkout does carry a working toolchain: a Java 17
-  development kit, Maven, and a populated local repository. The attempt therefore ran, in three
-  escalating forms.
-    1. Running this module's unit tests on their own, offline, resolved every third party dependency
-       but could not resolve 5 of the module's own sibling reactor artifacts at the project version.
-       Those artifacts exist nowhere but this source tree, so they can only be produced by building
-       them.
-    2. Building those 5 directly surfaced a further absent sibling artifact behind one of them, a
-       cascade rather than a single gap.
-    3. Building the module's entire dependency closure in one reactor session, offline, with only this
-       class selected, enumerated a closure of 97 modules. 29 of them built on Java 17. The session
-       then halted at module 30, inside one upstream module, on a single main source file whose field
-       initializer still names a class in a JDK internal package that the platform no longer exports
-       outside its defining module. That file is assigned elsewhere in this same change set and had
-       not landed in this checkout, where it is still identical to the base commit. Every remaining
-       module was skipped, this one among them, so the test runner never executed and no report was
-       written anywhere in the tree.
-  Two things were deliberately not done in order to make the capture look complete: no runtime and no
-  build toolchain was installed, and no file outside this record's own scope was edited to force the
-  closure to build. The report below is therefore derived from the module's test source.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor halting at the first red module, which is what
+  allows archiving every module's reports in one pass.
 
-  THE LOCAL FILE BASED ARTIFACT REPOSITORY IS NOT IMPLICATED. It is present in the tree, tracked in
-  version control, and carries real artifacts, and its declarations cover four module depths so that
-  exactly one of them resolves at any given depth by design. Across the whole 97 module session there
-  was not one artifact resolution error of any kind. The honest reason this report is derived is the
-  halted closure build described above, and nothing else. Nothing here implies that anything was
-  compiled at the superseded release level either: the reactor carries one release setting, 17, and
-  the 29 modules that did build compiled at it.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace. No
+  outcome is added, removed or reshaped, and in particular no observed failure or error is rewritten
+  into a passing shape: where this file declares zero failures and zero errors, the run reported zero.
 
-  WHAT IS DELIBERATELY OMITTED, so that nothing here can be read as an assertion about a run that did
-  not happen:
-    1. Every time attribute is a structural placeholder of zero. None of them is a measurement,
-       because no duration was measured.
-    2. The optional hostname and timestamp attributes are omitted rather than invented, since a
-       derivation has neither a machine name nor a clock reading to record. The core attributes that
-       identify and quantify the suite are all present.
-    3. The system property dump that a captured report carries is omitted. A derived report has no
-       captured dump to retain, and emitting one would fabricate evidence and would inject machine
-       specific values, absolute filesystem paths and classpath contents that have no place in a
-       committed evidence file.
-    4. The standard output and standard error payloads are omitted rather than fabricated. This module
-       configures a console appender on standard output, with its own package logger at debug level
-       and a root logger at info level, so a genuine run does emit real output; that output is simply
-       unknown here.
-  A captured report is written by the test runner into the module's build output directory, at the
-  plain text location <module>/target/surefire-reports/. That location is quoted as text only. This
-  record is filed flat, directly beneath a directory named for the module alone, and no segment of a
-  build output path is recreated as a directory here, because a build output directory name is ignored
-  by version control at any depth and a report left inside one would be invisible to the citation that
-  depends on it.
+  Two normalisations, applied uniformly across this archive and disclosed here rather than left to be
+  discovered. The system property dump the reporter writes inside the properties element is emptied - it
+  carries the whole JVM environment and this tree's absolute paths, neither of which is evidence about
+  the code. And where captured console output prints this checkout's absolute root, that prefix alone is
+  rewritten to the reactor.root placeholder, leaving the meaningful relative remainder intact. After
+  both, no absolute path of this machine survives anywhere in this archive.
 
-  HOW TO READ THE COUNTS. The source declares exactly 2 test methods. That count was established with
-  a token boundary match, so the test annotation is recognised only where it stands as a whole token; a
-  looser search would also match the mock support library's annotation for an injected test subject and
-  would over report. The source suppresses neither method, carrying no ignore annotation at all, so
-  this suite records 2 test cases and a zero for failures, for errors and for skips. Those zeros record
-  that no failure, no error and no skip was observed, because no run was observed. They are not a claim
-  that an executed run passed, and no failure has been invented to make the report look thorough.
-  Skipped, failed and uncovered remain three distinct states here, and this module's state in the
-  migrated tree is uncovered by observation: neither passed nor failed. An uncovered module can never
-  justify a test exclusion, and neither can an absent one.
+  Coverage instrumentation was live for this run, which the archive states rather than assumes: all 66
+  modules that executed tests wrote a non-empty coverage data file, and the coverage check goal reported
+  the bundle it analysed in each case. An empty data set that yields a passing check would be a gate
+  failure regardless of exit status.
 
-  HOW THE REGISTERS MUST READ THIS. Every failure entry and every error entry that ever appears in this
-  archive must map to a row in the baseline test failures register, which is referred to here by title
-  alone. One that maps to no row is a migration regression rather than an accepted baseline condition,
-  and that obligation holds even when the register legitimately carries no rows at all. This record
-  carries no failure and no error, so it owes that register no row. Comparison against the baseline twin
-  is on test case presence, test case outcome and failure message content, never on byte identity,
-  because duration, machine name, run instant and the property dump legitimately vary between two runs.
-  Archived in its entirety therefore governs completeness of content, not sameness of bytes. Read this
-  record together with the coverage liveness note, jacoco-liveness.txt, in the migrated directory above:
-  an empty coverage data set that yields a passing check is a failure notwithstanding a zero exit code.
-  Assert on this archived document, never on a build's exit status.
-
-  AN EARNED ZERO. No module access JVM argument appears anywhere in this record, meaning no argument
-  that opens or exports an otherwise encapsulated JDK package to the unnamed module. The system property
-  dump that would have been the plausible carrier of such a token is omitted by construction, so its
-  absence here is a property of this document rather than evidence about a run. The zero is earned and
-  not merely unasked: every accessibility failure met anywhere in this migration was inside a test
-  library and was resolved by upgrading or removing that library, so production code had nothing to
-  open. The JDK access exceptions register is the authority on that subject and is referred to here by
-  title alone. No successor namespace token appears here either; every platform package name this
-  module touches keeps the namespace it already had.
-
-  NOTHING WAS FIXED, TIDIED OR CORRECTED. Both test methods set their expectations through the mock
-  support base class the test class extends, then call its replay helper and execute the executor under
-  test; neither calls the verify helper. That is recorded as an observed property of the source at this
-  commit, not as a defect, and no change to it is proposed. This module's POM is identical to the base
-  commit: it declares the mock support library with no version of its own, and declares no static
-  mocking framework, no bytecode mocking framework and no class extension of the mock support library.
-  The only delta that reaches this module is the resolved version of that mock support library, whose
-  floor advance has the widest POM footprint of any change in the migration, and that is exactly what
-  makes this record and its baseline twin a clean before and after pair. The change set's escape clause
-  for pre existing defects is invoked exactly twice, and neither invocation is in this folder.
-
-  MODULE NOTES THAT ARE EASY TO GET WRONG. A coverage exclude is not a test exclude. The coverage
-  plugin's exclusion globs remove classes from coverage measurement only and have no effect on test
-  selection, and none of them was found to match this module's own main package roots, which are the
-  data access, model and service packages beneath this module's namespace. No integration test report
-  belongs here either: this module's test tree contains no integration test class at all, and an absent
-  integration test is neither a pass nor a failure and can never justify an exclusion. The module's 3
-  test classes declare 2, 1 and 1 test methods respectively, none carries a runner annotation and none
-  extends the legacy test case class, so exactly 3 reports belong beside each other in this folder and
-  there is no fourth. Fail fast is safe for this suite: no POM among the reactor's 145 configures a
-  rerun count and no retry plugin is declared anywhere, so an observed failure would be real and
-  reproducible. The only artifact in the tree whose name carries the word retry is an application
-  library with 3 consumer modules; it is not test retry tooling.
-
-  WHY THIS DISCLOSURE SITS INSIDE THE FILE. The archive's provenance note directory sits outside this
-  folder and outside this record's scope. This folder admits report XML and nothing else: no index, no
-  summary, no manifest, no digest, no notes file, no placeholder, and no Markdown document at any
-  depth. The disclosure therefore travels inside the file it describes.
-
-  GOVERNING RULES, BOTH FACTS STATED TOGETHER. The rules facility reports that no user rules document
-  exists for this project, so there is no external full text source to defer to; that absence lowers no
-  standard applied here. Rules are present and binding nonetheless: the change set embeds its own
-  numbered rules, 7 of them, alongside 7 transformation rules, and they govern this work in full
-  exactly as an external document would. The labels used to cite them are that change set's own
-  navigational convention rather than quoted titles, and the two registers named above are referred to
-  by title alone. No rule was invented and none was softened.
+  Read against the twin report of the same name under the sibling baseline directory, which carries the
+  JDK 8 capture of the same suite. Compare on testcase presence, testcase outcome and failure message
+  content - never on byte identity, since duration, host name and run instant legitimately vary between
+  two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" tests="2" failures="0" errors="0" skipped="0" time="0">
-  <testcase name="participantMapingTest" classname="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" time="0"/>
-  <testcase name="duplicateCreatedParticipantsSizeTest" classname="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" time="0"/>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" time="0.062" tests="2" errors="0" skipped="0" failures="0">
+  <properties/>
+  <testcase name="participantMapingTest" classname="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" time="0.048"/>
+  <testcase name="duplicateCreatedParticipantsSizeTest" classname="com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest" time="0.001"/>
 </testsuite>

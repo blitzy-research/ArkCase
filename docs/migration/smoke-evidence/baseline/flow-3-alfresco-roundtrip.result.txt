@@ -1,0 +1,21 @@
+flow: 3
+slug: 3-alfresco-roundtrip
+verdict: SKIPPED
+migration-path-exercised: reinstated XML binding API and runtime; activation framework MIME-type mapping
+compared-artefacts: none — the flow did not execute
+observed-statuses:
+  repository-reachability=000
+  document-upload=000
+  document-readback=not-attempted
+  document-upload=SKIPPED
+observations:
+  - skipped: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/service/ecm/upload
+  - a SKIPPED verdict is not a pass and must not be read as one
+assertion-basis: derived by reading flow-3-alfresco-roundtrip.status and
+  flow-3-alfresco-roundtrip.out back from disk; no verdict in this script is taken
+  from a process exit status (R-T7).
+comparison-instruction: this record is evidence, not a pass mark.  The
+  flow is behaviour-preserving only if this file and its sibling .out and
+  .status differ from the baseline capture in nothing but values this
+  script already normalises.  Compare with:
+  diff -r <baseline-dir> <migrated-dir>

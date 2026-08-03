@@ -1,0 +1,27 @@
+application readiness polling
+
+state: NEVER-READY
+base-url: https://arkcase-ce.local/arkcase
+attempts-configured: 2
+interval-seconds: 2
+polling-window-seconds: 4
+attempts-made: 2
+final-observed-status: 000
+
+the configured window must SPAN the documented startup time.  The first
+  container startup takes 5 to 10 minutes, and the default here is 60
+  attempts at 10-second intervals, which is 10 minutes.  Polling stops the
+  moment the stack answers, so a fast start costs nothing.
+
+why a single immediate attempt was wrong, recorded because the correction
+  is the substance of this note: one probe fired at second zero against a
+  stack that will not answer for several minutes fails, every flow behind
+  it records a transport failure, and two runs of that shape produce two
+  identical directories full of no-response tokens.  A comparison of those
+  two reports a clean match while having exercised nothing at all.
+
+readiness does not ABORT the run: each flow still records its own evidence,
+  so an unreachable stack produces an explicit, comparable capture rather
+  than a truncated one.  It is a recorded PRECONDITION instead: when this
+  state reads NEVER-READY, no flow observation in this capture may be read
+  as behavioural agreement, however neatly the two directories diff.

@@ -94,6 +94,20 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
+                <!-- the client bindings reach cxf-rt-databinding-jaxb, which declares a 2.1 vintage copy of the XML
+                    binding implementation. It duplicates classes the pinned jaxb-runtime 2.3.1 graph already provides
+                    at a far later patch level, and leaving it in place would make the provider that serves a
+                    JAXBContext depend on classpath order. The sibling client-impl declaration in this same file, and
+                    the aggregator's managed entry for it, carry the same two exclusions. Only the AtomPub binding is
+                    used, so no Web Services databinding path is affected. -->
+                <exclusion>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-impl</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-core</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -117,6 +131,14 @@
                 <exclusion>
                     <groupId>com.sun.xml.bind</groupId>
                     <artifactId>jaxb-impl</artifactId>
+                </exclusion>
+                <!-- kept in step with the same exclusion list in the aggregator's dependencyManagement: this
+                    declaration overrides the managed exclusions rather than adding to them, so jaxb-core has to be
+                    named here too or a 2.1 vintage copy of the XML binding implementation reappears in this module
+                    alongside the pinned jaxb-runtime 2.3.1 graph. -->
+                <exclusion>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-core</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

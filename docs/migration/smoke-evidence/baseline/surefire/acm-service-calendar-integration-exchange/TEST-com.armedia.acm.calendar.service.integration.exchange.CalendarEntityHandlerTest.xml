@@ -1,24 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  Provenance disclosure. This report is a DERIVED rendering of the baseline
-  (pre migration) unit test outcome for this class; it is not an executed
-  capture. Baseline behaviour is observed at the base commit on JDK 8, no
-  JDK 8 runtime is present in this checkout, and the governing rules forbid
-  installing one in order to manufacture the appearance of evidence.
-  The single skipped entity below is what the JUnit 4 provider emits for the
-  class level org.junit.Ignore annotation this test class carries: the class
-  was dormant at baseline, so nothing ran, nothing failed, nothing errored.
-  A skip is not a failure and it justifies no test exclusion.
-  Environment dependent values (the system property dump, host name and
-  timestamp a live run would carry) are deliberately omitted rather than
-  invented. The full provenance record, including this rendering decision,
-  is held in the sibling notes directory alongside this module folder.
+  Native Surefire report, JDK 8 baseline, module acm-service-calendar-integration-exchange.
+
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
+
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
+
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
+
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
+
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest" time="0" tests="1" errors="0" skipped="1" failures="0">
+<testsuite tests="1" failures="0" name="com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest" time="0.107" errors="0" skipped="1">
   <properties/>
-  <testcase name="com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest" classname="com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest" time="0">
+  <testcase classname="com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest" name="com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest" time="0.107">
     <skipped/>
   </testcase>
-  <system-out/>
-  <system-err/>
 </testsuite>

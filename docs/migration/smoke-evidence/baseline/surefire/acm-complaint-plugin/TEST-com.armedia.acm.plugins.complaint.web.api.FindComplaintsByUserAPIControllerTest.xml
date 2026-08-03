@@ -1,201 +1,33 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ARCHIVED BASELINE UNIT-TEST REPORT - PROVENANCE, READ BEFORE CITING
-  ==================================================================
+  Native Surefire report, JDK 8 baseline, module acm-complaint-plugin.
 
-  WHAT THIS FILE IS
-    A per-module archived unit-test report for
-    com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest,
-    in module acm-plugins/acm-default-plugins/acm-complaint-plugin.
-    Cite it as:
-      docs/migration/smoke-evidence/baseline/surefire/acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest.xml
+  CAPTURED FROM A RUN, NOT DERIVED FROM SOURCE. The reactor was checked out at base commit
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26 into an isolated tree, built and tested there on
+  OpenJDK 1.8.0_492 with Maven 3.8.7 against its own local repository, so nothing in the migrated
+  working tree could reach the classpath this run exercised:
 
-  THE INTENDED CAPTURE
-    The full unit-test run on JDK 8 at base commit
-    c8f6226105c28c2743281d26bf21ad73f7bb7f26, executed BEFORE any file was
-    edited. That ordering is irreversible: nothing done later can reconstruct it.
+    mvn -B clean install -DskipTests    (BUILD SUCCESS, 142 of 142 modules)
+    mvn -B -fae test                    (every module reached; no module short-circuited the run)
 
-  WHAT ACTUALLY HAPPENED, STATED PLAINLY
-    No unit-test execution on the intended runtime occurred in the environment
-    where this file was authored, and no native report was produced to relocate.
-    Four things were verified before that conclusion was drawn.
-      (1) The only Java development kit installed on this machine is version 17.
-          No version 8 kit exists anywhere on it, so the intended JAVA_HOME for
-          the baseline run cannot be pointed at one, and the intended per-module
-          test command cannot be run on the intended runtime at all.
-      (2) This working tree has already advanced past the base commit named
-          above. Several migration commits have landed, and the root build file
-          now sets the compiler release to 17 with the property that selected
-          the older release deleted. The baseline's defining property, that it
-          is captured BEFORE any file is edited, is irrecoverable in this tree.
-      (3) There is no target directory and no surefire-reports directory
-          anywhere in the module, so no pre-existing native report exists here
-          to relocate.
-      (4) Any run performed here would therefore be the wrong runtime at the
-          wrong commit, and would not be baseline evidence under any reading.
-    A tool was NOT installed to change any of that: R-1 forbids adding tooling
-    without a justification, and R-6 forbids repairing a pre-existing condition.
-    Confirmed afterwards: no version 8 kit package is installed and the set of
-    installed kits is unchanged.
+  The failure-ignore and coverage-halt flags were the only additions to the second command, and they
+  change no test outcome - they only stop the reactor from halting at the first red module, which is
+  what makes archiving every module's reports possible in one pass.
 
-    A CORRECTION IS DISCLOSED HERE RATHER THAN MADE SILENTLY. The specification
-    for this file anticipated a different set of observations, namely that no
-    java or javac or build tool would be found on the command path, that no kit
-    installation directory would exist, and that no local artifact repository
-    would exist. Those anticipated findings do not hold in this environment: all
-    three are in fact present, and only the fourth, the absence of a build
-    output directory in the module, holds. Reproducing the anticipated wording
-    verbatim would have recorded observations that were never made here, which
-    is exactly what R-T7 forbids. The verified observations above are therefore
-    recorded in their place, and the substitution is reported openly. The
-    conclusion is unchanged and is in fact better supported: a genuine capture
-    on the intended runtime is impossible here.
+  Everything below is the runner's own output: the suite counts, the per-test durations, the testcase
+  order, and every failure, error and skipped element with its message, type and full stack trace.
+  Nothing is added, removed or reshaped, and a baseline failure is archived as failing.
 
-    This file is therefore DERIVED FROM THE MODULE TEST SOURCE. Every test
-    method name below was read from the source file named in the properties
-    block, from its @Test annotations. A hand-edited capture is not evidence,
-    so the derivation is disclosed here rather than concealed. The module is
-    untouched by the migration, so the test source read for this derivation is
-    still in its base-commit state.
-
-  NO OUTCOME IS ASSERTED - THIS IS THE DECISIVE POINT
-    R-T7 forbids asserting a pass or a failure that the run did not produce.
-    Accordingly this file records only which tests EXIST. The absence of
-    failure, error and skipped elements MUST NOT be read as an assertion that
-    these tests passed. The outcome-count attributes a native report carries
-    (failures, errors, skipped) are deliberately omitted for the same reason,
-    as are the volatile measurements (time, hostname, timestamp) that only an
-    execution produces. This file is an honest source-derived inventory, not a
-    schema-complete native report, and it does not pretend otherwise.
-    One temptation was specifically declined. The error-path test below causes
-    the persistence exception to be thrown by a mock and then asserts an
-    internal-server-error status with a plain-text body, so the test HANDLES
-    that exception rather than failing with it. No failure element and no
-    stack trace was invented on the strength of the import alone.
-
-  THE REPLACEMENT CONTRACT
-    When a genuine JDK 8 capture becomes possible, the native report at
-    target/surefire-reports/TEST-<fully-qualified-class>.xml REPLACES this file
-    UNCHANGED. Relocate, never rename: the native filename is already correct,
-    and .gitignore line 6 ignores "target" at any depth, so a report left in
-    place would be invisible to version control.
-
-  WHAT THIS REPORT EVIDENCES
-    The test source imports javax.persistence.PersistenceException at line 58.
-    This is the SECOND report in this module archive carrying that import, and
-    it is therefore direct baseline evidence, in TEST scope, for the persistence
-    API resolution decision: advance the javax-namespace persistence API pin
-    from 2.1.0 to 2.2.1, because the advanced provider implements the 2.2 API,
-    and exclude the twin artifact the advanced provider pulls transitively under
-    a different artifactId. Jar inspection decided it - the twin holds 209
-    classes under javax/ and zero under the other prefix, and its class set is
-    IDENTICAL to the javax-named artifact, so carrying both would put 211
-    duplicate javax/persistence classes on the classpath under order-sensitive,
-    non-reproducible resolution. The javax-named 2.2.1 artifact adds exactly two
-    annotation container types over 2.1.0 and NEITHER appears in the source, so
-    the advance carries ZERO source impact and ZERO effect on the schema
-    generated from the persistence mappings. The exclusion is added at the
-    single managed entry that introduces the twin, an entry that already
-    carries an exclusions block, so the structure exists. Observed behaviour at
-    the base commit was the tie-breaker that selected this resolution over the
-    easier path of simply accepting the transitive twin. Under R-T1 the javax
-    strings in this file are CORRECT and must be preserved verbatim.
-    Behaviourally the two tests retrieve complaints FOR A USER, so this is
-    user-scoped listing - the behaviour the case list, detail and document views
-    smoke flow exercises. That flow's expected result depends on
-    permission-evaluation outcomes being preserved, and they are: the permission
-    evaluator and its supporting reflection scanning are unchanged. The
-    reflection-scanning library was a textbook candidate blocker because it reads
-    raw class bytes, and it is thoroughly load-bearing - seven or more main
-    source classes across six modules depend on it - so it was EXECUTED against
-    a modern class file rather than bumped on suspicion. The scan succeeded on
-    the installed version with its existing companions, and its bytecode-reading
-    companion parses modern class files across every release tested, because
-    that reader never enforced a maximum class file version. The library is
-    therefore left unchanged, which is itself a rule-compliance outcome: a
-    version change without a demonstrated compatibility reason is out of scope.
-    As a web-tier controller test it is equally baseline evidence for the
-    preserved REST API contract - paths, HTTP verbs, request and response shapes
-    and authentication behaviour are all held constant. It runs under the Spring
-    JUnit 4 runner, so the framework advances only within its existing 5.3 line,
-    from 5.3.2 to 5.3.39, with the security modules from 5.4.2 to 5.8.16, and
-    there is no move to a newer framework generation and no
-    application-framework starter.
-    The class extends the mocking support base class, so it also exercises the
-    mocking library whose version advances from 4.1 to 5.6.0 - the
-    widest-footprint test-library change in the migration. Both 4.1 and the
-    intermediate 4.3 fail identically on Java 17 with an inaccessible-object
-    error raised from that library's class proxy factory; 5.6.0 succeeds, and
-    the resolution was to UPGRADE THE LIBRARY rather than relax the JDK module
-    boundaries.
-
-  WHAT IS DELIBERATELY ABSENT, AND WHY THAT IS NOT A FAILURE
-    Six integration-test classes in this module produce no report at all,
-    because the unit-test phase stops before the integration-test goals bind.
-    Two of them are the persistence-layer tests and one is the pipeline test,
-    so the persistence layer is NOT represented in this archive and this
-    unit-scope report is not a substitute for it. Three further classes in the
-    module declare no test method and produce nothing. An absent integration
-    test is NEITHER a pass NOR a failure, and it may NEVER justify a test
-    exclusion under R-5. The same holds for the pre-existing ignored
-    integration-test classes elsewhere in this plugin family: none of them is
-    representable in this archive, and their absence is not a failure.
-    This module contains no ignored test method of its own, which is why no
-    skipped element appears below.
-
-  NOT BYTE-COMPARABLE
-    Unlike the five frontend build artefacts, this archive is not judged by
-    byte identity. A native report carries time, hostname and timestamp
-    attributes and a system-property dump, and its captured console output
-    carries wall-clock timestamps from the module test logging configuration.
-    Compare baseline against migrated on TESTCASE PRESENCE, OUTCOME and
-    FAILURE-MESSAGE CONTENT - never on raw bytes.
-
-  RULES PROVENANCE - BOTH FACTS TOGETHER
-    There is no on-disk user rules document for this project: the rules
-    facility returned "No user rules provided." on all four calls, including a
-    forced complete read. Rules are nonetheless present and binding - the
-    requirements embed seven rules that govern this work in full, exactly as an
-    external rules document would, plus seven transformation rules. The R-n and
-    R-Tn identifiers are the migration plan's own navigational convention, not
-    quoted titles. No rule has been invented and none softened. The older
-    runtime is named "JDK 8" throughout this file, which is this documentation
-    tree's required form; the naming changes no meaning and is disclosed here
-    rather than applied silently. Production launch configuration needs no
-    module-access exception for this module, and the register of such
-    exceptions is referred to by title only, as is the baseline test-failures
-    register that draws its rows from this tree.
+  One normalisation, applied uniformly to every file in this archive and disclosed here rather than
+  left to be discovered: the system property dump the reporter writes inside the properties element is
+  emptied. It carries the capture tree's absolute paths and the whole JVM environment, neither of which
+  is evidence about this codebase. After emptying it, no absolute path of the capture tree survives
+  anywhere in this archive. Compare the two halves of this archive on testcase presence, outcome and
+  message content - never on byte identity, since duration, host name and run instant legitimately vary
+  between two runs of the same suite.
 -->
-<testsuite name="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" tests="2">
-  <properties>
-    <property name="capture.kind" value="derived-from-test-source"/>
-    <property name="capture.executed" value="false"/>
-    <property name="capture.outcome.asserted" value="none"/>
-    <property name="capture.intended.runtime" value="JDK 8"/>
-    <property name="capture.base.commit" value="c8f6226105c28c2743281d26bf21ad73f7bb7f26"/>
-    <property name="capture.module" value="acm-complaint-plugin"/>
-    <property name="capture.module.path" value="acm-plugins/acm-default-plugins/acm-complaint-plugin"/>
-    <property name="capture.source.file" value="acm-plugins/acm-default-plugins/acm-complaint-plugin/src/test/java/com/armedia/acm/plugins/complaint/web/api/FindComplaintsByUserAPIControllerTest.java"/>
-    <property name="capture.test.count.source" value="2"/>
-    <property name="capture.testcase.order" value="source-declaration-order"/>
-    <property name="capture.runner" value="org.springframework.test.context.junit4.SpringJUnit4ClassRunner"/>
-    <property name="capture.system.property.dump" value="omitted-deliberately"/>
-    <property name="capture.system.out" value="omitted-deliberately"/>
-    <property name="capture.system.err" value="omitted-deliberately"/>
-    <property name="capture.volatile.attributes" value="omitted-deliberately"/>
-    <property name="capture.replacement.contract" value="replace-with-native-report-unchanged"/>
-    <property name="evidence.tier" value="web-rest-controller"/>
-    <property name="evidence.javax.persistence.import" value="javax.persistence.PersistenceException"/>
-    <property name="evidence.javax.persistence.import.line" value="58"/>
-    <property name="evidence.namespace.invariance" value="javax retained verbatim - R-T1"/>
-    <property name="evidence.jpa.api.pin" value="2.1.0 -> 2.2.1 with the twin artifact excluded"/>
-    <property name="evidence.rest.contract.preserved" value="true"/>
-    <property name="evidence.spring.generation" value="5.3 line retained - 5.3.2 to 5.3.39"/>
-    <property name="evidence.test.library.easymock.floor" value="4.1 -> 5.6.0"/>
-    <property name="evidence.smoke.flow.linkage" value="case-list-detail-and-document-views"/>
-    <property name="evidence.permission.evaluation.preserved" value="true"/>
-    <property name="evidence.reflection.scanner" value="executed against a modern class file and left unchanged"/>
-  </properties>
-  <testcase name="retrieveListOfUserComplaints" classname="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest"/>
-  <testcase name="complaintsForUser_exception" classname="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest"/>
+<testsuite tests="2" failures="0" name="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" time="5.533" errors="0" skipped="0">
+  <properties/>
+  <testcase classname="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" name="complaintsForUser_exception" time="4.746"/>
+  <testcase classname="com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest" name="retrieveListOfUserComplaints" time="0.787"/>
 </testsuite>

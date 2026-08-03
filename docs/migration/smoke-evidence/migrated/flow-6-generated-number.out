@@ -1,0 +1,62 @@
+flow: 6
+slug: 6-generated-number
+title: create an object that receives a generated number
+
+===== numbering-precondition =====
+request-method: GET
+request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=*%3A*&start=0&n=1
+auth-mode: basic
+observed-http-status: 000
+observed-content-type: unknown
+observed-body-bytes: 0
+observed-session-cookie: absent
+tls-verification-state: verified-system
+transport-exit-status-observed: 6
+observed-body-sha256: empty-body
+observed-body-shape: empty
+observed-body-lines: 0
+----- allowlisted-body-fields -----
+  (empty body)
+----- end allowlisted-body-fields -----
+correlation-token-present-in-body: no
+raw-body: not captured (allowlisted fields and a digest are recorded instead)
+----- transport-diagnostics -----
+curl: (6) Could not resolve host: arkcase-ce.local
+----- end transport-diagnostics -----
+----- allowlisted-response-headers -----
+  (none)
+----- end allowlisted-response-headers -----
+
+===== create-object =====
+request-method: POST
+request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/complaint
+auth-mode: basic
+observed-http-status: 000
+observed-content-type: unknown
+observed-body-bytes: 0
+observed-session-cookie: absent
+tls-verification-state: verified-system
+transport-exit-status-observed: 6
+observed-body-sha256: empty-body
+observed-body-shape: empty
+observed-body-lines: 0
+----- allowlisted-body-fields -----
+  (empty body)
+----- end allowlisted-body-fields -----
+correlation-token-present-in-body: no
+raw-body: not captured (allowlisted fields and a digest are recorded instead)
+----- transport-diagnostics -----
+curl: (6) Could not resolve host: arkcase-ce.local
+----- end transport-diagnostics -----
+----- allowlisted-response-headers -----
+  (none)
+----- end allowlisted-response-headers -----
+
+===== create-object (SKIPPED) =====
+SKIPPED
+reason: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/plugin/complaint
+note: this flow could not be executed.  The record is deliberate: an
+  unexecuted flow is reported rather than omitted, so that the
+  eight-flow completion condition stays verifiable and the gap is
+  visible in a directory diff (R-5).
+

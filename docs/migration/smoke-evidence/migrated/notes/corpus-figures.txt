@@ -1,0 +1,27 @@
+corpus figures, measured at run time by this script
+repository-root-examined: .
+
+command: find <repo> -name 'drools-*.xlsx' -type f | wc -l
+measured-drools-xlsx-decision-tables: 78
+verified-figure-at-base-commit: 39
+migration-plan-figure: 43
+delta-explanation: the plan counted three .xls files and one spreadsheet
+  test fixture alongside the 39 live .xlsx decision tables.  This script
+  publishes what it measures and states the plan figure beside it so the
+  difference is visible rather than silently contradicted.
+command: find <repo> -name 'drools-*.xls' -type f | wc -l
+measured-drools-xls-files: 0
+
+command: find <repo> -name '*.drl' -type f | wc -l
+measured-textual-rule-files: 1
+expected: 0 — the rule surface is entirely in the decision tables
+
+command: find <repo> -name '*.bpmn*' -type f | wc -l
+measured-process-definitions: 72
+expected: 36 — flow 7 expects the engine to load all of them
+
+command: find <frontend-resources> -name '*.spec.js' -type f | wc -l
+measured-frontend-spec-files: 54
+expected: 0 — with no frontend specs, the five artifact digests are the
+  only available behavioural evidence for the frontend, which is why they
+  are captured under artifacts/

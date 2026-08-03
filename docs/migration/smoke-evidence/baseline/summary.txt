@@ -1,0 +1,67 @@
+ArkCase migration smoke evidence — closing summary
+capture-directory: <CAPTURE-DIR>
+target-base-url: https://arkcase-ce.local/arkcase
+
+This summary is an index over the evidence, read back from each flow s own
+result file.  It is NOT the assertion for any flow: the authoritative record
+for flow n is the trio flow-n-<slug>.out, .status and .result.txt.  No verdict
+here or anywhere in this script is derived from a process exit status.
+
+preconditions:
+  readiness-state: NEVER-READY
+  artifact-digest-gate: PASSED (5 of 5 produced, 0 failed)
+  startup-evidence: MISSING
+  tls-verification: verified-system
+  credentialed-requests-permitted: yes
+  raw-body-capture: disabled (allowlisted fields and digests recorded)
+
+how to read the three states above (a legend, not this capture status):
+  if readiness reads NEVER-READY        no flow observation below is
+                                       behavioural evidence; two such
+                                       captures are identical and prove
+                                       nothing.
+  if the artifact gate reads FAILED     the frontend comparison is void.
+                                       Identical absence is not identity of
+                                       behaviour.
+  if startup evidence reads MISSING     no claim about the startup frontend
+                                       build or the process engine may be
+                                       made from this capture.
+
+flows:
+  flow-1-login: SKIPPED
+  flow-2-views: SKIPPED
+  flow-3-alfresco-roundtrip: SKIPPED
+  flow-4-solr-search: SKIPPED
+  flow-5-activemq-event: SKIPPED
+  flow-6-generated-number: SKIPPED
+  flow-7-workflow-start: SKIPPED
+  flow-8-queue-transition: SKIPPED
+
+artifact digests:
+  application.js.sha256: 3c0aeb4d2b02dc740e733e5ed89c87bf0d229cc19489ee0f023c04af611391b8  application.js
+  application.min.css.sha256: 04228704205f51db7eac073b0001c87e54473f372865a031b910b989c8891ea1  application.min.css
+  application.min.js.map.sha256: 84a7efde28457effd813db74a816936d6c0b434196f79d1eec6c4aaa0697c2b8  application.min.js.map
+  application.min.js.sha256: c1a4cb56e4b644c4d6e356698a222f9de2b57dc0114eec86d93323e0a9b41dc2  application.min.js
+  home.html.sha256: 43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9  home.html
+  vendors.min.js.sha256: 70187246b480eebb6f920732ce84356fb719b2db9694c10ed20388ff6f5e3be4  vendors.min.js
+
+supporting captures:
+  env/toolchain.txt              toolchain provenance, captured verbatim
+  notes/corpus-figures.txt       corpus counts measured at run time
+  notes/determinism-basis.txt    why the digests are a valid comparison
+  notes/reference-stack.txt      four service probes, including the
+                                 documented pre-existing 503
+  notes/readiness.txt            readiness polling observations
+  startup/                       startup-log regions (never a directory
+                                 named after a log folder: that name is
+                                 git-ignored at any depth)
+  surefire/<module>/TEST-<fully.qualified.Class>.xml  archived reports,
+                                 cited by path from the baseline test
+                                 failures register
+
+how to use this capture:
+  diff -r <baseline-capture-dir> <migrated-capture-dir>
+  A SKIPPED verdict is not a pass.  An OBSERVED-* verdict is not a pass
+  either: it records what was seen.  The flow is behaviour-preserving only
+  when the migrated capture differs from the baseline capture in nothing
+  but values this script already normalises.
