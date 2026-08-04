@@ -4,7 +4,18 @@
              xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans.xsd
            http://www.springframework.org/schema/security
-           http://www.springframework.org/schema/security/spring-security-5.4.xsd">
+           http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <!--
+        The security schema is referenced WITHOUT a version, exactly as the beans schema above it and as
+        spring-library-acm-web.xml already does. Spring Security's namespace handler refuses to parse a document whose
+        schemaLocation names an older schema than the version on the classpath: it accepts only the schema of its own
+        version, the version-less name used here, or no security schemaLocation at all. A pinned version therefore has
+        to be edited in lockstep with every Spring Security upgrade, and if it is not, the root context fails to build
+        and the application does not deploy. The version-less name resolves through META-INF/spring.schemas in
+        spring-security-config to whichever schema that jar ships, so validation still happens against the real schema
+        of the version in use, locally and without a network fetch.
+    -->
 
     <!-- Configure Spring Security. -->
 

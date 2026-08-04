@@ -3,11 +3,19 @@
     xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:security="http://www.springframework.org/schema/security"
     xmlns:context="http://www.springframework.org/schema/context" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
-		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-5.4.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <!--
         DispatcherServlet Context: defines this servlet's request-processing infrastructure
+    -->
+
+    <!--
+        The security schema above is referenced without a version on purpose. This document uses
+        <security:global-method-security>, so Spring Security's namespace handler runs, and that handler rejects a
+        schemaLocation naming an older schema than the version on the classpath. The version-less name resolves
+        through META-INF/spring.schemas in spring-security-config to the schema of the version actually in use, so
+        the declaration no longer has to be edited in lockstep with a Spring Security upgrade.
     -->
 
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">

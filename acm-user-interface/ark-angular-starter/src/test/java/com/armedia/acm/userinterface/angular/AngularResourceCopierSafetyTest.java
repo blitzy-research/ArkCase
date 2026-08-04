@@ -32,12 +32,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +49,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -393,6 +398,112 @@ public class AngularResourceCopierSafetyTest
             assertTrue("the message must name the property",
                     expected.getMessage().contains("requiredNodeMajorVersion"));
         }
+    }
+
+    /**
+     * The environment handed to the package manager has to be one the package manager accepts, and that cannot be
+     * established by reading the map back. It was not: the two configuration-file settings were given the same path, and
+     * npm refuses to load one file twice, so it aborted before resolving any configuration at all and every install
+     * failed with exit status 1 on every host. The map's contents were correct throughout.
+     * <p>
+     * This test therefore runs the real package manager with the real environment and requires it to answer. It is
+     * skipped where the toolchain is absent rather than passing vacuously.
+     */
+    @Test
+    public void theRealPackageManagerAcceptsTheEnvironmentItIsGiven() throws Exception
+    {
+        File tmpDir = temporaryFolder.newFolder("staging-real-npm");
+        File npm = launcherOnPath("npm");
+        File node = launcherOnPath("node");
+
+        Assume.assumeTrue("node and npm must be on the path for this assertion", npm != null && node != null);
+
+        Map<String, String> environment = copier.buildToolEnvironment(tmpDir);
+
+        assertFalse("the user and global configuration files must not be the same path, because npm refuses to load "
+                + "one file twice and aborts before reading any configuration",
+                environment.get("npm_config_userconfig").equals(environment.get("npm_config_globalconfig")));
+
+        CommandLine command = new CommandLine(npm);
+        command.addArgument("--version", false);
+
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+        DefaultExecutor executor = new DefaultExecutor();
+        executor.setWorkingDirectory(tmpDir);
+        executor.setStreamHandler(new PumpStreamHandler(captured, captured));
+
+        int exitCode = executor.execute(command, environment);
+        String reported = new String(captured.toByteArray(), StandardCharsets.UTF_8).trim();
+
+        assertEquals("the package manager must run to completion with this environment; it reported: " + reported, 0,
+                exitCode);
+        assertTrue("it must have reported a version rather than a configuration error: " + reported,
+                reported.matches("(?s)^\\d+\\.\\d+.*"));
+    }
+
+    /**
+     * A command that fails has to explain itself. Its output used to go only to a DEBUG logger while the process library
+     * reported the failure by throwing, so on a failed install an operator saw the exit status and nothing else - and
+     * raising a log level is not a remedy, because the shipped log configuration pins this logger above DEBUG. The
+     * output is asserted on the thrown message for that reason: that is the path that reaches the container log and the
+     * error page whatever the configured level is.
+     */
+    @Test
+    public void aFailedCommandCarriesItsOwnOutputIntoTheFailure() throws Exception
+    {
+        Assume.assumeTrue("a POSIX shell stub is required for this assertion", File.separatorChar == '/');
+
+        File node = stubLauncher("node", "v20.20.2");
+        File tmpDir = temporaryFolder.newFolder("staging-failing-command");
+        File failing = new File(temporaryFolder.newFolder("failing-stub"), "npm");
+
+        write(failing, "#!/bin/sh\necho 'npm error code EUSAGE'\necho 'npm error The `npm ci` command can only install "
+                + "with an existing package-lock.json'\nexit 1\n");
+        Assume.assumeTrue("the stub launcher must be executable for this assertion", failing.setExecutable(true, true));
+
+        copier.setNodeExecutablePath(node.getPath());
+
+        try
+        {
+            copier.runFrontEndBuildCommand(tmpDir, failing.getPath() + " ci");
+            fail("a command that exits non-zero must be reported");
+        }
+        catch (IOException expected)
+        {
+            String message = expected.getMessage();
+
+            assertTrue("the failure must name the command: " + message, message.contains(failing.getPath()));
+            assertTrue("the failure must carry the tool's own output: " + message,
+                    message.contains("npm error code EUSAGE"));
+            assertTrue("including the explanatory line: " + message,
+                    message.contains("can only install with an existing package-lock.json"));
+        }
+    }
+
+    /**
+     * Resolve one launcher from the process path, or {@code null} when it is not there. Used to skip the assertions that
+     * need the real toolchain rather than to weaken them.
+     */
+    private File launcherOnPath(String name)
+    {
+        String path = System.getenv("PATH");
+
+        if (path == null)
+        {
+            return null;
+        }
+
+        for (String element : path.split(File.pathSeparator))
+        {
+            File candidate = new File(element, name);
+
+            if (candidate.isFile() && candidate.canExecute())
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 
     private File stubLauncher(String name, String version) throws IOException

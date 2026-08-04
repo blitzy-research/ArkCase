@@ -47,6 +47,16 @@ ArkCase requires a configuration folder which lives in another GitHub repository
 
 The build command above skips the integration tests, so it does not need this folder. `mvn verify` does: the integration-test Spring contexts import `${user.home}/.arkcase/acm/encryption/spring-properties-encryption.xml` and `${user.home}/.arkcase/acm/app-config.xml` directly, read `${user.home}/.arkcase/acm/conf.yml`, and decrypt property values with the key material under `${user.home}/.arkcase/acm/private`. Without the folder those tests fail during context initialisation with `FileNotFoundException` on a `.arkcase` path, which looks like a code failure and is not one. Set the folder up, and start the configuration server described below, before reading anything into an integration-test result.
 
+### Required after the Spring Security 5.8 upgrade: the configuration folder's security schema declarations
+
+`WEB-INF/web.xml` loads `file:${user.home}/.arkcase/acm/spring-security/spring-security-config-*.xml` from the configuration folder into the same root application context as ArkCase's own security configuration. ArkCase runs Spring Security 5.8, whose XML namespace handler refuses to parse a document whose `xsi:schemaLocation` names an older security schema than the version on the classpath, so **every one of those files must declare the version-less schema**:
+
+```xml
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+```
+
+The configuration repository currently ships eight of them — `-ldap`, `-oidc`, `-okta`, `-kerberos`, `-saml`, `-external`, `-external-oidc` and `-external-saml` — declaring `spring-security-5.4.xsd`. Deploying against an unmodified folder fails at startup with `BeanDefinitionParsingException: … You cannot use a spring-security-2.0.xsd or … schema with Spring Security 5.8. Please update your schema declarations to the 5.8 schema.`, and every request returns HTTP 404 because the context never initialises. Replacing `spring-security-5.4.xsd` with `spring-security.xsd` in those files is a namespace-declaration change only: it alters no `<http>`, `<intercept-url>`, `<form-login>` or method-security semantics. ArkCase's own three declarations were changed the same way in this repository; the configuration folder lives in a separate repository and has to be updated there. The reasoning, and why the version-less form was chosen over a pinned `spring-security-5.8.xsd`, are recorded in the [Dependency Change Inventory](migration/dependency-change-inventory.md) and [Ambiguity Resolutions](migration/ambiguity-resolutions.md).
+
 ## Run the Configuration Server
 
 Starting with version 3.3.1, ArkCase requires a separate configuration server based on Spring Cloud Config Server (<https://spring.io/projects/spring-cloud-config>).

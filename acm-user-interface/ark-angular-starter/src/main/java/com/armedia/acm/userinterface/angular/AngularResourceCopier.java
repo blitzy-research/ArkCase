@@ -33,9 +33,8 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -55,15 +54,18 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.FileVisitResult;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -103,6 +105,21 @@ public class AngularResourceCopier implements ServletContextAware
 
     /** Matches the leading major version in {@code v20.20.2} and in {@code 10.8.2} alike. */
     private static final Pattern VERSION_MAJOR = Pattern.compile("^v?(\\d+)\\.");
+
+    /**
+     * Suffix of the sibling file a copy is written to before it is renamed over its destination, so that a failed or
+     * partial copy cannot leave a shortened file where a complete one used to be.
+     */
+    private static final String INCOMING_SUFFIX = ".arkcase-incoming";
+
+    /**
+     * Most bytes of a front-end tool's own output that are kept for the failure report.
+     * <p>
+     * The output is bounded rather than collected in full because it comes from a child process this class does not
+     * control, and the part that explains a failure is at the end. Sixty-four kilobytes comfortably holds everything
+     * the package manager or Grunt prints on a failing run while keeping a bad day from becoming a memory problem.
+     */
+    private static final int TOOL_OUTPUT_TAIL_BYTES = 64 * 1024;
 
     /** Owner-only directory permissions for the staging and deployment folders, where the platform supports them. */
     private static final Set<PosixFilePermission> OWNER_ONLY_DIRECTORY = PosixFilePermissions.fromString("rwx------");
@@ -287,7 +304,7 @@ public class AngularResourceCopier implements ServletContextAware
     {
         List<String> tmpFilesFound = findAllFilesInFolder(tmpDir);
 
-        log.debug("Found {} files in tmp folder", tmpFilesFound.size());
+        log.info("Found {} files in tmp folder", tmpFilesFound.size());
 
         // delete all files that exist in the tmp dir, but we didn't copy them there; such files must have been
         // removed from the project. Exceptions are files managed by npm and grunt: lib folder, node_modules
@@ -301,20 +318,55 @@ public class AngularResourceCopier implements ServletContextAware
                 .peek(p -> log.debug("File to be removed: {}", p))
                 .map(File::new)
                 .collect(Collectors.toList());
-        log.debug("Found {} files to be removed from tmp folder", oldFilesInTmpFolder.size());
+        log.info("Found {} files to be removed from tmp folder", oldFilesInTmpFolder.size());
         oldFilesInTmpFolder.stream()
                 .peek(f -> log.debug("Removing tmp file [{}]", f.toPath()))
                 .forEach(File::delete);
     }
 
-    private List<String> findAllFilesInFolder(File folder)
+    /**
+     * List every file the two stale sweeps are allowed to consider, without following a symbolic link out of the folder.
+     * <p>
+     * Both sweeps end in {@code File.delete}, so what this method returns is a list of deletion candidates. A recursive
+     * listing that follows directory links would put files that merely happen to be reachable from the folder on that
+     * list - files anywhere on the host, in the case that matters - and the filters the sweeps apply are about which
+     * <em>build artefacts</em> to keep, not about which paths are safe to delete. The walk therefore does not descend
+     * through a link, and any entry whose real path lies outside the folder is dropped with a warning rather than
+     * returned. Links that do resolve inside the folder are returned, so a stale one left by a previous assembly is
+     * still swept.
+     *
+     * @param folder
+     *            the folder to list.
+     * @return absolute paths of the files inside it, spelled as the walk reached them.
+     * @throws IOException
+     *             if the folder cannot be walked.
+     */
+    private List<String> findAllFilesInFolder(File folder) throws IOException
     {
-        return FileUtils.listFiles(folder, FileFilterUtils.trueFileFilter(), FileFilterUtils.trueFileFilter())
-                .stream()
-                .filter(File::isFile)
-                .map(File::toPath)
-                .map(Path::toString)
-                .collect(Collectors.toList());
+        final Path root = folder.toPath().toRealPath();
+        final List<String> found = new ArrayList<>();
+
+        Files.walkFileTree(folder.toPath(), new SimpleFileVisitor<Path>()
+        {
+            @Override
+            public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes)
+            {
+                return isWithin(root, directory) ? FileVisitResult.CONTINUE : FileVisitResult.SKIP_SUBTREE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path entry, BasicFileAttributes attributes)
+            {
+                if (isWithin(root, entry))
+                {
+                    found.add(entry.toString());
+                }
+
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        return found;
     }
 
     /**
@@ -333,20 +385,57 @@ public class AngularResourceCopier implements ServletContextAware
         createTrustedFolder(folder);
     }
 
-    private String copyFile(ServletContextResourcePatternResolver resolver, File tmpDir, String fileName)
+    /**
+     * Copy one file out of the WAR or an extension jar into the staging folder, leaving whatever is already there
+     * untouched unless the new content has been written in full.
+     * <p>
+     * The order of the two streams is the whole point. Opening the destination first truncates it, so a source that
+     * turns out to be unreadable - the resource missing from the archive is the case that happens - destroyed the good
+     * file that was already in the staging folder before the failure was even reported. That mattered most for the
+     * committed lockfile, which the stale-file sweep deliberately keeps between runs: a zero-length lockfile survived
+     * the restart and made the next install fail for a second, unrelated-looking reason. The source is therefore opened
+     * first, the bytes are written to a sibling staging file, and only a complete write is moved into place - so a
+     * failure at any point leaves the previous file exactly as it was.
+     * <p>
+     * Visible to the test in this package so that the "existing file survives an unreadable source" property can be
+     * asserted directly, rather than inferred from a whole assembly.
+     *
+     * @param resolver
+     *            resolver over the WAR and the extension jars.
+     * @param tmpDir
+     *            the staging folder.
+     * @param fileName
+     *            name of the file to copy, relative to the archive's resources folder.
+     * @return canonical path of the copied file.
+     * @throws IOException
+     *             if the resource cannot be read, or the target is not trustworthy, or the copy fails.
+     */
+    String copyFile(ServletContextResourcePatternResolver resolver, File tmpDir, String fileName)
             throws IOException
     {
         Resource r = resolver.getResource(AngularResourceConstants.WAR_ANGULAR_RESOURCE_PATH + "/" + fileName);
         File target = assertWithin(tmpDir, new File(tmpDir, fileName));
+        File incoming = assertWithin(tmpDir, new File(target.getParentFile(), target.getName() + INCOMING_SUFFIX));
 
-        try (OutputStream out = newNoFollowOutputStream(target))
+        try
         {
-            IOUtils.copy(r.getInputStream(), out);
+            // Source first: if this throws, nothing has been written and the existing file is still the good one.
+            try (java.io.InputStream in = r.getInputStream(); OutputStream out = newNoFollowOutputStream(incoming))
+            {
+                IOUtils.copy(in, out);
+            }
+
+            // A rename within one directory replaces the target in a single step, so no reader ever observes a
+            // partially written file and no failure above this line can have shortened one.
+            Files.move(incoming.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        }
+        finally
+        {
+            Files.deleteIfExists(incoming.toPath());
         }
 
         target.setLastModified(r.lastModified());
-        log.debug("Copying file to: {}", target.toPath());
-        log.debug("Copying file to: {}", target.getCanonicalPath());
+        log.info("Copying file to: {}", target.getCanonicalPath());
         return target.getCanonicalPath();
 
     }
@@ -360,7 +449,11 @@ public class AngularResourceCopier implements ServletContextAware
     }
 
     /**
-     * Copy one file, refusing to follow a symbolic link on either side.
+     * Copy one regular file, refusing to follow a symbolic link on either side.
+     * <p>
+     * A symbolic link is never passed here: the walk that feeds the deployment copy classifies one before it gets this
+     * far and reproduces it as a link. Refusing one here is therefore a backstop rather than the policy, and it keeps
+     * the guarantee that this method writes bytes it read from the file it was named, not from wherever a link points.
      *
      * @param source
      *            the file to read.
@@ -378,17 +471,275 @@ public class AngularResourceCopier implements ServletContextAware
         }
     }
 
+    /**
+     * Copy one assembled folder from the staging folder into the deployment folder.
+     * <p>
+     * The enumeration is deliberately not a plain recursive listing. Two properties of the assembled tree make that
+     * unsafe, and both were observed rather than anticipated:
+     * <ul>
+     * <li>The package manager creates symbolic links as a matter of course - one per executable dependency, all of them
+     * under {@code node_modules/.bin} - and {@code node_modules} is one of the folders configured for the deployment
+     * copy. A listing that reports a link as an ordinary file sends it to a byte copy, which refuses to follow it and
+     * fails the whole assembly. The links are part of the installed tree, so they are reproduced as links.</li>
+     * <li>A listing that follows directory links walks out of the staging folder entirely. Anything reachable through
+     * such a link would then be written into the deployment folder, which the servlet container serves. The walk below
+     * therefore never descends through a link, and every candidate is additionally proven to resolve inside the staging
+     * folder before it is considered - so containment is decided by the enumeration rather than left to the copy step to
+     * discover.</li>
+     * </ul>
+     *
+     * @param tmpDir
+     *            the staging folder the assembly ran in.
+     * @param deployFolder
+     *            the deployment folder the container serves.
+     * @param folderName
+     *            name of the assembled folder to copy.
+     * @throws IOException
+     *             if the folder cannot be walked or a copy fails.
+     */
     public void copyWebappResources(File tmpDir, File deployFolder, String folderName) throws IOException
     {
         File toFolder = new File(deployFolder, folderName);
         File fromFolder = new File(tmpDir, folderName);
 
-        Collection<File> sourceFiles = FileUtils.listFiles(fromFolder, FileFilterUtils.trueFileFilter(), FileFilterUtils.trueFileFilter());
-        List<String> filesToKeep = new ArrayList<>(sourceFiles.size());
+        List<String> filesToKeep = new ArrayList<>();
 
-        copyFilesAsNeeded(fromFolder, toFolder, sourceFiles, filesToKeep);
+        copyContainedEntries(fromFolder, toFolder, filesToKeep);
 
         deleteOldFilesFromFolder(toFolder, filesToKeep);
+    }
+
+    /**
+     * Walk one assembled folder without following symbolic links, and copy every entry that is proven to belong to it.
+     *
+     * @param fromFolder
+     *            the folder to walk; absent folders are skipped, as they were before.
+     * @param toFolder
+     *            the folder to copy into.
+     * @param filesToKeep
+     *            collects the deployment-folder paths this run is responsible for, so that the stale sweep does not
+     *            delete them again immediately afterwards.
+     * @throws IOException
+     *             if the walk or a copy fails.
+     */
+    private void copyContainedEntries(final File fromFolder, final File toFolder, final List<String> filesToKeep)
+            throws IOException
+    {
+        if (!Files.isDirectory(fromFolder.toPath(), LinkOption.NOFOLLOW_LINKS))
+        {
+            // Every folder configured for the deployment copy is either carried in the archive or produced by the
+            // front-end build, so a missing one means the assembly did not complete. Reporting it stops the webapp
+            // rather than deploying a tree with a folder silently absent from it.
+            throw new IOException("The assembled folder '" + fromFolder + "' is missing or is not a real directory, so "
+                    + "the front-end assembly did not complete and nothing is copied to the deployment folder.");
+        }
+
+        final Path sourceRoot = fromFolder.toPath().toRealPath();
+        final List<File> refused = new ArrayList<>();
+
+        // walkFileTree does NOT follow links unless FOLLOW_LINKS is passed, and it is not. A link to a directory is
+        // consequently handed to visitFile rather than descended into, which is exactly the classification needed here:
+        // every link is decided on its own merits and nothing is reachable through one.
+        Files.walkFileTree(fromFolder.toPath(), new SimpleFileVisitor<Path>()
+        {
+            @Override
+            public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes) throws IOException
+            {
+                return isWithin(sourceRoot, directory) ? FileVisitResult.CONTINUE : refuse(directory);
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path entry, BasicFileAttributes attributes) throws IOException
+            {
+                if (!isWithin(sourceRoot, entry))
+                {
+                    return refuse(entry);
+                }
+
+                copyEntry(sourceRoot, entry, toFolder, filesToKeep);
+                return FileVisitResult.CONTINUE;
+            }
+
+            private FileVisitResult refuse(Path escaping)
+            {
+                refused.add(escaping.toFile());
+                log.warn("Not copying [{}] into the deployment folder: it resolves outside the assembled folder [{}]. "
+                        + "Only content the front-end build produced inside the staging folder is deployed.", escaping,
+                        sourceRoot);
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+        });
+
+        if (!refused.isEmpty())
+        {
+            log.warn("Skipped {} entr{} of [{}] that resolved outside it.", refused.size(),
+                    refused.size() == 1 ? "y" : "ies", sourceRoot);
+        }
+    }
+
+    /**
+     * Decide whether one walked path belongs to the folder being copied.
+     * <p>
+     * The test is on the entry's <em>real</em> path, so an entry is judged by what it actually is rather than by the
+     * name it was reached under. That single test covers three cases at once, which is why it replaced a containment
+     * check made only on the target side:
+     * <ul>
+     * <li>An ordinary file or directory under the folder resolves to a path inside it, and passes.</li>
+     * <li>A symbolic link pointing inside the folder - which is what the package manager creates under
+     * {@code node_modules/.bin} - resolves inside it, and passes.</li>
+     * <li>A symbolic link pointing anywhere else resolves outside the folder and is refused. Because the walk does not
+     * descend through a link, a link to a directory is judged here as a single entry rather than after its contents have
+     * already been enumerated.</li>
+     * </ul>
+     * A link whose target does not exist has no real path at all and is refused: its own directory is inside the folder
+     * but its content is not knowable, and reproducing it would deploy a link that resolves to nothing.
+     *
+     * @param root
+     *            real path of the folder being copied.
+     * @param entry
+     *            the walked path.
+     * @return {@code true} when the entry resolves inside the root, or is the root itself.
+     */
+    private boolean isWithin(final Path root, final Path entry)
+    {
+        Path real;
+
+        try
+        {
+            real = entry.toRealPath();
+        }
+        catch (IOException unresolvable)
+        {
+            log.warn("Not deploying [{}]: its real path cannot be resolved ({}).", entry, unresolvable.getMessage());
+            return false;
+        }
+
+        return real.equals(root) || real.startsWith(root);
+    }
+
+    /**
+     * Copy or reproduce one walked entry in the deployment folder.
+     *
+     * @param sourceRoot
+     *            canonical path of the folder being copied.
+     * @param entry
+     *            the walked entry, already proven to resolve inside {@code sourceRoot}.
+     * @param toFolder
+     *            the deployment-side folder.
+     * @param filesToKeep
+     *            collects the deployment paths this run is responsible for.
+     * @throws IOException
+     *             if the copy fails or the target is not trustworthy.
+     */
+    private void copyEntry(final Path sourceRoot, final Path entry, final File toFolder, final List<String> filesToKeep)
+            throws IOException
+    {
+        File source = entry.toFile();
+
+        // The name is built from the entry's own name under its real parent, never from its own canonical path. For an
+        // ordinary file the two are the same; for a symbolic link the canonical path is the link's target, which would
+        // place node_modules/.bin/grunt at the target's location instead of at .bin/grunt.
+        Path relativeName = sourceRoot.relativize(entry.getParent().toRealPath().resolve(entry.getFileName().toString()));
+        File targetFile = assertWithin(toFolder, new File(toFolder, relativeName.toString()));
+
+        recordFileToKeep(filesToKeep, targetFile);
+
+        log.trace("Considering [{}] -> [{}]", entry, targetFile.toPath());
+
+        if (Files.isSymbolicLink(entry))
+        {
+            reproduceSymbolicLink(entry, targetFile);
+            return;
+        }
+
+        long sourceModified = source.lastModified();
+
+        if (Files.exists(targetFile.toPath(), LinkOption.NOFOLLOW_LINKS))
+        {
+            long targetModified = targetFile.lastModified();
+
+            log.trace("\tTarget file exists; modified time is different? {}", targetModified != sourceModified);
+            if (targetModified != sourceModified)
+            {
+                log.debug("Copying [{}] to [{}]", source.getCanonicalPath(), targetFile.toPath());
+                copyWithoutFollowingLinks(source, targetFile);
+                targetFile.setLastModified(sourceModified);
+            }
+        }
+        else
+        {
+            createFolderStructure(targetFile.getParentFile());
+            copyWithoutFollowingLinks(source, targetFile);
+            targetFile.setLastModified(sourceModified);
+        }
+    }
+
+    /**
+     * Reproduce a symbolic link in the deployment folder with the same link text it has in the staging folder.
+     * <p>
+     * Copying the target's bytes instead would work, and it is what the pre-migration implementation did by accident,
+     * but it turns one link into a second copy of a file that is already being deployed - about thirty of them for this
+     * manifest. Reproducing the link keeps the deployed tree the same shape as the installed one, and because the link
+     * text is relative and its target was already proven to be inside the tree, the reproduced link resolves inside the
+     * deployment folder rather than back into the staging folder.
+     * <p>
+     * No modified time is set on a link: doing so would follow it and change the timestamp of the file it points at,
+     * which is a file this same run copies and compares by timestamp.
+     *
+     * @param entry
+     *            the link in the staging folder.
+     * @param targetFile
+     *            where it belongs in the deployment folder.
+     * @throws IOException
+     *             if the link cannot be read or written.
+     */
+    private void reproduceSymbolicLink(final Path entry, final File targetFile) throws IOException
+    {
+        Path linkText = Files.readSymbolicLink(entry);
+
+        if (Files.exists(targetFile.toPath(), LinkOption.NOFOLLOW_LINKS))
+        {
+            if (Files.isSymbolicLink(targetFile.toPath()) && linkText.equals(Files.readSymbolicLink(targetFile.toPath())))
+            {
+                log.trace("\tSymbolic link [{}] is already in place", targetFile.toPath());
+                return;
+            }
+
+            Files.delete(targetFile.toPath());
+        }
+
+        createFolderStructure(targetFile.getParentFile());
+        log.debug("Reproducing symbolic link [{}] -> [{}]", targetFile.toPath(), linkText);
+        Files.createSymbolicLink(targetFile.toPath(), linkText);
+    }
+
+    /**
+     * Record one deployment-folder path as belonging to this run.
+     * <p>
+     * The stale sweep compares the paths it walks against these, and it walks without canonicalising. For an ordinary
+     * file under a folder with no linked ancestor the two spellings are identical, which is why recording only the
+     * canonical path worked until links entered the tree: a link's canonical path is its target's path, so the link
+     * itself would never match and the sweep would delete what this run had just created. Both spellings are therefore
+     * recorded whenever they differ.
+     *
+     * @param filesToKeep
+     *            the collection being built.
+     * @param targetFile
+     *            the deployment-side path.
+     * @throws IOException
+     *             if the canonical path cannot be resolved.
+     */
+    private void recordFileToKeep(final List<String> filesToKeep, final File targetFile) throws IOException
+    {
+        String canonical = targetFile.getCanonicalPath();
+        String literal = targetFile.toPath().toAbsolutePath().normalize().toString();
+
+        filesToKeep.add(canonical);
+
+        if (!literal.equals(canonical))
+        {
+            filesToKeep.add(literal);
+        }
     }
 
     private void deleteOldFilesFromFolder(File folder, List<String> filesToKeep) throws IOException
@@ -404,63 +755,115 @@ public class AngularResourceCopier implements ServletContextAware
         oldFilesInTargetFolder.stream().peek(f -> log.debug("Removing custom file [{}]", f.toPath())).forEach(File::delete);
     }
 
-    private void copyFilesAsNeeded(File fromFolder, File toFolder, Collection<File> sourceFiles, List<String> filesToKeep)
-            throws IOException
-    {
-        for (File f : sourceFiles)
-        {
-            log.trace("Considering [{}]", f.getCanonicalPath());
-
-            long sourceModified = f.lastModified();
-            String relativeName = f.getCanonicalPath().replace(fromFolder.getCanonicalPath(), "");
-            File targetFile = assertWithin(toFolder, new File(toFolder, relativeName));
-
-            filesToKeep.add(targetFile.getCanonicalPath());
-
-            log.trace("\tTarget file: [{}]", targetFile.getCanonicalPath());
-
-            if (f.isDirectory())
-            {
-                createFolderStructure(f);
-            }
-            else if (targetFile.exists())
-            {
-                long targetModified = targetFile.lastModified();
-
-                log.trace("\tTarget file exists; modified time is different? {}", targetModified != sourceModified);
-                if (targetModified != sourceModified)
-                {
-                    log.debug("Copying [{}] to [{}]", f.getCanonicalPath(), targetFile.toPath());
-                    copyWithoutFollowingLinks(f, targetFile);
-                    targetFile.setLastModified(sourceModified);
-                }
-            }
-            else
-            {
-                createFolderStructure(targetFile.getParentFile());
-                copyWithoutFollowingLinks(f, targetFile);
-                targetFile.setLastModified(sourceModified);
-            }
-        }
-    }
-
+    /**
+     * Run one configured front-end command in the staging folder, and make its own output survive a failure.
+     * <p>
+     * The tool's output used to go only to a DEBUG logger, and the process library reports a non-zero exit by throwing,
+     * so on the one occasion the output matters - a failed install - it was discarded. What an operator saw was
+     * {@code Process exited with an error: 1} inside a Spring stack trace, with none of the explanation the package
+     * manager had actually printed, and raising a log level is not a fix for that: the shipped log configuration pins
+     * this logger above DEBUG, so the diagnosis was unavailable exactly where it was needed. The output is therefore
+     * captured as well as logged, and on failure it is logged at ERROR <em>and</em> carried in the thrown message, which
+     * propagates through {@code Could not assemble Angular webapp} into the container log and the error page whatever
+     * the configured level is.
+     *
+     * @param tmpDir
+     *            the staging folder, which is the working directory of the command.
+     * @param commandLine
+     *            the configured command line.
+     * @throws IOException
+     *             if the command cannot be started or exits non-zero; the message carries the command's own output.
+     */
     public void runFrontEndBuildCommand(File tmpDir, String commandLine) throws IOException
     {
-        log.debug("About to run [{}]", commandLine);
+        log.info("About to run [{}]", commandLine);
 
         CommandLine command = toTrustedCommandLine(tmpDir, commandLine);
         DefaultExecutor executor = new DefaultExecutor();
         executor.setWorkingDirectory(tmpDir);
 
+        TailCapturingOutputStream captured = new TailCapturingOutputStream(TOOL_OUTPUT_TAIL_BYTES);
+
         // Slf4jDebugOutputStream is an OutputStream we can send to the DefaultExecutor; the DefaultExecutor will
         // pipe its STDIN and STDOUT to this output stream, which will log such output at DEBUG level to our
-        // SLF4j logger.
-        try (Slf4jDebugOutputStream debugOutputStream = new Slf4jDebugOutputStream(log))
+        // SLF4j logger. The same bytes are teed into the tail buffer so that a failure can report them.
+        try (Slf4jDebugOutputStream debugOutputStream = new Slf4jDebugOutputStream(log);
+                OutputStream tee = new TeeOutputStream(debugOutputStream, captured))
         {
 
-            executor.setStreamHandler(new PumpStreamHandler(debugOutputStream));
+            executor.setStreamHandler(new PumpStreamHandler(tee));
             int exitCode = executor.execute(command, buildToolEnvironment(tmpDir));
-            log.debug("done with [{}]: exit code {}", commandLine, exitCode);
+            log.info("done with [{}]: exit code {}", commandLine, exitCode);
+        }
+        catch (IOException failed)
+        {
+            String output = captured.tail();
+
+            log.error("The front-end command [{}] failed: {}. Its own output follows.{}", commandLine,
+                    failed.getMessage(), output.isEmpty() ? " It produced none." : System.lineSeparator() + output);
+
+            throw new IOException("The front-end command [" + commandLine + "] failed: " + failed.getMessage()
+                    + (output.isEmpty() ? " It produced no output." : " Its output was: " + output), failed);
+        }
+    }
+
+    /**
+     * An output stream that keeps the last N bytes written to it and discards the rest.
+     * <p>
+     * Used to hold a front-end tool's own output for a failure report without letting a process this class does not
+     * control decide how much memory the container spends. The end is kept rather than the beginning because that is
+     * where a package manager or a task runner prints the reason it stopped.
+     */
+    private static final class TailCapturingOutputStream extends OutputStream
+    {
+        private final byte[] buffer;
+
+        private int written;
+
+        private boolean wrapped;
+
+        private TailCapturingOutputStream(final int capacity)
+        {
+            this.buffer = new byte[capacity];
+        }
+
+        @Override
+        public synchronized void write(final int b)
+        {
+            buffer[written++] = (byte) b;
+
+            if (written == buffer.length)
+            {
+                written = 0;
+                wrapped = true;
+            }
+        }
+
+        @Override
+        public synchronized void write(final byte[] bytes, final int offset, final int length)
+        {
+            for (int i = 0; i < length; i++)
+            {
+                write(bytes[offset + i]);
+            }
+        }
+
+        /**
+         * @return the captured tail as text, with a leading marker when earlier output was discarded.
+         */
+        private synchronized String tail()
+        {
+            if (!wrapped)
+            {
+                return new String(buffer, 0, written, StandardCharsets.UTF_8).trim();
+            }
+
+            byte[] ordered = new byte[buffer.length];
+            System.arraycopy(buffer, written, ordered, 0, buffer.length - written);
+            System.arraycopy(buffer, 0, ordered, buffer.length - written, written);
+
+            return "[earlier output omitted]" + System.lineSeparator()
+                    + new String(ordered, StandardCharsets.UTF_8).trim();
         }
     }
 
@@ -696,10 +1099,16 @@ public class AngularResourceCopier implements ServletContextAware
     Map<String, String> buildToolEnvironment(final File tmpDir) throws IOException
     {
         Map<String, String> environment = EnvironmentUtils.getProcEnvironment();
-        File absentConfig = new File(tmpDir, ".arkcase-no-npm-config");
 
-        environment.put("npm_config_userconfig", absentConfig.getPath());
-        environment.put("npm_config_globalconfig", absentConfig.getPath());
+        // Two DISTINCT names, both inside the staging folder and neither created by this class, so the package manager
+        // finds no configuration file at either location. They must not be the same path: npm loads its user
+        // configuration first and its global configuration second, and it refuses to load one file twice - a single
+        // shared path aborts every invocation before any configuration is resolved at all, with
+        // 'double-loading config "<path>" as "global", previously loaded as "user"' and exit status 1. That failure is
+        // unconditional and independent of the host, so it stopped the install, and with it the deployment, on every
+        // start. Keep these two values different.
+        environment.put("npm_config_userconfig", new File(tmpDir, ".arkcase-no-npm-userconfig").getPath());
+        environment.put("npm_config_globalconfig", new File(tmpDir, ".arkcase-no-npm-globalconfig").getPath());
 
         if (getNpmRegistry() != null && !getNpmRegistry().trim().isEmpty())
         {

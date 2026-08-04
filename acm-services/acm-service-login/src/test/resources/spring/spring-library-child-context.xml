@@ -3,7 +3,15 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-5.4.xsd">
+                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <!--
+        The security schema is referenced without a version, matching spring-security-config.xml and
+        spring-library-acm-web.xml in acm-web. This document happens to use only beans-namespace elements today, so
+        Spring Security's namespace handler is not invoked and a stale version would go unnoticed here; it would stop
+        this context from loading the moment a security element were added. Referencing the schema without a version
+        removes that trap and keeps every security-namespace declaration in the repository consistent.
+    -->
 
     <beans:bean id="userSearch" class="org.springframework.security.ldap.search.FilterBasedLdapUserSearch">
         <beans:constructor-arg index="0" value="OU=OPIS"/>

@@ -80,13 +80,13 @@ Nothing else is altered: no attribute is removed, no outcome is added, reshaped 
 Two consequences for how the archive is read:
 
 - **Comparison against the migrated half is on testcase presence, testcase outcome and failure message content — never on byte identity.** Duration, host name and run instant legitimately vary between two runs of the same suite, and EasyMock 5 renders an unmet expectation more verbosely than EasyMock 4 while reporting the same unmet expectation. "Archived in its entirety" governs completeness of content, not sameness of bytes.
-- **The two halves pair by filename, and the pairing is total in the direction that matters.** Every one of the 278 baseline reports has a migrated twin of the identical name — **zero suites lost** — which is enforced by the committed pairing contract rather than left to a reader's diff. Seven migrated reports have no baseline twin; all seven are enumerated in the next sub-section, and six of them are simply classes that do not exist at the base commit. The seventh, `smoke-evidence/migrated/surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml`, is the one that needed explaining, and the JDK 8 re-capture establishes directly why the baseline has no counterpart: the class `SolrReindexServiceTests.java` **does exist** in the base-commit source at `acm-services/acm-service-data-update/src/test/java/com/armedia/acm/services/dataupdate/web/`, the baseline run used the implicitly bound **`maven-surefire-plugin:2.12.4`**, and that version's default includes are `**/Test*.java`, `**/*Test.java` and `**/*TestCase.java` — none of which matches a class whose name ends in `Tests`. The baseline run consequently produced exactly **two** reports for that module, and the plural-named class is not among them. Surefire 3.x added `**/*Tests.java` to the defaults, so the pinned 3.5.2 selects it and it now runs and passes.
+- **The two halves pair by filename, and the pairing is total in the direction that matters.** Every one of the 278 baseline reports has a migrated twin of the identical name — **zero suites lost** — which is enforced by the committed pairing contract rather than left to a reader's diff. Eight migrated reports have no baseline twin; all eight are enumerated in the next sub-section, and seven of them are simply classes that do not exist at the base commit. The seventh, `smoke-evidence/migrated/surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml`, is the one that needed explaining, and the JDK 8 re-capture establishes directly why the baseline has no counterpart: the class `SolrReindexServiceTests.java` **does exist** in the base-commit source at `acm-services/acm-service-data-update/src/test/java/com/armedia/acm/services/dataupdate/web/`, the baseline run used the implicitly bound **`maven-surefire-plugin:2.12.4`**, and that version's default includes are `**/Test*.java`, `**/*Test.java` and `**/*TestCase.java` — none of which matches a class whose name ends in `Tests`. The baseline run consequently produced exactly **two** reports for that module, and the plural-named class is not among them. Surefire 3.x added `**/*Tests.java` to the defaults, so the pinned 3.5.2 selects it and it now runs and passes.
 
   The baseline report is therefore **correctly absent rather than missing**, and no report was lost, deleted or left unproduced. It is recorded here because a reviewer diffing the two trees will find it; because it is the one direction of difference that cannot be a regression — a test that never ran before and passes now; and because it is a real, if small, behavioural consequence of pinning the runner, which belongs on this page rather than in a footnote. Nothing was fabricated to close the gap, and nothing should be: an authored baseline report for a suite the baseline runner never selected would be exactly the defect this archive exists to have escaped.
 
-### The seven migrated suites with no baseline counterpart, and why each has none
+### The eight migrated suites with no baseline counterpart, and why each has none
 
-The archived migrated half carries **285** suites against the baseline half's **278**, and the whole of that difference is enumerated below rather than left to be discovered from a count mismatch. The pairing is enforced mechanically by the committed contract at `smoke-evidence/expected-suites.txt`, generated from the two installed archives by `install-surefire-evidence.sh --manifest`; `smoke-checks.sh` reads it and each capture's `notes/surefire-pairing.txt` records the result. Both sides report **0 suites missing, 0 unlisted and 0 lost**, which is the fact that matters: **no suite that ran at baseline has stopped running or stopped being archived.**
+The archived migrated half carries **285** suites against the baseline half's **278**; the working tree now runs **286**, and the whole of that difference is enumerated below rather than left to be discovered from a count mismatch. The pairing is enforced mechanically by the committed contract at `smoke-evidence/expected-suites.txt`, generated from the two installed archives by `install-surefire-evidence.sh --manifest`; `smoke-checks.sh` reads it and each capture's `notes/surefire-pairing.txt` records the result. Both sides report **0 suites missing, 0 unlisted and 0 lost**, which is the fact that matters: **no suite that ran at baseline has stopped running or stopped being archived.**
 
 | Module | Test class | Tests | Outcome | Why no baseline counterpart |
 | --- | --- | --- | --- | --- |
@@ -95,12 +95,18 @@ The archived migrated half carries **285** suites against the baseline half's **
 | `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest` | 9 | all pass | Class did not exist at the base commit |
 | `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest` | 7 | all pass | Class did not exist at the base commit |
 | `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest` | 7 | all pass | Class did not exist at the base commit |
-| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest` | 16 | all pass | Class did not exist at the base commit |
+| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest` | 18 | all pass | Class did not exist at the base commit. Two of the eighteen were added after the deployment QA pass: one executes the real package manager with the environment the startup build hands it, and one requires a failed front-end command to carry its own output |
 | `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest` | 6 | all pass | Class did not exist at the base commit |
+| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierDeploymentCopyTest` | 9 | all pass | Class did not exist at the base commit. Added after the deployment QA pass, covering the deployment copy: the package manager's own symbolic links, containment of the folder walk, the stale sweep's deletion candidates, a missing assembled folder, and a copy whose source cannot be read |
 
-**The two reasons are not interchangeable, and the distinction is load-bearing.** Six of the seven classes are absent from the base commit outright, so no baseline run could ever have produced a report for them. The seventh existed and was skipped by the runner. Only the second kind is a behavioural consequence of this migration; collapsing both into "newly added" would have quietly hidden that. The generated pairing note therefore states both possibilities and defers the per-suite attribution to this table rather than asserting one.
+**The two reasons are not interchangeable, and the distinction is load-bearing.** Seven of the eight classes are absent from the base commit outright, so no baseline run could ever have produced a report for them. The seventh existed and was skipped by the runner. Only the second kind is a behavioural consequence of this migration; collapsing both into "newly added" would have quietly hidden that. The generated pairing note therefore states both possibilities and defers the per-suite attribution to this table rather than asserting one.
 
-The arithmetic closes exactly: **278 baseline suites / 892 test methods**, and **285 migrated suites / 951 test methods**. The seven suites above contribute 1 + 13 + 9 + 7 + 7 + 16 + 6 = **59** methods, and 892 + 59 = 951. Every figure here is read out of the two installed archives, whose `sha256-manifest.txt` files verify clean. The migrated run recorded **3 failures, 1 error and 21 skips**, and **all four red outcomes are the four rows registered below** — so the entire delta against the baseline is additive coverage, with no regression anywhere in the corpus.
+The arithmetic closes exactly, and it is stated for both the archived capture and the working tree because the two differ by design.
+
+- **Archived capture:** **278 baseline suites / 892 test methods** against **285 migrated suites / 951 test methods**. The first seven suites above contribute 1 + 13 + 9 + 7 + 7 + 16 + 6 = **59** methods, and 892 + 59 = 951. Every figure is read out of the two installed archives, whose `sha256-manifest.txt` files verify clean.
+- **Working tree now:** **286 suites / 962 test methods**, re-measured by a full offline `mvn -B -o -fae test` run and cross-checked against all 286 `TEST-*.xml` reports, which agree exactly. The delta of +1 suite and +11 methods over the archived migrated half is the eighth suite above (9 methods) plus the two methods added to `AngularResourceCopierSafetyTest`; both additions exist to hold the deployment defects the QA pass found, and each was verified to fail against the pre-fix class before being committed.
+
+In both runs the red outcomes are **3 failures, 1 error and 21 skips**, and **all four red outcomes are the four rows registered below** — so the entire delta against the baseline is additive coverage, with no regression anywhere in the corpus.
 
 ### The environment precondition that gates a complete run
 
@@ -114,15 +120,15 @@ In this checkout the precondition is **satisfied** rather than outstanding. The 
 
 Every figure below was re-derived at base commit `c8f6226105` rather than copied forward. All eleven baseline values match the migration plan's stated values exactly, so no divergence has to be reported against the plan.
 
-The working-tree column is stated separately rather than being asserted equal to the baseline, because for four measures **it is not equal** and saying so is the point: the migration adds six test classes, and a table that quietly published one number for both columns would either understate the working tree or misattribute the addition to the base commit.
+The working-tree column is stated separately rather than being asserted equal to the baseline, because for four measures **it is not equal** and saying so is the point: the migration adds seven test classes — six with the runtime work and a seventh holding the deployment defects the QA pass found — and a table that quietly published one number for both columns would either understate the working tree or misattribute the addition to the base commit.
 
 | Measure | Verified at base commit `c8f6226105` | Working tree now | Δ |
 | --- | --- | --- | --- |
 | `src/test/java` source trees | 76 | 77 | +1 — `ark-angular-starter` had no test tree at the base commit |
-| Java test source files | 402 | 408 | +6 — the six classes enumerated above |
-| `*Test.java` (unit) | 280 | 286 | +6 — same six |
+| Java test source files | 402 | 409 | +7 — the seven classes enumerated above |
+| `*Test.java` (unit) | 280 | 287 | +7 — same seven |
 | `*IT.java` (integration) | 86 | 86 | — |
-| Files importing `org.junit.Test` | 366 | 372 | +6 — same six |
+| Files importing `org.junit.Test` | 366 | 373 | +7 — same seven |
 | Files importing `org.junit.jupiter` (JUnit 5) | 0 | 0 | — |
 | Existing `@Ignore` occurrences | 26 | 26 | — **must not move**; see below |
 | POMs declaring `maven-surefire-plugin` | 0 of 145 | 1 — the root aggregator | +1 — the pinned declaration this migration adds |
@@ -305,13 +311,13 @@ git grep -l 'maven-surefire-plugin' $B -- 'pom.xml' '*/pom.xml' | wc -l         
 git grep -l 'org.powermock'             $B -- '*.java' | wc -l                                 # 6
 git grep -l 'org.easymock.classextension' $B -- '*.java' | wc -l                               # 0
 
-# the same corpus IN THE WORKING TREE - the right-hand column.  The four differences are the six
-# added test classes and the one new test tree that holds two of them.
+# the same corpus IN THE WORKING TREE - the right-hand column.  The four differences are the seven
+# added test classes and the one new test tree that holds three of them.
 git ls-files | grep -oE '^.*/src/test/java/' | sed 's|/src/test/java/||' | sort -u | wc -l     # 77
-git ls-files '*.java' | grep -c '/src/test/java/'                                              # 408
-git ls-files '*Test.java' | grep -c '/src/test/java/'                                          # 286
+git ls-files '*.java' | grep -c '/src/test/java/'                                              # 409
+git ls-files '*Test.java' | grep -c '/src/test/java/'                                          # 287
 git ls-files '*IT.java'   | grep -c '/src/test/java/'                                          # 86
-git ls-files '*.java' | xargs grep -l 'org.junit.Test'    | grep -c '/src/test/java/'          # 372
+git ls-files '*.java' | xargs grep -l 'org.junit.Test'    | grep -c '/src/test/java/'          # 373
 git ls-files '*.java' | xargs grep -l 'org.junit.jupiter' | wc -l                              # 0
 git ls-files '*.java' | xargs grep -l 'org.powermock' | wc -l                                  # 0
 git ls-files '*.java' | xargs grep -l 'org.easymock.classextension' | wc -l                    # 0
