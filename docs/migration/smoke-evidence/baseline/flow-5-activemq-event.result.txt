@@ -6,10 +6,21 @@ compared-artefacts: flow-5-activemq-event.out, flow-5-activemq-event.status and 
 transport-trust-mode: verify-default-trust-store
 state-mutation-permitted: no
 observed-statuses:
-  (none recorded)
+  trigger=SKIPPED
+  delivery=SKIPPED
+  event-delivery=SKIPPED
+  broker-transit=SKIPPED
+  delivered=not-observed
+  destination=not-observable-without-a-broker-client
+  payload-match=not-observed
+  SKIPPED
+  REASON: no object could be created to observe (ALLOW_SMOKE_MUTATIONS is not set to 1), so the broker transit is unobserved
 observations:
   - broker and persistence startup lines not captured (no container log supplied)
   - state mutation permitted: no
+  - trigger half recorded: SKIPPED (/api/latest/plugin/complaint)
+  - delivery half recorded: SKIPPED (destination solrAdvancedSearch.in)
+  - both halves are recorded even though neither could be exercised, so the shape of this record is identical in both runs and the gap is visible in a directory diff rather than absent from it (R-5)
   - this flow observes the downstream effect of an event THIS RUN produced.  Without a produced event there is nothing to observe, and a query that answers 200 with an empty result set on an idle broker is not evidence of a transit — which is precisely the unsound inference this version replaces
   - requirements unmet: 1
 assertion-basis: derived by reading flow-5-activemq-event.status and

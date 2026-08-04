@@ -7,10 +7,22 @@ transport-trust-mode: verify-default-trust-store
 state-mutation-permitted: no
 observed-statuses:
   repository-reachability=000
+  upload-document=SKIPPED
+  download-document=SKIPPED
+  mime-resolution=SKIPPED
+  retrieved-bytes-match=SKIPPED
+  roundtrip=SKIPPED
+  REASON: state mutation not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1); storage, retrieval and MIME resolution unobserved
+  store-leg=SKIPPED
+  retrieve-leg=SKIPPED
 observations:
   - content repository reachability observed: 000
   - state mutation refused because: ALLOW_SMOKE_MUTATIONS is not set to 1
   - the named behaviour of this flow is a document round trip, and a round trip cannot be performed read-only.  Rather than substitute a configuration request and label it a round trip, the flow records that the behaviour was NOT exercised and marks the run incomplete
+  - both legs carry an explicit SKIPPED record with a REASON in the .out rather than being omitted from it, so the two unobserved halves of the criterion are visible in a directory diff (R-5)
+  - repository-assigned object identifier: treated as BEHAVIOUR-BEARING, not as volatile.  It is captured verbatim on the store leg and reused verbatim to build the retrieve request, because the two legs have to be shown to concern the SAME object; it is therefore expected to differ between two runs, and that row alone differing is not a behavioural difference.  It is recorded here rather than stripped, and no normalise expression touches it
+  - no captured payload required a token to be normalised for a wording gate on this run: no body was returned, so nothing was captured that could carry one
+  - no captured line begins with a character the plain-text checks look for; the captured body is delimited by its own markers and no line in this capture starts with a heading or table character
   - to exercise it: set ALLOW_SMOKE_MUTATIONS=1 and name the target host in SMOKE_MUTATION_HOSTS
   - requirements unmet: 1
 assertion-basis: derived by reading flow-3-alfresco-roundtrip.status and

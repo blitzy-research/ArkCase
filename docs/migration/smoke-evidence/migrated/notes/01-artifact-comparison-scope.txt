@@ -1,0 +1,326 @@
+ArkCase runtime migration - smoke evidence - migrated capture - reviewer note 01
+================================================================================
+
+SUBJECT: scope and admissibility of the frontend five-artefact byte comparison,
+  including the source-map caveat
+SIDE: migrated
+RUNTIME: Java 17 (OpenJDK 17.0.19) with Node 20 (Node v20.20.2, npm 10.8.2)
+BASE-COMMIT: c8f6226105 (full c8f6226105c28c2743281d26bf21ad73f7bb7f26)
+MIRRORS: docs/migration/smoke-evidence/baseline/notes/01-artifact-comparison-scope.txt
+QUALIFIES: the five artefact digests under artifacts/ and the comparison drawn
+  from them
+NOT-A-VERDICT: no pass mark is recorded or implied anywhere in this note
+
+
+WHY THIS NOTE SITS UNDER notes/ AND NOT INSIDE A CAPTURE FILE
+-------------------------------------------------------------
+A capture file holds observed output.  A caveat placed inside one would be read
+as part of that output.  Everything here is a qualification a reviewer needs in
+order to read the digests correctly, so it is kept beside them rather than in
+them.  This note owns exactly one concern: what the five-artefact byte
+comparison covers, what it excludes, and why the exclusion is recorded rather
+than applied quietly.
+
+
+RULES PROVENANCE - BOTH FACTS, STATED TOGETHER
+----------------------------------------------
+Two facts have to be given together, because either one alone would mislead.
+1) The project's rules facility returns, in full, that no user rules were
+   provided.  There is no on-disk user rules document for this project, so there
+   is no external full-text source to defer to for the constraints cited below.
+2) Rules are nonetheless present and binding.  The requirements embed an
+   explicit numbered block of seven rules, together with seven transformation
+   rules that are the operational form of the PRESERVE and EXCLUDE lists -
+   fourteen specific constraints in total.
+
+Reporting only the first would imply that enterprise best practice is the sole
+standard here, which is wrong.  Reporting only the second would misrepresent
+where the constraints came from.
+
+DISCLOSURE: the identifiers R-1 to R-7 and R-T1 to R-T7 used below, and their
+  descriptive labels, are the migration plan's own navigational convention.  They
+  are not quoted titles.  No rule is invented here, and none is softened.
+
+
+THE FIVE COMPARED ARTEFACTS AND THE GRUNT TARGET THAT PRODUCES EACH
+-------------------------------------------------------------------
+Every anchor below was re-read from the working tree for this note rather than
+carried forward, and each is quoted from the file it names.
+
+1) assets/dist/application.js
+     the ngAnnotate production target, Gruntfile.js:L69
+     'assets/dist/application.js' : '<%= applicationJavaScriptFiles %>'
+     ATTRIBUTION: this artefact is produced by ngAnnotate, NOT by concat.  The
+     enclosing block is ngAnnotate, opened at :L66, with its production target at
+     :L67, so :L69 belongs to ngAnnotate.  concat is a separate block opening at
+     :L73, and its destination is item 3 below.
+2) assets/dist/application.min.js
+     the uglify production target, Gruntfile.js:L55
+     'assets/dist/application.min.js' : 'assets/dist/application.js'
+3) assets/dist/vendors.min.js
+     the concat dist destination, Gruntfile.js:L76
+     dest : 'assets/dist/vendors.min.js'
+4) assets/dist/application.min.css
+     the cssmin combine target, Gruntfile.js:L62
+     'assets/dist/application.min.css' : '<%= applicationCSSFiles %>'
+5) home.html
+     written by renderHome, whose target is declared at config/env/all.js:L22 as
+     target : 'home.html' and whose write is Gruntfile.js:L177,
+     fs.writeFileSync(config.homePage.target, html), and then rewritten in place
+     by cacheBust, Gruntfile.js:L84, src: [ 'home.html' ]
+
+TASK-GRAPH-ANCHOR: Gruntfile.js:L376
+TASK-GRAPH: loadConfig, clean, ngAnnotate, uglify, concat, cssmin, renderHome,
+  cacheBust, copyToModulesConfigFolder
+TASK-GRAPH-STATE: unchanged between the two captures.  Verified directly rather
+  than asserted: diffing Gruntfile.js and config/env/all.js against the base
+  commit reports no change to either file, so the pipeline and the asset-layout
+  contract are byte-identical on both sides of this comparison.
+
+
+THE FIVE DIGEST FILES THIS NOTE QUALIFIES
+-----------------------------------------
+1) artifacts/application.js.sha256
+2) artifacts/application.min.js.sha256
+3) artifacts/vendors.min.js.sha256
+4) artifacts/application.min.css.sha256
+5) artifacts/home.html.sha256
+
+Each is compared against the file of the same name under
+docs/migration/smoke-evidence/baseline/artifacts/.  A difference in any single
+one of the five is a comparison failure that has to be accounted for, whatever
+any build log or process status reports.
+
+
+DETERMINISM BASIS - ESTABLISHED, NOT ASSUMED
+--------------------------------------------
+A byte comparison is evidence only if the pipeline is capable of producing
+identical output from identical input.  Four properties make it so, and each was
+re-read for this note.
+
+1) CACHE BUSTING IS CONTENT-HASH BASED.  Gruntfile.js:L79-L86 declares cacheBust
+   with options.assets [ 'assets/dist/**' ] at :L82 and src [ 'home.html' ] at
+   :L84.  There is no timestamp, no build banner and no date injection anywhere
+   in the block, so two builds of identical input derive identical hashes and
+   therefore identical rewritten references.
+2) MINIFICATION RUNS WITH IDENTIFIER MANGLING DISABLED.  Gruntfile.js:L51,
+   mangle : false, in the options of the uglify production target.  This removes
+   the principal source of benign inter-build variance.
+3) THE DISTRIBUTION DIRECTORY IS WIPED BEFORE EACH BUILD.  Gruntfile.js:L131,
+   clean: [ 'assets/dist' ], and clean is the second task in the graph at :L376.
+   A stale artefact therefore cannot survive into a build and masquerade as a
+   match.
+4) CONCATENATION ORDER DERIVES FROM FROZEN ASSET GLOBS.  The order in which
+   sources enter the bundles comes from config/env/all.js, which is unchanged
+   from the base commit.  Because every dependency key and the install topology
+   are preserved as well, that order cannot drift even though the installer
+   changed.
+
+
+ASSET-PATH CENSUS - MEASURED FOR THIS NOTE, WITH THE PLAN FIGURE BESIDE IT
+--------------------------------------------------------------------------
+Property 4 above rests on the literal asset paths in config/env/all.js, so they
+were counted rather than taken on trust.  Each command is given so that the
+figure can be reproduced.  The commands are written without a pipe, so where a
+figure is a count of matching output lines that is stated explicitly.
+
+COMMAND-A: grep -o "'node_modules/[^']*'" config/env/all.js
+MEASURED-QUOTED-ASSET-PATHS: 87 matching output lines
+COMMAND-B: grep -o "'node_modules/@bower_components/[^']*'" config/env/all.js
+MEASURED-PATHS-UNDER-BOWER-COMPONENTS: 80 matching output lines
+COMMAND-C: grep -c "node_modules" config/env/all.js
+MEASURED-LINES-MENTIONING-NODE-MODULES: 49
+ARITHMETIC-CHECK: 87 less 80 leaves 7 quoted paths that are not under
+  node_modules/@bower_components/, which is consistent with A and B.
+FIGURES-AT-BASE-COMMIT: 87, 80 and 49, identical to the working tree - the
+  expected result for a file that is unchanged from the base commit.
+
+MIGRATION-PLAN-FIGURE: the plan records 56 literal node_modules paths, 49 of them
+  under node_modules/@bower_components/.
+DELTA-EXPLANATION: the plan's 49 reproduces exactly, but as COMMAND-C, the count
+  of LINES mentioning node_modules; it is not the count of paths under
+  node_modules/@bower_components/, which is 80.  The plan's 56 does not reproduce
+  under COMMAND-A, COMMAND-B or COMMAND-C.  The measured figures are published
+  here with their commands and the plan's figure is stated beside them, so the
+  difference is visible rather than silently contradicted.  Nothing in the
+  comparison depends on which figure is the better description: what property 4
+  requires is that these globs are unchanged, and they are.
+
+
+THE SOURCE-MAP CAVEAT, AND THE EXCLUSION APPLIED ON THIS RUN
+------------------------------------------------------------
+Source-map generation is ENABLED.  Gruntfile.js:L52 reads sourceMap : true, in
+the options of the same uglify production target that carries mangle : false.  A
+generated source map embeds the file paths of its inputs.
+
+The consequence is precise: the comparison build must execute from the same
+relative path as the baseline build, or the map file will differ WHILE THE
+JAVASCRIPT BUNDLES DO NOT.  A difference confined to the map is a difference in
+where the build ran, not in what it produced.
+
+EXCLUSION-APPLIED-ON-THIS-RUN: yes
+EXCLUDED-FILE: application.min.js.map
+WHY: the two sides of this comparison did not run from the same root, and could
+  not have.  The pre-migration side was built from a tree extracted at the base
+  commit and the migrated side from this checkout, so the paths the map records
+  differ by construction.  The caveat is realised here, not hypothetical.
+SCOPE-AFTER-EXCLUSION: the five artefacts listed above remain fully in scope.
+  The exclusion removes one file from the comparison and narrows nothing else.
+STILL-DIGESTED: the map is digested on both sides all the same, at
+  artifacts/application.min.js.map.sha256.  Excluding a file from the comparison
+  and declining to measure it are different things; it is measured, so the caveat
+  can be checked by a reviewer instead of trusted.
+OBSERVED: the two map digests differ, which is what the caveat predicts.
+
+The exclusion is recorded rather than applied quietly, because a comparison that
+narrows itself without saying so reports a stronger result than it earned.  The
+same caveat is carried in flow-2-views.result.txt and in the artefact diff result
+recorded in comparison.txt.  Those two statements and this one are meant to
+agree; if they ever disagree, that disagreement is itself the finding.
+
+
+EVIDENCE IS THE ARTEFACTS AND THEIR DIGESTS, NEVER AN EXIT STATUS
+-----------------------------------------------------------------
+This is the defining constraint on the comparison (R-T7), and it is mandatory
+rather than fastidious.
+
+Gruntfile.js:L143 carries the comment "Making grunt default to force in order not
+to break the project." and Gruntfile.js:L144 acts on it with
+grunt.option('force', true);.  Forced execution masks task failures, so a
+frontend build can fail a task and still exit zero.  An exit status therefore
+carries no information about whether the pipeline did its work.
+
+The repository supplies its own proof that this is a live mechanism and not a
+theoretical one, because two registered pre-existing defects are masked by
+exactly it.
+1) Gruntfile.js:L372 registers a lint alias over jshint and csslint.  csslint is
+   configured at :L40, but jshint appears nowhere else in the file: there is no
+   jshint configuration block at all.
+2) Gruntfile.js:L379 registers a sync alias over concurrent:default.  The only
+   concurrent target defined is default1, at :L91, so concurrent:default does not
+   exist.
+Both are recorded in the pre-existing defects register, and neither is fixed
+here.  Beyond the configuration itself, a real run of this pipeline has been
+observed exiting zero while printing a forced-continue warning, which is the same
+mechanism caught in the act.
+
+Accordingly, no statement in this note, and no statement in the comparison it
+qualifies, is drawn from a process exit status.  Every claim is made against a
+file that exists and a digest taken from it.
+
+
+WHY THIS COMPARISON CARRIES THE WHOLE FRONTEND BURDEN
+-----------------------------------------------------
+COMMAND-D: find . -name "*.spec.js" -not -path "./.git/*"
+MEASURED-FRONTEND-SPEC-FILES: 0 matching output lines, measured over the
+  repository and separately over the frontend resources tree with node_modules
+  excluded.  Both give zero.
+TEST-TOOLING-DECLARED: the pre-migration manifest at the base commit declared
+  frontend test tooling - a Karma task plugin, a Jasmine core package, Karma
+  itself and its Jasmine adapter.  The migrated manifest declares none of them.
+CONSEQUENCE: on both sides of this comparison the number of specs available to
+  run is zero, so that difference in what is declared changes nothing about what
+  could be executed.  A declared runner with no specs and no declared runner with
+  no specs are equally empty.
+
+There is therefore no automated behavioural test for the frontend to fall back
+on, which is why these five digests carry the whole evidential burden for this
+track, and why the four determinism properties above had to be established before
+the comparison could be treated as evidence at all.
+
+WHAT BYTE IDENTITY EVIDENCES: that the same pipeline, given the same inputs,
+  emitted the same bytes, and therefore that the dependency graph, the task graph
+  and the application sources feeding the bundles did not change.
+WHAT IT DOES NOT EVIDENCE: that the application behaves correctly, that any
+  screen renders, or that any user-facing flow works.  Identical bytes of a
+  broken bundle are still identical.  Runtime behaviour is the business of the
+  flow captures beside this note, not of these digests.
+
+
+WHAT WAS DELIBERATELY NOT CHANGED, AND WHY THAT PROTECTS THE COMPARISON
+-----------------------------------------------------------------------
+Several restraint decisions are the reason the comparison can be trusted at all,
+and each is recorded here because each could otherwise look like an omission.
+
+PIPELINE RETAINED (R-4, its anti-overreach half).  The migrated artefacts were
+  produced on Node 20 by the UNCHANGED Grunt task graph.  Grunt and its command
+  line interface were verified to install AND execute on Node 20, so the pipeline
+  itself was deliberately not replaced.  R-4 requires genuine Node 20 execution,
+  not modernisation for its own sake; replacing a working pipeline would have
+  destroyed this comparison in order to satisfy a preference.
+
+SASS TOOLCHAIN REMOVED RATHER THAN REPLACED (R-1).  The removal is provably
+  output-neutral.  The Gruntfile declares no Sass task at all: its only textual
+  sass reference is inside the commented-out build alias at Gruntfile.js:L375,
+  and the remaining case-insensitive matches at :L152, :L165 and :L168 are
+  substrings of the identifier getCSSAssets rather than references to a task.
+  The asset resolver consumes only compiled CSS, at config/env/all.js:L27 and
+  :L78, while the SCSS globs at :L79 and :L92 are consumed by no task.
+  Substituting a modern compiler would have risked emitting different CSS bytes
+  for zero functional gain, so the plan declined it ON EVIDENCE rather than on
+  availability.
+
+DEPENDENCY KEYS AND INSTALL TOPOLOGY PRESERVED (R-T5 and R-T6).  Byte identity is
+  achievable only because the dependency graph is fully reproducible and the asset
+  layout is immutable.  Every Git dependency is pinned to an exact commit and the
+  graph is restored from a committed lockfile, so no dependency can resolve
+  differently between two checkouts.  Every dependency key and the install
+  topology are preserved unchanged.  Those two facts together are why
+  concatenation order cannot drift: the order comes from the frozen globs, and
+  the paths those globs resolve are the dependency keys.  Rename a key or flatten
+  the topology and the bundle bytes would move even with identical sources.
+
+BASELINE IS THE TIE-BREAKER (R-7).  The behavioural claim is byte identity
+  against the CAPTURED pre-migration baseline, not against an expectation.  The
+  comparison is meaningful only because the same pipeline was driven from the same
+  inputs on both sides, which is exactly what the unchanged task graph and the
+  unchanged asset globs establish.
+
+NOTHING IS FIXED HERE (R-6).  This note records; it does not repair.  It proposes
+  no change, adds no tooling, no dependency and no navigation entry, and it leaves
+  every defect it names exactly as it found it.  The change set's escape clause
+  was invoked exactly twice, and neither invocation is in this folder.
+
+NO TEST WAS DISABLED OR SUBSTITUTED (R-5).  The frontend contributes no test
+  evidence, and nothing here should be read as standing in for one.  The burden is
+  stated plainly above rather than papered over.
+
+
+PROVENANCE - HOW EACH SIDE'S ARTEFACTS WERE PRODUCED
+----------------------------------------------------
+Stated as fact.  Neither line is a prerequisite or a recommendation.
+
+BASELINE-SIDE: the base-commit tree, installed with the pre-migration package
+  manager from the base-commit lockfile, then built by the Grunt default task on
+  the pre-migration Node runtime, Node v8.17.0.
+MIGRATED-SIDE: this checkout, installed by npm 10.8.2 from the committed
+  package-lock.json at lockfileVersion 3, whose Git dependencies are pinned to
+  exact commits, then built by the same unchanged Grunt default task on Node
+  v20.20.2.
+COMMON-FACTOR: the task graph at Gruntfile.js:L376 and the asset globs in
+  config/env/all.js are identical on both sides.
+
+
+WHAT THIS NOTE DOES NOT DECIDE
+------------------------------
+The outcome of the comparison is not recorded here.  This note establishes only
+what is compared, what is excluded, and why the result is admissible as evidence.
+The per-artefact outcome is in comparison.txt beside this folder, and the analysis
+of any residual difference, including the third build that settles its
+attribution, is in notes/frontend-comparison-provenance.txt and under
+docs/migration/smoke-evidence/historical-frontend/.  Keeping the verdict in one
+place is deliberate: two copies of a verdict drift apart, and a reader cannot then
+tell which is current.
+
+
+MIRROR OBLIGATION
+-----------------
+This note is paired with a counterpart at the identical filename on the other
+side, docs/migration/smoke-evidence/baseline/notes/01-artifact-comparison-scope.txt.
+The two notes folders mirror one another one-for-one so that a recursive diff of
+the baseline and migrated capture directories is mechanical.  For this filename
+that diff is expected to report a CONTENT difference and never a structural one:
+the file must be present on both sides, and no counterpart may be missing.  The
+filenames are therefore fixed and match character for character; a rename on
+either side would turn a content difference into a structural one and break the
+comparison for every reader who runs that diff.

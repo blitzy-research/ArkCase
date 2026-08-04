@@ -7,12 +7,33 @@ transport-trust-mode: verify-default-trust-store
 state-mutation-permitted: no
 observed-statuses:
   task-list-before=000
+  start-workflow=NOT-ATTEMPTED
+  task-list-after=NOT-ATTEMPTED
+  SKIPPED
+  REASON: no HTTP response from /api/latest/plugin/task/businessProcessTasks; the reference stack was not reachable, so no workflow was started and process instantiation, task assignment and process-definition loading are all unobserved
+  START: not-attempted
+  PROCESS_INSTANTIATED: no
+  TASK_ASSIGNED: no
+  DEFINITIONS_LOADED: unavailable
+  DEFINITIONS_ON_DISK: 36
+  PROCESS_DEFINITION_KEY: not-observed
+  TASK_NAME: not-observed
+  TASK_ASSIGNEE: not-observed
+  PROCESS_INSTANCE_ID: none
+  TASK_ID: none
+  RESIDUAL_RISK: process-engine-observed-here-not-cleared
 observations:
   - workflow surface observed: 000 (/api/latest/plugin/task/businessProcessTasks)
+  - workflow start recorded as NOT ATTEMPTED: state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), and a workflow cannot be started without changing application state
+  - the start-workflow and task-list-after sections are present in flow-7-workflow-start.out as explicit NOT-ATTEMPTED records, so the capture has the same section layout as an exercised run and a row-for-row comparison stays meaningful
   - process definitions measured at run time: 36 (expected 36, all of which the engine must load)
+  - the engine-readiness and workflow-instantiation-observations sections of flow-7-workflow-start.out carry the definitions count, the declared definition keys, and every value this criterion compares - process definition key, task definition key, task name, assignee or candidate group, instance state and process variables - each recorded as an explicit absence because no process instance was created
+  - declared process definition key for this flow: cmComplaintWorkflow; observed: (not observed - no process instance was created by this run)
+  - observed task assignee: (not observed - no process instance was created by this run) - task assignment is half this criterion, so it is recorded explicitly rather than left implied
   - process-engine startup lines NOT captured: no container log was supplied, so engine initialisation and process-definition loading remain unobserved and the residual risk of this flow is NOT discharged
   - state mutation permitted: no
   - listing tasks exercises a query; it does not instantiate a process and therefore observes none of the residual risk this flow exists for.  The flow says so rather than labelling a listing as a start
+  - normalisation applied to the captured output: the engine-assigned process-instance, execution, task and deployment identifiers, and the version and sequence components of the version-suffixed process-definition identifier.  Deliberately NOT normalised: the process definition key, task definition key, task name, assignee or candidate group, instance state, process variables and definitions count
   - requirements unmet: 1
 assertion-basis: derived by reading flow-7-workflow-start.status and
   flow-7-workflow-start.out back from disk; no verdict in this script is taken

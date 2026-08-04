@@ -2,3 +2,127 @@ flow: 5
 slug: 5-activemq-event
 title: event transits the message broker
 
+===== trigger =====
+trigger-description: the application request that causes an event to be published
+trigger-request-method: POST
+trigger-request-path: /api/latest/plugin/complaint
+trigger-publishing-mechanism: the object write is what publishes; the write path marshals the object and hands it to the messaging template, which sends it to the destination named in the delivery half
+trigger-observed-http-status: not-issued
+trigger-observed-content-type: not-issued
+trigger-observed-body-bytes: 0
+trigger-generated-object-number: none
+trigger-response-archived-in: nowhere: no publishing request was issued in this run, so no trigger response exists to archive or to point at
+trigger-body-provenance: no body: there is no captured trigger response to reproduce.  Nothing is substituted for it, and the delivery half below is not allowed to infer an arrival from a trigger that never happened
+trigger-status-is-not-delivery-evidence: a publishing request can answer 200 while the message never arrives; the delivery half below is the only admissible arrival evidence (R-T7)
+----- body -----
+(no single response body: this half is an observation record,
+ and the fields above are its content)
+----- end body -----
+
+===== delivery =====
+delivery-description: the observed evidence that the published message arrived
+delivery-destination-name: solrAdvancedSearch.in
+delivery-destination-type: queue
+delivery-payload-declared-type: text message carrying JSON; the publisher converts a JSON string and the consumer receives it as a string
+delivery-payload-state: not delivered: this run produced no event, so no payload existed to deliver.  An ambient query answering 200 with an empty result set on an idle broker would not be evidence of a transit and is deliberately not offered as one
+delivery-message-priority: not set by the publisher; the provider default applies
+delivery-message-persistence-configured: persistent delivery mode on the publishing template
+delivery-message-persistence-effective: the provider default, because the property that makes an explicit quality of service take effect appears nowhere in the reactor; that default is also persistent, so the two readings agree
+delivery-message-application-properties: none set by the publisher, which sends a destination and a payload and no properties
+delivery-observation-means: the consumer-side observable effect.  The destination is consumed by the indexing listener, so the object named in the trigger half becoming findable requires that the message was published, delivered and applied.  No broker client library is installed to observe this, and none is needed
+delivery-observation-means-secondary: broker status surface not-configured
+delivery-attempts-configured: 12 at 5s
+delivery-attempts-used: 0
+delivery-final-observed-status: 000
+delivery-object-under-observation: none
+delivery-payload-reproduced-from: (nothing was delivered to reproduce)
+delivery-broker-connection-credential-source: application configuration, which authenticates the broker connection
+delivery-broker-connection-credential-value-recorded: never
+delivery-messaging-api-references-measured: 46 references to the messaging interfaces across the reactor's Java sources, measured at run time
+delivery-messaging-api-provenance: every one of those references resolves from the broker client library rather than from the platform runtime, which is why the removal of the platform enterprise modules required no reinstatement here — unlike the XML binding, annotation and activation packages, which did
+delivery-startup-corroboration: broker and persistence startup lines not captured (no container log supplied)
+delivery-volatile-values-normalised: broker-assigned message identifier, generated correlation identifier, enqueue and expiry timestamps, redelivery counter, connection and client identifier
+delivery-values-preserved-verbatim: destination name, payload content, declared type, priority and persistence flags, application-set properties
+----- body -----
+(no single response body: this half is an observation record,
+ and the fields above are its content)
+----- end body -----
+===== event-trigger (SKIPPED) =====
+SKIPPED
+reason: no object could be created to observe (ALLOW_SMOKE_MUTATIONS is not set to 1), so the broker transit is unobserved
+trigger-action: create the object whose write publishes the event, performed by flow 6
+trigger-endpoint: https://arkcase-ce.local/arkcase/api/latest/plugin/complaint
+trigger-response-body: (not observed — the trigger action did not execute)
+note: the trigger half is not the evidence for this flow.  A capture showing
+  only an accepted request proves nothing about the criterion, which is that
+  the message is DELIVERED with an identical payload.  It is recorded anyway
+  so that the pair stays complete and the halves keep their order.
+
+===== event-delivery (SKIPPED) =====
+SKIPPED
+reason: no object could be created to observe (ALLOW_SMOKE_MUTATIONS is not set to 1), so the broker transit is unobserved
+destination-name: (not observed — no event was produced this run)
+message-payload-as-delivered: (not observed — no event was produced this run)
+declared-type-or-format: (not observed — no event was produced this run)
+message-priority: (not observed — no event was produced this run)
+message-persistence: (not observed — no event was produced this run)
+application-set-properties: (not observed — no event was produced this run)
+observation-mode: indirect
+observation-means: delivery is observed through its downstream effect — the
+  object this run created becoming findable through the application search
+  endpoint recorded below, which requires that an event this run produced
+  was published to the broker and consumed by the indexing pipeline.
+  Nothing here reads a message off a destination: no broker client library
+  is used, and the tooling is a shell with the transport client, the text
+  utilities and the date utility, nothing more.
+observation-endpoint: https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch
+polling-window-configured: 12 attempts at 5s
+replay-requirement: the replay must observe delivery by the SAME indirect
+  means, through the same endpoint and within the same polling window.  An
+  indirect observation compared against a differently obtained one is not a
+  comparison, and an unstated one is not evidence at all.
+messaging-api-occurrences-measured-at-run-time: 46
+messaging-api-census-command: find <repo> <prune build output, installed
+  dependencies, object storage and scratch trees> -name '*.java' -exec grep -h
+  javax.jms {} + | wc -l
+messaging-api-resolution: every occurrence resolves from the broker client
+  library rather than from the platform runtime, so the removal of the
+  platform enterprise modules required no reinstatement at all for
+  messaging.  The client version is consequently HELD on purpose: a version
+  change without a demonstrated incompatibility would be a change without a
+  reason, and a change to a client that speaks a wire protocol is a
+  wire-behaviour risk by definition.
+residual-risk-classification: the integration framework that routes some
+  events is residual risk with WEAK concern.  The workflow engine that flow
+  7 exercises is SUBSTANTIVE residual risk.  The two are deliberately kept
+  apart, because merging them would either overstate this flow or
+  understate that one.
+volatile-values-normalised-when-present: the broker-assigned message
+  identifier; a correlation identifier where the broker GENERATED it, never
+  where the application set it; the enqueue and expiry instants; the
+  redelivery counter; the connection and client identifier; and the generic
+  set — other instants, session identifiers, generated request identifiers,
+  the response header that sets a cookie, the response header carrying
+  wall-clock time, entity validators and absolute filesystem paths.
+behaviour-bearing-values-preserved-verbatim: the destination name; the
+  payload content; the declared type; the priority and persistence flags;
+  and every application-set property on the message.  Not one of them is
+  normalised, and not one of them is invented to fill a field: each is
+  recorded above as not observed, because no message was delivered.
+broker-data-directory-created-or-referenced: none.  The conventional name
+  for a broker data directory is a bare pattern in the repository ignore
+  file, matched at any depth, so a file written under it would be silently
+  uncommitted while every local check still passed.  It is neither created
+  nor spelled here; only the three capture files of this flow are written.
+governing-rules-provenance: the project rules facility reports, verbatim,
+  "No user rules provided", and there is no on-disk rules document.  The
+  rules that govern this work are nonetheless present and binding: an
+  embedded, numbered block of seven, governing in full exactly as an
+  external rules document would.  The identifiers used to cite them are a
+  convention of this migration rather than quoted titles, and nothing is
+  invented and nothing is softened.
+baseline-comparison-requirement: this capture and the JDK 8 baseline capture
+  of the same flow must differ in nothing but values this script
+  normalises.  An absence recorded as an absence is comparable; the same
+  absence filled in would not be.
+

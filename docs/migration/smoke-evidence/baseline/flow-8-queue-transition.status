@@ -1,3 +1,11 @@
 queue-definitions=000
 case-discovery=000
+TRANSITION: not-observed-no-http-response
+FROM_QUEUE: not-observed-no-http-response
+TO_QUEUE: not-observed-no-http-response
+NEXT_QUEUES_COUNT: not-observed
+NEXT_QUEUES: not-observed
+OBJECT_ID: not-observed
+OBJECT_NUMBER: not-observed
+REASON: no HTTP response from either the queue-definition or the case-discovery endpoint, so the decision tables governing queue entry and exit were never reached
 queue-definitions=SKIPPED

@@ -6,7 +6,10 @@ compared-artefacts: flow-6-generated-number.out, flow-6-generated-number.status 
 transport-trust-mode: verify-default-trust-store
 state-mutation-permitted: no
 observed-statuses:
-  numbering-precondition=000
+  000
+  CREATE: SKIPPED
+  NUMBER_ASSIGNED: no
+  REASON: no object was created because state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), so no number was generated and none was observed
 observations:
   - numbering precondition query observed: 000
   - decision tables measured at run time: 39 (verified 39 at base commit; the migration plan quotes 43, which additionally counts three .xls files and one spreadsheet test fixture)

@@ -13,6 +13,7 @@ certificate-verification-result: 0
 http-version: 0
 observed-http-status: 000
 observed-content-type: unknown
+observed-content-length: (none reported)
 observed-body-bytes: 0
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
@@ -31,4 +32,85 @@ curl: (6) Could not resolve host: arkcase-ce.local
 ----- response-headers -----
 (none)
 ----- end response-headers -----
+
+===== generated-number (SKIPPED) =====
+SKIPPED
+reason: no object was created, so no number was assigned: ALLOW_SMOKE_MUTATIONS is not set to 1; and no HTTP response was received from https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&s=create_date_tdt+DESC&start=0&n=1, so the application was never reached either
+note: this flow could not be executed.  The record is deliberate: an
+  unexecuted flow is reported rather than omitted, so that the
+  eight-flow completion condition stays verifiable and the gap is
+  visible in a directory diff, in the completeness verdict and in the
+  exit status (R-5).
+object-type-that-would-receive-a-number: COMPLAINT
+creation-endpoint: /api/latest/plugin/complaint
+generated-number-observed: none
+generated-number-count-observed: 0
+generated-number-sequence-observed: (none)
+creation-response-content-type-observed: unobserved
+creation-response-body-bytes-observed: unobserved
+number-format-observed: unobserved
+number-format-components-unobserved: prefix, separator set, padding width,
+  and any year or object-type component.  Every one of them can only be
+  read off a number that was actually assigned, and none was assigned.
+generated-number-normalised: no
+generated-number-masked-repadded-or-truncated: no
+numbering-oddity-corrected: nothing to correct -- no number was assigned.
+  Had one been assigned it would be recorded exactly as the application
+  assigned it, an odd sequence or an odd format included.  A numbering
+  oddity found here is registered, never quietly repaired (R-6).
+volatility-boundary-applied-here: a surrogate database key is volatile and
+  is treated as volatile; the generated number is NOT volatile and is
+  never normalised.  Had a number been assigned it would stand above
+  verbatim and in full, with its prefix, its separators, its padding, its
+  sequence position and its owning object type intact, and several numbers
+  would stand one per line in creation order.  The field above is empty
+  because nothing was observed, never because anything was hidden.
+redaction-asymmetry: the value used to sign in IS removed from every byte
+  of this capture; the generated number is not, and never would be.  The
+  two are deliberately treated in opposite ways.
+decision-tables-measured-at-run-time: 39
+textual-rule-files-measured-at-run-time: 0
+expression-language-version-measured: 2.4.15.Final
+why-that-version-decides-this-flow: the rule compiler declares the
+  expression language with no version of its own, so the version the
+  reactor property declares is the version that actually loads.  One
+  root-aggregator property change is what this capture tests (R-T4).
+finding-that-required-that-advance: the installed release threw a bytecode
+  verification error out of its own bytecode-based accessor optimizer on
+  the default optimizer path.  It reproduced that error against
+  a bean compiled for the older release -- that is, at the JDK 8 target --
+  which places the defect in code the library itself generates rather than
+  in the classes it reads.  Both phrasings above are kept whole on one
+  line so that a reviewer grepping for either finds it rather than losing
+  it to a wrap.  The floor was found by bisection rather than from a
+  changelog: no changelog names the fixing release as a runtime-
+  compatibility fix, which makes this the strongest instance in the whole
+  migration of execute, do not read.
+spreadsheet-reader-version-measured: 4.1.2
+spreadsheet-reader-unchanged: yes -- the same version before and after, so
+  nothing in this flow reads the decision tables differently (R-1).
+rule-engine-version-measured: 7.49.0.Final
+rule-engine-unchanged: no.  The migration plan describes the rule engine
+  as deliberately unchanged; the reactor does not agree with it, and this
+  record reports the reactor.  The engine advanced on its own separately
+  bisected blocker, registered with its justification in
+  docs/migration/dependency-change-inventory.md and
+  docs/migration/ambiguity-resolutions.md.  It is stated here because a
+  capture that recites a stale figure is worse than one that reports none.
+jdk-internal-access-exceptions: none arise in this flow.  The register that
+  records them for this migration is referred to here by its title only,
+  and deliberately not by its file name, because the file name itself
+  spells the launch-configuration flag that no capture in this tree may
+  carry (R-2).
+rules-provenance: two facts, and both belong together.  First, the project
+  rules facility reports, verbatim, "No user rules provided" -- there is no
+  on-disk rules document to defer to.  Second, rules are nonetheless
+  present and binding: the migration requirements embed a numbered block
+  of seven rules that govern this work in full, exactly as an external
+  rules document would, alongside seven transformation rules.  Stating
+  only the first would imply best practice is the sole standard here, and
+  stating only the second would misrepresent where the rules came from.
+  The identifiers cited above follow the naming convention of that plan
+  rather than quoting rule titles; no rule has been invented and none has
+  been softened.
 

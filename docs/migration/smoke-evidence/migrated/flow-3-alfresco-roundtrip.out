@@ -13,6 +13,7 @@ certificate-verification-result: 0
 http-version: 0
 observed-http-status: 000
 observed-content-type: unknown
+observed-content-length: (none reported)
 observed-body-bytes: 0
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
@@ -31,4 +32,111 @@ curl: (6) Could not resolve host: arkcase-ce.local
 ----- response-headers -----
 (none)
 ----- end response-headers -----
+
+===== store-leg =====
+leg: store-leg
+leg-purpose: store a document with known, fixed bytes in the content repository and record the identifier, the name and the content type the application resolved for it
+leg-observed: no
+leg-not-observed-because: state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), and a document cannot be stored read-only
+request-method: POST
+request-url: https://arkcase-ce.local/arkcase/api/latest/service/ecm/upload
+document-name: arkcase-smoke-probe.txt
+document-content-type-declared-on-send: text/plain
+document-content-sha256-sent: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+observed-http-status: not-observed
+resolved-content-type: not-observed
+declared-content-length: not-observed
+stored-object-identifier: none
+stored-object-name-recorded-by-application: not-observed
+stored-object-mime-type-recorded-by-application: not-observed
+----- end store-leg -----
+
+===== retrieve-leg =====
+leg: retrieve-leg
+leg-purpose: read the same document back out of the content repository and record the content type it resolves to, the length it declares and the digest of the bytes returned
+leg-observed: no
+leg-not-observed-because: state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), so no document was stored for this leg to read back
+request-method: GET
+request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/ecm/download
+document-name: arkcase-smoke-probe.txt
+stored-object-identifier: none
+observed-http-status: not-observed
+resolved-content-type: not-observed
+declared-content-length: not-observed
+document-content-sha256-sent: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+document-content-sha256-received: not-observed
+retrieved-bytes-match-sent: not-compared
+----- end retrieve-leg -----
+===== upload-document (SKIPPED) =====
+leg: upload-document
+leg-outcome: SKIPPED
+leg-reason: the store leg was not attempted: ALLOW_SMOKE_MUTATIONS is not set to 1
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+
+===== download-document (SKIPPED) =====
+leg: download-document
+leg-outcome: SKIPPED
+leg-reason: the retrieve leg was not attempted because nothing was stored to retrieve
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+
+===== mime-resolution (SKIPPED) =====
+leg: mime-resolution
+leg-outcome: SKIPPED
+leg-reason: no content type was resolved on either leg, so the activation framework MIME mapping is unobserved
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+
+===== retrieved-bytes-match (SKIPPED) =====
+leg: retrieved-bytes-match
+leg-outcome: SKIPPED
+leg-reason: no bytes were sent and none were retrieved, so no comparison was made
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+
+===== roundtrip (SKIPPED) =====
+leg: roundtrip
+leg-outcome: SKIPPED
+leg-reason: the round trip as a whole was not performed
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+===== store-leg (SKIPPED) =====
+SKIPPED
+REASON: the store leg was not executed: ALLOW_SMOKE_MUTATIONS is not set to 1
+leg: store
+leg-purpose: the document is written to the content repository
+request-path: /api/latest/service/ecm/upload
+observed-http-status: not-observed
+Content-Type: not-observed
+recorded-mime-type: not-observed
+created-object-identifier: not-observed
+created-object-identifier-treatment: captured, never normalised; the treatment is stated in the result record
+object-name: not-observed
+stored-content-sha256: not-observed
+probe-content-sha256: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+probe-content-sha256-note: the digest of the fixed bytes this leg sends.  It is computed in every path, including the paths where the leg does not run, because it is what makes the two captures comparable at all: identical input is the precondition for reading anything into identical output
+response-body-recorded-in-section: none: the leg was not executed
+criterion-halves-read-from-this-leg: stored-document identity from the sha256 rows; MIME resolution from the Content-Type and recorded-mime-type rows, both verbatim
+
+===== retrieve-leg (SKIPPED) =====
+SKIPPED
+REASON: the retrieve leg was not executed: it has nothing to read back, because the store leg was not executed either (ALLOW_SMOKE_MUTATIONS is not set to 1)
+leg: retrieve
+leg-purpose: the stored document is read back from the content repository
+request-path: /api/latest/plugin/ecm/download
+observed-http-status: not-observed
+Content-Type: not-observed
+Content-Length: not-observed
+retrieved-content-sha256: not-observed
+expected-content-sha256: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+retrieved-bytes-match-stored-bytes: not-compared
+response-body-recorded-in-section: none: the leg was not executed
+response-body-form-note: a body that is not textual is recorded by size and digest and is never embedded, because arbitrary bytes in a text capture produce neither readable evidence nor a usable comparison
+criterion-halves-read-from-this-leg: stored-document identity by comparing the retrieved digest against the expected digest; MIME resolution from the Content-Type row, verbatim
 

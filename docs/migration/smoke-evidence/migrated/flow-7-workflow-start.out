@@ -13,6 +13,7 @@ certificate-verification-result: 0
 http-version: 0
 observed-http-status: 000
 observed-content-type: unknown
+observed-content-length: (none reported)
 observed-body-bytes: 0
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
@@ -31,4 +32,167 @@ curl: (6) Could not resolve host: arkcase-ce.local
 ----- response-headers -----
 (none)
 ----- end response-headers -----
+
+===== start-workflow (NOT ATTEMPTED) =====
+request-method: POST
+request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/complaint/workflow
+observed-http-status: NOT-ATTEMPTED
+not-attempted-because: state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), and a workflow cannot be started without changing application state
+note: the request above was NOT sent, so there is no response body to
+  record.  The section is written rather than omitted because an absent
+  section cannot be compared: a reader could not tell an unsent request
+  from lost evidence.  Nothing here is a substitute for the observation
+  that was not made, and no value below it is inferred from one.
+
+===== task-list-after (NOT ATTEMPTED) =====
+request-method: GET
+request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/task/businessProcessTasks?start=0&n=25
+observed-http-status: NOT-ATTEMPTED
+not-attempted-because: the workflow start above was not attempted, so there is no created task to read back
+note: the request above was NOT sent, so there is no response body to
+  record.  The section is written rather than omitted because an absent
+  section cannot be compared: a reader could not tell an unsent request
+  from lost evidence.  Nothing here is a substitute for the observation
+  that was not made, and no value below it is inferred from one.
+
+===== engine-readiness =====
+measured-at: capture time, by this script, from the repository corpus
+measurement-is-not-an-engine-query: the count and the key list below are
+  what the engine is EXPECTED to load.  They are read from the tree, not
+  from a running engine, and they are labelled declared-* for that reason.
+measurement-command: find <repo> \( -type d \( -name target -o -name node_modules -o -name .git -o -name 'blitzy_adhoc_test_*' \) -prune \) -o \( -name '*.bpmn*' -type f -print \) | wc -l
+measured-process-definitions: 36
+second-measurement-command: find <repo> -name '*.bpmn*' -not -path '*/node_modules/*' | wc -l
+measured-process-definitions-second-measurement: 36
+expected-process-definitions: 36
+two-measurements-because: a corpus size that matters is re-derived rather
+  than copied, and two independent measurements that agree are worth more
+  than one asserted number.  If they ever disagree, both are published with
+  the command that produced each instead of one being chosen silently.
+declared-process-elements-total: 36
+declared-process-definition-keys-distinct: 33
+declared-process-definition-keys-declared-more-than-once: TaskBucketsSample TestActivitiSpringProcessUnitTest
+why-total-and-distinct-differ: the list below has one entry per declaring
+  file, so a key declared by more than one file appears more than once.  The
+  repeats are named above rather than deduplicated away, because a key that
+  two files declare is a property of the corpus a reader should see.
+declared-definitions-declaring-a-script-task-or-script-format: 0
+why-that-figure-matters: it is the first of the three findings that BOUND
+  this flow risk without eliminating it.  With no script task and no script
+  format anywhere in the corpus, the engine never asks the platform for a
+  scripting engine, so the removal of the bundled one cannot reach it.  The
+  other two findings are that the engine persistence layer reflects over the
+  application OWN domain classes through ordinary unrestricted reflection,
+  and that it reads no class bytes and touches no encapsulated platform
+  package.  Bounded is not cleared.
+----- declared-process-definition-keys -----
+  ArkCaseBuckslipProcess
+  CorrectiveActionPlan
+  CorrectiveTaskActionPlan
+  MediaEngineWorkFlow
+  TaskBucketsSample
+  TaskBucketsSample
+  TestActivitiSpringProcessUnitTest
+  TestActivitiSpringProcessUnitTest
+  TestActivitiSpringProcessUnitTest
+  TranscribeWorkflow
+  acmDocumentSingleTaskWorkflow
+  acmDocumentTaskWorkflow
+  acmDocumentWorkflow
+  cmComplaintWorkflow
+  cmComplaintWorkflowUnitTest
+  foia-extension-appeal-process
+  foia-extension-approve-process
+  foia-extension-billing-process
+  foia-extension-delete-process
+  foia-extension-fulfill-process
+  foia-extension-generalcounsel-process
+  foia-extension-hold-process
+  foia-extension-intake-process
+  foia-extension-leave-hold-process
+  foia-extension-release-process
+  foia-extension-suspend-process
+  personnelSecurityBackgroundInvestigation
+  privacy-extension-approve-process
+  privacy-extension-delete-process
+  privacy-extension-fulfill-process
+  privacy-extension-hold-process
+  privacy-extension-intake-process
+  privacy-extension-leave-hold-process
+  privacy-extension-release-process
+  privacy-extension-suspend-process
+  testTaskProcess
+----- end declared-process-definition-keys -----
+key-list-ordering: sorted, so that two runs enumerate one corpus
+  identically.  Directory order is filesystem-dependent and would differ
+  between two hosts for no behavioural reason.
+engine-initialisation-happens-at: deployment, before any request in this
+  flow is sent, so its evidence is a startup-log region rather than a
+  response body
+engine-initialisation-evidence: startup/process-definitions.log
+engine-initialisation-lines-matched: unavailable
+startup-evidence-directory-note: the region is written under startup/ and
+  never under a directory named after a log folder, because that name is
+  ignored by the repository at any depth and the evidence would be
+  silently uncommitted while every local check still passed
+startup-timing-caveat: the repository deployment step documents that the
+  first startup takes several minutes, and the engine deploys its
+  definitions during that window.  A definitions figure read from a running
+  engine before deployment finishes therefore measures timing rather than
+  behaviour, and an engine-side count must be read only afterwards.  The
+  figures above are corpus measurements taken from the tree and are not
+  subject to that race at all, which is why they can be recorded here even
+  when no engine is reachable.
+startup-timing-caveat-source: the deployment step in README.md, which also
+  names the container log to watch
+
+===== workflow-instantiation-observations =====
+comparison-criterion: identical process instantiation and task assignment
+residual-risk-status: OBSERVED HERE, NOT CLEARED.  The process engine is
+  the oldest load-bearing component in the reactor, its version is
+  unchanged, and it could not be bootstrapped for testing without a
+  database.  It was assigned to this gate rather than declared safe.
+  Nothing in this capture may be read as verifying it.
+observed-process-definition-key: (not observed - no process instance was created by this run)
+observed-process-definition-identifier: (not observed - no process instance was created by this run)
+observed-process-instance-identifier: (not observed - no process instance was created by this run)
+observed-execution-identifier: (not observed - no process instance was created by this run)
+observed-deployment-identifier: (not observed - no process instance was created by this run)
+observed-instance-state: (not observed - no process instance was created by this run)
+observed-task-identifier: (not observed - no process instance was created by this run)
+observed-task-definition-key: (not observed - no process instance was created by this run)
+observed-task-name: (not observed - no process instance was created by this run)
+observed-task-assignee: (not observed - no process instance was created by this run)
+observed-task-candidate-group: (not observed - no process instance was created by this run)
+observed-process-variables: (not observed - no process instance was created by this run)
+observed-task-count-for-this-run-object: 0
+assignee-is-preserved-not-redacted: an assignee is a user identity and it
+  is the behaviour under test, because task assignment is half of this
+  criterion.  It is not a credential and is never replaced.
+declared-process-definition-key: cmComplaintWorkflow
+declared-process-name: Complaint review and approval process
+declared-task-definition-key: approveComplaint
+declared-task-name-expression: Approve Complaint '${complaintTitle}'
+declared-task-assignee-expression: ${currentApprover}
+declared-task-candidate-group: (none declared; this definition assigns directly)
+declared-assignee-collection-variable: approvers
+declared-assignee-element-variable: currentApprover
+declared-task-due-date: P3D
+declared-task-priority: 50
+declared-process-variables-the-definition-references: approvers, currentApprover, and the title the task name interpolates
+declared-read-from: ./acm-plugins/acm-default-plugins/acm-complaint-plugin/src/main/resources/activiti/DefaultComplaintWorkflow_v5.bpmn20.xml
+normalisation-applied-to-this-section: the engine-assigned process-instance,
+  execution, task and deployment identifiers, and the version and sequence
+  components of the version-suffixed process-definition identifier.  Each
+  comes from a database sequence and differs on every run.
+normalisation-deliberately-not-applied: the process definition KEY, the task
+  definition key, the task name, the assignee or candidate group, the
+  instance state, the process variables and the definitions count.  Those
+  are the values this criterion compares; normalising any of them would
+  leave two captures agreeing on placeholders and demonstrating nothing.
+key-versus-identifier: the definition KEY is stable and behaviour-bearing;
+  the definition IDENTIFIER is the key plus an engine-assigned version and
+  sequence number and is volatile.  The substitution keeps the key and
+  replaces only the two numeric components, so the distinction stays
+  visible in the evidence.
 

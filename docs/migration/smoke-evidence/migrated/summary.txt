@@ -56,6 +56,29 @@ supporting captures:
                                  cited by path from the baseline test
                                  failures register
 
+MIRROR:
+  The two capture directories mirror each other file for file and directory
+  for directory, which is what makes the recursive comparison below
+  mechanically meaningful: every difference it reports is a difference in
+  evidence rather than a difference in layout.  There is EXACTLY ONE
+  permitted TOP-LEVEL asymmetry, and it is named here so that it cannot
+  pass as an oversight.  The migrated capture directory additionally
+  carries the top-level file jacoco-liveness.txt, the coverage-liveness
+  gate, and the baseline capture directory has no counterpart to it.  The
+  reason is that maven-surefire-plugin was declared in zero of the 145 POMs
+  at base commit c8f6226105, so the argLine-override hazard that file
+  records could not arise on the baseline side and there was nothing there
+  to assert.  That file discloses the same deviation itself, so the
+  asymmetry is recorded in two independent places.
+  The other migrated-only entries a recursive comparison reports all sit
+  inside surefire/ and are archived reports for suites that have no
+  baseline counterpart; they are enumerated by name and accounted for in
+  notes/surefire-pairing.txt, and a suite archived only on the migrated
+  side is an addition rather than a hole.  The fatal case is the inverse --
+  a suite archived at baseline with no migrated counterpart -- and there
+  are none.  ANY entry present on only one side beyond those is a real
+  finding.
+
 how to use this capture:
   diff -r <baseline-capture-dir> <migrated-capture-dir>
   A SKIPPED verdict is not a pass.  An OBSERVED-* verdict is not a pass

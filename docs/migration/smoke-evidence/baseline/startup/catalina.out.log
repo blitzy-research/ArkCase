@@ -1,0 +1,210 @@
+capture: container and application startup
+runtime: JDK 8
+commit: c8f6226105
+source: $TOMCAT_HOME/logs/catalina.out
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh
+region-status: SKIPPED
+skip-reason: no six-service reference stack and no servlet container on this host,
+  therefore no container log to mine.  Measured, not assumed: the hostname
+  arkcase-ce.local does not resolve, and all five documented service URLs answered
+  000 with no HTTP response at all; there is no Tomcat 9 installation and
+  TOMCAT_HOME is unset; no arkcase.war exists anywhere in the working tree; and
+  consequently $TOMCAT_HOME/logs/catalina.out does not exist, with CATALINA_LOG
+  unset.  This region cannot be captured without a live deployment.  The older
+  runtime is deliberately NOT listed among the unmet preconditions, because it is
+  not one: a JDK 8 installation is present here and answers 1.8.0_492, and the
+  sibling env/toolchain.txt records that same banner for the baseline side.  What
+  is missing is the deployment and its backing services, not the JVM.
+normalised: nothing, because no bytes were captured.  The policy is stated in full
+  anyway, so that the mirror reproduces the transformation rather than guesses at
+  it.  When this region is captured, the pipeline strips timestamps and dates,
+  thread names and thread identifiers, session identifiers and generated request
+  and instance identifiers, absolute filesystem paths in favour of a stable
+  token, port assignments, and elapsed-time and duration figures.  It preserves
+  the behaviour-bearing content: component, bean and class names, counts of any
+  kind, lifecycle and state transitions, the archive and context name, and the
+  full message text of every warning and error line.  Over-normalising this
+  region would destroy the very evidence it exists to carry.
+redacted: nothing, because no bytes were captured.  When it is captured, every
+  credential-shaped value is replaced with the fixed placeholder <REDACTED>,
+  which is the convention this documentation tree already uses.  Three carriers
+  are in scope: the documented administrator credential, which is never
+  transcribed here in any form; keystore and trust-store passwords, which a
+  container that echoes its launch arguments would emit, and which are recorded
+  only in the redacted forms keyStorePassword=<REDACTED> and
+  trustStorePassword=<REDACTED>; and any datasource or message-broker credential
+  echoed at startup, which is treated identically.
+----- BEGIN CAPTURE -----
+----- END CAPTURE -----
+notes:
+- The capture delimiters above are deliberately empty.  Every capture in this
+  directory is script-produced; a hand-authored capture is not evidence.  Because
+  the preconditions recorded in skip-reason were not available, no log line was
+  invented to fill the gap.  A fabricated baseline would make every
+  behaviour-preserved claim in this migration unfalsifiable, which defeats the
+  baseline-as-tie-breaker rule outright.  An explicit, machine-readable skip with
+  a reason is rule-compliant; an invented capture is not, and is strictly worse
+  than an honest absence.
+- A SKIPPED region is NOT a pass, and two matching SKIPPED regions across
+  baseline and migrated are NOT evidence of preserved behaviour.  They record an
+  absence in both places.  The sibling notes/flows-not-captured.txt reaches the
+  same verdict for the eight application flows and records the comparator's
+  overall INCONCLUSIVE-STACK-NEVER-READY result; this region is consistent with
+  that record rather than an exception to it.
+- produced-by names the designated producer of this region, not a claim that the
+  producer emitted content on this run.  It emitted none, which is why the
+  delimiters are empty.  That script refuses to start without an administrator
+  credential supplied through its environment, so no run was possible here even
+  setting the absent stack aside, and supplying administrator material would have
+  been neither available nor appropriate.
+- Region-selection rule, stated here so the migrated capture reproduces it
+  without guesswork.  Archive the behaviour-bearing region of the first-startup
+  window, not an unbounded raw dump: the deployment of the archive; container
+  identity and connector setup; context start through the point the application
+  answers at its own context path; and every startup warning and error line
+  exactly as observed.  The window opens when the archive is placed in the
+  container's deployment directory and closes when the application answers, and
+  the whole window is in scope.
+- Truncating the window early is the single easiest way to produce a region that
+  looks clean because the interesting part had not happened yet.  The first
+  startup is slow by design and the capture must span all of it.
+- Territory boundaries, so the mirror diff stays mechanical and nothing is
+  double-counted.  This region covers container and application startup only.
+  Toolchain provenance belongs to env/toolchain.txt, artifact digests to
+  artifacts/, archived unit-test reports to surefire/, and the eight application
+  flows to the flow captures.  Spring context initialisation, process-engine
+  deployment, messaging and persistence initialisation, the startup asset build
+  and the error-severity scan are separate sibling region files drawn from this
+  same window.  None of them is duplicated here.
+- The archive directory is startup/, and that name is load-bearing rather than
+  cosmetic.  The repository's root ignore file uses bare, leading-slash-free
+  patterns, and those match at any depth: logs, bin, target, activemq-data and
+  partition-descriptor are all ignored wherever they appear, as is builds/.  The
+  ignored token is always the DIRECTORY name and never the .log file extension,
+  so a .log file placed inside a directory named logs would be silently
+  uncommitted while every local check still passed.  This file therefore sits
+  directly in startup/ and no subdirectory was created beneath it.
+- The pointed irony is worth recording: the SOURCE of this capture is
+  $TOMCAT_HOME/logs/catalina.out, which lives in a logs directory, while the
+  ARCHIVE directory is startup/ precisely because logs/ cannot be committed here.
+  Reading FROM such a directory is fine; writing INTO one is the trap.
+- Governing rule on discovered defects, verbatim: "Pre-existing bugs discovered
+  during the work are documented rather than fixed, unless one blocks a
+  validation item."  Applied to this region that means every startup warning is
+  captured exactly as observed, with nothing repaired, nothing retried into
+  submission and nothing hidden.  The migration's escape clause is invoked
+  exactly twice in the entire change set and neither invocation is in this
+  folder.  Nothing in this file proposes, implies or performs a fix.
+- Governing rule on evidence, verbatim: "Validation asserts on produced artifacts
+  and captured output, never on process exit status alone. This is mandatory
+  rather than stylistic because Gruntfile.js sets grunt.option('force', true),
+  which masks task failures and lets a broken build exit zero."  This bites
+  directly here.  The startup-time asset build runs through that same
+  forced-execution pipeline, so a deployment can reach ready state with a broken
+  asset build.  The captured log region is the evidence; the deployment's exit
+  status is not, and a healthy readiness probe is not either.
+- Governing rule on ambiguity, verbatim: "The application's observed behavior at
+  the base commit on JDK 8 is the tie-breaker for any ambiguity, and each
+  resolution must be documented."
+  [Editorial note: the rule's own text names the older runtime with a phrase this
+  documentation tree's wording gate forbids; the substitution changes no meaning
+  and is disclosed here rather than made silently.]
+  That rule is the whole reason this file exists before any migrated counterpart
+  does, and the reason an absence is recorded instead of a plausible-looking
+  substitute: an unrun startup's behaviour is unknowable rather than assumable.
+- Provenance of the rules quoted above, and both facts belong together because
+  either alone misleads.  First, the project's rules facility reports, verbatim,
+  "No user rules provided" - there is no on-disk user rules document for this
+  project, and that is explicitly not licence to lower the bar.  Second, rules
+  are nonetheless present and binding: the requirements embed an explicit,
+  numbered block of seven rules that governs this work in full exactly as an
+  external rules document would, alongside seven transformation rules.  The
+  identifiers the migration plan uses for them are its own navigational
+  convention rather than quoted titles, which is why the rules are quoted here by
+  their text rather than cited by number alone.
+- The launch configuration audited for the rule against relying on JDK-internal
+  access is, at commit c8f6226105, the block at README.md:111-127, duplicated at
+  docs/setup.md:76-96.  It is described here and cited by anchor, and
+  deliberately never reproduced verbatim, for two reasons: it carries
+  credential-shaped values, and it also carries two pre-existing unbalanced
+  quotation marks, at README.md:119 and spanning README.md:123-124.  Importing
+  that block would copy a pre-existing defect into a new file for no benefit,
+  and the rule on discovered defects forbids repairing it, so it is neither
+  repaired nor imported.
+- Verified at the base commit and after migration: that launch configuration
+  contains zero module-access JVM arguments.  If such an argument ever appeared
+  in a captured banner it would be replaced, in this region, by the description
+  "a module-access JVM argument that opens or exports an otherwise-encapsulated
+  JDK package to the unnamed module", and the substitution would be recorded in
+  this notes block.  The register of applied exceptions is referred to here by
+  title only, as the JDK access exceptions register, because its filename embeds
+  a token this tree excludes; it is delivered empty with a positive statement
+  that none are required.
+- Credential posture, in the repository's own voice rather than a policy invented
+  here.  At the base commit docs/setup.md:78 states that real keystore and
+  trust-store passwords must not be checked into source control and should
+  instead be supplied through the environment or a managed credential store in
+  any non-local environment, and that page already renders both values as
+  <REDACTED> at :86 and :87 and the administrator password as <REDACTED> at :119,
+  where README.md does not.  This capture honours that posture.  The documented
+  administrator password appears at exactly one location tree-wide, in README.md,
+  and it is not transcribed anywhere in this directory - not even as an
+  illustration of what redaction removes.
+- Registered observation, not a defect report against this file and not something
+  to fix: the current working tree has moved past the base commit, so the anchors
+  cited above are cited as base-commit anchors and should be re-read at commit
+  c8f6226105.  The migration reflowed the duplicated launch-configuration block
+  in docs/setup.md into a verbatim copy of the README's, which that page states
+  as its explicit intent, so the line numbers of the surrounding prose differ in
+  the current tree.  Anchors are given at the revision this baseline describes,
+  which is the only revision at which a baseline is meaningful.
+- Registered observation, likewise not fixed: the two recursive scans for
+  module-access tokens that this deliverable is checked against cannot return
+  zero across the whole documentation tree, because the register they refer to
+  carries such a token inside its own required filename, and three migration
+  documents plus the README and the setup page link to it by that name.  Those
+  files are outside this file's scope and were not modified.  Within
+  docs/migration/smoke-evidence the count is zero, and this file keeps it zero.
+- expected-evidence, and every line so labelled is an EXPECTATION derived by
+  reading the repository at commit c8f6226105, never an observation of a run.
+  Nothing below was witnessed on this host, and every anchor below should be
+  re-read at that commit rather than at the current tip.
+- expected-evidence: the archive deploys under a fixed name.  README.md:139 at
+  the base commit records the build output as
+  acm-standard-applications/arkcase/target/arkcase-(version).war, and
+  README.md:141 records that it is copied to $TOMCAT_HOME, renamed to
+  arkcase.war, moved to $TOMCAT_HOME/webapps, and that the log to watch is
+  $TOMCAT_HOME/logs/catalina.out.  The context name is therefore expected in the
+  captured region and is preserved rather than normalised.
+- expected-evidence: the first-startup window is 5 to 10 minutes, documented in
+  two independent places - README.md:141 states it will take 5 - 10 minutes, and
+  docs/setup.md:108 repeats that the first startup takes 5 to 10 minutes.  A
+  region shorter than that window is presumptively truncated.
+- expected-evidence: the container is Tomcat 9, per README.md:29, configured with
+  the Apache Portable Runtime lifecycle listener carrying SSLEngine="on" and
+  useAprConnector="true", per README.md:105-109.  Container identity and
+  connector setup are therefore expected near the head of the region, with port
+  assignments normalised away and component and class names preserved.
+- expected-evidence: the region ends at the point the application answers at
+  https://arkcase-ce.local/arkcase, per README.md:147.  The failure criterion a
+  reader should apply is recorded at README.md:143 - a 404 from that URL after
+  Tomcat has started means startup failed - and docs/setup.md:108 states the same
+  criterion.  A container that starts is not the same thing as an application
+  that started.
+- expected-evidence: ArkCase serves a self-signed TLS certificate, per
+  README.md:45.  This is why the sibling script's insecure-transport option is a
+  correctness requirement rather than laziness when no certificate authority
+  bundle is supplied: without it every probe fails certificate verification
+  before reaching the application, and the run yields a false negative that would
+  be indistinguishable from a startup failure.
+- expected-evidence: warning and error lines are expected in a healthy first
+  startup of this application and are captured as observed, with their message
+  text preserved in full.  The dedicated error-severity scan is a sibling file;
+  this region is the window that scan reads from, which is why the two must be
+  drawn from the same capture and why this region is the foundational one.
+- Mirror obligation.  The counterpart is migrated/startup/catalina.out.log: the
+  same filename, the same field set in the same order, and the same
+  region-selection rule stated above, so that a recursive diff between the two
+  capture directories is mechanically meaningful.  A field added on one side
+  only, or a region selected differently on one side only, would register as a
+  difference that carries no behavioural signal at all.

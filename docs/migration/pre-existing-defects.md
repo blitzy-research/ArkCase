@@ -2,7 +2,9 @@
 
 This page is the register of defects that were **discovered during** the runtime migration onto Java 17 and Node 20 LTS and **deliberately not fixed**. It exists because a rule demands it as a deliverable, not because any feature description mentions it.
 
-Its completion condition has two halves, and the second is the one that makes the page useful: every entry is present, and **the escape clause is shown invoked exactly twice**. A register listing defects without accounting for the exceptions to its own rule would let the exception count grow quietly, which is the failure mode it exists to prevent.
+The headline figures, so they do not have to be inferred: **56 entries are recorded and zero are fixed.** The first **eleven** are the ones the governing plan mandated; the rest were added by two later verification passes, described under *Register* below. **The escape clause is invoked exactly twice**, and neither invocation repairs an entry.
+
+Its completion condition has two halves, and the second is the one that makes the page useful: every entry is present, and the escape clause is shown invoked exactly twice. A register listing defects without accounting for the exceptions to its own rule would let the exception count grow quietly, which is the failure mode it exists to prevent.
 
 Every anchor on this page was verified against the working tree rather than copied from a plan. Where a measurement differs from what was expected, the measured value is given.
 
@@ -15,11 +17,20 @@ Two facts about the rules governing this work must be stated together, because e
 
 The identifiers `R-1` through `R-7` and `R-T1` through `R-T7` are the **migration plan's own navigational convention**, not quoted titles.
 
-One rule governs this page:
+One rule mandates this page:
 
 > **R-6 — Document discovered bugs, do not fix them.** Pre-existing bugs discovered during the work are documented rather than fixed, **unless one blocks a validation item.**
 
 The clause after "unless" is an escape hatch, and an escape hatch that is used freely is not a constraint at all. It is invoked twice in this change set. Both invocations are labelled as such, both are in the frontend track, and both block the same validation gate.
+
+Four further rules shape what this page may and may not say. They are summarised here in the plan's terms, not transcribed:
+
+- **R-1 — Justified dependency changes.** Every dependency change needs a specific Java 17 or Node 20 compatibility reason, and *"a change without a reason is out of scope."* This is why the four dead dependencies in entries 8 to 11 are **registered rather than removed**, and why no script engine was added to the two modules in entry 7.
+- **R-5 — No disabling of failing tests.** Exclusions are limited to failures already present at the baseline. It appears here as a boundary: nothing on this page is grounds for excluding a test.
+- **R-7 — Baseline behaviour is the tie-breaker.** The behaviour observed at the base commit settles any ambiguity, and each resolution must be documented. This is the deeper reason R-6 exists in a behaviour-preserving change set: repairing an inherited defect *is* a behaviour change measured against the baseline.
+- **R-T7 — Evidence over exit codes.** Validation asserts on produced artifacts and captured output, *never on process exit status alone* — and the rule states plainly that this is mandatory rather than stylistic because the Gruntfile's forced-execution setting masks task failures and lets a broken build exit zero. Entries 3, 4 and 49 are that mechanism caught in the act, so the rule is a repository fact here rather than a preference.
+
+Best practice applies on top of these, never as a substitute for them. No rule is invented and none is softened; where restraint looked wasteful, the rule won, and the entry below says so.
 
 ## Why Documenting Beats Fixing Here
 
@@ -41,8 +52,8 @@ This is why several entries below would take minutes to correct and are neverthe
 | 6 | Three artifacts resolve only from `file://` local repositories | `pom.xml:L235-L249` | Environment precondition | No |
 | 7 | Latent removed-script-engine defect, proven unreachable | `acm-foia/…/JavaScriptEvaluatingPredicate.java:94`, `acm-privacy/…:98` | Latent runtime defect | No |
 | 8 | Castor XML declared in seven POMs, never loaded | `pom.xml:L48`, managed `:L1156-L1158` | Dead dependency | No |
-| 9 | Spring Web Services declared, never imported | `acm-service-billing/pom.xml:L102-L105` | Dead dependency | No |
-| 10 | Apache Axis declared, never imported | `acm-service-billing/pom.xml:L118` | Dead dependency | No |
+| 9 | Spring Web Services declared, never imported | `acm-service-billing/pom.xml:L101-L105` | Dead dependency | No |
+| 10 | Apache Axis declared, never imported | `acm-service-billing/pom.xml:L117-L120` | Dead dependency | No |
 | 11 | Commons Discovery declared, never imported | `acm-service-billing/pom.xml:L123-L124` | Dead dependency | No |
 | 12 | A unit-test assertion that never held, and only appeared to | `acm-service-users/…/GroupServiceTest.java:218` | Incorrect pre-existing test | No |
 | 13 | Two minified artefacts differ between the historical and target Node runtimes | `assets/dist/application.min.js`, `assets/dist/application.min.css` | Accepted migration deviation | No |
@@ -86,7 +97,7 @@ This is why several entries below would take minutes to correct and are neverthe
 | # | ID | Defect | Location | Class | Fixed |
 |---|---|---|---|---|---|
 | 33 | L1 | The client sends a search term the controller does not declare, so it is silently dropped | `resources/modules/…/organization-search.client.service.js:26-32` → `…/person/web/api/OrganizationAPIController.java:196-220` | Dropped parameter | No |
-| 34 | L2 | **Verified and found NOT to be a defect** — see below | `resources/modules/document-repository/services/document-repository-info.client.service.js:28-31` → `DocumentRepositoryAPIController.java:127` | Not a defect | n/a |
+| 34 | L2 | **Verified and found NOT to be a defect** — see below | `resources/modules/document-repository/services/document-repository-info.client.service.js:28-31` → `DocumentRepositoryAPIController.java:127` | Not a defect | No |
 | 35 | L3 | One controller omits the `/api/v1` sibling prefix the rest of the codebase declares | `…/admin/web/api/AcmSchedulerAPIController.java:43` | Convention deviation | No |
 | 36 | L4 | Four relationships cascade `ALL` with no DDL foreign key; one cascades to a shared lookup | `CaseFile.java:267-269`, `:281`; `Disposition.java:94`; `Category.java:95` | Cascade risk | No |
 | 37 | L5 | String-returning controllers consumed with `isArray:true` | verified instance: the pair named in entry 38; population measured below | Response-type mismatch | No |
@@ -131,6 +142,10 @@ Found by exercising the deployed WAR in a browser and over HTTP rather than by r
 
 **Fifty-six entries. Zero fixed** — entry 34 is recorded as *not a defect* after verification, which is a different statement from *fixed*, and entry 40's anchor could not be located.
 
+**Entries 1 to 11 are the eleven the migration plan mandated**, and they are numbered first and held stable for exactly that reason: other pages cite them by number, and a reviewer checking the plan's completion condition — all eleven present, none fixed — can do so against the first eleven rows above without reading further. The register then grew, in two later passes recorded below, because the rule behind this page requires a pre-existing defect that was *discovered* to be written down. The growth is stated rather than absorbed: what a reviewer must be able to audit is that **no entry was repaired** and that the **escape clause was invoked exactly twice**, and neither of those claims is affected by how many entries the page carries. Both are re-checkable with the commands under *Verification* at the end of this page.
+
+Every `Fixed` cell above and below reads **No**, without exception. Entry 34 is the one row that needs a word of explanation: it reads `No` because it was not fixed, and its class reads *Not a defect* because verification established there was nothing to fix — two different statements, and neither of them is *fixed*.
+
 The five entries in numbers 45 to 49 were discovered by the Java 17 backend and build re-test, and the seven in numbers 50 to 56 by exercising the deployed application at runtime; each was verified present at the base commit before being written down. The thirty-one entries added in numbers 14 to 44 were **not** discovered by this migration. They were reported by the checkpoint code review, and each was then **re-verified against the working tree** before being written down here; §*Anchor Verification* below records what that verification found, including the three checks that did not come back clean — one where the report's line numbers were wrong, one where its verdict was wrong, and one that could not be checked at all.
 
 ### 1 and 2 — Two logic errors in the frontend asset resolver
@@ -141,27 +156,48 @@ The second error compounds the first. At `:88`, `:99` and `:110` the resolver **
 
 Both are real, both are pre-existing, and both are invisible today because the tracked profiles list is empty, so the loop body operates on nothing. That is precisely what makes them dangerous to fix here: correcting them changes nothing observable in the current configuration and everything observable in a configuration with active profiles — and the byte-identical artefact comparison, which is the frontend's only behavioural evidence, would be unable to tell the difference.
 
+**One separation has to be explicit, because these two entries live in a file the change set does touch the neighbourhood of.** The module these sites load, `profiles.js`, is **created** by this change set — it was absent from version control at the base commit, and that creation is escape-clause invocation E1 below. Creating an input file is not the same as repairing the code that consumes it. `config/config.js` itself is unchanged: the object-versus-array iteration at `:83` and `:133` is still there, and all four discarded `concat` results are still discarded. The verification commands at the end of this page prove that file is byte-for-byte identical to its base-commit state.
+
 ### 3 and 4 — Two broken Grunt task aliases, masked by forced execution
 
 `Gruntfile.js:379` registers `sync-dev` as `['concurrent:default']`. The only target defined in the `concurrent` block that begins at `:90` is named **`default1`**, at `:91`. The alias names a target that does not exist.
 
-`Gruntfile.js:372` registers `lint` as `['jshint', 'csslint']`. A `csslint` configuration block exists; **a `jshint` block does not** — measured, zero occurrences. Half of that alias cannot run.
+`Gruntfile.js:372` registers `lint` as `['jshint', 'csslint']`. A `csslint` configuration block exists at `:40-:42`, pointing at `.csslintrc`; **a `jshint` block does not exist**. The measurement is unusually clean: `jshint` appears exactly **once** in the whole Gruntfile, and that one occurrence is the alias itself at `:372`. The task is not missing — `grunt-contrib-jshint` is a declared dependency and `load-grunt-tasks` at `:141` registers it — it is *unconfigured*, so half of that alias has nothing to lint.
 
-Neither is fixed, and neither is the interesting part. The interesting part is `Gruntfile.js:144`, `grunt.option('force', true)`, which makes a failing task non-fatal. Both aliases can therefore fail while the process exits zero. That single line is the reason the validation approach for this migration asserts on **produced artefacts** rather than on exit status, and it is why the frontend baseline was captured by archiving the five build outputs and their digests instead of by checking that the build "succeeded".
+Neither is fixed, and neither is the interesting part. The interesting part is `Gruntfile.js:144`, `grunt.option('force', true)` — whose own in-file comment at `:143` explains it exists "in order not to break the project" — which makes a failing task non-fatal. Both aliases can therefore fail while the process exits zero.
+
+That single line is **R-T7's justification, expressed as a repository fact rather than a preference**. It is why validation for this migration asserts on **produced artifacts and captured output** rather than on exit status, and why the frontend baseline was captured by archiving the five build outputs and their digests instead of by checking that the build "succeeded". These two entries are the concrete proof: a reviewer trusting exit codes would have been told this build was healthy.
 
 ### 5 — A stylesheet pipeline that is declared and never executed
 
-`config/env/all.js` declares SCSS globs at `:79` (`modules/**/scss/*.scss`) and `:92` (`_modules/**/scss/*.scss`). **25 `.scss` files are tracked** in the frontend tree — more than the plan anticipated, which is why the measured figure is given here. No task or configuration function consumes either glob: the CSS asset resolver reads only the compiled-CSS globs at `:27` and `:78`.
+`config/env/all.js` declares SCSS globs at `:79` (`modules/**/scss/*.scss`) and `:92` (`_modules/**/scss/*.scss`). No task or configuration function consumes either glob: `getCSSAssets()`, spanning `config/config.js:130-:140`, reads only the compiled-CSS globs at `all.js:27` and `:78`, and the two SCSS keys are matched by nothing but their own declarations.
 
-This entry is load-bearing for a decision recorded elsewhere. The Sass toolchain is *removed* rather than replaced precisely because this pipeline never runs, which makes the removal provably output-neutral. Substituting a modern Sass compiler would have risked emitting different CSS bytes for zero functional gain. See [Dependency Change Inventory](dependency-change-inventory.md).
+**25 `.scss` files are tracked** in the frontend tree, and the split matters more than the total:
+
+| Location | Count | Status |
+| --- | --- | --- |
+| `resources/scss/**` | 16 | Matched by **no glob at all** — outside both declared patterns |
+| `resources/modules/*/scss/` | 9 | Matched by the `:79` glob, but nothing consumes the result |
+
+The migration plan quotes 16 tracked `.scss` files, which is the first row rather than the total; the measured figures are given here because the divergence is worth stating rather than smoothing over. Either way the outcome is the same — nothing compiles them.
+
+This entry is load-bearing for a decision recorded elsewhere, and the two must not be conflated. The Sass toolchain package is *removed* rather than replaced precisely because this pipeline never runs, which is what makes the removal **provably output-neutral**: no task consumes the globs, so nothing that reaches an artifact changes. Substituting a modern Sass compiler would have risked emitting different CSS bytes for zero functional gain, and modern replacements were verified to install — they were declined on evidence, not availability. See [Dependency Change Inventory](dependency-change-inventory.md).
+
+**That removal is escape-clause invocation E2, and it is not a repair of this entry.** It removes a dependency that cannot build on the target runtime; it does not wire the pipeline up, delete the unused globs, or touch the 25 stylesheets. The pipeline is declared and inert after the migration in exactly the way it was declared and inert before it, which is why this entry stays open and why the removal costs the register nothing.
 
 ### 6 — The environment precondition, and the shortcut it invites
 
-Three artifacts do not resolve from Maven Central and are supplied from `file://` local repository declarations at `pom.xml:L235-L249`: an ArkCase license-headers artifact, the TouchNet client that the reactor's only two `javax.xml.rpc`-importing files depend on, and an EclipseLink SLF4J logging bridge. Because `acm-service-billing` is a reactor member, an unprovisioned local repository blocks a full reactor build.
+Three artifacts do not resolve from Maven Central and are supplied from `file://` local repository declarations: `com.arkcase:arkcase-license-headers` (referenced at `pom.xml:L422`), `com.touchnet:tlink-client` (managed at `pom.xml:L524`, declared at `acm-service-billing/pom.xml:L109`) and `org.eclipse.persistence:logging-slf4j`, which is **literally pinned** at `pom.xml:L1311-L1317` — artifactId at `:L1314` and the `1.0.1` version literal at `:L1315`, not driven by a property — and declared at `acm-spring-data-source/pom.xml:L106` and `acm-web/pom.xml:L125`. Because `acm-service-billing` is a reactor member (`acm-services/pom.xml:L62`), an unprovisioned local repository blocks a full reactor build.
+
+The declarations enumerate the depths at which a module can sit, because `${basedir}` re-evaluates per module rather than once for the reactor. Three are `<repository>` entries at `pom.xml:L236-L249` — one, two and three levels up — and the `<pluginRepository>` block at `:L251-L276` adds the top-level depth `file://${basedir}/arkcase-lib` at `:L253-L256` and mirrors the other three. Each carries an explanatory comment. Whichever depth a module occupies, the matching URL is the one that lands on the repository-root directory: verified from the root itself, from `acm-services`, from `acm-services/acm-service-billing` and from `acm-plugins/acm-default-plugins/acm-case-file-plugin`, where only `../../../` reaches it.
 
 The condition is **JDK-independent and identical at the JDK 8 baseline**, so it is not a migration defect. It is registered here because a red build invites exactly the wrong response: **under no circumstances may the module, the dependency, or the repository declarations be deleted to make the build green.** Deleting a live dependency to pass a gate is the shortcut this migration exists to prevent, and the TouchNet client is demonstrably live — two files import it.
 
-In the baseline and migrated captures the precondition was **satisfied**: the backing repository is present in the tree at `arkcase-lib` and carries all three artifacts, which is why all 142 modules built and both captures are complete rather than partial. See [Baseline Test Failures](baseline-test-failures.md).
+In the baseline and migrated captures the precondition was **satisfied**, and this is where the measured state parts company with the migration plan. The plan records that no such directory exists on disk; that is **not** the case at the base commit and is not the case now. `arkcase-lib/` sits at the repository root, is **tracked in version control** at **26 files** in both trees, and carries a real jar and POM for each of the three coordinates — `com/arkcase/arkcase-license-headers/1.0/`, `com/touchnet/tlink-client/1.0/` and `org/eclipse/persistence/logging-slf4j/1.0.1/` (jar, POM and a sources jar) — alongside `com/frevvo/forms-java/6.3/`. That is why all 142 modules built and both captures are complete rather than partial. The plan's claim is corrected here rather than repeated, because a register that inherits an unverified assertion is worth less than one that measures.
+
+What remains true is the narrower statement: these three artifacts are **not obtainable from a public registry**, so a complete build depends on the tracked directory being present in the checkout and reachable at each module's depth. A sparse checkout, an export that drops the directory, or a module nested deeper than the declared depths would each fail resolution in a way that looks exactly like a dependency regression and is not one. See [Baseline Test Failures](baseline-test-failures.md).
+
+One adjacent cleanup must not be confused with this entry. Two **dead, non-local** repository declarations were removed by this change set: `milton-repo` at `pom.xml:L225-L228`, whose URL is plain **HTTP** and which the modern Maven baseline blocks outright, and `jcenter-snapshots` at `:L230-L234`. Those removals are migration work with a resolution-level justification, recorded in [Dependency Change Inventory](dependency-change-inventory.md). The three `file://` repositories and the whole `<pluginRepository>` block are **retained untouched** — all seven `arkcase-lib` URLs are still present — which is the point of the constraint above.
 
 ### 7 — A latent defect that no compiler and no static audit can see
 
@@ -169,7 +205,7 @@ Two files ask the script-engine manager for the `nashorn` engine: `acm-foia/…/
 
 These files **compile cleanly at release 17**, because `javax.script` remained in the JDK — only the engine implementation went. The lookup returns `null` at run time and the next dereference throws. No compiler warns, and the JDK-internal usage audit cannot see it either, because the code names no internal package: it passes a string to a supported API. It is the only defect in this register that a green build actively conceals.
 
-Both copies are **provably unreachable**. In `acm-foia` the only Spring declaration of the predicate bean sits inside a comment region, its only consumer is commented, and the enclosing property assignment is commented as a whole; the active declaration names a different, non-JavaScript predicate class. In `acm-privacy` there is no XML reference at all — the apparent cross-module references are `<bean>` examples inside Javadoc. Nothing in either module — no XML, properties file or shell script — reaches these two call sites.
+Both copies are **provably unreachable**, and the re-check strengthened that conclusion rather than merely confirming it. In `acm-foia` the comment region in `spring-extension-library-foia.xml` **opens at `:131` and closes at `:141`**, so *both* bean declarations inside it are commented — the `FolderNameEqualsPredicate` at `:131` and the `gov.foia.service.JavaScriptEvaluatingPredicate` at `:139`. The only consumer, `<beans:ref bean="folderNamePredicate"/>` at `:150`, sits inside the commented `<beans:property name="predicates">` block spanning `:148-:152`. The migration plan described an *active* declaration at `:131` naming a different predicate class; there is **no active declaration of either class at all**, which is the measured state and a stronger result than the plan claimed. In `acm-privacy` there is no XML reference whatsoever — the apparent cross-module references are `<bean>` examples inside Javadoc. Nothing in either module — no XML, properties file or shell script — reaches these two call sites.
 
 Adding a standalone script engine **to these two modules** to make this code work would introduce a library to the production dependency graph solely to support code that cannot execute — a change with no compatibility justification, which R-1 forbids — and would convert dead code into live code, which is a behaviour *change* relative to the baseline. Documenting it is the R-7-consistent outcome, and it stays the outcome even though the same platform removal **is** remediated elsewhere.
 
@@ -180,13 +216,19 @@ That distinction has to be stated explicitly, because the change set does now de
 | Dependency | Declared at | Imports found |
 |---|---|---|
 | `org.codehaus.castor:castor-xml` `1.3.3` | `pom.xml:L48`, managed `:L1156-L1158`, in seven child POMs | **0** — no Java imports, no XML or properties references, no mapping files |
-| `org.springframework.ws:spring-ws-core` `1.5.9` | `acm-service-billing/pom.xml:L102-L105`, hardcoded outside `dependencyManagement` | **0** |
-| `org.apache.axis:axis` `1.4` | `acm-service-billing/pom.xml:L118` | **0** |
-| `commons-discovery` `0.5` | `acm-service-billing/pom.xml:L123-L124` | **0** |
+| `org.springframework.ws:spring-ws-core` `1.5.9` | `acm-service-billing/pom.xml:L101-L105`, hardcoded outside `dependencyManagement`, version literal at `:L104` | **0** |
+| `org.apache.axis:axis` `1.4` | `acm-service-billing/pom.xml:L117-L120`, artifactId at `:L119`; managed at `pom.xml:L536` | **0** |
+| `commons-discovery` `0.5` | `acm-service-billing/pom.xml:L123-L124`; managed at `pom.xml:L541-L542` | **0** |
 
-All four import counts were re-measured against the working tree for this page.
+All four import counts were re-measured against the working tree for this page, and so were the anchors. Two of them moved by one line against the figures the migration plan carried: the Spring Web Services `<dependency>` element opens at `:L101` rather than `:L102`, and the Apache Axis **artifactId** is at `:L119` — `:L118`, which the plan cites, is that dependency's `<groupId>`. The measured values are the ones printed above. The seven child POMs declaring Castor are `acm-complaint-plugin`, `acm-person-plugin`, `acm-service-billing`, `acm-service-note`, `acm-service-notification`, `acm-service-sequence-manager` and `acm-web`.
 
-The temptation to delete them is strong: they are ancient, one of them is a SOAP stack, and removing four unused declarations looks like unambiguous hygiene. They are kept because **they are never loaded, so they present no Java 17 risk**, which means removing them is unrelated cleanup — and unrelated cleanup has a real cost in this change set. Altering the declared dependency set changes classpath composition and ordering in ways nobody audited, and any resulting difference would be indistinguishable from a migration regression. R-1 also cuts the same way: a dependency change with no compatibility justification is out of scope, and "it is untidy" is not a compatibility justification.
+The temptation to delete them is strong: they are ancient, one of them is a SOAP stack, and removing four unused declarations looks like unambiguous hygiene. The reason for keeping them is recorded in the migration plan's own words:
+
+> Because they are never loaded, they present no Java 17 risk, so removing them would be unrelated cleanup that could perturb unaudited classpath ordering, and any resulting difference would be indistinguishable from a migration regression.
+
+R-1 cuts the same way: a dependency change with no compatibility justification is out of scope, and "it is untidy" is not a compatibility justification.
+
+The asymmetry with entry 6 sharpens the principle rather than contradicting it. A **dead** dependency is left declared because removing it is unjustified churn; a **live** dependency that cannot be resolved from a public registry is treated as an environment precondition and is likewise never deleted. The TouchNet client in entry 6 is the live case — two files import it — and these four are the dead case. In both directions the answer is the same: do not touch the dependency graph without a justification. That is R-1 applied consistently, not two different rules.
 
 ### 12 — A unit-test assertion that never held
 
@@ -200,7 +242,7 @@ It is not fixed because correcting it means rewriting an assertion, which the PR
 
 This is the only entry on this page that the migration itself produced, and it is here rather than hidden in a summary because the alternative is a claim of byte-identity that is not true.
 
-The base-commit frontend was built on **Node v8.17.0 with yarn 1.22.22** and compared against the migrated build on Node 20.20.2. `assets/dist/application.js`, `assets/dist/vendors.min.js` and the rewritten `home.html` are **byte-identical**. `application.min.js` differs by **2 bytes** and `application.min.css` by **789**.
+The base-commit frontend was built on **Node v8.17.0 with the superseded package manager at 1.22.22** — the historical runtime and lockfile tooling, both installed for the purpose — and compared against the migrated build on Node 20.20.2. `assets/dist/application.js`, `assets/dist/vendors.min.js` and the rewritten `home.html` are **byte-identical**. `application.min.js` differs by **2 bytes** and `application.min.css` by **789**.
 
 Neither difference is a defect in this repository, and neither is fixable inside the rules:
 
@@ -209,7 +251,7 @@ Neither difference is a defect in this repository, and neither is fixable inside
 - The stylesheet difference is `clean-css` grouping the same declarations into different rule blocks. A declaration-level comparison over 13,455 flattened `(selector, property, value)` triples found none present on one side and absent on the other, and the 28 distinct `@media` preludes are identical.
 - Changing either minifier would need a Node 20 incompatibility to justify it under R-1, and neither has one: both install and run on Node 20 at the versions the lockfile pins. A version change would also alter the output far more than the difference it was meant to remove.
 
-Recorded, not fixed. The measurement is at [`smoke-evidence/historical-frontend/comparison.txt`](smoke-evidence/historical-frontend/comparison.txt) with the capture script beside it, and the decision — including the options rejected — is entry 6a of [Ambiguity Resolutions](ambiguity-resolutions.md). **This entry does not consume an escape-clause invocation**: the escape clause covers pre-existing defects that were *fixed* because they blocked a validation item, and this one is not fixed.
+Recorded, not fixed. The measurement is archived beside this page at `smoke-evidence/historical-frontend/comparison.txt` with the capture script next to it, and the decision — including the options rejected — is entry 6a of [Ambiguity Resolutions](ambiguity-resolutions.md). **This entry does not consume an escape-clause invocation**: the escape clause covers pre-existing defects that were *fixed* because they blocked a validation item, and this one is not fixed.
 
 ## Anchor Verification — What Re-Checking the Report Found
 
@@ -412,9 +454,25 @@ R-6 permits fixing a pre-existing defect when it blocks a validation item. Two c
 
 **Neither invocation is a register entry, and no third invocation exists.** The arithmetic is exact: **56 register entries, 0 fixed, 2 escape-clause invocations, and no overlap between the two sets.** E1 created a file that was absent from version control, and E2 removed a build package — neither is a row above. Every one of the 56 entries is still present in the tree, unmodified, and can be re-verified at the anchor it cites.
 
+That last point is the one most easily misread, because both invocations land *next to* a registered entry without touching it. E1 creates the module that entries 1 and 2 load, and leaves both logic errors exactly as they were; E2 removes a package whose absence entry 5 explains, and leaves the inert pipeline inert. It is tempting to net the two against the register and conclude that two of the first eleven were dealt with — **they were not**. All eleven of the plan's mandated entries remain unfixed, as do all forty-nine. The count of invocations and the count of unrepaired entries are separate figures, and both are stated here so neither has to be inferred.
+
 Two things make that narrow reading visible rather than merely asserted. Entries 1 and 2 sit in `config/config.js` — the very file that E1 makes loadable — and were still left alone, even though they are a few characters each and the file was already open. And entries 22 to 32 are eleven security defects, the category with the strongest pull toward "fix it while you are here"; not one was touched, because none of them blocks a validation item and the migration plan's preservation list requires security outcomes to be **unchanged**, which makes adding an authorization check a deviation from the plan rather than compliance with it.
 
 Entry 45 is the sharpest illustration of the cost of reading the clause that narrowly: a two-character change would make its error path execute, and it is left alone because the assertion behind it would then have to be rewritten, which the preservation list forbids.
+
+### What is not an escape-clause invocation
+
+An exception count only stays honest if the categories adjacent to it are named, because the way a count of two becomes a count of five is not a decision — it is a reclassification nobody wrote down. Each item below changes code or configuration in this change set and is **migration work carried out under another rule**, not a pre-existing defect that was repaired:
+
+| Change | Why it is not an invocation | Recorded in |
+| --- | --- | --- |
+| The **seven** JDK-internal usage remediations — three compile-visible substitutions, one string literal externalised into Spring configuration, and three Javadoc rewrites | Required by the static audit gate, which is textual and demands zero occurrences. The audit found 7 occurrences across 5 main-source files at the base commit and finds 0 now. None of the seven was a defect; each was a supported-API substitution | [Static Audit Output](static-audit-output.md) |
+| Removing the two dead repository declarations, `milton-repo` and `jcenter-snapshots` | A resolution-level compatibility change: the modern Maven baseline blocks the plain-HTTP URL outright, so this is R-1 work with a stated reason | [Dependency Change Inventory](dependency-change-inventory.md) |
+| Rewriting the six mocking-framework-dependent test classes | R-5 compliance. The framework they used has no release that runs on the target runtime and no successor version, so rewriting them onto the supported mocking library is what *avoids* disabling them. Not one assertion changed | [Baseline Test Failures](baseline-test-failures.md) |
+| Reinstating the standalone script engine as a Maven artifact | R-1 work for a **different and genuinely reachable** consumer — the seven `complete`-event script task listeners described in entry 7 — in the same category as reinstating the EE modules the platform removed. It is declared by one module only, and deliberately **not** by the two modules entry 7 names, so entry 7 is untouched by it | [Dependency Change Inventory](dependency-change-inventory.md) |
+| Removing the vendored package manager and the dead client-side package manager from the frontend manifest | R-4 work: the frontend must genuinely run on the target runtime with no vendored dead packages. Neither removal repairs a registered defect. Only the **Sass toolchain** removal in the same manifest is an invocation, and it is row E2 above | [Dependency Change Inventory](dependency-change-inventory.md) |
+
+**R-5 draws the boundary from the other side.** Nothing in this register is grounds for excluding a test. A test exclusion may cite only a failure already present at the baseline, and the register it must cite is [Baseline Test Failures](baseline-test-failures.md) — not this page. Entries 12 and 45 are the cases where the two registers touch: both are pre-existing test defects, both are recorded, and neither was disabled or excluded.
 
 ## What Is Not on This Page
 
@@ -431,4 +489,45 @@ Two categories are deliberately excluded, because including them would blur what
 - **Invoking the escape clause.** Name the validation item blocked, and add a row to the table above. If a third row ever appears, the reason it is not simply "we also fixed this one" must be on it.
 - **Interpreting a build failure.** Check entry 6 first. An unprovisioned local artifact repository looks exactly like a dependency resolution regression and is neither.
 
-Related registers: [Dependency Change Inventory](dependency-change-inventory.md), [Baseline Test Failures](baseline-test-failures.md), [Ambiguity Resolutions](ambiguity-resolutions.md), [Static Audit Output](static-audit-output.md), [JDK Access Exceptions](add-opens-exceptions.md) and [Frontend Dependency Security](frontend-dependency-security.md).
+## Verification
+
+A register asserting that nothing was fixed is only as good as a reviewer's ability to refute it. These checks do that directly against the tree, comparing the base commit `c8f6226105` with the migrated head. Each was run while writing this page and each produced the result stated beside it.
+
+```
+# 1. The three frozen frontend contract files carry entries 1 to 5.
+#    Expect NO output: they are byte-for-byte unchanged.
+git diff --stat c8f6226105 HEAD -- \
+  acm-standard-applications/arkcase/src/main/webapp/resources/config/config.js \
+  acm-standard-applications/arkcase/src/main/webapp/resources/Gruntfile.js \
+  acm-standard-applications/arkcase/src/main/webapp/resources/config/env/all.js
+
+# 2. Entries 8 to 11 — the four dead dependencies are still declared.
+#    Expect castor-xml, spring-ws-core, axis and commons-discovery, all present.
+grep -n "castor-xml\|spring-ws-core\|>axis<\|commons-discovery" \
+  acm-services/acm-service-billing/pom.xml
+
+# 3. Entry 6 — the local repository declarations are retained, not deleted
+#    to make a build green. Expect 7.
+grep -c "arkcase-lib" pom.xml
+
+# 4. Entry 7 — both script-engine call sites are untouched.
+#    Expect NO output.
+git diff --stat c8f6226105 HEAD -- '*/JavaScriptEvaluatingPredicate.java'
+
+# 5. Entry 7 — and neither consuming module declares the reinstated engine,
+#    so the two call sites still resolve to nothing. Expect NO output.
+grep -n "nashorn" acm-standard-applications/acm-foia/pom.xml \
+                  acm-standard-applications/acm-privacy/pom.xml
+
+# 6. The escape clause — exactly two invocations, and nothing else.
+#    Expect profiles.js added and package.json modified, with the Sass
+#    toolchain absent from the manifest.
+git diff --name-status c8f6226105 HEAD \
+  -- acm-standard-applications/arkcase/src/main/webapp/resources
+grep -c "grunt-sass" \
+  acm-standard-applications/arkcase/src/main/webapp/resources/package.json
+```
+
+Check 6 is the one worth reading closely. The frontend delta is five files — a runtime pin, a lockfile, the manifest, the generated profiles module and the removal of the superseded lockfile — and only two of those five are escape-clause invocations. The other three are ordinary migration work. If a future change set adds a sixth, the question the table above must answer is which rule authorised it.
+
+Related registers: [Dependency Change Inventory](dependency-change-inventory.md), [Baseline Test Failures](baseline-test-failures.md), [Ambiguity Resolutions](ambiguity-resolutions.md), [Static Audit Output](static-audit-output.md) and [Frontend Dependency Security](frontend-dependency-security.md). The **JDK Access Exceptions** register completes the set; it is reached from the *Runtime Migration* section of the site navigation.
