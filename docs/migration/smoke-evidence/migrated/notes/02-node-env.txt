@@ -1,0 +1,322 @@
+ArkCase runtime migration - smoke evidence - migrated capture - reviewer note 02
+================================================================================
+
+SUBJECT: the build-time environment-variable value the migrated frontend build
+  ran under, and why the home.html byte comparison is void without it
+SIDE: migrated
+RUNTIME: Java 17 (OpenJDK 17.0.19) with Node 20 (Node v20.20.2, npm 10.8.2)
+BASE-COMMIT: c8f6226105 (full c8f6226105c28c2743281d26bf21ad73f7bb7f26)
+MIRRORS: docs/migration/smoke-evidence/baseline/notes/02-node-env.txt
+QUALIFIES: artifacts/home.html.sha256
+VARIABLE: NODE_ENV
+VALUE-IN-FORCE-ON-THIS-RUN: not set.  NODE_ENV was undeclared in the environment
+  the migrated frontend build executed in
+BRANCH-SELECTED-ON-THIS-RUN: the non-production branch, Gruntfile.js:L167
+TRACKED-VALUE-IN-THE-REPOSITORY: development, on both sides
+SAME-VALUE-ON-BOTH-SIDES: yes
+NOT-A-VERDICT: no pass mark is recorded or implied anywhere in this note
+
+
+WHY THIS NOTE SITS UNDER notes/ AND NOT INSIDE A CAPTURE FILE
+-------------------------------------------------------------
+A capture file holds observed output.  A qualification placed inside one would be
+read as part of that output.  Everything here is something a reviewer needs in
+order to read a digest correctly, so it is kept beside the captures rather than
+in them.
+
+This note owns exactly one concern: the value of the build-time environment
+variable that the migrated frontend build ran under.  It deliberately does not
+restate the determinism analysis or the scope of the five-artefact comparison;
+those belong to 01-artifact-comparison-scope.txt, which is the note to read
+first.
+
+
+RULES PROVENANCE - BOTH FACTS, STATED TOGETHER
+----------------------------------------------
+Two facts have to be given together, because either one alone would mislead.
+1) The project's rules facility returns, in full, that no user rules were
+   provided.  There is no on-disk user rules document for this project, so there
+   is no external full-text source to defer to for the constraints cited below.
+2) Rules are nonetheless present and binding.  The requirements embed an explicit
+   numbered block of seven rules, together with seven transformation rules that
+   are the operational form of the PRESERVE and EXCLUDE lists - fourteen specific
+   constraints in total.
+
+Reporting only the first would imply that enterprise best practice is the sole
+standard here, which is wrong.  Reporting only the second would misrepresent
+where the constraints came from.
+
+DISCLOSURE: the identifiers R-1 to R-7 and R-T1 to R-T7 used below, and their
+  descriptive labels, are the migration plan's own navigational convention.  They
+  are not quoted titles.  No rule is invented here, and none is softened.
+
+
+THE MECHANISM - THE HOME-PAGE RENDERER BRANCHES ON NODE_ENV
+-----------------------------------------------------------
+Every anchor below was re-read from the working tree for this note rather than
+carried forward, and each is quoted from the file it names.  Frontend paths are
+relative to acm-standard-applications/arkcase/src/main/webapp/resources/.
+
+The renderHome task is registered at Gruntfile.js:L156, and it decides what to
+write by testing one environment variable.
+
+BRANCH: Gruntfile.js:L163
+  if (process.env.NODE_ENV == 'production') {
+  The test is against the exact string 'production'.  This is the ONLY place in
+  the pipeline where the variable is read: process.env appears exactly once
+  across Gruntfile.js and the whole config/ tree, and this is that occurrence.
+
+PRODUCTION BRANCH, SCRIPT LIST: Gruntfile.js:L164
+  jsFiles = config.assets.distJs.concat(config.assets.lib.customJs);
+  distJs is declared at config/env/all.js:L83 as
+  distJs : [ 'assets/dist/vendors.min.js', 'assets/dist/application.min.js' ],
+  so this branch renders references to the two BUNDLED artefacts, followed by the
+  single external script held in config.assets.lib.customJs at
+  config/env/all.js:L38.
+
+OTHER BRANCH, SCRIPT LIST: Gruntfile.js:L167
+  jsFiles = configUtil.getJavaScriptAssets()
+    .concat(configUtil.getModulesJavaScriptAssets());
+  QUOTE-NOTE: those two lines are one single line in the file, wrapped here for
+  width.  This branch renders the UNBUNDLED, per-file list instead.
+
+WRITE: Gruntfile.js:L177
+  fs.writeFileSync(config.homePage.target, html);
+  The target name is declared at config/env/all.js:L22 as target : 'home.html'.
+
+
+THE VERIFIED CORRECTION - ONLY THE JAVASCRIPT LIST DIFFERS
+----------------------------------------------------------
+This is stated explicitly because a reader who assumed that BOTH asset lists
+switch at the branch would over-read the risk described in this note.
+
+The stylesheet list is the same expression on both sides of the branch:
+  Gruntfile.js:L165   cssFiles = configUtil.getCSSAssets();
+  Gruntfile.js:L168   cssFiles = configUtil.getCSSAssets();
+Those two lines are identical, character for character.  Only the jsFiles
+assignment differs, at :L164 against :L167.
+
+CONSEQUENCE: the branch can change which SCRIPT references are written into
+  home.html, and nothing else about the rendered page.  The stylesheet references
+  are the same whichever way the branch goes.
+
+
+WHY THE VALUE IS A PRECONDITION OF THE COMPARISON, NOT A DETAIL
+---------------------------------------------------------------
+home.html is one of the five artefacts the frontend byte comparison covers, and
+its digest is recorded at artifacts/home.html.sha256.  Because the branch selects
+a different set of script references, two captures taken under different values
+of NODE_ENV would produce legitimately different home.html files.  The comparison
+would then report a difference that says nothing whatever about the migration -
+or, worse, a reader would take that difference for a regression.
+
+Recording the value is therefore what makes the comparison falsifiable.  Without
+it, a reviewer has no way to separate an informative difference from an artefact
+of how the two builds were invoked, and the byte comparison would be meaningless
+without anyone noticing.
+
+The script-reference list that the branch selects is drawn from the frozen asset
+configuration, so the branch output is deterministic given a fixed dependency
+graph (R-T5 and R-T6).  That property is established in
+01-artifact-comparison-scope.txt and is not restated here.
+
+
+THE FOUR CORROBORATING LOCATIONS FOR THE RECORDED VALUE
+-------------------------------------------------------
+The value is taken from four independent places in the repository rather than
+asserted from one, so that it does not rest on a single file.
+
+1) The Tomcat environment-script region of README.md.
+   QUOTED-ASSIGNMENT: export NODE_ENV=development
+   ANCHOR-AT-BASE-COMMIT: README.md:L121
+   ANCHOR-IN-THE-DELIVERED-FILE: README.md:L140.  The same assignment sits
+     nineteen lines lower there because the file gained content earlier.  Locate
+     it by the heading for the Tomcat environment script and the citation
+     survives the shift.
+   CITED BY ANCHOR ONLY: the enclosing region also carries key-store and
+     trust-store credential material, so the single assignment above is the only
+     thing quoted from it and the region itself is deliberately not reproduced.
+2) acm-standard-applications/arkcase/src/main/webapp/build/build.env, first line
+   NODE_ENV=development
+   Application instance on its second line: the core application.
+3) acm-standard-applications/acm-foia/src/main/resources/build/build.env, first
+   line NODE_ENV=development
+   Application instance on its second line: the freedom-of-information
+   application.
+4) acm-standard-applications/acm-privacy/src/main/resources/build/build.env,
+   first line NODE_ENV=development
+   Application instance on its second line: the privacy application.
+
+CENSUS: listing the tracked files whose name matches build.env returns exactly
+  the three files at 2, 3 and 4, and no others exist in version control.  All
+  three carry an identical first line, and they differ ONLY in the
+  application-instance value on the second.  That is what makes development a
+  repository-wide convention rather than one file's setting.
+
+
+HOW THE VALUE IN FORCE WAS CAPTURED, AND WHY IT IS NOT AN INFERENCE
+-------------------------------------------------------------------
+R-T7 requires the recorded value to come from the environment the build actually
+ran in, captured as data.  It is not read off a build that happened to succeed,
+and no statement in this note is drawn from a process exit status.  That
+restraint is mandatory rather than fastidious: Gruntfile.js:L143 carries the
+comment that grunt is made to default to force in order not to break the
+project, and Gruntfile.js:L144 acts on it with grunt.option('force', true), so a
+frontend build can fail a task and still exit zero.
+
+OBSERVATION-1: NODE_ENV was undeclared in the environment.  It was tested for
+  DECLARATION rather than for emptiness, so that a set-but-empty variable would
+  have been distinguished from an absent one.  The result was absent.
+OBSERVATION-2: the build's own predicate was then evaluated in that same
+  environment.  The runtime reports the type of process.env.NODE_ENV as
+  undefined, and the expression tested at Gruntfile.js:L163 evaluates to false.
+  The non-production branch at :L167 is therefore the branch that ran.
+OBSERVATION-3: the tracked value development also makes that expression false,
+  because :L163 compares against the exact string 'production'.  An unset
+  NODE_ENV and the tracked value development select the SAME branch.
+OBSERVATION-4: no script in the repository sets NODE_ENV.  Searching the tracked
+  tree, and setting aside the evidence notes in this folder that discuss it,
+  finds the name in README.md, in the three build.env files, at Gruntfile.js:163
+  and in two documentation pages - every one of those a declaration or prose, and
+  none of them an assignment made to a running build.  No capture script under
+  docs/migration/smoke-evidence/ sets it either: there are three such scripts and
+  the name appears in none of them, and the historical frontend capture script
+  exports only a Node version-manager directory at its :L55 and a
+  continuous-integration flag at its :L73 before invoking the Grunt binary
+  directly at its :L105.
+
+Taken together, observations 1 to 4 establish that both captures ran with
+NODE_ENV unset, and therefore that both took the same non-production branch.
+
+
+ARTEFACT-LEVEL CORROBORATION, WITH ITS MECHANISM NAMED
+------------------------------------------------------
+The four observations above are the evidence.  The recorded digests add an
+independent check, offered as corroboration rather than as proof.
+
+cacheBust rewrites references to files under assets/dist/ inside home.html:
+Gruntfile.js:L79-L86 declares it, with its asset pattern at :L82 and home.html as
+its source at :L84.  A home.html carrying a reference to
+assets/dist/application.min.js would therefore carry that file's content hash.
+
+OBSERVED: the recorded digest of application.min.js differs between the
+  pre-migration build and the migrated build, and so does the cache-busted name
+  derived from it.
+OBSERVED: the recorded digest of home.html is identical on both sides,
+  43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9, as recorded
+  in artifacts/home.html.sha256 on each side.
+READING: had the production branch run, home.html would have carried the
+  cache-busted application.min.js reference and would necessarily have differed
+  between the two builds.  It does not differ, which is what the non-production
+  branch predicts.
+
+
+THE BINDING CONDITION (R-7), AND WHAT A MISMATCH WOULD MEAN
+-----------------------------------------------------------
+R-7 makes the captured pre-migration behaviour the tie-breaker for any ambiguity,
+and it is the defining rule for this note.  The condition it imposes here is
+absolute, so it is stated in as many words.
+
+THE MIGRATED REPLAY MUST HAVE RUN UNDER THE IDENTICAL VALUE OF NODE_ENV AS THE
+PRE-MIGRATION CAPTURE, OR THE home.html COMPARISON IS VOID.
+
+ON THIS RUN THE CONDITION IS MET.  The value in force was the same on both sides:
+NODE_ENV was not set, so both builds took the non-production branch at
+Gruntfile.js:L167.  The home.html comparison is admissible on that basis.
+
+IF IT HAD NOT BEEN MET, this is what would have been recorded instead, written
+down here so that a later capture cannot quietly do otherwise.  The mismatch
+would be stated plainly, naming the value on each side.  The home.html comparison
+would be declared VOID for that run, and the digest at artifacts/home.html.sha256
+would not be compared at all.  The remaining four artefact comparisons -
+application.js, application.min.js, vendors.min.js and application.min.css -
+would remain fully in scope, because none of them is produced by the branching
+task.  A home.html built under a different branch is never silently compared.
+
+
+NODE 20 EXECUTION AND THE UNCHANGED TASK GRAPH (R-4)
+----------------------------------------------------
+GENUINE RUNTIME: the migrated artefacts were produced by a build genuinely
+  executing on Node 20 - Node v20.20.2 with npm 10.8.2 - and not by a build
+  pinned to an older runtime.
+TASK GRAPH: Gruntfile.js:L376 registers the default task as loadConfig, clean,
+  ngAnnotate, uglify, concat, cssmin, renderHome, cacheBust and
+  copyToModulesConfigFolder.  The migrated replay runs that same sequence, and it
+  is unchanged.
+ANTI-OVERREACH FINDING: Grunt and its command line interface were verified to
+  install AND execute on Node 20, so the pipeline was deliberately retained
+  rather than replaced.  R-4 requires genuine Node 20 execution, not
+  modernisation for its own sake; replacing a working pipeline would have
+  destroyed this comparison in order to satisfy a preference.
+
+A DISTINCTION WORTH KEEPING: NODE_ENV is a runtime-behaviour switch read INSIDE
+the build, at Gruntfile.js:L163.  It is not a manifest engine constraint, and the
+two have nothing to do with one another.  An engine constraint declares which
+runtime may install and run the graph; NODE_ENV decides which asset list the
+renderer writes once the graph is already running.  Conflating them would make a
+branch selection look like a runtime declaration, or the reverse.
+
+
+THE TRACKED VALUE IS NON-PRODUCTION - RECORDED, NOT CHANGED (R-6)
+-----------------------------------------------------------------
+OBSERVATION: on both sides, the tracked configuration sets NODE_ENV to
+  development, which is not the production value the renderer tests for.  The
+  consequence is that the rendered home page references the unbundled, per-file
+  script list rather than the two bundled artefacts the same pipeline run just
+  produced.
+
+That is recorded here as an observation and as nothing more.  Nothing about it is
+changed by this migration, and nothing here recommends changing it.  Switching
+the value would change which script references land in home.html, which is a
+behaviour change - and a behaviour change presented as tidying is exactly what a
+behaviour-preserving refactor has to refuse.  R-6 documents a discovered
+condition rather than repairing it.
+
+No corrective action is proposed here, and none is deferred to a later change.
+The change set's escape clause, which permits repairing a pre-existing condition
+only where it blocks a validation item, was invoked exactly twice in this
+migration, and neither invocation is in this folder.
+
+
+SCOPE FENCE (R-1), AND WHAT THIS NOTE DOES NOT DECIDE
+-----------------------------------------------------
+R-1 permits a change only where it carries a specific compatibility reason.  This
+note is prose: it adds no tooling, no dependency, no navigation entry and no
+configuration.  Nothing about NODE_ENV is changed by the migration, so nothing
+here justifies a change to it.
+
+Nor does this note record an outcome.  It establishes the precondition under
+which the home.html digest may be compared, and the value that was in force when
+the capture was taken.  The per-artefact result of the comparison is kept in one
+place beside this folder and is deliberately not duplicated here: two copies of a
+result drift apart, and a reader cannot then tell which is current.
+
+
+CROSS-REFERENCES
+----------------
+Named as plain paths, in this same capture directory unless stated otherwise.
+
+01-artifact-comparison-scope.txt - the note to read first.  It scopes the
+  five-artefact byte comparison, names the five digest files, establishes the
+  determinism basis and records the source-map caveat.  This note qualifies one
+  of those five digests and repeats none of that analysis.
+artifacts/home.html.sha256 - the specific digest this note qualifies.  The other
+  four digests are unaffected by the value of NODE_ENV, because no other compared
+  artefact is produced by the branching task.
+flow-2-views.result.txt - the per-flow result for the views flow, which is
+  required to record the value of NODE_ENV in force for that flow.  That record
+  and this note are meant to agree; if they ever disagree, that disagreement is
+  itself the finding.
+
+
+MIRROR OBLIGATION
+-----------------
+This note is paired with a counterpart at the identical filename on the other
+side, docs/migration/smoke-evidence/baseline/notes/02-node-env.txt.  The two
+notes folders mirror one another one-for-one so that a recursive diff of the
+baseline and migrated capture directories is mechanical.  For this filename that
+diff is expected to report a CONTENT difference and never a structural one: the
+file must be present on both sides, and no counterpart may be missing.  The
+filenames are therefore fixed and match character for character; a rename on
+either side would turn a content difference into a structural one and break the
+comparison for every reader who runs that diff.

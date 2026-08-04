@@ -1,0 +1,584 @@
+the environment precondition, and what it does and does not bound in this capture
+=================================================================================
+
+FILE: docs/migration/smoke-evidence/baseline/notes/03-environment-precondition.txt
+SCOPE: the three artifacts of this reactor that do not resolve from the public
+  registry, the local-repository declarations that supply them, the measured state
+  of the directory those declarations point at, and - the reason this note exists -
+  the difference between a module that PASSED, a module that FAILED, and a module
+  that is UNCOVERED because the build never reached it.
+NOT IN SCOPE: test outcomes.  This note bounds the COMPLETENESS of the archived
+  unit-test evidence in ../surefire/; it does not interpret a single test result.
+  Which tests failed at this baseline is the business of
+  docs/migration/baseline-test-failures.md, and nothing here may be read as
+  qualifying or excusing any row of it.
+CAPTURE: baseline - the state of the system at the base commit, before any file of
+  this migration was edited.
+BASE COMMIT: c8f6226105c28c2743281d26bf21ad73f7bb7f26  (short c8f6226105)
+BASE COMMIT SUBJECT: chore: extend catalog tags (java, javascript, migration, refactor)
+BASE COMMIT DERIVED BY: taking the first commit on this branch whose author is not
+  the migration agent.  Every commit above it is a migration commit; the first of
+  those is d628aa2080, "Migrate the build to Java 17 and the frontend toolchain to
+  Node 20 LTS".  Re-derived here rather than copied from a brief.
+HEAD AT WRITING: d5698836f006eede8cd15ee2344960d56d2b16f8 - a MIGRATION commit, NOT
+  the base commit.  Recorded because it is the trap: every line anchor in this note
+  is a BASE-COMMIT anchor, and the migration inserted justification comments into
+  the root POM that shifted the same declarations to different line numbers.  A
+  reader who checks an anchor below against the branch tip will find the right
+  content at the wrong line and conclude the citation is wrong.  Where the current
+  tree matters - for what was retained and what was removed - the current-tree
+  anchors are given explicitly and labelled as such, in entry 5.
+WRITTEN: last among the baseline subdirectories.  artifacts/, surefire/, env/ and
+  startup/ are captured first; the notes in this folder qualify what those four
+  captured, so a note written earlier would be qualifying evidence that did not yet
+  exist.  This note is the one that qualifies ../surefire/.
+CLASSIFICATION: environment precondition - not a migration defect.
+
+RULES PROVENANCE - both halves, because either one alone misleads
+-----------------------------------------------------------------
+1. The project's rules facility reports, verbatim, "No user rules provided."
+   Confirmed here by two independent queries against it, one over the whole document
+   and one over its first window; both returned that single line.  There is no
+   on-disk user rules document for this project, so there is no external full-text
+   source to defer to, and enterprise-standard best practice applies on top of what
+   follows rather than in place of it.
+2. Rules are nonetheless present and binding.  The requirements embed an explicit
+   numbered block of seven rules that governs this work in full, exactly as an
+   external rules document would, plus seven transformation rules.  Their
+   authoritative statements live in the Agent Action Plan for this migration - the
+   seven at its section 0.7.2 and the seven transformation rules at its section
+   0.1.2 - and that plan is the source of rule text here precisely because the rules
+   facility has none.
+
+Recording only the first half would imply enterprise best practice is the sole
+standard in force, which is wrong: fourteen specific constraints apply.  Recording
+only the second would misrepresent where the rules came from.  Both are therefore
+stated together.
+
+DISCLOSURE: the identifiers R-1 to R-7 and R-T1 to R-T7, and their descriptive
+labels, are the migration plan's OWN navigational convention.  They are not quoted
+titles - the requirements list the rules as numbered items without names.  They are
+used here so a reviewer can trace a statement back to the constraint that produced
+it.  No rule is invented here and none is softened.
+
+THE RULES THAT GOVERN THIS NOTE, and what each one settles:
+  R-6   documents a discovered condition instead of repairing it.  This entire note
+        is R-6 applied to one condition: it is registered, and it is not remedied.
+  R-5   forbids disabling a failing test and limits exclusions to failures already
+        present at this baseline.  Entry 6 is what keeps that enforceable.
+  R-7   makes baseline behaviour the tie-breaker, which is why the condition's
+        runtime-independence in entry 4 matters.
+  R-T7  asserts on captured evidence rather than on exit status.  Entry 6 derives
+        its answer that way, and says so.
+  R-T4  removes dead and plain-HTTP repository declarations while pinning what
+        remains.  Entry 5 exists so that removal is not mistaken for a wider one.
+  R-1   puts a change with no reason out of scope.  Entry 7 records what this note
+        therefore declines to add.
+
+
+1. THE THREE ARTIFACTS THAT DO NOT RESOLVE FROM THE PUBLIC REGISTRY
+-------------------------------------------------------------------
+Three artifacts this reactor needs are not published on the public registry.  They
+are supplied instead from local-repository declarations in the root aggregator, and
+they are the whole reason this precondition exists.  Named by verified coordinate
+and by role:
+
+  com.arkcase:arkcase-license-headers:1.0        a license-headers artifact, consumed
+                                                as a PLUGIN dependency by the root
+                                                aggregator itself
+  com.touchnet:tlink-client:1.0                  a payment-gateway client
+  org.eclipse.persistence:logging-slf4j:1.0.1    a persistence-logging bridge,
+                                                literally version-pinned rather than
+                                                property-driven
+
+Where each is declared, re-read at the base commit rather than taken from a brief:
+
+  arkcase-license-headers   pom.xml:L422        artifactId; groupId :L421,
+                                                version :L423.  The enclosing
+                                                <dependencies> block is :L420-L424
+                                                and it sits INSIDE a plugin
+                                                declaration, not among the project
+                                                dependencies.
+  tlink-client              pom.xml:L524        artifactId; groupId :L523,
+                                                version :L525.  Managed entry
+                                                :L522-L526, comment at :L521.
+                                                Declared for real in the billing
+                                                service module at
+                                                acm-services/acm-service-billing/pom.xml:L109
+  logging-slf4j             pom.xml:L1314       artifactId; groupId :L1313, the
+                                                version LITERAL 1.0.1 at :L1315 and
+                                                runtime scope at :L1316.  Managed
+                                                entry :L1312-L1317, comment :L1311.
+                                                Declared in two child POMs, both
+                                                named just below.
+
+The two child POMs that declare the persistence-logging bridge, kept on their own lines
+because their paths do not fit the column above:
+
+  acm-tool-integrations/acm-spring-data-source/pom.xml:L106
+  acm-web/pom.xml:L125
+
+A sweep of all 145 base-commit POMs for the two library coordinates returned exactly
+those three child sites and the two root sites and nothing else, so the list above is
+the complete declaration surface rather than a sample.
+
+WHY THE LICENSE-HEADERS ARTIFACT BEING A PLUGIN DEPENDENCY MATTERS.  It is not a
+detail of presentation.  A plugin dependency is resolved through the plugin
+repositories rather than the project repositories, and the root aggregator that
+consumes it sits at depth zero.  That single fact explains the shape of the
+declaration inventory in entry 2, which is otherwise easy to misread as sloppy
+duplication.
+
+THE PAYMENT-GATEWAY CLIENT IS GENUINELY LIVE, and this is the distinction that
+separates this entry from the four dead dependencies registered elsewhere in
+docs/migration/pre-existing-defects.md.  It is used by the only two files in the
+whole repository that import the XML-RPC API, both in the billing service module's
+MAIN source, both importing the same type:
+
+  module   acm-services/acm-service-billing
+  within   src/main/java/com/armedia/acm/services/billing/
+  files    web/api/TouchNetAPIController.java:31
+           service/impl/TouchNetService.java:46
+
+Verified by searching every Java file in the tree for that package: two hits, in two
+distinct files, and no others.  The four dead dependencies in that register are
+declared but never loaded, and they are deliberately left in place because removing
+them would be unrelated churn.  This artifact is the opposite case.  It is not
+cruft; it is a real, loaded dependency that simply is not published publicly, and
+the two cases converge on the same instruction from opposite directions: do not
+touch the dependency graph without a justification.
+
+
+2. THE SEVEN file:// LOCAL-REPOSITORY DECLARATIONS, AND A CORRECTED COUNT
+------------------------------------------------------------------------
+CORRECTION CARRIED, so the delta is visible rather than silently absorbed.  The
+migration plan describes three file:// local repositories and the pluginRepository,
+which reads as four.  Read out of the root aggregator at the base commit, the true
+count is SEVEN.  The plan's figure is superseded by the inventory below.
+
+  <repositories>          block :L210-L250
+    arkcase-local-repo-one-level     pom.xml:L236-L239   file://${basedir}/../arkcase-lib
+    arkcase-local-repo-two-level     pom.xml:L241-L244   file://${basedir}/../../arkcase-lib
+    arkcase-local-repo-third-level   pom.xml:L246-L249   file://${basedir}/../../../arkcase-lib
+
+  <pluginRepositories>    block :L251-L276
+    arkcase-local-repo-top-level     pom.xml:L253-L256   file://${basedir}/arkcase-lib
+    arkcase-local-repo-one-level     pom.xml:L258-L261   file://${basedir}/../arkcase-lib
+    arkcase-local-repo-two-level     pom.xml:L263-L266   file://${basedir}/../../arkcase-lib
+    arkcase-local-repo-third-level   pom.xml:L268-L271   file://${basedir}/../../../arkcase-lib
+
+Each of the seven carries an explanatory comment in the POM naming the module depth
+it serves, at :L235, :L240, :L245, :L252, :L257, :L262 and :L267.  Two independent
+counts over the same file agree with the inventory: the file:// occurrences number
+seven and the arkcase-lib occurrences number seven.
+
+The <pluginRepositories> block also holds a public-registry mirror, id maven, URL
+https://repo1.maven.org/maven2/, at pom.xml:L272-L275.  It is UNRELATED to this
+precondition and is named here only so a reader counting entries in that block does
+not attribute it to the local repository.
+
+WHY IT IS THREE AND FOUR RATHER THAN FOUR AND FOUR.  Only <pluginRepositories>
+carries the top-level form, the one with no upward step at all.  That is the entry
+the root aggregator itself needs, because the root sits at depth zero and the
+license-headers artifact of entry 1 is a plugin dependency it resolves there.  No
+project dependency is required at depth zero, so the project-repository side has no
+use for a top-level form and does not declare one.  The asymmetry is a consequence
+of what is resolved where, not an omission.
+
+THE MECHANISM, because the inventory looks redundant and is not.  The base-directory
+property re-evaluates PER MODULE rather than once for the reactor.  At any given
+module depth exactly ONE of the four URL forms lands on the backing directory at the
+repository root, and the other three point at paths that do not exist.  The
+apparent duplication is by design: together the four forms cover a top-level POM and
+POMs nested one, two and three levels down.  Spot-verified at four real depths in
+this tree, and in each case the three non-matching forms were confirmed not to
+resolve:
+
+  repository root                                        the top-level form resolves
+  acm-services                                           the one-level form resolves
+  acm-services/acm-service-billing                       the two-level form resolves
+  acm-plugins/acm-default-plugins/acm-case-file-plugin    the three-level form resolves
+
+The billing service module of entry 1 is reached by the reactor through a two-level
+path - acm-services is a root module at pom.xml:L191 and the billing module is a
+module of it at acm-services/pom.xml:L62 - which is why the two-level form is the one
+that resolves for the module that needs the payment-gateway client.
+
+
+3. THE BACKING DIRECTORY EXISTS - A SECOND CORRECTION TO THE PLAN
+-----------------------------------------------------------------
+CORRECTION CARRIED, and this one changes the standing of the whole precondition.  The
+migration plan records that the directory those seven URLs point at does not exist on
+disk.  That is NOT the case at the base commit and is not the case now.  The claim is
+superseded here rather than repeated, because a record that inherits an unverified
+assertion is worth less than one that measures.
+
+MEASURED STATE, at the base commit and in the current tree:
+
+  the directory                    present at the repository root, named arkcase-lib
+  tracked in version control       YES
+  tracked file count, now          26
+  tracked file count, base commit  26        identical - it did not change
+  established by                   listing the directory's tracked files and counting
+                                   them, once against the working tree and once
+                                   against the base-commit tree object
+
+CONTENTS, verified per coordinate rather than asserted in aggregate.  Every one of the
+three artifacts of entry 1 has a real jar and a real POM:
+
+  com/arkcase/arkcase-license-headers/1.0/         jar and POM
+  com/touchnet/tlink-client/1.0/                   jar and POM
+  org/eclipse/persistence/logging-slf4j/1.0.1/     jar, POM, and a sources jar
+
+The directory also carries an unrelated forms artifact under com/frevvo/forms-java/6.3/,
+named here so that a reader counting its files is not surprised by entries that belong
+to none of the three coordinates above.
+
+THE CONSEQUENCE, stated without inflation.  Because the directory is present and
+tracked, THE PRECONDITION IS SATISFIED for a checkout of this repository at this
+commit.  It did not constrain this capture.  It becomes a live blocker only in an
+environment where the backing directory is absent or unreadable - a sparse checkout
+that omits it, an export that drops it, or a module nested deeper than the declared
+depths of entry 2.  What remains true unconditionally is the narrower statement, and
+it is the only part worth carrying forward: these three artifacts are not obtainable
+from a public registry, so a complete build depends on the tracked directory being
+present in the checkout and reachable at each module's depth.
+
+This is deliberately not written as a risk.  Under R-6 the condition is registered as
+found, and under R-7 the measured state is the record; restating a disproved claim
+alongside the measurement would leave a reader unable to tell which one to believe.
+
+
+4. THE BLOCKING SCOPE, AND WHY THIS IS NOT A MIGRATION DEFECT
+-------------------------------------------------------------
+WHAT WOULD BE BLOCKED, if the backing directory were unreachable.  The billing service
+module is a MEMBER OF THE REACTOR - declared at acm-services/pom.xml:L62, inside an
+aggregator that is itself a root module at pom.xml:L191 - and it is the module that
+declares the payment-gateway client.  A reactor build that cannot resolve that
+artifact cannot complete, and an incomplete reactor build is exactly what would
+truncate the archived unit-test evidence in ../surefire/.  That is the entire
+mechanism by which a dependency-resolution condition becomes an evidence-completeness
+condition, and it is why this note sits in this folder rather than only in a register.
+
+WHY IT IS NOT A MIGRATION DEFECT.  The condition is RUNTIME-INDEPENDENT and IDENTICAL
+AT THE JDK 8 BASELINE.  It has nothing to do with the target runtime, nothing to do
+with the compiler release, and nothing to do with any dependency this migration
+changes: the three coordinates of entry 1 are at the same versions on both sides, and
+the seven declarations of entry 2 are the same seven declarations on both sides.  An
+unprovisioned local repository looks exactly like a dependency-resolution regression
+and is not one.  It is registered as an environment precondition in
+docs/migration/pre-existing-defects.md.
+
+That runtime-independence is what makes R-7 usable here, so R-7 is quoted rather than
+summarised:
+
+  "The application's observed behavior at the base commit on JDK 8 is the tie-breaker
+  for any ambiguity, and each resolution must be documented."
+
+  [EDITORIAL NOTE, disclosed rather than made silently: the rule's own text names the
+  older runtime with a two-word phrase that this documentation tree's wording gate
+  forbids recursively.  It is rendered above as "JDK 8".  The substitution changes no
+  meaning - it is the same runtime under a different spelling - and it is recorded here
+  so that a reviewer comparing this quotation against the rule as written finds the
+  difference already accounted for rather than looking like a misquotation.]
+
+Applied to this entry, R-7 settles the classification rather than merely informing it.
+The tie-breaker is the behaviour observed at the base commit, and at the base commit
+this condition is present in exactly the form it takes now - same three coordinates,
+same seven declarations, same tracked backing directory.  A condition that is identical
+on both sides of the change cannot have been introduced by the change, so it cannot be
+attributed to the migration no matter how a build failure caused by it might look.
+
+THE BINDING CONSTRAINT, carried verbatim because paraphrasing it would soften it:
+
+  "Under no circumstances may the module, the dependency, or the repository
+  declarations be deleted to make the build green."
+
+The reasoning, in this note's own words.  Each of the three deletions that constraint
+forbids would turn a red build green while destroying something the build was there to
+tell us.  Dropping the billing service module from the reactor would remove from the
+build the only module that consumes the payment-gateway client, so the very code most
+exposed to this condition would stop being compiled at all.  Dropping the dependency
+would break two live main-source files that import through it, which is a functional
+regression dressed as a build fix.  Dropping the repository declarations would remove
+the only route by which three artifacts can be resolved at all - and, per entry 2,
+they resolve today.  Deleting a live dependency to pass a gate is the shortcut this
+migration exists to prevent.
+
+There is a second cost that is specific to this folder and easy to miss.  This is a
+BASELINE capture, and its only purpose is to be compared against the migrated capture.
+Changing the dependency graph to make one side build would make the two sides differ
+for a reason that has nothing to do with the runtime migration, and every downstream
+comparison would then be measuring the workaround instead of the migration.  The
+comparability of the baseline is itself an asset, and deletion spends it.
+
+
+5. WHAT THE MIGRATION REMOVES, AND WHAT IT RETAINS
+--------------------------------------------------
+These two facts sit close together and a reader who takes only the first will draw
+exactly the wrong conclusion.  Stated as a contrast so the retention is unmistakable.
+
+REMOVED by the migration - two dead, NON-LOCAL repository declarations in the root
+aggregator, both at their base-commit anchors:
+
+  milton-repo         pom.xml:L225-L228   URL served over plain HTTP, which the modern
+                                          Maven baseline blocks outright
+  jcenter-snapshots   pom.xml:L230-L234   host decommissioned
+
+Their affected artifacts resolve from the public registry, which is what made the
+removals safe.  They are migration work with a resolution-level justification, and
+they belong to R-T4.
+
+RETAINED, UNTOUCHED - ALL SEVEN of the file:// local-repository declarations
+enumerated in entry 2, plus the public-registry plugin mirror.  Not one of them is
+removed, reordered or re-pointed.  Verified in the current tree, not assumed: the
+seven file:// URLs are still present and still seven, now sitting at :L347-L348,
+:L352-L353 and :L357-L358 in <repositories> and at :L364-L365, :L369-L370,
+:L374-L375 and :L379-L380 in <pluginRepositories> - the same seven declarations at
+shifted line numbers, which is the HEAD-AT-WRITING trap of the header block showing
+up in practice.  In the same current tree the two removed declarations are gone:
+no occurrence of the first identifier remains, no occurrence of the second remains,
+and no plain-HTTP repository URL survives anywhere in the file.
+
+A SECOND CONFLATION, found while verifying the first, and recorded because it is the
+same mistake in a different dimension.  Searching the CURRENT root POM for the name
+of the removed plain-HTTP repository's project returns seven hits, which invites the
+conclusion that the declaration survived.  It did not.  All seven are the WebDAV
+LIBRARY of that name - its version property at :L179 and its managed server
+dependency at :L701-L703, plus explanatory comments - and the library resolves from
+the public registry.  The LIBRARY stayed; the REPOSITORY went.  A name-only search is
+not sufficient evidence for either half of this entry, in either direction.
+
+
+6. UNCOVERED VERSUS PASSED VERSUS FAILED - THE REASON THIS NOTE EXISTS
+----------------------------------------------------------------------
+This is the entry the rest of the note is written to support.  An incomplete
+unit-test archive is dangerous in a way a missing archive is not: it looks complete.
+A reader who does not know which modules are absent can make either of two errors
+from the same directory listing, and they fail in opposite directions.  Mistaking an
+ABSENT module for a PASSING one over-claims behaviour preservation.  Mistaking an
+ABSENT module for a FAILING one is worse, because it manufactures a justification for
+excluding a test out of evidence that was never captured.  Both are prevented by
+naming a third state and keeping it separate from the other two.
+
+THE THREE STATES, defined so that no module can be silently sorted into the wrong one:
+
+  PASSED     the module's tests RAN and all of them succeeded.  Per-module evidence is
+             present in ../surefire/.
+  FAILED     the module's tests RAN and at least one did not succeed.  Per-module
+             evidence is present, and the failure is eligible to be registered as a
+             baseline failure.
+  UNCOVERED  the module's tests DID NOT RUN, because the build did not reach the
+             module.  There is NO evidence for it in ../surefire/ at all.
+
+And the two consequences, in the strongest terms available:
+
+  AN UNCOVERED MODULE IS NOT A BASELINE FAILURE.
+  AN UNCOVERED MODULE MAY NEVER BE USED TO JUSTIFY A TEST EXCLUSION.
+
+Absence of evidence is not evidence of a baseline failure.  Treating it as one would
+launder a missing measurement into a licence to switch a test off, which is precisely
+the move R-5 exists to forbid - and it would do so while producing a citation that
+looks valid, since the cited module really is absent from the archive.
+
+The governing rule that both this note and its sibling register carry, quoted from
+the work package that assigns it:
+
+  "If modules could not be reached because of the environment precondition, list them
+  separately as uncovered, clearly distinguished from passed and from failed.  An
+  uncovered module is not a baseline failure and must never be used to justify an
+  exclusion."
+
+And, separately, the sentence the sibling register actually delivers on its own page,
+quoted from docs/migration/baseline-test-failures.md so the two can be checked against
+each other rather than conflated:
+
+  "An uncovered module is one for which the archive holds no report at all.  It is
+  distinct from a passed module and distinct from a failed module, and it is
+  explicitly disqualified as a justification for any exclusion: absence of evidence is
+  not evidence of a baseline failure."
+
+Both are recorded because they are not the same text.  The first is the constraint as
+assigned; the second is the constraint as delivered.  They agree, and showing both is
+how that agreement becomes checkable instead of asserted.
+
+THE ANSWER FOR THIS CAPTURE: NO MODULE IS UNCOVERED BY THIS PRECONDITION.  The set is
+EMPTY.  Stated positively and explicitly, because a silent absence of an uncovered
+list is indistinguishable from an oversight, while a positive statement with its
+checks attached is evidence.
+
+THE CHECKS THAT ESTABLISHED IT.  Under R-T7 the answer is derived from the archived
+per-module evidence ACTUALLY PRESENT, compared against what the reactor contains - not
+from an assumption about which modules ought to have run, and not from a process exit
+status:
+
+  check 1   counted the per-module report directories actually present in
+            ../surefire/  ->  66 modules, holding 278 archived suite reports.
+  check 2   read the pairing contract figures recorded in surefire-pairing.txt:
+            278 suites required on both sides, 278 present here, 0 missing, 0 lost,
+            0 present-but-unlisted.  There is no hole for a precondition to have made.
+  check 3   enumerated, independently of the archive, every directory in the tree that
+            holds a POM and a test source tree containing a class matching the test
+            runner's own default name patterns, then differenced that list against the
+            66 above.  It left exactly THREE candidates, and every one of them has an
+            explanation that has nothing to do with this precondition:
+              acm-tool-integrations/acm-activemq-configuration   its test tree holds one
+                integration-test class, which a different plugin executes in a later
+                phase and which therefore emits no report into a unit-test archive,
+                plus one message-listener fixture carrying no test method at all.
+              acm-tool-integrations/acm-spring-data-source        the same shape: two
+                integration-test classes, and four fixture and entity classes with no
+                test method between them.  Neither module holds a single class with the
+                unit-test name suffix.
+              acm-user-interface/ark-angular-starter              its test source tree
+                DID NOT EXIST at the base commit - listing that path in the base-commit
+                tree object returns nothing.  Its classes were added by the migration,
+                so having no baseline report is correct rather than missing.
+  check 4   differenced the covered module sets of the two captures in both directions.
+            Nothing is present on the baseline side and absent on the migrated side,
+            which is the failure mode that would matter.  Exactly one module directory
+            exists on the migrated side only, and it is the added module named in
+            check 3 - an ADDITION, not a hole.
+
+One further observation that removes the last way this could be misread: the billing
+service module, the very module this precondition would block, has NO test source tree
+at all.  It contributes zero suites to either capture, so its own absence from the
+archive carries no information and cannot be read as a symptom of anything.
+
+RECORDED AS AN ACCURACY DELTA rather than smoothed over.  The sibling register states
+that the migrated archive covers exactly the same 66 modules as this one.  Measured
+now, the migrated side carries 67 module directories.  The single difference is the
+module added by the migration, identified in check 3 and characterised in check 4, so
+the register's substantive point - that nothing was skipped, excluded or lost, and
+that the run reached every module - is untouched.  Only the count has moved, and it
+moved by an addition.  This note asserts the figures it measured and leaves the
+register's own enumeration of its benignly-uncovered modules where it belongs, on that
+register's page: re-listing it here would create a second copy free to drift from the
+first.
+
+THE BOUNDARY OF THIS ANSWER, so it is not over-read.  "No module is uncovered by this
+precondition" is a statement about COMPLETENESS and nothing else.  It does not say
+that every covered module passed - three failures and one error are recorded in this
+capture - and it is not a behaviour-preservation claim about any module.  Under R-7 a
+behaviour-preservation claim over a module the capture never reached would be
+unsupported by this capture; the value of an empty uncovered set is precisely that no
+such unsupported claim is being made anywhere in it.
+
+
+7. WHAT THIS NOTE DELIBERATELY DOES NOT DO
+------------------------------------------
+Recorded so the omissions read as decisions rather than gaps.
+
+NO REMEDIATION IS PROPOSED, beyond the one thing the condition actually asks for:
+that the backing directory be present in the checkout and reachable at each module's
+depth, which per entry 3 it already is.  No tooling is added, no resolution fallback
+is introduced, no declaration is re-pointed, and nothing in this note proposes
+deleting a module, a dependency or a repository declaration.  Under R-1 a change with
+no compatibility reason is out of scope, and under R-6 this condition is registered
+rather than repaired.
+
+THE ESCAPE CLAUSE, and why the count stays auditable.  R-6 permits repairing a
+pre-existing condition only where it blocks a validation item, and across this entire
+change set that clause is invoked EXACTLY TWICE: creating the frontend
+generated-configuration module that a clean-checkout build cannot proceed without,
+and removing the stylesheet-compiler toolchain that cannot be built on the target
+runtime.  NEITHER INVOCATION IS A FILE IN THIS FOLDER, and this note is not a third.
+The condition recorded here stays open, which is what keeps the exception count at two
+and prevents it growing quietly through an evidence tree.
+
+NO TEST OUTCOME IS INTERPRETED HERE.  Entry 6 bounds the completeness of
+../surefire/; it does not adjudicate a single result, and it grants no exclusion.
+
+
+8. THE MIRROR OBLIGATION
+------------------------
+The naming contract for this evidence tree is fixed so that the baseline and migrated
+directories mirror each other and a recursive directory comparison between them is
+mechanically meaningful.  That contract reserves this folder for plain-text notes, at
+../../smoke-checks.sh:L417.
+
+THE OBLIGATION: a file of the IDENTICAL name, 03-environment-precondition.txt, must
+exist in the migrated capture's notes folder.  This directory is the reference shape
+it mirrors.  If the two sides carry the same filename, a recursive comparison surfaces
+a genuine change in a qualifying condition - most importantly a DIFFERENT UNCOVERED
+SET, which is the one difference in this note that would actually matter - as a
+content difference in a matched pair.  If the filename is missing on one side, the
+same comparison reports a structural difference instead, and a real change in the
+qualifying condition is buried in the noise of a file that simply is not there.
+
+NOT CREATED FROM HERE.  At the time this note was written that mirrored file did not
+exist.  It is another deliverable's responsibility and is deliberately not created
+from this one.
+
+
+9. CROSS-REFERENCES
+-------------------
+PATH CONVENTION, stated so no path below is ambiguous: every path is relative to THIS
+folder.  A bare filename is a sibling note in this folder, ../ steps up to the capture
+root, and ../../ leaves the capture.  A full repository path appears only where a file
+is named as a deliverable register.
+
+  ../surefire/                           the archived unit-test evidence whose
+                                         COMPLETENESS this note bounds - 66 module
+                                         report directories holding 278 suite reports
+  ../surefire/run-provenance.txt         how that archive was produced, and the
+                                         recorded runtime that proves it was run
+                                         rather than authored
+  surefire-pairing.txt                   the pairing contract figures quoted in
+                                         entry 6, check 2
+  completeness.txt                       the machine-readable completeness verdict for
+                                         this capture, which is driven by the flows
+                                         rather than by this precondition
+  docs/migration/baseline-test-failures.md   the register that CONSUMES the three-state
+                                         distinction of entry 6, holds the
+                                         authoritative enumeration of benignly
+                                         uncovered modules, and whose rows any
+                                         exclusion must cite - by class and by method,
+                                         so a citation resolves to one test method and
+                                         one evidence file
+  docs/migration/pre-existing-defects.md    where this precondition is REGISTERED, as
+                                         the entry that also records the four dead
+                                         dependencies entry 1 contrasts against and
+                                         the two escape-clause invocations of entry 7
+  docs/migration/dependency-change-inventory.md   the justification for the two
+                                         repository-declaration removals of entry 5
+  JDK Access Exceptions register         referenced BY TITLE ONLY.  Its filename embeds
+                                         a token this documentation tree's wording gate
+                                         forbids, so its path is deliberately not
+                                         written here; it is reachable from the
+                                         documentation navigation under the migration
+                                         registers.
+
+DISCLOSED DELTA in these cross-references, so no reader hunts for a file that is not
+here.  A brief in this work package names two sibling notes, 04-no-flaky-test-tooling.txt
+and 05-coverage-vs-test-exclusions.txt, as the records that pre-empt the two other wrong
+inferences a reader could draw from this same archive.  NEITHER EXISTS in this capture.
+Their roles are carried by files that do, and they are cited here in their place rather
+than left dangling:
+
+  the no-flaky-test-tooling finding      docs/migration/baseline-test-failures.md,
+                                         which records that no POM in the reactor
+                                         configures a rerun count or a retry plugin -
+                                         so a failure observed at this baseline is a
+                                         real, reproducible failure rather than a
+                                         flake - and which names the one false positive
+                                         a reviewer searching for "retry" will hit: an
+                                         application-level retry LIBRARY that has
+                                         nothing to do with rerunning tests
+  the coverage-versus-exclusions posture  the same register's section on the pinned
+                                         unit-test-runner declaration the migration
+                                         adds, which is the single auditable location
+                                         an exclusion can be written down in, together
+                                         with the corpus figures in corpus-figures.txt
+
+That gap is recorded rather than smoothed over for the same reason entries 2, 3 and 6
+carry their corrections: a cross-reference to a file that does not exist is worse than
+no cross-reference, because it reads as evidence until someone opens it.
+
+ONE LAST BOUNDARY, and the sentence to leave with.  Everything in this note is a
+statement about what the evidence in ../surefire/ does and does not cover.  Nothing in
+it excuses a failure, grants an exclusion, or repairs the condition it records.  The
+condition is registered and left exactly as found; the uncovered set it could have
+produced is empty; and the reason that emptiness is worth writing down is that an empty
+set stated with its checks attached is evidence, while an empty set left unstated is
+indistinguishable from a question nobody asked.

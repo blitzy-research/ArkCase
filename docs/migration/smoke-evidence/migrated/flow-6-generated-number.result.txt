@@ -6,6 +6,8 @@ compared-artefacts: flow-6-generated-number.out, flow-6-generated-number.status 
 transport-trust-mode: verify-default-trust-store
 state-mutation-permitted: no
 observed-statuses:
+  numbering-precondition=000
+  generated-number=SKIPPED
   000
   CREATE: SKIPPED
   NUMBER_ASSIGNED: no
@@ -25,3 +27,324 @@ comparison-instruction: this record is evidence, not a pass mark.  The
   .status differ from the baseline capture in nothing but values this
   script already normalises.  Compare with:
   diff -r <baseline-dir> <migrated-dir>
+------------------------------------------------------------------
+PROVENANCE AND COMPARISON CONTRACT FOR THIS FLOW
+------------------------------------------------------------------
+runtime-designation: Java 17
+runtime-designation-is-a-declared-label: yes.  It states which side of the
+  comparison this capture belongs to and is NOT probe output.  The observed
+  runtime is recorded separately in env/toolchain.txt, probe 1 of 4, which
+  captures the version banner the runtime prints for itself.  Should the
+  two ever disagree, the disagreement is to be stated plainly rather than
+  reconciled: a declared label must never read as though it were captured
+  output.
+base-commit: c8f6226105
+capture-precedence: taken BEFORE any file was edited.  Nothing done later
+  can reconstruct the runtime a measurement was taken on, which is why
+  baseline capture is the first executable action of this migration and
+  not a validation afterthought.
+capture-side: migrated (post-migration replay)
+mirrored-by: baseline/flow-6-generated-number.result.txt
+hand-edited: no
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh, by record_result
+  followed by this block, with the capture directory named in the
+  environment.  A hand-edited capture is not evidence.
+flow-execution-state: SKIPPED
+flow-not-executed-reason: no object was created, so no number was assigned and none was observed: ALLOW_SMOKE_MUTATIONS is not set to 1
+assertion-grounding: every value in this record is read back from
+  flow-6-generated-number.status and flow-6-generated-number.out, both
+  named here deliberately.  A creation request can answer 2xx while the
+  numbering rule silently produced nothing and left a default or an empty
+  value -- which is exactly what a rule-engine failure looks like -- and a
+  status-only record cannot tell the two apart.  The generated number is
+  therefore cited from the capture rather than inferred from the creation
+  status.  A transport exit status appears in the capture as one further
+  observation and is never the basis of this record (R-T7).
+object-type-created: COMPLAINT
+creation-endpoint: /api/latest/plugin/complaint
+creation-status-observed: not-attempted
+objects-created-count-observed: 0
+generated-numbers-observed-in-creation-order:
+  (none -- no object was created, so no number was assigned)
+generated-number-format-shape-observed: unobserved
+generated-number-format-shape-legend: each digit shown as 9 and each
+  letter as A, every other character left exactly as the application
+  emitted it.  The token is DERIVED from the number beside it and never
+  replaces it; the number itself stands verbatim above and in the paired
+  capture.
+number-format-components-compared: prefix, separator set, padding width,
+  and any year or object-type component.  Each can only be read off a
+  number that was actually assigned.
+comparison-criterion: identical numbering sequence and format.
+  Both halves are stated because they are compared differently, and
+  asserting only one would let the other drift unnoticed.
+  sequence-half: a single sample cannot evidence a sequence, so the count
+    of objects created is recorded above, and it is 0 on this capture.
+    The comparison requires the replay to create that same count and to
+    record its numbers one per line in creation order, advancing in the
+    same direction by the same step.  This flow creates exactly one object
+    per run, so a sequence is evidenced by the two captures together
+    rather than by either one alone.
+  format-half: the derived shape token above must match the replay
+    exactly, component for component.
+  criterion-satisfiable-from-this-capture: NO.  No object was created,
+    so this capture establishes NEITHER half of the criterion.  A
+    migrated replay that also creates nothing produces an equal
+    ABSENCE: comparable, and visible in a diff, but NOT evidence that
+    the numbering behaviour is preserved.  Zero matching zero discharges
+    nothing.  The criterion stays UNSATISFIED until both sides create an
+    object and both numbers are recorded, and stating that plainly is
+    the whole reason the execution state above reads SKIPPED rather
+    than reading as a pass (R-5).
+  volatile-component-disclosed: the sequence POSITION advances between two
+    runs by construction, so the counter itself is expected to differ and
+    is compared as a progression rather than as a literal.  That is
+    disclosed here rather than masked, and nothing in the number is
+    hidden.
+normalisation-applied-to-this-capture: date-times, the response headers
+  that carry wall-clock time, entity validators, challenge nonces,
+  broker-assigned message and correlation identifiers, engine surrogate
+  identifiers, universally-unique identifiers, epoch millisecond values,
+  query and elapsed timings, and absolute filesystem paths including the
+  capture directory, the repository root, the home directory and the
+  scratch directory.  Session material is REDACTED rather than normalised,
+  because a live session identifier is credential-equivalent, so only the
+  EXISTENCE of a session is recorded and never its value.
+generated-number-normalised: NO.
+  Stated affirmatively and on its own line because it is the behaviour
+  under test.  The generated number is never normalised, never masked,
+  never re-padded and never truncated.  It IS the assertion, and
+  normalising it would destroy the only signal this flow exists to carry.
+  Queue names, object numbers, result counts and result ordering are
+  behaviour-bearing for the same reason and are left alone too.
+redaction-asymmetry: the sign-in value IS removed from every byte of this
+  capture and replaced with a fixed placeholder by the redaction pass,
+  which is proven against the real value before the first capture is
+  written rather than assumed.  The generated number is NOT.  The two are
+  deliberately treated in opposite ways, and the distinction is the point:
+  the sign-in value goes, the generated number stays.
+transport-trust-context: the capture accommodated the self-signed TLS
+  certificate the reference stack presents, recorded at README.md:L45 as
+  that file stands at the base commit.  Without that accommodation every
+  flow would fail on certificate verification rather than on behaviour,
+  which is a FALSE NEGATIVE rather than evidence.  The trust mode actually
+  used is recorded above and in env/toolchain.txt, and verification is
+  never silently disabled to make a flow proceed.
+readiness-context: readiness polling tolerated the 5 to 10 minute first
+  startup of the servlet container, recorded at README.md:L141 as that
+  file stands at the base commit, so that a slow first start is not
+  misread as a failed deployment.  The readiness observation itself is in
+  notes/readiness.txt.
+reference-stack-context: the application under capture is
+  https://arkcase-ce.local/arkcase, at README.md:L143 and :L147; the
+  deployed archive is arkcase.war, at README.md:L141; and the front-end
+  application path is /arkcase/, at config/env/all.js:L6.  All three
+  anchors are quoted as those files stand at the base commit this capture
+  was taken on, which is why they may sit at different line numbers in a
+  later revision of the same files.
+------------------------------------------------------------------
+DECISION-TABLE CENSUS, MEASURED AT RUN TIME BY THIS SCRIPT
+------------------------------------------------------------------
+why-this-census-is-here: the rule surface this flow exercises lives
+  entirely in spreadsheets, so its size is part of the evidence.  A
+  register that repeats an unverified figure is not evidence, so both
+  figures below are measured here and the command that produced each is
+  published beside it, re-derivable by any reader.
+  command: find . -name '*.drl' | wc -l
+  measured-textual-rule-files: 0
+  reading: ZERO textual rule files.  That initially suggests the rule
+    engine is inert.  It is not -- the entire rule surface is in the
+    decision tables counted next, which is exactly why this flow is the
+    sharpest behavioural probe in the suite.
+  command: find . -name 'drools-*.xlsx' -not -path '*/node_modules/*' | wc -l
+  measured-drools-decision-tables: 39
+  verified-figure-at-base-commit: 39
+  migration-plan-figure: 43
+  divergence-explanation: the plan counts three .xls files and one .xlsx
+    spreadsheet test fixture alongside the 39 live .xlsx decision tables.
+    The measured figure above is published as AUTHORITATIVE and the plan
+    figure recorded beside it, so the divergence is visible rather than
+    silently adopted.  The measurement prunes build output, installed
+    dependencies, object storage and any scratch tree, because a copy of
+    a source file under any of those is not part of this corpus.
+  what-the-verified-set-covers: complaint numbering, task rules,
+    business-process start, queue entry, queue exit, next-possible-queues,
+    case-file rules, consultation and assignment -- which is exactly the
+    set of behaviours flows 6 and 8 exercise.
+  corroborating-record: notes/corpus-figures.txt, which measures the same
+    figures independently in the same run.
+------------------------------------------------------------------
+MIGRATION PATH UNDER TEST, AND THE VERSIONS HELD BESIDE IT
+------------------------------------------------------------------
+why-this-flow-is-the-sharpest-probe: one value carries the numbering
+  sequence, the numbering format and the decision-table evaluation that
+  produced both, and the expression language on that exact code path is
+  the highest-impact runtime fix in the whole backend track.  Object
+  numbering is also one of the most visible behaviours in the
+  application, so a drift here would be seen by every user.
+expression-language-version-measured: 2.4.15.Final
+expression-language-finding: the installed release threw a bytecode
+  verification error out of its own bytecode-based accessor optimizer on
+  the default optimizer path.  It reproduced that error against
+  a bean compiled for the older release -- that is, at the JDK 8 target --
+  which places the defect in the code the library itself generates rather
+  than in the classes it reads.  No way of compiling the application
+  differently could have avoided it.
+expression-language-floor-method: BISECTION, not documentation.  2.4.8
+  fails and 2.4.9 works, and the reactor pins the version measured above.
+  No changelog names the fixing release as a runtime-compatibility fix,
+  so only execution could have found it.  This is the strongest single
+  instance in the migration of the standard that governed the whole plan:
+  execute, do not read.
+why-the-declared-version-is-the-loaded-version: the rule compiler declares
+  the expression language WITH NO VERSION OF ITS OWN, so the reactor
+  property is what governs which one is actually on the classpath.  That
+  version is pinned explicitly in the root aggregator, which is what makes
+  the loaded version deterministic and the fix effective (R-T4), and it is
+  why a single property change is what this capture tests.
+how-that-failure-was-resolved: by ADVANCING THE LIBRARY, not by relaxing a
+  module boundary.  This flow is the clearest illustration of that
+  principle anywhere in the migration (R-T3), and it is why the register
+  of JDK internal-access exceptions for production launch configuration is
+  earned empty rather than assumed empty.  That register is referred to
+  here by its title only, and deliberately not by its file name, because
+  the file name itself spells the launch-configuration argument that no
+  capture in this tree may carry (R-2).  No such argument arises in this
+  flow, and none is present in the production launch configuration.
+spreadsheet-reader-version-measured: 4.1.2
+spreadsheet-reader-held-and-why: HELD -- the same version before and after,
+  so nothing in this flow reads the decision tables differently.  It was
+  assessed and demonstrably did not fail, and a version bump without a
+  demonstrated incompatibility would itself be out of scope (R-1).
+  Holding a version is as much a rule-compliant decision as changing one,
+  and both sides of that rule are recorded here deliberately: the
+  expression language changed because it demonstrably failed and its floor
+  was bisected to the exact release; its neighbour did not change because
+  it demonstrably did not fail.
+rule-engine-version-measured: 7.49.0.Final
+rule-engine-measured-against-the-plan: the migration plan also describes
+  the rule engine as deliberately unchanged.  The reactor does not agree,
+  and this record reports the reactor: the engine advanced on its own
+  separately bisected blocker, registered with its justification in the
+  dependency change inventory and the ambiguity resolutions register.  It
+  is stated here for the same reason the measured table count is stated
+  beside the plan figure -- a capture that recites a stale figure is worse
+  than one that reports none.
+no-embedded-compiler-dependency: the rule compiler module declares only a
+  parser generator and the expression language, so the rule-compilation
+  path that would have required a modern embedded Java compiler is simply
+  absent from this codebase.  Together with the zero textual rule files
+  measured above, that is why no compiler change was needed for the rules.
+------------------------------------------------------------------
+GOVERNING RULES AND PROVENANCE
+------------------------------------------------------------------
+rules-document-on-disk: none
+rules-in-force: 14 (7 core, 7 transformation)
+governing-rules-provenance: two facts, and both belong together because
+  either one alone misleads.  First, the project rules facility was
+  queried and returned, verbatim, "No user rules provided" on every call,
+  and that read was complete rather than partial: there is NO on-disk user
+  rules document for this project, and therefore no external full-text
+  source to defer to.  Second, rules are nonetheless present and binding:
+  the migration requirements embed an explicit numbered block of seven
+  core rules plus seven transformation rules, and those fourteen govern
+  this work in full, exactly as an external rules document would.
+  Reporting only the first fact would imply that enterprise best practice
+  is the sole standard here, which is wrong because fourteen specific
+  constraints apply; reporting only the second would misrepresent where
+  the rules came from.  The requirements list them as numbered items
+  without names, so the identifiers cited throughout this record are the
+  navigational convention of that migration plan rather than quoted rule
+  titles.  No rule has been invented and none has been softened;
+  enterprise best practice is applied on top of the fourteen, never as a
+  substitute for them.
+rule-that-creates-this-record: R-7, baseline behaviour is the tie-breaker.
+  Quoted with its one substitution DISCLOSED rather than made silently:
+    "The application's observed behavior at the base commit on JDK 8 is
+    the tie-breaker for any ambiguity, and each resolution must be
+    documented."
+  Editorial note, which must accompany that quote wherever it is
+  reproduced: the text of the rule names the older runtime with a phrase
+  the wording gate over this documentation tree forbids.  The substitution
+  changes no meaning, and it is disclosed here rather than applied
+  quietly.
+  The closing clause of that rule, requiring each resolution to be
+  documented, is precisely what this record does.  Flow 6 is where the
+  rule does the most work in the whole suite: a real library version
+  changes on the exact code path under test, so the numbering sequence and
+  format recorded at the base commit is the ONLY thing that can prove the
+  change was behaviour-preserving.  The same unmodified script writes the
+  migrated record, and the two are compared row for row.
+rule-that-constrains-this-record: R-T7, evidence over exit codes.  Quoted
+  verbatim:
+    "Validation asserts on produced artifacts and captured output, never
+    on process exit status alone. This is mandatory rather than stylistic
+    because Gruntfile.js sets grunt.option('force', true), which masks
+    task failures and lets a broken build exit zero."
+  Repository proof, re-verified for this capture: Gruntfile.js:L143 states
+  that grunt is made to default to force so as not to break the project,
+  and Gruntfile.js line 144 sets that option.  Two registered pre-existing
+  defects are masked by exactly that setting -- the sync-dev alias at line
+  379 names a concurrent target called default while the concurrent block
+  at lines 90 to 98 defines only default1, at line 91; and the lint alias
+  at line 372 names a JavaScript linter that has no configuration block at
+  all, while the stylesheet linter beside it IS configured at lines 40 to
+  47.  Neither alias appears in the default task graph at line 376.  Both
+  are recorded and neither is repaired (R-6).
+rule-on-omission: R-5, quoted verbatim: "Failing tests must not be
+  disabled, and exclusions are limited to failures already present at
+  baseline."  Applied here: no flow may be silently skipped, so an
+  unexecutable flow carries the explicit SKIPPED state above together with
+  its reason, and the gap stays visible in a recursive directory diff, in
+  the completeness verdict and in the exit status.  This record
+  contributes ZERO test exclusions, and no observation in it has been
+  weakened or softened to look like a pass.
+rule-on-discovered-defects: R-6, quoted verbatim: "Pre-existing bugs
+  discovered during the work are documented rather than fixed, unless one
+  blocks a validation item."  Applied here: nothing was repaired, no
+  failure was retried into submission, and no unexpected outcome was
+  hidden.  Sharpest form for this flow -- a numbering oddity is never
+  tidied.  An unexpected prefix, a gap in the sequence or odd padding IS
+  the baseline, and preserving it is the objective, because the criterion
+  is identity with the baseline and not correctness in the abstract.  The
+  escape clause of that rule is invoked EXACTLY TWICE across the whole
+  change set -- once for the untracked front-end profiles module and once
+  for the unbuildable stylesheet toolchain -- and NEITHER invocation is in
+  this folder, so the count stays auditable.
+pre-existing-condition-recorded-not-fixed: the document viewer endpoint at
+  https://arkcase-ce.local/VirtualViewerJavaHTML5 is DOCUMENTED to answer
+  HTTP 503, in two separate places -- README.md:L53 and docs/setup.md:L33,
+  both as those files stand at the base commit.  It is recorded as the
+  pre-existing condition it is and is not repaired (R-6).  It is not on
+  this flow path; it is stated so that a reader who meets that 503
+  elsewhere in the capture cannot mistake it for a migration regression.
+rule-on-scope: R-1, quoted verbatim: "A change without a reason is out of
+  scope."  Applied to this record as a fence: it adds no tooling, no
+  framework and no page.  It is produced with the POSIX toolset and one
+  transport client only -- no data-format processor, no interpreter beyond
+  the shell, no test framework and no package installation.
+fences-stated-so-their-absence-is-not-read-as-oversight: no build file is
+  edited by this record and no release-8 compiler target is introduced
+  anywhere (R-3, R-T2); namespace invariance holds and the successor
+  namespace is referenced nowhere (R-T1); the lockfile-governed front-end
+  graph is untouched (R-T5); no dependency key, install topology or output
+  artifact name is touched (R-T6); and nothing here references a newer
+  framework generation, a typed JavaScript dialect, a module bundler, a
+  new front-end framework, a visual redesign or a new feature, every one
+  of which is excluded by directive.  Neither package manager is named in
+  this record, and the outgoing one in particular is presented neither as
+  a prerequisite nor as a recommendation (R-4).
+capture-layout-constraint: only the three capture files of this flow are
+  written, and no subdirectory is created here whose name is a bare
+  pattern in the repository ignore file, because a file written under such
+  a name would be silently uncommitted while every local check still
+  passed -- a deliverable that fails its completion condition invisibly.
+mirror-obligation: the migrated record uses the identical file name and
+  the identical field set, this census block included, because the same
+  unmodified script emits both.  No wall-clock time, host name, user name,
+  process identifier, random value or absolute path appears anywhere in
+  this record, because each would differ between two runs for reasons
+  unrelated to the runtime and would turn the comparison into noise.
+compare-with: a recursive diff of the baseline and migrated capture
+  directories, which is mechanical precisely because the two field sets
+  match.  This record is EVIDENCE, not a pass mark.

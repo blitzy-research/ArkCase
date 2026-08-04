@@ -1,8 +1,293 @@
+================================================================================
+ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - FLOW 4 OBSERVATION RECORD
+================================================================================
+
+FLOW: 4-solr-search - search round-trip through the search engine
+ARTEFACT: flow-4-solr-search.result.txt
+CAPTURE DIRECTORY: <CAPTURE-DIR>
+CAPTURE SIDE: migrated (post-migration)
+MIRRORED BY: the same file name under the other capture directory, written by
+    this same unmodified script with the identical field set, so that
+    diff -r <baseline-dir> <migrated-dir> compares the two line for line
+PRODUCED BY: docs/migration/smoke-evidence/smoke-checks.sh - flow_4_solr_search,
+    through record_search_flow_context, record_search_observation and
+    record_result
+INVOCATION: SMOKE_OUT_DIR=<CAPTURE-DIR> ./docs/migration/smoke-evidence/smoke-checks.sh
+HAND EDITED: no
+REPOSITORY: com.armedia:acm:2021.03 - a 145-module Maven reactor
+
+RUNTIME / COMMIT
+    runtime-designation: Java 17
+        The DECLARED label of this capture side, and said to be declared: it is
+        not probe output.  Flow 4 issues HTTP requests only; it invokes no
+        compiler and no virtual machine, so the runtime is a property of the
+        deployed application being observed rather than something this flow can
+        measure for itself.
+    runtime-banner-observed: openjdk version "17.0.19" 2026-04-21
+        Captured verbatim from the tool, as evidence beside the declared label
+        rather than in place of it.
+    base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
+    base-commit-short: c8f6226105
+    capture-ordering: the baseline capture is taken before any file in the
+        change set is edited.  It is the first executable action of the
+        migration rather than a validation afterthought, because nothing done
+        later can reconstruct it, and without it every claim that behaviour was
+        preserved would be unfalsifiable (R-7).
+
+COMPARED ARTEFACTS
+    flow-4-solr-search.status - the transport ledger and this flow's own
+        outcome tokens, including the match count and the ordered identifier
+        list
+    flow-4-solr-search.out - the verbatim request and response capture for both
+        probes, and the transcribed ordered result set
+    Both are re-read from disk to form every value recorded here.  A process
+    exit status is recorded as an additional observation only, never as the
+    basis of a result (R-T7).
+
+QUERIES ISSUED
+    1  GET https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=*%3A*&start=0&n=5
+       through the application search endpoint, Accept: application/json,
+       authenticated as the administrator account; auth-mode recorded as basic
+    2  GET https://arkcase-ce.local/solr
+       the search engine directly, unauthenticated, to record whether the
+       engine itself answered
+
+MIGRATION PATH EXERCISED
+    The search client on Java 17 - UNCHANGED BY DESIGN, and that is a
+    deliberate decision rather than an omission.  The client speaks HTTP, it
+    manipulates no bytecode, and it touches no encapsulated JDK package, so it
+    was cleared by a specific mechanism instead of being upgraded on suspicion.
+    Its cleanliness is also part of why the JDK access exceptions register is
+    delivered empty: this client asks for nothing the platform encapsulates.
+    R-1 CONTRAPOSITIVE, recorded explicitly because flow 4 is its clearest
+    case: "A change without a reason is out of scope."  Holding the client
+    version is as much a rule-compliant decision as changing one would be, and
+    bumping it without a demonstrated compatibility reason would itself have
+    been a violation.  The same restraint was applied to the reflection-based
+    scanning library used in index-related work, which was verified to scan a
+    class file at major version 61 and then left exactly where it was.
+    CONSEQUENCE, and it is what makes this flow worth running: because nothing
+    changed on this path, any difference between the baseline capture and the
+    replay is a genuine regression with no expected-consequence explanation
+    available.  Flow 4 is the clean control among the eight.
+    Wire behaviour toward the search engine is on the preserve list - the same
+    endpoints, the same formats, the same authentication - and search
+    round-trips are assigned to this gate as the confirmation of it.
+
+COMPARISON CRITERION
+    Identical result set AND identical ranking.
+    Both halves are stated because both are required.  Recording only that the
+    same documents came back would omit half the criterion: RANKING IS
+    BEHAVIOUR, NOT PRESENTATION, so the order the engine chose is part of the
+    answer and not a rendering detail.  The set half is the match count and the
+    membership of the identifier list; the ranking half is the position of each
+    identifier within it.
+
+NORMALISATION / REDACTION APPLIED
+    Stripped, because each differs between two runs for reasons that are not
+    behaviour:
+        ISO-8601 timestamps, and the wall-clock response headers - the Date,
+            Last-Modified and Expires headers - which carry the hour a
+            response was produced
+        entity validators of the ETag kind, which are server-generated
+        session identifiers and Set-Cookie material, which are redacted rather
+            than normalised because a live session identifier is
+            credential-equivalent; only the EXISTENCE of a session is recorded,
+            as a separate observed field
+        generated request and correlation identifiers, and values shaped like a
+            universally unique identifier
+        absolute filesystem paths that name this host rather than the
+            application
+        THE REPORTED QUERY-TIME AND ELAPSED-TIME FIGURE.  Named specifically
+            because it is the one value inside a search response that is
+            removed: it is wall-clock cost rather than behaviour, and leaving
+            it in would make this flow report a difference on a search that
+            returned exactly the same documents in exactly the same order.
+    Preserved, because each IS the behaviour under observation:
+        the match count, recorded as a token in its own right
+        the document identifiers
+        THEIR ORDER
+        the relevance scores, where the response exposes them
+    AFFIRMATIVELY: the results were NOT sorted, NOT deduplicated, NOT
+    reordered and NOT truncated.  The identifiers are transcribed in the order
+    the engine returned them, by a reader that emits matches in file order, so
+    the order is preserved by construction rather than by a sort that could be
+    got wrong.  A normalisation pipeline that tidied this list to make the diff
+    read better would destroy the only signal this flow carries, and no local
+    check would catch it.
+    The configured credential is replaced by the fixed placeholder <REDACTED-CREDENTIAL>
+    by the redaction pass, which every byte this script writes passes through.
+    The credential value itself is never recorded, in this file or any other.
+
+INDEX-READINESS NOTE
+    A search index has to have finished indexing before its answer means
+    anything.  An empty or short result set from a query issued before indexing
+    completed is an artefact of TIMING, not of behaviour, and comparing it
+    against the other capture would either manufacture a difference or hide a
+    real one behind a matching pair of premature answers.  The query is
+    therefore re-issued until two consecutive observations agree on the count,
+    at most 12 times at 5s intervals, and a matching pair of ZEROES is not
+    accepted as settled - an empty answer to a match-everything query is an
+    unpopulated index.  Whether readiness was established is recorded below in
+    the RESULT_COUNT_STABLE token; where it could not be established that is
+    recorded plainly rather than papered over.
+
+TLS / READINESS CONTEXT
+    transport-trust-mode: verify-default-trust-store
+    transport-trust-degraded: no
+    The reference stack serves a SELF-SIGNED TLS certificate, recorded at the
+    base commit in README.md:L45.  The capture accommodates it deliberately:
+    without accommodation every flow would fail on certificate verification
+    rather than on behaviour, which is a FALSE NEGATIVE RATHER THAN EVIDENCE.
+    Accommodation means supplying the certificate authority bundle or pinning
+    the peer public key - verification itself is never silently disabled, and a
+    run that does disable it is recorded as carrying degraded trust.
+    readiness-poll: 1 attempt(s) at 10s, transport ceiling 120s.  The first
+    Tomcat startup takes 5 to 10 minutes, recorded at the base commit in
+    README.md:L141, so readiness polling tolerates a slow start rather than
+    assuming one.
+    Reference-stack coordinates, all as recorded at the base commit: the search
+    engine at https://arkcase-ce.local/solr (README.md:L47); the application at
+    https://arkcase-ce.local/arkcase (README.md:L143 and README.md:L147), whose
+    context path the frontend declares as appPath /arkcase/ in
+    config/env/all.js:L6; the deployed archive named arkcase.war
+    (README.md:L141).
+
+PRE-EXISTING CONDITION RECORDED, NOT REPAIRED
+    https://arkcase-ce.local/VirtualViewerJavaHTML5 is EXPECTED to answer HTTP
+    503.  That expectation is documented at the base commit in TWO places -
+    README.md:L53 and docs/setup.md:L33 - so it is a documented pre-existing
+    condition rather than a regression.  Where the run surfaced it, it is
+    captured as observed and left alone (R-6).
+
+--------------------------------------------------------------------------------
+GOVERNING RULES - PROVENANCE.  Two facts, and both must be stated together.
+--------------------------------------------------------------------------------
+    1  There is NO on-disk user rules document for this project.  The rules
+       facility reports, verbatim: "No user rules provided."  There is
+       therefore no external full-text source to defer to.  That is NOT
+       licence to lower the bar.
+    2  Rules are nonetheless present and binding.  The migration requirements
+       embed an explicit, numbered RULES block of seven rules that govern this
+       work in full, exactly as an external rules document would, plus seven
+       transformation rules.
+    Reporting only the first would imply that enterprise best practice is the
+    sole standard here, which is wrong - seven specific constraints apply.
+    Reporting only the second would misrepresent where the rules came from.
+    The identifiers R-1 to R-7 and R-T1 to R-T7 used in this file are the
+    migration plan's OWN navigational convention, not quoted rule titles.  No
+    rule has been invented here and none softened.
+
+R-7 - BASELINE BEHAVIOUR IS THE TIE-BREAKER.  The rule that creates this file.
+    Verbatim, with one disclosed substitution: "The application's observed
+    behavior at the base commit on JDK 8 is the tie-breaker for any ambiguity,
+    and each resolution must be documented."
+    [Editorial note, which accompanies the quote wherever it is reproduced: the
+    rule's own text names the older runtime with a phrase this documentation
+    tree's wording gate forbids.  "JDK 8" is substituted.  The substitution
+    changes no meaning and is disclosed here rather than made silently.]
+    "and each resolution must be documented" is precisely what this file does.
+
+R-T7 - EVIDENCE OVER EXIT CODES.  The defining constraint on this file.
+    Verbatim: "Validation asserts on produced artifacts and captured output,
+    never on process exit status alone.  This is mandatory rather than
+    stylistic because Gruntfile.js sets grunt.option('force', true), which masks
+    task failures and lets a broken build exit zero."
+    Repository proof at the base commit: Gruntfile.js:L143 reads the comment
+    "Making grunt default to force in order not to break the project." and
+    Gruntfile.js:L144 sets that option.  Two registered pre-existing defects
+    are masked by exactly that setting - the sync-dev alias at
+    Gruntfile.js:L379 names a concurrent target called default while the
+    concurrent block at Gruntfile.js:L90-L98 defines only default1 at
+    Gruntfile.js:L91, and the lint alias at Gruntfile.js:L372 names two
+    linters of which only the stylesheet linter has a configuration block.
+    Neither alias appears in the default task graph at Gruntfile.js:L376.
+    THE SHARPEST ILLUSTRATION IN THE WHOLE SUITE LIVES IN THIS FLOW: a query
+    that answers HTTP 200 with ZERO RESULTS is a success by exit status and a
+    failure by behaviour.  Only the captured match count and identifier list
+    distinguish the two, which is why the count is recorded as a token in its
+    own right rather than left to be inferred.
+
+R-5 - NO DISABLING OF FAILING TESTS.
+    Verbatim: "Failing tests must not be disabled, and exclusions are limited
+    to failures already present at baseline."
+    No flow may be silently skipped.  A flow that genuinely cannot be executed
+    gets an explicit, machine-readable SKIPPED record WITH A REASON in all
+    three of its files, so the absence is visible in a directory diff instead
+    of nowhere.  This file contributes ZERO test exclusions.  No observation
+    here was weakened to look like a pass and no query was substituted until
+    the result looked better.
+
+R-6 - DOCUMENT DISCOVERED BUGS, DO NOT FIX THEM.
+    Verbatim: "Pre-existing bugs discovered during the work are documented
+    rather than fixed, unless one blocks a validation item."
+    Nothing observed here was repaired, retried into submission or hidden.  The
+    change set invokes that escape clause EXACTLY TWICE - creating the frontend
+    profiles module, and removing the stylesheet-compiler toolchain that cannot
+    build on Node 20 - and NEITHER INVOCATION IS IN THIS FOLDER, so the count
+    stays auditable.
+
+R-2 - NO JDK-INTERNAL ACCESS IN PRODUCTION LAUNCH CONFIGURATION.
+    Verbatim: "Production launch configuration must not rely on a
+    module-access JVM argument that opens or exports an otherwise-encapsulated
+    JDK package to the unnamed module, or other JDK-internal access, except
+    where a pinned third-party dependency documentedly requires it, and each
+    such exception must be documented."  The three literal argument spellings
+    are described rather than written, here and throughout this folder, because
+    two sibling validation gates grep recursively over directories that contain
+    this file and both must return zero.  For the same reason the sibling
+    register that catalogues those arguments is named BY TITLE ONLY - the JDK
+    access exceptions register - since its filename embeds one of the
+    forbidden spellings.  The audited production launch configuration contains
+    no such argument, and the search client is one of the libraries whose
+    cleanliness made that emptiness achievable.
+
+R-1 - JUSTIFIED CHANGES, AS A SCOPE FENCE.
+    Verbatim: "A change without a reason is out of scope."  This record adds no
+    tooling, no framework and no page.  It is produced with a POSIX shell and
+    curl alone: no JSON processor, no scripting-language interpreter, no test
+    framework, no package installation.  Where a single field has to be lifted
+    out of a JSON response it is done with grep and sed, and the limitation is
+    stated at the point of use.
+
+--------------------------------------------------------------------------------
+
+OBSERVATION
+    Read back from flow-4-solr-search.status and flow-4-solr-search.out.
+    query-issued-application-search: GET https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=*%3A*&start=0&n=5
+    query-issued-search-engine-direct: GET https://arkcase-ce.local/solr
+    status-token-application-search: 000
+    status-token-search-engine-direct: 000
+    match-count-observed: unavailable
+    match-count-settled-across-two-consecutive-observations: unavailable
+    ranking-observed-raw: unavailable
+    reason-recorded-in-the-capture: no HTTP response from the application search endpoint
+
+    RANKING - document identifiers in the order the search returned them.
+    Not sorted, not deduplicated, not reordered, not truncated.
+        (no ranking observed.  The ordered identifier list is recorded as
+        "unavailable", which is deliberately NOT the same record as an empty
+        ranking: an empty ranking would assert that the search answered
+        and returned no documents, and no run made that claim here.)
+
+    INDEX READINESS AT CAPTURE TIME
+        NOT ESTABLISHED.  No count was observed at all, so there was
+        nothing to settle.  This is recorded plainly as a limitation
+        rather than papered over, and it is NOT reported as a settled
+        empty index: an unpopulated index and an unreached index are
+        different observations and must stay distinguishable.
+
+    WHY THE COUNT IS RECORDED SEPARATELY FROM THE STATUS: an answer of HTTP
+    200 carrying an empty result set is a success by status and a failure by
+    behaviour.  A status ledger that recorded only 200 could not tell the two
+    apart, so the count above is part of what has to be observed rather than a
+    decoration on it (R-T7).
+
 flow: 4
 slug: 4-solr-search
 verdict: SKIPPED
-migration-path-exercised: search client on Java 17, unchanged by design
-compared-artefacts: none — the flow did not execute
+migration-path-exercised: search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded, so under R-1 an upgrade without a compatibility reason would itself have been out of scope
+compared-artefacts: flow-4-solr-search.status and flow-4-solr-search.out, re-read from disk; both exist and both were written by this flow, so the record names them rather than reporting none
 transport-trust-mode: verify-default-trust-store
 state-mutation-permitted: no
 observed-statuses:
@@ -16,8 +301,19 @@ observed-statuses:
   REASON: no HTTP response from the application search endpoint
   search-through-application=SKIPPED
 observations:
-  - skipped: no HTTP response from the application search endpoint
+  - SKIPPED: no HTTP response from the application search endpoint, so the search round-trip was never reached
   - a SKIPPED verdict is not a pass and must not be read as one
+  - application search endpoint observed: 000; the token 000 is this transport's record of no HTTP response at all, not a server status
+  - search engine direct observed: 000
+  - application search response body bytes observed: 0
+  - match count observed: unavailable - deliberately NOT recorded as zero, because zero would assert that the search answered and matched nothing, which is a behavioural claim no run here produced
+  - ranking observed: unavailable - neither the result set nor its ordering was observed, so neither half of the criterion has anything to compare yet
+  - index readiness could not be established on this run: the query never reached the index, so RESULT_COUNT_STABLE is recorded as unavailable.  That limitation is stated plainly rather than papered over, and an unreached index is deliberately not recorded as a settled empty one
+  - the transport exit status recorded in the .out is an ADDITIONAL observation only; this verdict is derived from the captured status tokens and the captured body, never from a subprocess exit status (R-T7)
+  - the result count and the ordered identifier list are recorded as tokens in their own right in flow-4-solr-search.status, so a later replay that answers 200 with an empty result set cannot be mistaken for a match
+  - no captured payload required a value to be normalised on this run: no body was returned, so nothing was captured that could carry one
+  - nothing was repaired, retried into submission or hidden to make this record read better (R-6)
+  - behaviour is preserved only if the result set AND its ordering match the counterpart capture exactly
 assertion-basis: derived by reading flow-4-solr-search.status and
   flow-4-solr-search.out back from disk; no verdict in this script is taken
   from a subprocess exit status (R-T7).

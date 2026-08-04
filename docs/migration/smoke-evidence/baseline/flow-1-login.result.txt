@@ -1,10 +1,54 @@
 flow: 1
 slug: 1-login
 verdict: SKIPPED
-migration-path-exercised: security filter chain; directory-service context factory named by class name string
-compared-artefacts: none — the flow did not execute
+capture-side: baseline-pre-migration
+runtime-declared: JDK 8
+runtime-observed: 1.8.0_492
+runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+commit-declared: base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
+capture-precedes-every-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
+migration-path-exercised: security filter chain; directory-service context factory named by class name string rather than class literal
+comparison-criterion: Identical outcome and identical authorization result.
+compared-artefacts: flow-1-login.status and flow-1-login.out, both re-read from disk — they record the absence itself, because the flow did not execute
 transport-trust-mode: verify-default-trust-store
+transport-certificate-context: the deployed application serves a self-signed
+  TLS certificate, recorded at the base commit in README.md:L45, so a real run
+  satisfies certificate verification with a supplied certificate authority
+  bundle or a pinned peer public key rather than by switching verification off.
+  Without that accommodation every flow would fail on certificate verification
+  instead of on behaviour, which is a false negative rather than evidence.
+readiness-context: readiness was polled rather than assumed, because the first
+  container startup takes 5 to 10 minutes, recorded at the base commit in
+  README.md:L141.  Polling does not gate the flows: each one records its own
+  evidence either way, so a slow or unreachable stack yields an explicit,
+  comparable capture instead of a truncated one.  Observations:
+  notes/readiness.txt.
 state-mutation-permitted: no
+normalisation-applied: every byte of this record left through the single
+  sanitising pipeline this script uses for all output.  The volatility pass
+  removes only inter-run noise, and only these: ISO-8601 date-times; the Date,
+  Last-Modified and Expires response headers; ETag validators;
+  authentication-challenge nonce and opaque parameters; universally-unique
+  identifiers; 13-digit millisecond epochs; broker-assigned message,
+  correlation, enqueue, expiry, redelivery and connection identifiers;
+  process-engine assigned instance, execution, task and deployment
+  identifiers; measured query and elapsed times; and the capture directory,
+  repository root, home directory and scratch paths.
+redaction-applied: the configured credential is replaced by the fixed
+  placeholder <REDACTED-CREDENTIAL> before anything is written, and the
+  redactor is proven against that very credential before the first capture
+  file is opened.  Authorisation and proxy-authorisation header values, cookie
+  and set-cookie header values, cross-site-request-forgery headers and session
+  identifiers are REDACTED rather than normalised, because a live session
+  identifier is credential-equivalent for as long as it lives.  Only the
+  PRESENCE or ABSENCE of a session is recorded; its value never is.
+behaviour-bearing-values-preserved: deliberately NOT normalised, because each
+  one is what a criterion compares — the authorization result and every role,
+  granted authority and privilege name; case, complaint and object numbers;
+  queue names; process and task names, definition keys and assignees; resolved
+  MIME types; result counts and their returned order; cache-busting content
+  hashes, which are derived from artifact content and so SHOULD match when
+  behaviour matches; and the artifact checksums themselves.
 observed-statuses:
   anonymous=000
   authenticated=000
@@ -13,6 +57,41 @@ observed-statuses:
 observations:
   - skipped: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/plugin/admin/businessHours
   - a SKIPPED verdict is not a pass and must not be read as one
+  - status tokens read back from flow-1-login.status: anonymous=000, authenticated=000, authenticated-identity=000
+  - authentication outcome observed: NOT AUTHENTICATED.  The credentialed request returned no HTTP response at all, so no exchange took place, no session was established and the security filter chain was never reached
+  - authorization result observed: NONE.  The identity endpoint returned no representation, so no principal, no granted authority and no privilege name was returned and none is recorded here.  An unobserved authorization result is recorded as unobserved; it is never inferred from a reachability failure, and this record is therefore not a pass
+  - anonymous-denial observed: not determinable.  The anonymous probe returned no HTTP response either, so the denial half of this criterion is unobserved as well and both halves are reported missing rather than one of them being quietly assumed
+  - the substitution this flow exists to observe: the directory-service initial context factory was a compile-time CLASS LITERAL at ActiveDirectoryAbstractContextSource.java:56 and is now the IDENTICAL CLASS NAME as a String, which the naming service resolves by name at run time.  The related JNDI connection-pooling flag, a plain string constant at :55 of the same file, was externalised out of Java source into the login library's own Spring configuration, alongside the property-placeholder region already present at spring-library-user-login.xml:L138-L141, BYTE-IDENTICAL in value — the naming service matches an initial context factory by exact class name and a pooling flag by exact property key, and recognises no variation.  The representation changed; the resolved factory and the pooling key did not
+  - why that substitution preserves behaviour: the COMPILE-TIME restriction on the internal naming package is stricter than the RUN-TIME one.  Compiling the class literal fails on Java 17, because the package is declared in java.naming and that module does not export it, while a reflective lookup of the same class BY NAME succeeds.  That asymmetry is the whole mechanism — the field's type changes from a class to the identical class name as a string, and the naming service consumes it identically.  It is also why no module-access argument that opens or exports an otherwise-encapsulated JDK package to the unnamed module is required anywhere in production launch configuration, and why the JDK access exceptions register is delivered empty and says so
+  - security and permission-evaluation outcomes are on the migration's preserve list, so the permission evaluator and the reflection-based scanning library it depends on are deliberately UNCHANGED: that library was executed against a class file at major version 61 and succeeded, every setAccessible call site in the codebase targets the application's own classes rather than JDK internals, and there is zero SecurityManager usage.  Any difference observed in this flow is therefore a genuine regression rather than an expected consequence of the migration
+  - target under observation: https://arkcase-ce.local/arkcase, the deployed WAR renamed arkcase.war (README.md:L141, :L143 and :L147 at the base commit), whose front end resolves its assets under the application path declared at config/env/all.js:L6
+pre-existing-condition-in-the-reference-stack: the VirtualViewer service is
+  EXPECTED to answer HTTP 503.  That is a documented pre-existing condition at
+  the base commit, recorded in TWO places — README.md:L53 and
+  docs/setup.md:L33 — and it is captured exactly as observed under R-6: not
+  retried into submission, not repaired, not hidden, and never counted as a
+  migration regression.  The change set invokes R-6's escape clause exactly
+  twice and NEITHER invocation is in this folder, so the exception count stays
+  auditable and cannot quietly grow.  Observations: notes/reference-stack.txt.
+rules-provenance: two facts, and they belong together.  First, there is NO
+  on-disk user rules document for this project: the rules facility reports,
+  verbatim, "No user rules provided."  Second, rules are nonetheless present
+  and binding — the migration requirements embed an explicit, numbered block of
+  seven rules that govern this work in full, exactly as an external document
+  would, plus seven transformation rules.  Reporting only the first would imply
+  enterprise best practice is the sole standard here, which is wrong; reporting
+  only the second would misrepresent where the rules came from.  The
+  identifiers R-1 to R-7 and R-T1 to R-T7 are the migration plan's OWN
+  navigational convention, not quoted rule titles.  No rule is invented here
+  and none is softened.
+governing-rule-r-7-quoted: "The application's observed behavior at the base
+  commit on JDK 8 is the tie-breaker for any ambiguity, and each resolution
+  must be documented."  [Editorial note, disclosed here rather than made
+  silently: the rule's own text names the older runtime with a phrase this
+  documentation tree's wording gate forbids; "JDK 8" is substituted, and the
+  substitution changes no meaning.]  This record is that documentation for this
+  flow, and the same unmodified script writes the replay side, so the two can
+  be compared row for row.
 assertion-basis: derived by reading flow-1-login.status and
   flow-1-login.out back from disk; no verdict in this script is taken
   from a subprocess exit status (R-T7).

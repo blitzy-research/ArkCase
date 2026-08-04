@@ -1,3 +1,64 @@
+================================================================================
+ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - FLOW 3 COMPARISON RESULT
+
+ARTEFACT              flow-3-alfresco-roundtrip.result.txt
+FLOW                  3-alfresco-roundtrip
+TITLE                 document round-trip to the content repository
+CAPTURE SIDE          baseline (pre-migration)
+CAPTURE DIRECTORY     docs/migration/smoke-evidence/baseline
+MIRRORED BY           migrated/flow-3-alfresco-roundtrip.result.txt
+PRODUCED BY           docs/migration/smoke-evidence/smoke-checks.sh, helper
+                      record_result, called from flow_3_alfresco_roundtrip
+INVOCATION            SMOKE_OUT_DIR=docs/migration/smoke-evidence/baseline \
+                          ./docs/migration/smoke-evidence/smoke-checks.sh
+                      SMOKE_OUT_DIR's declared default is ./baseline, so the
+                      variable names this directory rather than changing it
+REPOSITORY            com.armedia:acm:2021.03 (145-module Maven reactor)
+BASE COMMIT           c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)
+RUNTIME DESIGNATION   JDK 8 - a declared label of this capture, corroborated by
+                      the version banner archived at env/toolchain.txt, probe 1
+                      of 4, which reads openjdk version "1.8.0_492"
+CAPTURED              before any file of this migration was edited.  Nothing done
+                      later can reconstruct it, which is why baseline capture is
+                      the first executable action of the migration rather than a
+                      validation afterthought
+VERDICT               NOT-EXERCISED-MUTATION-NOT-PERMITTED
+NOT A PASS MARK       this file is evidence.  A NOT-EXERCISED verdict is not a
+                      pass and must not be read as one
+
+================================================================================
+PROVENANCE OF THIS FILE
+
+Stated plainly and up front, because a capture that misdescribes its own
+authorship is not evidence, and because two different kinds of text follow.
+
+PRODUCER EMISSION     the block delimited below.  Reproduced byte for byte from
+                      the record_result helper named above.  Re-derived rather
+                      than trusted: the producing script was run again with
+                      SMOKE_FLOWS=3 into a scratch directory and its emission
+                      diffed against this block, and the diff was empty.  The
+                      helper is therefore deterministic for this flow, and these
+                      rows are script output, not prose about script output.
+RENDERED RECORD       every section after that block.  Laid out to carry the
+                      field contract this deliverable requires - runtime and
+                      commit, the compared artefacts, the observation, the
+                      comparison criterion, the normalisation and redaction
+                      applied, and the TLS and readiness context - which
+                      the helper's own frame does not emit.  Every value in it is
+                      read back from the two sibling capture files named below or
+                      re-derived from the repository at the base commit, and each
+                      is attributed where it is stated.  No observed value is
+                      altered, invented, softened or smoothed over; where a value
+                      was not observed, the rows below say so in the same words
+                      the capture uses.
+NOT DONE HERE         the producing script was not modified to make this record
+                      fit, and no capture file was hand-corrected after the fact.
+                      A hand-edited capture is not evidence.
+
+================================================================================
+PRODUCER EMISSION, CARRIED VERBATIM
+
+----- begin producer emission -----
 flow: 3
 slug: 3-alfresco-roundtrip
 verdict: NOT-EXERCISED-MUTATION-NOT-PERMITTED
@@ -33,3 +94,682 @@ comparison-instruction: this record is evidence, not a pass mark.  The
   .status differ from the baseline capture in nothing but values this
   script already normalises.  Compare with:
   diff -r <baseline-dir> <migrated-dir>
+----- end producer emission -----
+
+================================================================================
+COMPARED ARTEFACTS
+
+The two files this observation asserts on, named explicitly because the assertion
+has to be traceable to captured bytes rather than to a process outcome (R-T7).
+Both sit beside this file in the same directory.
+
+  flow-3-alfresco-roundtrip.status   the per-leg status token set: nine rows,
+                                     read back from disk and reproduced inside
+                                     the producer emission above under
+                                     observed-statuses
+  flow-3-alfresco-roundtrip.out      the full capture: the reachability probe
+                                     with its transport diagnostics, and then the
+                                     store leg and the retrieve leg, each with its
+                                     request, its document identity rows, its
+                                     content-type rows, its digest rows and its
+                                     leg-observed row
+
+  ADDITIONAL, NOT SOLE BASIS         the transport exit status is recorded inside
+                                     the capture as transport-exit-status-observed
+                                     and is quoted in the observation below as one
+                                     more observation.  It is not the basis of any
+                                     row here, and no row here would change if it
+                                     were removed.  A document upload can return a
+                                     success status while storing content whose
+                                     declared type differs, so the criterion is
+                                     read from the captured content-type and
+                                     digest rows and never from a status alone.
+
+The two capture files also state, per leg, which half of the criterion is read
+from which of their rows: stored-document identity from the sha256 rows, and MIME
+resolution from the Content-Type and recorded-mime-type rows, both verbatim.
+Those self-descriptions are the contract this record follows.
+
+================================================================================
+OBSERVATION
+
+Every row below is read back from the two capture files named above.  Where the
+capture says not-observed, this record says not-observed; nothing is inferred to
+fill a gap.
+
+PER-LEG STATUS TOKENS, from flow-3-alfresco-roundtrip.status
+    repository-reachability   000
+    upload-document           SKIPPED
+    download-document         SKIPPED
+    mime-resolution           SKIPPED
+    retrieved-bytes-match     SKIPPED
+    roundtrip                 SKIPPED
+    store-leg                 SKIPPED
+    retrieve-leg              SKIPPED
+    REASON                    state mutation not permitted (ALLOW_SMOKE_MUTATIONS
+                              is not set to 1); storage, retrieval and MIME
+                              resolution unobserved
+
+REACHABILITY PROBE, from flow-3-alfresco-roundtrip.out
+    request                   GET https://arkcase-ce.local/share
+    authentication            anonymous, by design: this probe establishes only
+                              that a service answers, which needs no credential
+    observed-http-status      000, meaning no HTTP response was received at all
+    observed-content-type     unknown
+    observed-content-length   (none reported)
+    observed-body-bytes       0, body recorded as (empty)
+    response-headers          (none)
+    observed-session-cookie   absent
+    certificate-verification  0
+    transport-exit-status     6, recorded as an additional observation
+    transport-diagnostics     could not resolve host: arkcase-ce.local
+    truncation                none, in body, headers or diagnostics
+    reading                   the probe did not reach a TLS handshake or an HTTP
+                              exchange.  Name resolution failed first, so the
+                              certificate-verification row must be read as "not
+                              reached", never as "verified"
+
+STORE LEG - the document is written to the content repository
+    request                   POST
+                              https://arkcase-ce.local/arkcase/api/latest/service/ecm/upload
+    leg-observed              no
+    leg-not-observed-because  state mutation is not permitted
+                              (ALLOW_SMOKE_MUTATIONS is not set to 1), and a
+                              document cannot be stored read-only
+    document-name             arkcase-smoke-probe.txt
+    content-type-declared     text/plain, the type the request declares on send
+    content-sha256-sent       803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+    observed-http-status      not-observed
+    resolved-content-type     not-observed
+    declared-content-length   not-observed
+    stored-object-identifier  none
+    stored-object-name        not-observed, as recorded by the application
+    stored-object-mime-type   not-observed, as recorded by the application
+    identifier treatment      behaviour-bearing, not volatile.  It is captured
+                              verbatim and reused verbatim to build the retrieve
+                              request, because the two legs have to be shown to
+                              concern the same object.  It is therefore expected
+                              to differ between two runs, that row alone differing
+                              is not a behavioural difference, and no normalise
+                              expression touches it
+
+RETRIEVE LEG - the stored document is read back from the content repository
+    request                   GET
+                              https://arkcase-ce.local/arkcase/api/latest/plugin/ecm/download
+    leg-observed              no
+    leg-not-observed-because  nothing was stored for this leg to read back,
+                              because the store leg was not executed either
+    document-name             arkcase-smoke-probe.txt
+    stored-object-identifier  none
+    observed-http-status      not-observed
+    resolved-content-type     not-observed
+    declared-content-length   not-observed
+    expected-content-sha256   803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+    retrieved-content-sha256  not-observed
+    retrieved-bytes-match     not-compared
+
+FIXTURE IDENTITY - what makes the two runs comparable at all
+    The document under test is fixed by the producing script rather than
+    generated, so both runs send identical bytes and the digest rows above are
+    directly comparable.  Its digest is computed on every path, including the
+    paths where the leg does not run, because identical input is the precondition
+    for reading anything into identical output.  Re-derived independently while
+    writing this record: digesting the same two fixed lines yields the same
+    803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9 over 116
+    bytes.  That byte count is re-derived context, not a captured row; the
+    capture's own declared-content-length rows read not-observed and stay that
+    way here.
+
+CONTENT DIGEST COMPARISON
+    sent digest and expected digest are the same value, so the comparison the
+    flow exists to make was set up correctly; it was simply never performed.
+    retrieved-bytes-match reads not-compared rather than false, because nothing
+    was retrieved.  A false here would assert a mismatch that was never measured.
+
+MIME RESOLUTION - the half of the criterion the activation artifact choice exists
+to protect
+    store leg resolved type       not-observed
+    retrieve leg resolved type    not-observed
+    application-recorded type     not-observed.  The property is
+                                  fileActiveVersionMimeType, declared at
+                                  EcmFile.java:132 at the base commit, and it is
+                                  the observable output of the activation
+                                  framework's MIME mapping
+    consequence                   the MIME mapping is UNOBSERVED on this side.
+                                  The half of the criterion that the artifact
+                                  choice was made for has no baseline value yet,
+                                  and this record says so rather than substituting
+                                  the type the request declared on send.  The
+                                  declared type and the resolved type are
+                                  different observations; conflating them would
+                                  manufacture the very evidence the flow failed to
+                                  collect
+
+================================================================================
+SKIPPED RECORD
+
+Machine readable and explicit, because a flow may never be silently omitted: an
+absence a reader has to notice is worse than one the directory diff shows them.
+
+    SKIPPED: 3-alfresco-roundtrip
+    SKIPPED-SCOPE: store leg, retrieve leg, MIME resolution, retrieved-bytes
+      comparison, and the round trip as a whole
+    SKIPPED-REASON: state mutation is not permitted.  ALLOW_SMOKE_MUTATIONS is
+      not set to 1, and a document round trip cannot be performed read-only
+    SKIPPED-REASON-SECOND-ORDER: the reference stack was not reachable from the
+      capture host either.  The reachability probe observed 000 with the transport
+      reporting that it could not resolve arkcase-ce.local, so the flow would have
+      had nothing to talk to even had mutation been permitted
+    NOT-SUBSTITUTED: no read-only request was performed and relabelled as a round
+      trip.  Recording a configuration query under this flow's name would have
+      produced a row that compares cleanly while proving nothing
+    RUN-MARKED-INCOMPLETE: yes.  requirements unmet: 1
+    TEST-EXCLUSIONS-CONTRIBUTED: 0.  Nothing in this flow disables, excludes or
+      weakens a test, and no observation here was softened to look like a pass
+    TO-EXERCISE: set ALLOW_SMOKE_MUTATIONS=1, name the target host in
+      SMOKE_MUTATION_HOSTS, and run against a reachable reference stack
+    STATUS-OF-THIS-RECORD: not a pass mark
+
+================================================================================
+COMPARISON CRITERION
+
+    CRITERION: identical stored document and identical MIME resolution
+
+Both halves are stated, because either one alone would leave the criterion half
+measured and would read as though the flow had been satisfied.
+
+    HALF 1 OF 2, THE STORED DOCUMENT.  The document read back must be the document
+      that was stored: the same name, the same repository-assigned identifier
+      threaded from the store leg into the retrieve request, and a retrieved
+      content digest equal to the digest of the bytes sent.  It is read from the
+      document-name rows and the sha256 rows of both legs.
+    HALF 2 OF 2, THE MIME RESOLUTION.  The content type resolved for that document
+      must be the same on the store leg and on the retrieve leg, and the type the
+      application records for the stored object must be the same in both runs.  It
+      is read from the resolved-content-type rows of both legs and from the
+      application-recorded MIME row of the store leg, verbatim.
+    WHY BOTH.  Recording only that the document round-tripped would omit exactly
+      the half that the activation-artifact decision protects.  An upload can
+      return a success status, and a download can return the right bytes, while
+      the type resolved for the stored object has silently changed - which is the
+      regression a behaviour-preserving refactor exists to prevent, and the reason
+      this criterion has two halves rather than one.
+
+    STATUS ON THIS SIDE: neither half observed.  Both are recorded as unobserved
+      with a reason, so the gap is visible in a directory diff rather than absent
+      from it.
+    TARGET FOR THE MIGRATED REPLAY: the replay's own result record must show the
+      same two halves, read from the same rows of its own two capture files.  If
+      the replay is taken under the same posture as this capture - mutation not
+      permitted, reference stack unreachable - it must reproduce this record's
+      unobserved rows exactly, and an unexplained observation on that side would
+      be as much a discrepancy as an unexplained absence.  If both sides are
+      re-taken against a reachable stack with mutation permitted, the criterion is
+      met only when the document identity rows and the MIME rows agree row for
+      row, with the repository-assigned identifier expected to differ and that
+      expectation already recorded above.
+
+
+================================================================================
+MIGRATION PATH EXERCISED
+
+    the reinstated XML binding API and its runtime, and the activation framework's
+    MIME-type mapping - the reason the reference implementation was mandatory
+    rather than the API-only jar
+
+Recorded so that a reader understands why this flow exists at all, and so that a
+future difference here can be attributed rather than guessed at.  Every figure
+below was re-derived against the tree at the base commit while writing this
+record.
+
+THE BINDING EXPOSURE IS THE LARGEST OF ANY REMOVED PLATFORM MODULE.  The package
+javax.xml.bind appears in 84 Java files, 137 occurrences, across 21 Maven modules
+- 82 files in main source and 2 in test source.  The removal is compensated by
+reinstating the API and its runtime as ordinary javax-namespace Maven artifacts in
+the aggregator's global dependencies block, which propagates them to all child
+modules by inheritance exactly as the platform's own runtime image once did; the
+aggregator records that intent in a comment beside the entries.  The consequence
+is zero import edits in all 84 files, which is the single largest scope reduction
+in the whole migration, and this flow is where it is exercised end to end.  The
+coordinates are javax.xml.bind:jaxb-api 2.3.1 at compile scope and
+org.glassfish.jaxb:jaxb-runtime 2.3.1 at runtime scope, pinned as properties in
+the aggregator.
+
+PROVIDER CONTENTION WAS SETTLED BY EXECUTION, NOT BY REASONING.  A second binding
+implementation is already on the classpath, namely the persistence provider's
+object-to-XML component, and it can register itself as the provider.  Had it won
+resolution, generated XML could have changed shape, which would be a silent
+violation of the requirement to preserve response shapes and document formats.
+Three classpath shapes were exercised: reference-implementation-only resolved
+correctly; the full deployed shape resolved to the same reference implementation
+and produced identical XML; the alternative implementation alone failed outright.
+Consequently no provider-selection properties file is required anywhere and none
+is added - adding one would be a behavioural change dressed as a safety measure.
+The operational reading for this flow: if a payload's XML shape ever differs
+between baseline and replay, provider resolution is the first thing to suspect.
+
+THE ACTIVATION ARTIFACT CHOICE IS BEHAVIOURAL, NOT COSMETIC, AND R-7 IS WHAT
+DECIDED IT.  Two candidates satisfied the same javax.activation API, and the
+coordinates gave no hint that the choice mattered.  Reading both jars showed they
+are not equivalent: the API-only jar lacks the META-INF/mimetypes.default and
+META-INF/mailcap.default resources, while the reference implementation is a strict
+superset and ships both.  Five of the six activation-consuming files use MIME-type
+mapping, which reads exactly those resources.  The API-only jar would compile
+cleanly, deploy cleanly, and then silently resolve MIME types differently -
+precisely the class of regression a behaviour-preserving refactor exists to
+prevent.  The selected coordinate is com.sun.activation:javax.activation 1.2.0,
+and the aggregator records the reasoning beside its exclusions of the competing
+providers for that package, so that exactly one provider supplies it.  This is
+one of the migration's documented ambiguity resolutions, recorded as the first
+entry of the ambiguity-resolutions register.
+
+    HONEST QUALIFICATION.  This flow's MIME rows are the runtime confirmation of
+    that decision, and on this side they are unobserved.  The tie-breaker
+    therefore rests on the jar-content inspection recorded in that register, not
+    on a captured value from this capture.  Saying otherwise would present a
+    measurement that was never taken as though it had confirmed a decision.
+
+THE CONTENT REPOSITORY BINDING IS ATOMPUB, NOT THE REMOTE-CALL BINDING.  Confirmed
+in the tree at the base commit: the binding type and the endpoint parameter are set
+at CmisConfigurationService.java:366-367, and again at
+ArkCaseCMISSessionFacade.java:58-59.  It matters twice over: the alternative
+binding would have required the platform's removed remote-call module, and this
+finding also makes the existing exclusion of that runtime provably safe to retain.
+It is corroborated
+independently by the census, which finds zero occurrences of javax.xml.ws,
+javax.jws, javax.xml.soap and javax.transaction anywhere in the tree - so despite
+the requirements naming the remote-call stack, no such artifact is needed and two
+of the four removed platform modules are irrelevant to this codebase.
+
+THE REPOSITORY CLIENT VERSION IS DELIBERATELY UNCHANGED, and so is every other
+integration client.  The client stays at 1.1.0, pinned as a property in the
+aggregator.  Wire behaviour toward the content repository - the same endpoints,
+the same formats and the same authentication - is on the preserve list, so any
+difference observed here is a genuine regression rather than an expected
+consequence of the migration.  Under R-1's contrapositive, bumping the client
+would itself have been a rule violation: a change without a demonstrated
+incompatibility is out of scope.
+
+DESIGN OBSERVATION WORTH RECORDING.  Every removed platform module this flow
+depends on was reinstated as an ordinary Maven dependency, resolved and versioned
+like any other.  That is exactly why the migrated runtime needs no relaxation of
+the platform's own boundaries to run this flow, and why the JDK access exceptions
+register - referred to here by title only - is delivered empty.  It is empty
+because the requirement was removed at its source, not because none was looked
+for.
+
+================================================================================
+REFERENCE STACK CONTEXT
+
+Recorded because the flow addresses two hosts and a reader has to be able to tell
+a configuration difference from a behavioural one.  Line citations are to the base
+commit this capture was taken at.
+
+    content repository UI     https://arkcase-ce.local/share (README.md:L49,
+                              inside the URL block that opens at README.md:L45)
+    application               https://arkcase-ce.local/arkcase (README.md:L143 and
+                              README.md:L147)
+    application path          appPath : '/arkcase/', at
+                              config/env/all.js:L6, which is why both application
+                              legs above carry that prefix
+    deployed artefact         the WAR is deployed as arkcase.war (README.md:L141)
+    store endpoint            /api/latest/service/ecm/upload
+    retrieve endpoint         /api/latest/plugin/ecm/download
+
+    PRE-EXISTING CONDITION, RECORDED NOT REPAIRED.  The reference stack documents
+    that https://arkcase-ce.local/VirtualViewerJavaHTML5 is expected to return
+    HTTP 503.  It is documented in two places at the base commit - README.md:L53
+    and docs/setup.md:L33 - and both are cited here so the expectation is
+    traceable to the repository rather than to this record.  The run's own
+    reference-stack note observed 000 for it, as it did for every host, because
+    the capture host could not resolve arkcase-ce.local.  It is captured as
+    observed: not repaired, not retried into submission, not hidden, and not a
+    migration regression.
+
+================================================================================
+NORMALISATION AND REDACTION APPLIED
+
+The producing script writes every byte through a three-stage pipeline - a literal
+substitution pass, a pattern redaction pass, and a narrow normalisation pass - and
+the pipeline is proven on the host, against the configured credential, before the
+first capture is written.  That self-test exists because a malformed expression
+makes the whole pass exit before reading its input, which would turn every capture
+file into zero bytes while the run still reported success.
+
+CREDENTIAL HANDLING
+    The credential is replaced by the fixed placeholder <REDACTED-CREDENTIAL> by
+    the literal substitution pass, which is deliberately unconditional and not
+    boundary-aware: a credential has no path-component structure and must be
+    removed wherever it appears, including inside a longer token, inside a URL and
+    inside base-64 material.  Its value is never written to any capture; only its
+    source is recorded, in the run posture archived at env/toolchain.txt, as
+    credential-source: environment with credential-value-recorded: never.
+
+SESSION HANDLING
+    Only the session's existence is captured.  The observed-session-cookie row of
+    the reachability probe reads absent.  The response header that would carry a
+    session identifier is REDACTED by the pattern pass rather than normalised by
+    the cosmetic pass, because a live session identifier is credential-equivalent.
+
+UPSTREAM CREDENTIAL CHECK, performed because this flow talks to an upstream
+repository as well as to the application
+    The captured body was checked for an upstream repository credential in
+    addition to the application credential.  Result: none present.  Two
+    independent reasons, both verifiable from the capture: the reachability probe
+    against the upstream host is anonymous by design and sends no credential at
+    all, and the probe received no response - zero body bytes and no response
+    headers - so there was nothing that could have echoed one back.  A search of
+    all three flow-3 capture files for the documented administrator credential
+    returns zero occurrences, as does a search for authorization, proxy
+    authorization, cookie, session-identifier, bearer, basic, digest, password,
+    secret, token and ticket material.  The placeholder token itself also appears
+    zero times, which is consistent rather than surprising: nothing arrived that
+    would have required substituting.
+
+STRIPPED, BECAUSE VOLATILE BETWEEN TWO RUNS
+    ISO-8601 date-times                          replaced with <TIMESTAMP>
+    Date, Last-Modified and Expires headers      replaced with <HTTP-DATE>
+    entity-tag validators                        replaced with <ETAG>
+    authentication-challenge nonce and opaque    replaced with <NONCE>, while the
+                                                 challenge scheme survives
+    generated request and correlation UUIDs      replaced with <UUID>
+    13-digit millisecond epoch values            replaced with <EPOCH-MS>
+    broker-assigned and engine-assigned ids      replaced with their own markers
+    query and elapsed-time measurements          replaced with <QUERY-TIME> and
+                                                 <ELAPSED-MS>
+    absolute filesystem paths                    replaced with <CAPTURE-DIR>,
+                                                 <REPO-ROOT> and <HOME>, matched
+                                                 only at a path-component
+                                                 boundary so that a longer name
+                                                 sharing a prefix is left alone
+
+PRESERVED, BECAUSE BEHAVIOUR-BEARING - the list that matters for this flow
+    the document name                            arkcase-smoke-probe.txt
+    the resolved MIME type on the store leg      verbatim, never normalised
+    the resolved MIME type on the retrieve leg   verbatim, never normalised
+    the application-recorded MIME type           verbatim, never normalised
+    the content digests, sent and retrieved      verbatim; they are the identity
+                                                 half of the criterion
+    the declared content length                  verbatim
+    the repository-assigned object identifier    verbatim, never normalised, with
+                                                 its expected inter-run difference
+                                                 stated rather than stripped
+    XML element and attribute names, and their
+      ordering, in a marshalled payload          verbatim.  Ordering is part of
+                                                 the document format this
+                                                 migration preserves, and it is
+                                                 the signal a provider change
+                                                 would show up in
+    and generally                                case and complaint numbers, queue
+                                                 names, task and process names,
+                                                 result counts and result
+                                                 ordering, cache-busting content
+                                                 hashes and artefact digests
+
+APPLIED ON THIS RUN
+    No substitution fired in any of the three flow-3 capture files, because no
+    response header and no response body were returned.  There was nothing volatile
+    to strip and nothing sensitive to redact.  That is stated rather than left
+    implicit, so a reader does not read the absence of placeholder tokens as a
+    failure of the pipeline: the pipeline ran, its self-test passed, and it had no
+    input to act on.
+
+================================================================================
+TLS AND READINESS CONTEXT
+
+TLS AND TRANSPORT TRUST
+    transport-trust-mode          verify-default-trust-store, as recorded in the
+                                  producer emission above and in the capture
+    certificate-authority bundle  not supplied on this run
+    public-key pin                not supplied on this run
+    self-signed certificate       README.md:L45 at the base commit records that
+                                  the reference stack uses a self-signed TLS
+                                  certificate and that a browser warning has to
+                                  be accepted.  The capture accommodates that by
+                                  TRUSTING the certificate explicitly - a supplied
+                                  certificate-authority bundle, which raises the
+                                  mode to verify-supplied-ca-bundle, or a
+                                  public-key pin - and never by switching
+                                  verification off; the unverified mode the script
+                                  offers is restricted to a loopback host.  The
+                                  accommodation matters because without it every
+                                  flow fails on certificate verification rather
+                                  than on behaviour, which is a false negative
+                                  rather than evidence.
+    what happened here            neither accommodation was needed, because the
+                                  exchange never reached a handshake.  Name
+                                  resolution failed first: transport exit status
+                                  6, could not resolve host arkcase-ce.local.  The
+                                  certificate-verification row reads 0 and must be
+                                  read as "not reached".
+
+READINESS
+    readiness poll                targets the application shell and records its own
+                                  note beside this capture
+    first-startup tolerance       README.md:L141 at the base commit records that
+                                  the first Tomcat startup takes 5 - 10 minutes,
+                                  so a slow start is tolerated rather than treated
+                                  as a failure
+    readiness does not gate       each flow records its own evidence either way, so
+                                  an unreachable stack produces an explicit,
+                                  comparable capture instead of a truncated one -
+                                  which is exactly what this file is
+    final observed status         000, consistent with the reachability probe above
+
+
+================================================================================
+GOVERNING RULES AND PROVENANCE
+
+RULES DOCUMENT        none on disk
+RULES IN FORCE        14 (7 core, 7 transformation)
+IDENTIFIER SCHEME     R-1 to R-7 and R-T1 to R-T7 are the migration plan's own
+                      navigational convention, not quoted rule titles
+
+BOTH PROVENANCE FACTS, STATED TOGETHER, because either one alone misleads.
+
+    First: there is no on-disk user rules document for this project.  The rules
+    facility was queried and returned, verbatim, "No user rules provided." on
+    every call, and that read was complete rather than partial - it was queried
+    plainly and again over the whole document.  There is therefore no external
+    full-text source to defer to.  That is not licence to lower the bar.
+
+    Second: rules are nonetheless present and binding.  The migration requirements
+    embed an explicit numbered block of seven core rules plus seven transformation
+    rules, and those fourteen govern this work in full, exactly as an external
+    rules document would.  The requirements list them as numbered items without
+    names, so the identifiers above exist only so that a decision can be traced
+    back to the constraint that produced it.
+
+    Reporting only the first fact would imply that enterprise best practice is the
+    sole standard here, which is wrong because fourteen specific constraints apply.
+    Reporting only the second would misrepresent where the rules came from.  No
+    rule has been invented and none has been softened; best practice is applied on
+    top of the fourteen, never as a substitute for them.
+
+--------------------------------------------------------------------------------
+R-7, BASELINE BEHAVIOUR IS THE TIE-BREAKER - the rule that creates this file.
+Quoted with its substitution disclosed rather than made silently:
+
+    "The application's observed behavior at the base commit on JDK 8 is the
+    tie-breaker for any ambiguity, and each resolution must be documented."
+
+    Editorial note, which must accompany the quote wherever it is reproduced: the
+    rule's own text names the older runtime with a phrase this documentation tree's
+    wording gate forbids.  The substitution changes no meaning and is disclosed
+    here rather than applied quietly.
+
+Applied here.  "And each resolution must be documented" is precisely what this
+file does, and flow 3 is the clearest instance in the whole migration: R-7 selected
+the activation reference implementation over the tidier API-only jar, and the MIME
+resolution this flow records is that tie-breaker made concrete - unobserved on this
+side, as the observation above states plainly.  The same unmodified script writes
+the producer emission of migrated/flow-3-alfresco-roundtrip.result.txt, and that
+record follows the same field contract as this one, so the two are compared row for
+row.
+
+--------------------------------------------------------------------------------
+R-T7, EVIDENCE OVER EXIT CODES - the defining constraint on this file.  Quoted
+verbatim:
+
+    "Validation asserts on produced artifacts and captured output, never on process
+    exit status alone. This is mandatory rather than stylistic because
+    Gruntfile.js sets grunt.option('force', true), which masks task failures and
+    lets a broken build exit zero."
+
+Repository proof, re-derived at the base commit.  Gruntfile.js:L143-L144 reads the
+comment "Making grunt default to force in order not to break the project." and then
+the force option itself.  Two registered pre-existing defects are masked by exactly
+that setting: the sync-dev alias at Gruntfile.js:L379 is registered against a
+concurrent target that does not exist, while the concurrent block at
+Gruntfile.js:L90-L98 defines only default1 at L91; and the lint alias at
+Gruntfile.js:L372 invokes a linter that has no configuration block, alongside one
+that is configured at Gruntfile.js:L40-L47.  Neither alias is in the default task
+graph at Gruntfile.js:L376.
+
+Applied here.  Every row in the observation above is read back from
+flow-3-alfresco-roundtrip.status and flow-3-alfresco-roundtrip.out, both named
+explicitly and both re-read from disk.  The transport exit status is recorded as one
+additional observation and is the sole basis of nothing; remove it and no row here
+changes.  That distinction is acute for this flow: a document upload can return a
+success status while storing content whose declared type differs, so the result is
+grounded in the captured content-type and digest rows rather than in a status.
+
+--------------------------------------------------------------------------------
+R-5, NO DISABLING OF FAILING TESTS.  Quoted verbatim:
+
+    "Failing tests must not be disabled, and exclusions are limited to failures
+    already present at baseline."
+
+Applied here.  No flow is silently skipped.  This flow was not executable, so it
+carries an explicit machine-readable SKIPPED record with a reason - in the status
+file, in the capture, and in the section above - and every leg is named even though
+none was observed, so the token set is the same in both runs and the gap shows up in
+a directory diff rather than being absent from it.  This file contributes zero test
+exclusions, and no observation in it was weakened, rounded or relabelled to look
+like a pass.
+
+--------------------------------------------------------------------------------
+R-6, DOCUMENT DISCOVERED BUGS, DO NOT FIX THEM.  Quoted verbatim:
+
+    "Pre-existing bugs discovered during the work are documented rather than fixed,
+    unless one blocks a validation item."
+
+Applied here.  What was observed is recorded.  Nothing was repaired, no failure was
+retried into submission, and no unexpected outcome was hidden - including the
+unresolvable host, which is recorded as the reason the flow could not run rather
+than worked around.  The documented HTTP 503 expectation is recorded as the
+pre-existing condition it is, citing both of the places that document it at the
+base commit.  The change set's escape clause is invoked exactly twice in the whole
+migration - creating the frontend profiles module, and removing the toolchain that
+could not build on the new runtime - and NEITHER invocation is in this folder, so
+the exception count stays auditable.
+
+--------------------------------------------------------------------------------
+R-2, NO RELIANCE ON PLATFORM-INTERNAL ACCESS IN PRODUCTION LAUNCH CONFIGURATION.
+Paraphrased here and deliberately never quoted: the rule's own text names a
+module-access JVM argument literally, and this documentation tree is subject to a
+recursive audit that requires zero such literals, so quoting it verbatim would
+itself introduce the token the audit forbids.
+
+    The rule requires that production launch configuration not depend on platform
+    internal access - that is, on a module-access JVM argument that opens or
+    exports an otherwise-encapsulated JDK package to the unnamed module - except
+    where a pinned third-party dependency documentedly requires it, and that every
+    such exception be documented.
+
+Applied here.  The audited launch configuration is the block at README.md:L111-L127
+at the base commit, re-read while writing this record: it declares no such
+argument.  The register of applied exceptions is therefore delivered empty, and it
+is referred to in this file by title only - the JDK access exceptions register -
+because its filename embeds the very token the audit forbids.  This flow supplies
+the positive reason the register is earned rather than assumed empty: the platform
+modules it depends on were reinstated as ordinary Maven dependencies, so nothing
+here needs the platform's boundaries relaxed.
+
+--------------------------------------------------------------------------------
+R-1, JUSTIFIED CHANGES, acting here as a scope fence.  Quoted verbatim:
+
+    "A change without a reason is out of scope."
+
+Applied here.  This file adds no tooling, no framework, no page and no navigation
+entry; it is a plain-text capture record and nothing was installed to produce it.
+Its contrapositive is recorded above as a substantive finding rather than as
+boilerplate: the repository client version, and every other integration client
+version, is deliberately unchanged, because a bump without a demonstrated
+incompatibility would itself be a rule violation.
+
+--------------------------------------------------------------------------------
+R-4, GENUINE NODE 20 EXECUTION - engaged here only as a wording constraint.  The
+pre-migration package manager is named nowhere in this file, and nothing in it is
+presented as a prerequisite or a recommendation.  The flow this file records
+concerns the platform's XML binding and MIME mapping, not the frontend build, so
+the rule's substantive obligations are discharged elsewhere.
+
+--------------------------------------------------------------------------------
+R-T1, NAMESPACE INVARIANCE - and flow 3 is where it matters most.  Every javax
+import stays javax.  The platform's module removals are compensated by ADDING
+javax-namespace artifacts, never by rewriting source to the successor namespace,
+and artifact eligibility is decided by inspecting a jar's package prefixes rather
+than its coordinates: an artifact named for the successor namespace is excluded
+even when its classes are javax-prefixed, and a javax-named artifact line that
+would pull transitives from that namespace is avoided.  Nothing in this file
+references that namespace, and the exclusions the aggregator applies to keep a
+single provider for each reinstated package are described above without naming it.
+
+--------------------------------------------------------------------------------
+FENCES, stated so their absence is not mistaken for an oversight.
+
+    R-3 and R-T2   no build file is edited by this deliverable, and nothing here
+                   reintroduces or endorses a release-8 compile target
+    R-T3           where a dependency failed under strong encapsulation the
+                   dependency was advanced or removed; the platform was not
+                   relaxed to accommodate it
+    R-T4           every version named in this file is an exact value read from the
+                   aggregator, never a range and never "latest"
+    R-T5           not engaged: no dependency graph is resolved by this deliverable
+    R-T6           not engaged: no dependency key, no install topology and no output
+                   artefact name is touched here
+    EXCLUDED BY
+    DIRECTIVE      nothing here references a newer major generation of the
+                   application framework or its opinionated starter layer, a typed
+                   JavaScript dialect, a module-bundling build tool, a different
+                   frontend framework, any change to the presentation layer's
+                   appearance or component set, or a new feature or endpoint.  None
+                   of those is happening in this migration.
+
+================================================================================
+MIRROR OBLIGATION
+
+The migrated replay's record uses the identical filename, the identical section
+order and the identical row labels as this file, so that a recursive comparison is
+mechanical and shows the intended delta rather than structural noise:
+
+    diff -r <baseline-dir> <migrated-dir>
+
+    EXPECTED TO DIFFER          only observed values, and only where the runtime or
+                                the reachability of the reference stack genuinely
+                                differs.  The repository-assigned object identifier
+                                is expected to differ whenever both sides observe
+                                one, and that expectation is stated above so the row
+                                is not mistaken for a regression.
+    MUST NOT DIFFER             the comparison criterion and both of its halves, the
+                                migration path, the fixture identity and its digest,
+                                the normalisation and redaction policy, the
+                                transport-trust posture, and every rule section
+                                above.  A difference in any of those is a difference
+                                in the record rather than in the system, and would
+                                make the comparison unusable.
+    NO INDEX, NO SUMMARY        this folder carries no index page, no per-flow
+                                write-up in any markup dialect, and no file of this
+                                kind outside the eight flow slugs.  Nothing in it
+                                appears in the documentation site navigation.
+    DIRECTORY DISCIPLINE        no subdirectory was created by this deliverable.
+                                The repository's ignore file matches several bare
+                                directory names at any depth, so a capture written
+                                into one would be silently uncommitted and every
+                                local check would pass while the committed
+                                deliverable was empty.
+
+END OF RECORD - flow-3-alfresco-roundtrip, baseline side, JDK 8, base commit
+c8f6226105c28c2743281d26bf21ad73f7bb7f26.
+

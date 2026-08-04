@@ -1,0 +1,327 @@
+capture: readiness polling
+runtime: JDK 8
+commit: c8f6226105
+source: HTTP polling of the deployed application
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh
+region-status: SKIPPED
+skip-reason: no six-service reference stack and no deployed web archive on a
+  servlet container, therefore no running application to poll and no readiness
+  sequence to record.  Measured on the capture host rather than assumed, and
+  every figure that follows is an observation.  The hostname arkcase-ce.local
+  does not resolve.  The readiness target https://arkcase-ce.local/arkcase/
+  and all four other documented service URLs observed HTTP status 000, which
+  is this tree's token for no HTTP response at all, with transport exit status
+  6 and the diagnostic "Could not resolve host: arkcase-ce.local".  That same
+  diagnostic is returned when certificate verification is disabled, which
+  proves the failure is name resolution and not certificate verification, so
+  the self-signed certificate recorded below never even entered the picture.
+  TOMCAT_HOME, CATALINA_HOME, CATALINA_BASE and CATALINA_LOG are all unset, no
+  container launcher is on PATH, and no servlet container is installed in any
+  of the usual locations.  No web archive of any kind exists anywhere in the
+  working tree.  This region cannot be captured without a live deployment.
+  The older runtime is deliberately NOT listed among the unmet preconditions,
+  because it is not one: a JDK 8 installation is present on this host and
+  answers 1.8.0_492, and the sibling env/toolchain.txt records that same
+  banner for the baseline side.  What is missing is the deployment and its
+  backing services, not the JVM.
+normalised: nothing, because no poll record was captured.  The policy is
+  stated in full anyway, so that the mirror reproduces the transformation
+  rather than guesses at it.  When this region is captured, the pipeline
+  strips timestamps and dates, the Date response header, Set-Cookie values,
+  entity tags, session identifiers, generated request and instance
+  identifiers, absolute filesystem paths in favour of a stable token, port
+  assignments, and elapsed-time and duration figures.  It preserves the
+  behaviour-bearing content: the attempt ordinal of every attempt, the
+  observed HTTP status code of every attempt, the target path, the readiness
+  verdict, and any response-body marker that evidences readiness.  The shape
+  of the sequence - how many attempts it took, and which statuses preceded
+  the ready one - IS the evidence this region exists to carry, so
+  over-normalising it would destroy that evidence rather than tidy it.
+redacted: nothing, because no poll record was captured.  When it is captured,
+  every credential-shaped value is replaced with the fixed placeholder
+  <REDACTED>, which is the convention this documentation tree already uses.
+  Three carriers are in scope.  The documented administrator credential,
+  which is never transcribed here in any form, not even as an illustration of
+  what redaction removes.  An Authorization header, or a userinfo component
+  inside a probed URL, either of which would appear if an authenticated probe
+  were ever added to this region.  And keystore or trust-store passwords,
+  which a poll that echoed its transport configuration would emit, and which
+  are recorded only in the redacted forms keyStorePassword=<REDACTED> and
+  trustStorePassword=<REDACTED>.  Session cookie values are handled by the
+  normalisation policy above rather than here, because they are stripped
+  outright instead of placeholdered.
+----- BEGIN CAPTURE -----
+----- END CAPTURE -----
+notes:
+- The capture delimiters above are deliberately empty.  Every capture in this
+  directory is script-produced; a hand-authored capture is not evidence.
+  Because the preconditions recorded in skip-reason were not available, no
+  poll record was invented to fill the gap.  A fabricated baseline would make
+  every behaviour-preserved claim in this migration unfalsifiable, which
+  defeats the baseline-as-tie-breaker rule outright.  An explicit,
+  machine-readable skip with a reason is rule-compliant; an invented capture
+  is not, and is strictly worse than an honest absence.
+- Why an explicit skip rather than an absent or empty file.  The governing
+  rule that nothing may be silently skipped is what forces this shape: a
+  recursive diff between the two capture directories has to be able to SEE
+  the absence and its reason.  An empty file, or no file at all, would be
+  indistinguishable from a region nobody thought about, and the reader would
+  have no way to tell a measured unavailability from an oversight.
+- A SKIPPED region is NOT a pass, and two matching SKIPPED regions across
+  baseline and migrated are NOT evidence of preserved behaviour.  They record
+  an absence in both places.  The sibling notes/flows-not-captured.txt reaches
+  the same verdict for the eight application flows, records that readiness
+  polling observed no HTTP response at all, and carries the comparator's
+  overall INCONCLUSIVE-STACK-NEVER-READY result; this region is consistent
+  with that record rather than an exception to it.
+- produced-by names the designated producer of this region, not a claim that
+  the producer emitted this region's content on this run.  One nuance is
+  worth stating precisely, because it distinguishes this region from the
+  container-log region beside it: the producer's readiness probe DID execute
+  on this host, and its own raw per-attempt record, status file and summary
+  note exist in the notes area of this capture directory.  What it did not
+  produce is a readiness sequence or a ready verdict.  Its own record shows a
+  single configured attempt and a final observed status of 000, so it
+  observed unreachability, established that the precondition was unmet, and
+  stopped.  That measurement is recorded in skip-reason for exactly what it
+  is.  It is not a captured readiness region, it is not presented as one, and
+  it was not copied between the delimiters, because an observation that the
+  target does not resolve is not an observation of the application becoming
+  ready.
+- Governing rule on evidence, verbatim: "Validation asserts on produced
+  artifacts and captured output, never on process exit status alone. This is
+  mandatory rather than stylistic because Gruntfile.js sets
+  grunt.option('force', true), which masks task failures and lets a broken
+  build exit zero."  Applied to this region: readiness is asserted on the
+  captured HTTP status and response evidence of each attempt, never on the
+  exit status of a poll command.  A poll loop that exits zero because it
+  stopped early is not evidence of readiness - it is evidence only that the
+  loop finished.  Two properties of the producer make that concrete rather
+  than theoretical: its readiness poll deliberately does not gate the flows,
+  so the run continues and exits zero whether readiness was reached or not,
+  and its attempt count defaults to one so that an evidence run is
+  deterministic and cannot hang.  Neither the run's exit status nor the fact
+  that the loop terminated carries any readiness information at all.  Only
+  the recorded statuses do.
+- Region-selection rule, stated here so the migrated capture reproduces it
+  without guesswork.  Archive the polling sequence and nothing else: one
+  record per attempt, from the first attempt through to the first ready
+  response, each record carrying the attempt ordinal, the target, and the
+  observed HTTP status, followed by the readiness verdict.  The window opens
+  at the first attempt, which is taken before any application flow is
+  attempted, and closes at the first ready response or at the exhaustion of
+  the tolerated window, whichever comes first.  Every intermediate non-ready
+  response inside that window belongs to the region and is recorded in place;
+  none is dropped for looking untidy, and the sequence is never reordered,
+  compacted or deduplicated.
+- Ordering, which is what makes the eight sibling flow captures meaningful.
+  The contract is that no smoke flow is attempted before ready state is
+  reached: the readiness poll is the first thing directed at the application,
+  it completes before any flow begins, and no flow capture in this directory
+  precedes it.  The observed deviation on this host is disclosed rather than
+  glossed over, because a contract stated without its exception is not a
+  record.  Ready state was never reached here, and the producer deliberately
+  does not gate the flows on readiness - a capture that stopped before the
+  eighth flow would be a hole in the comparison rather than a baseline - so
+  the eight flows still ran after the poll and each recorded its own explicit
+  SKIPPED verdict naming the endpoint it could not reach.  The ordering held;
+  what was absent was the ready state, not the sequence.  None of the eight
+  was silently omitted, and none of them is a pass.
+- Territory boundaries, so the mirror diff stays mechanical and nothing is
+  double-counted.  This region covers the readiness poll only.  Container and
+  application startup belongs to the sibling catalina.out.log in this same
+  directory; toolchain provenance to env/toolchain.txt; frontend artifact
+  digests to artifacts/; archived unit-test reports to surefire/; and the
+  eight application flows to their own three-file captures.  The producer's
+  raw per-attempt readiness output, its per-attempt status file and its
+  readiness summary note live in the notes area of this capture directory:
+  this file is the archived, region-scoped record under startup/, and it
+  cross-references that raw output rather than reproducing it, so the poll is
+  described once in each place and counted once overall.
+- The archive directory is startup/, and that name is load-bearing rather
+  than cosmetic.  The repository's root ignore file uses bare,
+  leading-slash-free patterns, and those match at any depth: target and bin
+  at .gitignore:6 and .gitignore:7, partition-descriptor at .gitignore:24,
+  activemq-data at .gitignore:25 and logs at .gitignore:26, together with
+  builds/ at .gitignore:40.  Each was verified at this file's exact depth
+  with a .log file inside the candidate directory, and each was reported
+  ignored; this path was reported not ignored.  The ignored token is always
+  the DIRECTORY name and never the .log file extension, so a .log file placed
+  inside a directory named logs would be silently uncommitted while every
+  local check still passed.  This file therefore sits directly in startup/
+  and no subdirectory was created beneath it.
+- The same pointed irony the container-log region records applies here in
+  reverse.  The readiness poll reads nothing from disk, but the failure
+  criterion a reader applies to it is documented alongside a log path that
+  lives in a logs directory.  Reading FROM such a directory is fine; writing
+  INTO one is the trap.
+- Governing rule on discovered defects, verbatim: "Pre-existing bugs
+  discovered during the work are documented rather than fixed, unless one
+  blocks a validation item."  Applied to this region that means every
+  observed response is recorded exactly as observed: nothing repaired,
+  nothing retried into submission, no non-ready response suppressed and no
+  sequence cleaned up.  Raising the attempt count to cover the documented
+  window is tolerance of a slow start, not a retry of a failure, and the two
+  must not be confused - a poll may wait, but it may not re-run an attempt
+  until it produces a better answer.  The migration's escape clause is
+  invoked exactly twice in the entire change set and neither invocation is in
+  this folder.  Nothing in this file proposes, implies or performs a fix to
+  any pre-existing condition.
+- Governing rule on ambiguity, verbatim: "The application's observed behavior
+  at the base commit on JDK 8 is the tie-breaker for any ambiguity, and each
+  resolution must be documented."
+  [Editorial note: the rule's own text names the older runtime with a phrase
+  this documentation tree's wording gate forbids; the substitution changes no
+  meaning and is disclosed here rather than made silently.]
+  That rule is the whole reason this file exists before any migrated
+  counterpart does, and the reason an absence is recorded instead of a
+  plausible-looking substitute: the readiness behaviour of an application
+  that was never deployed is unknowable rather than assumable.
+- Provenance of the rules quoted above, and both facts belong together
+  because either alone misleads.  First, the project's rules facility
+  reports, verbatim, "No user rules provided" - there is no on-disk user
+  rules document for this project, and that is explicitly not licence to
+  lower the bar.  Second, rules are nonetheless present and binding: the
+  requirements embed an explicit, numbered block of seven rules that governs
+  this work in full exactly as an external rules document would, alongside
+  seven transformation rules.  The identifiers the migration plan uses for
+  them, R-1 through R-7 and R-T1 through R-T7, are its own navigational
+  convention rather than quoted titles, which is why every rule above is
+  quoted by its text rather than cited by number alone.  Mapped to those
+  identifiers, the rules engaged by this file are R-5 on not disabling or
+  silently skipping, R-6 on documenting rather than fixing, R-7 on baseline
+  behaviour as the tie-breaker, R-T7 on evidence over exit codes, R-1 as a
+  scope fence, R-2 on JDK-internal access, and R-T1 on namespace invariance.
+- R-1 as a scope fence, and how it was honoured.  A change without a reason
+  is out of scope, so nothing was installed to produce this file: the
+  measurements in skip-reason were taken with the POSIX toolset the producer
+  itself is limited to, and no field or note exists here beyond the shared
+  schema, the measured skip reason, the transformation policies and the
+  expectations labelled as such.  No sibling region's territory is restated,
+  and no file outside this one was modified.
+- R-T1, namespace invariance.  Nothing in this file references the successor
+  namespace, a newer framework generation, a typed JavaScript dialect or a
+  module bundler, and nothing would if this region were captured - the
+  normalisation policy above preserves statuses and ordinals, not library
+  identities.  The pre-migration package manager is named nowhere here, and
+  nothing in this file presents it as a prerequisite or a recommendation.
+- Credential posture, in the repository's own voice rather than a policy
+  invented here.  At the base commit docs/setup.md:78 states that real
+  keystore and trust-store passwords must not be checked into source control
+  and should instead be supplied through environment variables or a secret
+  manager in any non-local environment, and that page already renders both
+  values as <REDACTED> at :86 and :87, and the administrator password as
+  <REDACTED> at :119, where README.md does not.  This capture honours that
+  posture and reuses that same token.  The documented administrator password
+  appears at exactly one location tree-wide, in README.md, and it is not
+  transcribed anywhere in this directory.  Two further precautions apply to
+  this region specifically: the producer refuses to start without a
+  credential supplied through its environment and records only that
+  credential's source, never its value; and no command-trace or shell-echo
+  region is enabled anywhere near a credential, because a trace of the poll
+  command would defeat every redaction above.
+- Verified at the base commit and after migration: the production launch
+  configuration contains zero module-access JVM arguments.  If such an
+  argument ever appeared in a captured poll record - for instance in a
+  response body that echoed the server's launch arguments - it would be
+  replaced, in this region, by the description "a module-access JVM argument
+  that opens or exports an otherwise-encapsulated JDK package to the unnamed
+  module", and the substitution would be recorded in this notes block.  No
+  such substitution was needed, because nothing was captured.  The register
+  of applied exceptions is referred to here by title only, as the JDK access
+  exceptions register, because its filename embeds a token this tree
+  excludes; it is delivered empty with a positive statement that none are
+  required.
+- Registered observation, not a defect report against this file and not
+  something to fix: the current working tree has moved past the base commit,
+  so every anchor cited here is cited as a base-commit anchor and should be
+  re-read at commit c8f6226105 rather than at the current tip.  README.md and
+  docs/setup.md are both in the migration's own scope, and the reflow of the
+  duplicated launch-configuration block moved the surrounding prose, so the
+  line numbers of the same statements differ in the current tree.  Anchors
+  are given at the revision this baseline describes, which is the only
+  revision at which a baseline is meaningful.
+- Registered observation, likewise not fixed: the two recursive scans for
+  module-access tokens that this deliverable is checked against cannot return
+  zero across the whole documentation tree, because the register they refer
+  to carries such a token inside its own required filename and other
+  documents refer to it by that name.  Measured rather than estimated: five
+  occurrences across four files - two migration registers, the README and the
+  setup page - and every one of the five is part of that filename rather than
+  a launch-configuration argument, while the register's own body contains
+  none.  Those four files are outside this file's scope and were not
+  modified.  Within docs/migration/smoke-evidence the count is zero, and this
+  file keeps it zero.
+- Format note, recorded because it is a constraint rather than a preference:
+  this is a plain-text capture and not a documentation page.  It carries no
+  markup, no fenced block, no pipe table and no link syntax, it uses only
+  line-feed line endings and no trailing whitespace, and it appears nowhere
+  in the site navigation, which lists only the migration registers.  A
+  documentation build therefore has nothing to warn about in this folder.
+- expected-evidence, and every line so labelled is an EXPECTATION derived by
+  reading the repository at commit c8f6226105, never an observation of a run.
+  Nothing below was witnessed on this host, and every anchor below should be
+  re-read at that commit rather than at the current tip.
+- expected-evidence: the tolerated window is 5 to 10 minutes, documented in
+  two independent places - README.md:141 states that the first startup will
+  take 5 - 10 minutes, and docs/setup.md:108 repeats that the first startup
+  takes 5 to 10 minutes.  The poll must tolerate the WHOLE of that window.  A
+  poll that gives up inside it produces a false negative, and a readiness
+  record shorter than the window is presumptively truncated rather than
+  quick.  Concretely, at the producer's ten-second default interval the
+  attempt count has to span at least six hundred seconds, which is sixty
+  attempts; the default of one attempt exists so that an evidence run is
+  deterministic and cannot hang, and it must be raised when driving a stack
+  that is still starting.
+- expected-evidence: the sharpest consequence of giving up early is not a
+  missing readiness record, which would at least be visible.  It is that a
+  sibling region drawn from the same first-startup window would report a
+  process-definition count that is an artefact of timing rather than of
+  behaviour, because the workflow engine deploys its definitions during that
+  window.  A truncated poll therefore corrupts another region's counts while
+  looking perfectly healthy itself, and a count taken against a
+  half-initialised engine would be compared against a full one on the other
+  side as though the difference meant something.
+- expected-evidence: the target is https://arkcase-ce.local/arkcase, per
+  README.md:147, which records that once the container has started
+  successfully that URL should open; the producer polls that base with the
+  application shell path appended.  The readiness criterion is that the
+  application responds at that URL.  The failure criterion is recorded at
+  README.md:143 - after the container has started, a 404 from that URL means
+  startup failed - and docs/setup.md:108 states the same criterion.  A
+  container that has started is not the same thing as an application that has
+  started, which is why the readiness verdict is asserted on the observed
+  status of the application's own URL and never on the container being up.
+- expected-evidence: ArkCase serves a self-signed TLS certificate, per
+  README.md:45, which records that the browser warning about the
+  unrecognized, self-signed certificate has to be accepted.  A transport
+  trust accommodation is therefore a correctness requirement rather than
+  laziness: without one, every poll fails certificate verification before it
+  ever reaches the application, and the gate yields a false negative that
+  looks exactly like a broken deployment.  The producer implements that
+  accommodation in a guarded form, and the guard matters as much as the
+  accommodation: verification against a supplied certificate authority bundle
+  is preferred, a public-key pin authenticates a self-signed peer without
+  one, and the unverified-transport option is refused outright for any
+  non-loopback target, because disabling verification while sending an
+  administrator credential would let any host on the path present its own
+  certificate and read that credential.  On this host the question was moot
+  and was measured to be moot: with verification disabled the diagnostic was
+  still a name-resolution failure.
+- expected-evidence: attempt ordinals and observed statuses are preserved
+  rather than normalised, and this is the one place where the normalisation
+  policy has to be read strictly.  The clock is stripped; the sequence is
+  not.  A region that recorded only its final verdict, or that collapsed
+  repeated non-ready statuses into a count, would satisfy every format check
+  in this tree and still have discarded the behaviour it was written to
+  preserve.
+- Mirror obligation.  The counterpart is migrated/startup/readiness-poll.log:
+  the same filename, the same field set in the same order, and the same
+  region-selection rule stated above, so that a recursive diff between the
+  two capture directories is mechanically meaningful.  A field added on one
+  side only, a region selected differently on one side only, or an ordinal
+  scheme that started at zero on one side would each register as a difference
+  that carries no behavioural signal at all.  No wall-clock time, host name,
+  user name, process identifier or absolute path is recorded anywhere above,
+  for the same reason: each would differ between two runs for reasons
+  unrelated to the runtime and would turn that comparison into noise.

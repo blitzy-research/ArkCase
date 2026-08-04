@@ -1,0 +1,466 @@
+capture: startup-time asset pipeline
+runtime: JDK 8
+commit: c8f6226105
+source: application log during container startup, asset-pipeline output relayed at DEBUG level
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh
+region-status: SKIPPED
+skip-reason: TWO preconditions were unmet, and they are named separately because
+  they are different failures with different remedies.  Conflating them would
+  leave a reader unable to tell why the region is empty, which is the precise
+  error this field exists to prevent.
+  (1) STACK UNAVAILABLE - there is no deployment to observe.  Measured, not
+  assumed: the documented host name arkcase-ce.local does not resolve; there is
+  no servlet-container installation on this host and no container launcher on
+  the path; CATALINA_LOG, TOMCAT_HOME and CATALINA_HOME are all unset; no
+  deployable web archive exists anywhere in the working tree; no container log
+  exists anywhere on the filesystem; and the sibling notes/reference-stack.status
+  records every reference service answering 000 with no response at all, with
+  notes/readiness.status recording attempt-1=000.  The designated producer also
+  refuses to start without an administrator credential supplied through its
+  environment, and none is set here, so no run was possible even setting the
+  absent deployment aside.
+  (2) DEBUG NOT ENABLED FOR THE COPIER - a separate failure, and the one that
+  would still bite with a container present.  The three pipeline invocations and
+  every line of relayed pipeline output are emitted at DEBUG on the logger named
+  after com.armedia.acm.userinterface.angular.AngularResourceCopier.  That
+  logger's level is not fixed by anything in version control: the tracked file
+  acm-standard-applications/arkcase/src/main/resources/log4j2-old.xml states in
+  its own words that the logging configuration is externalised to
+  $HOME/.arkcase/acm/log4j2.xml, and the tracked deployment descriptor
+  acm-standard-applications/arkcase/src/main/webapp/META-INF/context.xml mounts
+  exactly that external file over the web application's own logging
+  configuration through a PreResources file-resource set - identically at commit
+  c8f6226105 and in the current tree.  The level is therefore a deployment
+  property, supplied from outside the repository.  Host observation, labelled as
+  such and NOT a base-commit repository fact: the externalised configuration
+  present on this host raises com.armedia to debug but then pins the copier's own
+  logger to warn with additivity disabled, so under that stock configuration
+  every About-to-run line, every relayed child line and every done-with line
+  falls below threshold and is discarded before it reaches any appender.
+  The older runtime is deliberately NOT listed among the unmet preconditions,
+  because it is not one.  A JDK 8 installation is present here and the sibling
+  env/toolchain.txt records its banner for this side of the capture.  What is
+  missing is the deployment and the logging level, not the JVM.
+exit-status-is-not-evidence: true
+normalised: nothing, because no bytes were captured.  The policy is stated in
+  full anyway, so the mirror reproduces the transformation rather than guessing
+  at it.  When this region is captured the pipeline STRIPS timestamps and dates,
+  thread names and thread identifiers, absolute filesystem paths in favour of a
+  stable token, port assignments, elapsed-time and duration figures, and any
+  progress-percentage churn.  It PRESERVES the behaviour-bearing content: task
+  names, the order of the task graph, per-task file counts, the identity of each
+  of the three commands, the logged exit codes - kept deliberately, as data, so
+  a reader can see for themselves that they prove nothing - and the full message
+  text of every warning and error line.  Over-normalising this region would
+  destroy the very evidence it exists to carry.
+  No colour-escape filter is applied, and none is needed.  Verified at commit
+  c8f6226105: both task-runner commands carry the no-colour flag, at
+  spring-web-ark-angular-starter.xml:29 and :37, so the relayed output contains
+  no terminal escape sequences to strip.  The dependency-install command carries
+  a no-progress flag at :34, which suppresses the progress churn on its side.
+  Confirming an absence is the right response here; adding a filter for a
+  condition that does not arise would be an unjustified change.
+redacted: nothing, because no bytes were captured.  When it is captured, every
+  credential-shaped value is replaced with the fixed placeholder <REDACTED>,
+  which is the convention this documentation tree already uses.  A dependency
+  install is the specific carrier to watch, because it can echo a registry token
+  or a remote URL with credentials embedded in its authority component; the scan
+  therefore covers token assignments, authentication-configuration keys,
+  password and secret assignments, and the user-and-password form of a URL
+  authority, and every hit reads <REDACTED>.  The documented administrator
+  credential is never transcribed here in any form, not even as an illustration
+  of what redaction removes.
+----- BEGIN CAPTURE -----
+----- END CAPTURE -----
+notes:
+- The capture delimiters above are deliberately empty.  Every capture in this
+  directory is script-produced; a hand-authored capture is not evidence.  Because
+  the two preconditions recorded in skip-reason were not available, no log line
+  was invented to fill the gap.  A fabricated baseline would make every
+  behaviour-preserved claim in this migration unfalsifiable, which defeats the
+  baseline-as-tie-breaker rule outright.  An explicit, machine-readable skip with
+  a reason is rule-compliant; an invented capture is not, and is strictly worse
+  than an honest absence.
+- A SKIPPED region is NOT a pass, and two matching SKIPPED regions across
+  baseline and migrated are NOT evidence of preserved behaviour.  They record an
+  absence in both places.
+- Resolving the empty-region ambiguity explicitly, rather than leaving it
+  implicit.  Because this pipeline relays at DEBUG, an empty region is ambiguous
+  between "the pipeline never ran" and "the pipeline ran and nothing was
+  logged".  Here BOTH hold, and both are named in skip-reason: the pipeline
+  never ran because there is no deployment, AND it would have logged nothing at
+  the copier's stock level even if it had.  Leaving that ambiguity unresolved
+  would be the same class of error the evidence rule below exists to prevent -
+  an absence of output silently read as an absence of problems.
+- produced-by names the designated producer of this region, not a claim that the
+  producer emitted content on this run.  It emitted none, which is why the
+  delimiters are empty.
+- Region-selection rule, stated here so the migrated capture reproduces it
+  without guesswork.  The producer mines the container log for this region with a
+  fixed extended-regular-expression alternation, case-insensitively, and writes
+  the matched lines under a line cap that it announces rather than applies
+  silently.  The alternation, on one unbroken line so it can be reused verbatim:
+  AngularResourceCopier|grunt|node_modules|package-lock
+  The cap defaults to 2000 lines, and exceeding it marks the run incomplete.  The
+  SAME pattern is used on both sides of the mirror, which is what makes the region
+  boundary itself identical and the recursive diff mechanically meaningful; a
+  pattern varied on one side only would register as a difference carrying no
+  behavioural signal at all.
+- Field-order rule for the mirror, also stated rather than left to inference.
+  The field order is capture, runtime, commit, source, produced-by,
+  region-status, then skip-reason when and only when the region is skipped, then
+  exit-status-is-not-evidence, normalised and redacted.  skip-reason sits
+  directly after the status it explains, matching the sibling
+  startup/catalina.out.log so the two files in this directory parse the same
+  way.  exit-status-is-not-evidence is specific to THIS region and is present on
+  both sides regardless of status, because the claim it encodes is a property of
+  the pipeline rather than of any particular run.
+- Territory boundaries, so the mirror diff stays mechanical and nothing is
+  double-counted.  This region covers ONLY the three startup-time asset-pipeline
+  invocations and the lines immediately around them.  Container and application
+  startup belong to the whole-window archive startup/catalina.out.log; context
+  initialisation to the sibling context-initialisation region, which the archive
+  refers to as startup/spring-context.log and the producer emits under its own
+  region name context-init.log; the consolidated error-severity scan to the
+  sibling scan, referred to as error-scan.txt and emitted by the producer under
+  its region name errors.log; toolchain provenance to env/toolchain.txt; archived
+  unit-test reports to surefire/; and the eight application flows to the flow
+  captures.  Both names are given for those two siblings because the archive name
+  and the producer's region name differ, and citing only one of the pair would
+  leave a reader unable to match the file to the code that writes it.  None of
+  them is duplicated here, and no digest is computed here.
+- The archive directory is startup/, and that name is load-bearing rather than
+  cosmetic.  The repository's root ignore file uses bare, leading-slash-free
+  patterns, and git matches those at ANY depth.  Verified at this directory's
+  exact depth with a .log file placed inside each candidate: a directory named
+  logs is ignored by root ignore rule 26, bin by rule 7, target by rule 6,
+  builds by rule 40, activemq-data by rule 25 and partition-descriptor by rule
+  24, while this file's own path is reported as not ignored and is therefore
+  committable.  The ignored token is always the DIRECTORY name and never the
+  .log extension, so a .log file placed inside any of those six directories
+  would be silently uncommitted while every local check still passed.  This file
+  therefore sits directly in startup/ and no subdirectory was created beneath
+  it.  A directory named builds is the live temptation for a file about a build,
+  and it is exactly one of the six.  The producer script guards the same trap
+  from its own side, refusing to WRITE to a resolved path containing a forbidden
+  segment.
+- The pointed irony is worth recording.  The frontend's own dependency directory
+  is node_modules, which the frontend's local ignore file - whose entire content
+  is that one entry - keeps out of version control on purpose.  Reading FROM an
+  ignored directory, or from a container's own log directory, is fine; writing
+  INTO one is the trap, and it is why this archive directory is startup/.
+- Governing rule on evidence, verbatim: "Validation asserts on produced
+  artifacts and captured output, never on process exit status alone. This is
+  mandatory rather than stylistic because Gruntfile.js sets
+  grunt.option('force', true), which masks task failures and lets a broken build
+  exit zero."  This region is that rule's primary evidence, which is why the
+  header carries exit-status-is-not-evidence as a machine-readable field rather
+  than burying the point in prose.
+- The chain that rule describes was traced end to end through the actual code at
+  commit c8f6226105, and it has five links.  ONE: Gruntfile.js:143-144 reads, in
+  full, the comment "Making grunt default to force in order not to break the
+  project." followed by grunt.option('force', true) - so a failing task does not
+  fail the run.  TWO: the task runner therefore exits zero even when tasks fail.
+  THREE: the Java side runs each command through the process executor's default
+  implementation, which THROWS on a non-zero exit - so a zero exit means nothing
+  is thrown.  FOUR: the helper logs done with [{}]: exit code {} at
+  AngularResourceCopier.java:340 and startup CONTINUES.  FIVE: therefore a broken
+  asset build logs exit code 0, raises nothing, and the deployment reaches ready
+  state.
+- Sharpening link THREE, verified by executing the pinned process-execution
+  library rather than by reading its documentation.  The library version the
+  reactor pins was exercised directly: a child exiting 0 makes the execute call
+  RETURN 0 and throw nothing, while a child exiting non-zero makes the same call
+  THROW.  The consequence is stronger than the rule needs to claim.  Because a
+  non-zero exit throws before AngularResourceCopier.java:340 is ever reached, the
+  ONLY exit code that line can EVER print is 0.  A logged exit code of 0 in this
+  region is a tautology of the control flow, not a finding about the asset build.
+  The same probe confirmed that the single-argument stream handler used at
+  AngularResourceCopier.java:338 receives BOTH the child's standard output and
+  its standard error, so a task's error output lands on the same DEBUG relay as
+  its ordinary output and is subject to the same threshold.
+- Stated plainly, because it is the whole point of this file: THE LOGGED EXIT
+  CODE IS NOT EVIDENCE THAT THE ASSET BUILD SUCCEEDED.  THE PRODUCED ARTIFACTS
+  ARE.  The five artifact digests for this side live in the sibling artifacts/
+  directory, which is referenced here by directory name only; this region
+  computes no digest and quotes no digest value.  A reader who wants to know
+  whether the asset build worked must read that directory, not this one.
+- Two pre-existing defects are masked by exactly that forced-execution setting,
+  and they are recorded here as proof that the masking is real rather than
+  theoretical.  Both were verified by reading Gruntfile.js at commit c8f6226105.
+  FIRST: the alias registered at :379 as sync-dev runs concurrent:default, while
+  the concurrent configuration block at :90-98 defines exactly one target, named
+  default1 at :91.  The alias names a target that does not exist.  SECOND: the
+  alias registered at :372 as lint runs a JavaScript linter followed by a
+  stylesheet linter, but the JavaScript linter has NO configuration block
+  anywhere in the file - its name occurs at :372 and nowhere else - whereas the
+  stylesheet linter IS configured, at :40-47.
+- Both aliases are OUTSIDE the default task graph, so NEITHER affects the five
+  produced artifacts.  Saying so keeps the record accurate: their value is not
+  that they break the build, it is that they demonstrate a real, in-tree path by
+  which a broken frontend build exits zero.  Under the rule on discovered
+  defects they are REGISTERED, NOT FIXED, and nothing in this file proposes,
+  implies or performs a repair to either one.
+- Independent corroboration from elsewhere in this evidence tree, cited with
+  attribution so it is not mistaken for this region.  The sibling
+  notes/frontend-comparison-provenance.txt records that when the base-commit
+  pipeline was run for the artifact capture it exited ZERO while reporting a
+  missing module-configuration file and the message that force was used and it
+  was continuing.  That is the masking observed in a real run.  It was a
+  standalone command-line run in a throwaway build location, with no container
+  and no copier, so it is a DIFFERENT producer and a different territory: it is
+  corroboration for the mechanism, not a capture of this region, and a reader
+  must not extend it into one.
+- Governing rule on discovered defects, verbatim: "Pre-existing bugs discovered
+  during the work are documented rather than fixed, unless one blocks a
+  validation item."  Applied to this region that means the two aliases above are
+  registered and left alone, and every warning or error the pipeline emits is
+  captured exactly as observed - nothing repaired, nothing retried into
+  submission, nothing hidden.  The escape clause in that rule is invoked EXACTLY
+  TWICE in the entire change set.  Both invocations are frontend-related, which
+  is why they are worth naming as a boundary in this, the frontend region: one
+  concerns a generated configuration module that the build requires and version
+  control does not carry, the other the removal of a build package that cannot be
+  compiled on the target runtime.  NEITHER invocation is in this folder, and
+  nothing in this file performs, proposes or implies either of them.
+- Governing rule on ambiguity, verbatim: "The application's observed behavior at
+  the base commit on JDK 8 is the tie-breaker for any ambiguity, and each
+  resolution must be documented."
+  [Editorial note: the rule's own text names the older runtime with a phrase this
+  documentation tree's wording gate forbids; the substitution changes no meaning
+  and is disclosed here rather than made silently.]
+- That rule carries unusual weight for this side of the migration.  Verified at
+  commit c8f6226105 and again in the current tree: the frontend contains ZERO
+  specification files, despite declaring a test runner and an assertion library
+  among its build dependencies.  There is therefore no automated behavioural test
+  for the frontend to fall back on, and artifact-level identity against this
+  captured baseline is the strongest behavioural evidence this side of the
+  migration has.  That is also why an absence is recorded here instead of a
+  plausible-looking substitute: an unrun pipeline's behaviour is unknowable
+  rather than assumable.
+- Governing rule on justified change: no dependency version changes without a
+  specific compatibility reason for the target runtime.  Its CONTRAPOSITIVE is
+  load-bearing and is recorded here deliberately, because it is the half most
+  easily forgotten: HOLDING a version after assessment is as much a
+  rule-compliant decision as changing one.  The task runner and its command-line
+  interface were assessed by installing AND executing them on the target
+  runtime, they worked, and they are therefore DELIBERATELY HELD at the versions
+  the base commit declares.  That is why this region's task graph, its task
+  names and its five artifact names are expected to be identical on both sides of
+  the mirror: the tool that produces them was not replaced.  Bumping a component
+  that had been proven to work would itself have breached the rule.
+- Governing rule on the frontend dependency graph: the graph must be fully
+  reproducible from a committed lockfile, with no dependency resolving
+  differently between two checkouts.  Its bearing on this region is indirect but
+  real - it is what makes the concatenation order that produces these artifacts
+  stable across runs, and therefore what makes a byte comparison meaningful at
+  all.  The lockfile itself is out of this region's territory: no lockfile
+  content, no dependency specification and no dependency inventory appears here,
+  and no dependency tree is listed.  Those belong to the migration's own
+  registers.
+- Governing rule on the asset-layout contract: the task graph, the asset globs
+  and the five output artifact names are contract, and every dependency key is
+  immutable because the asset resolver holds a long list of literal
+  dependency-directory paths.  Verified at commit c8f6226105, the five names this
+  region's pipeline produces are assets/dist/application.js,
+  assets/dist/application.min.js, assets/dist/vendors.min.js,
+  assets/dist/application.min.css and the rewritten home.html.  They are named
+  here so the region can be read; their digests belong to artifacts/.
+- Governing rule on namespace invariance: it is honoured here trivially and
+  completely, in that this region names no package namespace at all and contains
+  no reference to the namespace the migration excludes.  The excluded frontend
+  technologies - a different frontend framework, a typed-JavaScript dialect, a
+  module-bundling toolchain and any interface redesign - are likewise absent, and
+  nothing here reads as advocacy for any of them.  The pipeline this region
+  observes is the existing task-runner pipeline, unchanged.
+- Governing rule that nothing is silently skipped: honoured by making this skip
+  loud.  region-status is a fixed vocabulary of exactly CAPTURED or SKIPPED,
+  skip-reason names the specific unmet preconditions and distinguishes them from
+  one another, and the delimiters are present and empty rather than absent.  A
+  reader or a script can tell in one line that this region carries no
+  observation, which is the opposite of a silent skip.
+- Governing rule against relying on JDK-internal access in production launch
+  configuration.  Verified at the base commit and after migration: that
+  configuration contains ZERO module-access JVM arguments.  Had such an argument
+  appeared in a captured banner it would be replaced, in this region, by the
+  description "a module-access JVM argument that opens or exports an
+  otherwise-encapsulated JDK package to the unnamed module", and the substitution
+  would be recorded in this notes block.  None arose, so none was made.  The
+  register of applied exceptions is referred to BY TITLE ONLY, as
+  the JDK access exceptions register, because its filename embeds a token this
+  tree excludes; it is delivered empty with a positive statement that none are
+  required.
+- Registered observation, not a defect report against this file and not something
+  to fix: the two recursive scans for module-access tokens that this deliverable
+  is checked against cannot return zero across the whole documentation tree,
+  because the register just referred to carries such a token inside its own
+  required filename and several migration documents plus the top-level readme and
+  the setup page cite it by that name.  Those files are outside this file's scope
+  and were not modified.  Within docs/migration/smoke-evidence the count is zero,
+  and this file keeps it zero.
+- Provenance of the rules quoted above, and both facts belong together because
+  either alone misleads.  FIRST, the project's rules facility reports, verbatim,
+  "No user rules provided" - there is no on-disk user rules document for this
+  project, and that is explicitly NOT licence to lower the bar; the work is held
+  to enterprise-standard practice on top of the rules, never instead of them.
+  SECOND, rules are nonetheless present and binding: the requirements embed an
+  explicit, numbered block of seven rules that governs this work in full exactly
+  as an external rules document would, alongside seven transformation rules.  The
+  identifiers the migration plan uses for them are its OWN navigational
+  convention rather than quoted titles, which is why every rule above is quoted
+  or summarised by its text rather than cited by number alone.  No rule was
+  invented and none was softened.
+- Credential posture, in the repository's own voice rather than a policy invented
+  here.  At the base commit docs/setup.md:78 states that real keystore and
+  trust-store passwords must not be checked into source control and should
+  instead be set through environment variables or a secret manager in any
+  non-local environment, and that page already renders both values as <REDACTED>
+  at :86 and :87 and the administrator password as <REDACTED> at :119, where the
+  top-level readme does not.  This capture honours that posture and reuses that
+  token.  Measured rather than asserted: the documented administrator password
+  occurs at exactly ONE location in the whole tracked tree, in the top-level
+  readme, and ZERO times anywhere under docs/migration - and this file keeps that
+  count at zero by never transcribing it.
+- The launch configuration audited for the rule on JDK-internal access is, at
+  commit c8f6226105, the block at README.md:111-127, duplicated in docs/setup.md.
+  It is described here and cited by anchor, and deliberately never reproduced
+  verbatim, for two reasons: it carries credential-shaped values, and it also
+  carries two pre-existing unbalanced quotation marks - confirmed by counting
+  quotation marks per line, at README.md:119 and spanning README.md:123-124.
+  Importing that block would copy a pre-existing defect into a new file for no
+  benefit, and the rule on discovered defects forbids repairing it, so it is
+  neither repaired nor imported.
+- Registered observation, likewise not fixed: the current working tree has moved
+  past the base commit, so every anchor in this file is cited as a BASE-COMMIT
+  anchor and should be re-read at commit c8f6226105, which is the only revision
+  at which a baseline is meaningful.
+- expected-evidence, and every line so labelled is an EXPECTATION derived by
+  reading the repository at commit c8f6226105, never an observation of a run.
+  Nothing below was witnessed on this host.  The wiring anchors, the task graph,
+  the forced-execution setting, the two masked aliases and the determinism
+  findings are all true of the repository regardless of whether the capture ran,
+  which is why they are recorded even though the region is empty - the mirror
+  needs them to select the same region and to read it the same way.
+- expected-evidence: this region exists at all because the asset pipeline runs
+  INSIDE the deploying application at container startup, not at build time.  A
+  search across every module build file for an asset-pipeline plugin, a
+  runtime-version declaration or a pipeline invocation returns nothing; the
+  pipeline is driven instead by a servlet-context-aware Spring bean, declared at
+  spring-web-ark-angular-starter.xml:26 and implemented by
+  AngularResourceCopier.java, whose class declaration at :79 carries that
+  interface.  That is why the package-manager migration has a runtime-wiring
+  component, and why a deployment log region is the ONLY place the startup-time
+  pipeline is ever observed.
+- expected-evidence: the capture precondition, restated as a mechanism because
+  getting it wrong empties the region.  The helper at
+  AngularResourceCopier.java:325-342 pipes the child process's standard output
+  and standard error into the application's own logger at DEBUG level, through a
+  stream handler at :338 wrapping a DEBUG-level output-stream adapter constructed
+  at :335; the adapter was inspected directly and every relayed line goes out
+  through the logger's debug method.  The invocation itself is announced at :327
+  and the completion at :340, both also at DEBUG.  DEBUG must therefore be
+  enabled for that logger or this region contains nothing but the two bracket
+  lines - which is precisely condition (2) in skip-reason.
+- expected-evidence: three invocation pairs, in this order, each appearing as an
+  About to run [{}] line followed by a done with [{}]: exit code {} line.  ONE,
+  the dependency install, at AngularResourceCopier.java:131, from the
+  yarnInstallCommand property configured at
+  spring-web-ark-angular-starter.xml:33-35.  TWO, the default asset task graph,
+  at :168, from the gruntDefaultCommand property configured at :36-38.  THREE,
+  the module-configuration merge, at :203, from the mergeConfigFrontendTask
+  property configured at :28-30, which invokes the task-runner target registered
+  at Gruntfile.js:183.
+- expected-evidence: the three property KEYS above are the command identities the
+  normalisation policy preserves, and all three are stable across the mirror -
+  verified, the install property retains its original key in the migrated tree
+  even though its VALUE is replaced.  A reader comparing the two sides should
+  therefore expect the same three keys in the same order, with a changed value on
+  the first pair only.  The key is cited because it is the stable handle; it is
+  not an endorsement of the tool its name recalls.
+- expected-evidence: a non-obvious property of the THIRD pair that a mechanical
+  diff will otherwise trip over.  The call at :203 sits inside a per-profile
+  helper invoked from the loop at :141-144, once for EACH active profile, and the
+  active-profile list built at :135-137 is the extension profile when one is
+  present plus a fixed custom profile.  The third pair therefore REPEATS, and its
+  repetition count is an environment-dependent property of the capture rather
+  than a defect.  A baseline and a migrated capture taken with different active
+  profiles will differ in that count for a reason that carries no behavioural
+  signal, so the profile set must match across the mirror.
+- expected-evidence: the pre-migration package manager's install invocation is
+  what this baseline region records for the FIRST pair.  It is named here only as
+  the thing observed at the base commit; it is not a prerequisite and not a
+  recommendation, and it is REPLACED in the migrated capture by a
+  lockfile-respecting clean install.  The configured value at :34 carries
+  skip-integrity-check, ignore-engines, no-progress and non-interactive flags,
+  and it is the only one of the three commands that does not route through the
+  task runner.
+- expected-evidence: the default task graph is frozen contract.  Gruntfile.js:376
+  registers it as exactly loadConfig, clean, ngAnnotate, uglify, concat, cssmin,
+  renderHome, cacheBust, copyToModulesConfigFolder - nine tasks, in that order.
+  Per-task progress lines are captured where the log carries them, with task
+  names, graph order and per-task file counts preserved and the clock normalised.
+  The graph produces the five artifacts named above.
+- expected-evidence, determinism finding 1 of 4: cache busting is CONTENT-HASH
+  based.  Its configuration at Gruntfile.js:79-86 rewrites the home page against
+  the distribution directory, with no timestamp, no build banner and no date
+  injection anywhere in the file - a search for banner, date-construction and
+  template-timestamp constructs returns nothing at all.  Repeated builds of
+  identical input therefore produce identical output.
+- expected-evidence, determinism finding 2 of 4: minification runs with
+  identifier mangling DISABLED, at Gruntfile.js:51, which removes the principal
+  source of benign inter-build variance.
+- expected-evidence, determinism finding 3 of 4: concatenation order derives from
+  the frozen asset globs, so preserving every dependency key and the install
+  topology means that order cannot drift.  The clean task also wipes the
+  distribution directory first, configured at Gruntfile.js:131, so a stale
+  artefact cannot masquerade as a match.
+- expected-evidence, determinism finding 4 of 4, and it is an honest caveat
+  stated rather than glossed: source-map generation is ENABLED, at
+  Gruntfile.js:52, and a source map embeds file paths.  The comparison build must
+  therefore execute from the SAME relative path, or the map file will differ
+  while the JavaScript bundles do not.  The comparison is scoped to the five
+  artifacts accordingly, and the map is treated as path-sensitive rather than
+  behaviour-bearing.
+- expected-evidence: an environment input that conditions the pipeline.  The
+  development value of the node-environment variable is exported in the launch
+  configuration - set at README.md:121 inside the block described above, and
+  documented in four places across the readme and the setup page in the current
+  tree.  It reaches exactly one branch: Gruntfile.js:163 tests the variable for
+  the exact value production when the renderHome task decides which asset lists
+  to render into the home page, so any other value, including an unset variable,
+  follows the same development branch.  It is recorded as an input to this
+  capture because it selects the content of one of the five artifacts.
+- expected-evidence, stated as a fact about a MECHANISM and not as an action
+  performed here: the generated configuration module is written into the working
+  directory by AngularResourceCopier.java:206-215, with the exported shape built
+  at :208-210 and the write performed at :212 with replace-existing semantics.
+  Replace-existing is why a deployed environment continues to overwrite whatever
+  default is present with its own value, and therefore why committing a tracked
+  default cannot change deploy-time behaviour.  This file neither creates that
+  module nor asks for it to be created; it records how the writer behaves.
+- expected-evidence: warning and error lines from the pipeline are captured AS
+  OBSERVED, with their message text preserved in full and nothing repaired or
+  retried.  The consolidated error-severity scan is a separate sibling region and
+  is not duplicated here.
+- expected-evidence, and it is the sharpest consequence of the level established
+  in skip-reason, so it is stated precisely rather than approximately.  The relay
+  is uniformly at DEBUG: a child task's own warning and error TEXT reaches the log
+  through the same adapter as its ordinary output, so it carries DEBUG severity
+  regardless of how severe the message reads.  Counting the copier's own logging
+  calls at commit c8f6226105 gives seventeen at DEBUG, eight at TRACE, one at INFO
+  and one at ERROR, and NONE at WARN.  With the copier's logger pinned at WARN,
+  therefore, the only line this class can contribute at all is the single ERROR at
+  AngularResourceCopier.java:185, which fires only when the whole resource copy
+  aborts on an input-output failure and then deliberately throws to stop the
+  deployment.  Everything else - all three invocation announcements, every relayed
+  line of pipeline output including its warnings, and all three completion lines -
+  is discarded.  A broken asset build under that configuration leaves NO log trace
+  whatsoever, which is a stronger statement than the evidence rule needs and the
+  most direct possible argument for asserting on the artifacts instead.
+- Mirror obligation.  The counterpart is migrated/startup/frontend-build.log: the
+  same filename, the same field set in the same order including
+  exit-status-is-not-evidence, and the same region-selection rule stated above, so
+  that a recursive diff between the two capture directories is mechanically
+  meaningful.  A field added on one side only, or a region selected differently on
+  one side only, would register as a difference that carries no behavioural signal
+  at all.

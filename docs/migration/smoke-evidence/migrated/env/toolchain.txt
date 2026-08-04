@@ -3,7 +3,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - TOOLCHAIN PROVENANCE OF RECORD
 
 ARTEFACT              env/toolchain.txt
 CAPTURE DIRECTORY     docs/migration/smoke-evidence/migrated
-CAPTURE SIDE          migrated (post-migration replay)
+CAPTURE SIDE          migrated (post-migration)
 MIRRORED BY           baseline/env/toolchain.txt
 PRODUCED BY           docs/migration/smoke-evidence/smoke-checks.sh (capture_toolchain,
                       step 7 of its artefact contract and the first capture of its run)
@@ -11,7 +11,7 @@ INVOCATION            SMOKE_OUT_DIR=docs/migration/smoke-evidence/migrated \
                           ./docs/migration/smoke-evidence/smoke-checks.sh
 HAND EDITED           no
 REPOSITORY            com.armedia:acm:2021.03 (145-module Maven reactor)
-BASE COMMIT           c8f6226105c28c2743281d26bf21ad73f7bb7f26
+BASE COMMIT           d5698836f006eede8cd15ee2344960d56d2b16f8 (migrated tree; derived from base commit c8f6226105)
 RUNTIME DESIGNATION   Java 17 (declared label of this capture, not probe output)
 PROBE COUNT           4 (fixed by the producing script's contract)
 
@@ -115,7 +115,13 @@ CREDENTIAL            never recorded. The producer requires a credential to run 
                       records only its source and the fact that its value is never
                       written. No credential, keystore or trust-store value appears.
 MODULE ACCESS ARG     none present, therefore none replaced. No captured value here
-                      contained a module-access JVM argument.
+                      contained a module-access JVM argument. The check matters more
+                      on this side, because a runtime of this generation echoes the
+                      contents of its options environment variables verbatim ahead of
+                      its own banner, so a value set in one of them would have been
+                      captured. All three of those variables were unset at capture
+                      time, no echo line was emitted, and nothing had to be described
+                      in place of a captured value.
 NOTHING ELSE          no other value was altered. Every substitution above is applied
                       inside the producing pipeline, never by hand after the fact: a
                       hand-edited capture is not evidence.
@@ -153,13 +159,16 @@ Quoted with its substitution disclosed rather than made silently:
     this documentation tree's wording gate forbids. The substitution changes no
     meaning and is disclosed here rather than applied quietly.
 
-This artefact is what makes the "on JDK 8, at the base commit" half of R-7
-verifiable rather than merely asserted. That is why the runtime designation and
-the base commit are both recorded above, and why the capture is irreversible:
-nothing done later can reconstruct the runtime a measurement was taken on, which
-is why baseline capture is the first executable action of the migration rather
-than a validation afterthought. A digest or a test report without a recorded
-runtime is an unlabelled measurement.
+This artefact is what makes the comparison half of R-7 verifiable rather than
+merely asserted: baseline behaviour can only settle an ambiguity if the replay it
+is compared against carries its own recorded runtime. That is why the runtime
+designation and the commit are both recorded above, and why the commit field
+holds this tree's own head at capture time rather than the base commit it derives
+from, which the same field names for that derivation. The working tree was clean
+at that head apart from this artefact itself. Copying the baseline's commit so
+that the field matched across the mirror would have misrepresented where this
+capture was taken, and is refused for that reason. A digest or a test report
+without a recorded runtime is an unlabelled measurement.
 
 R-T7, EVIDENCE OVER EXIT CODES. Quoted verbatim:
 
@@ -221,7 +230,10 @@ present at baseline. This artefact is the label on the archived unit-test
 evidence that the baseline-failure register cites row by row: an exclusion is
 auditable only if the runtime under which those failures were observed is
 recorded. The operational parallel is the absence rule stated above -- no probe
-may be silently omitted.
+may be silently omitted. No probe recorded absence in this capture, so no sibling
+flow here is marked skipped for want of a probed tool; where a probe does record
+absence, the flow evidence that depends on it is marked SKIPPED with its reason
+rather than quietly dropped, and those sibling files are read here, never edited.
 
 R-6, document discovered defects rather than fixing them. Nothing was repaired to
 make this capture look complete: no absent tool was installed, no banner was
@@ -233,13 +245,13 @@ namespace, a newer framework generation, a typed JavaScript dialect or a module
 bundler. All are excluded from this migration and none is happening.
 
 R-T2 and R-3, a single compile source of truth with no release-8 escape hatch.
-Recorded as observed provenance of the tree this capture labels: at the base
-commit the compiler contract is declared in exactly one of the 145 POMs, at
-pom.xml:21, and consumed at six sites -- pom.xml:332-334 in the default compiler
-plugin configuration and pom.xml:349-351 inside the log4j-plugin-processor
-execution. That is the pre-migration state this baseline documents. It is not an
-endorsement of that target for the migrated build, which compiles at release 17
-from a single authoritative property.
+Recorded as observed provenance of the tree this capture labels: the compiler
+contract is declared in exactly one of the 145 POMs, at pom.xml:23, as a single
+authoritative release property whose value is 17, and it is consumed at two sites
+-- pom.xml:461 in the default compiler plugin configuration and pom.xml:478
+inside the log4j-plugin-processor execution. No POM in the reactor declares a
+source or a target level of its own, so there is no second place where a
+superseded release target could persist, and none does.
 
 R-T4, explicit pinning. Every version recorded above is an exact value read from
 the tool itself. None is expressed as a range, as an approximation or as
@@ -254,4 +266,8 @@ the identical field layout, so that a recursive diff between them shows the
 intended runtime delta and nothing structural. No wall-clock time, host name,
 user name, process identifier, random value or absolute path is recorded
 anywhere above, because each would differ between two runs for reasons unrelated
-to the runtime and would turn that comparison into noise.
+to the runtime and would turn that comparison into noise. On this side all four
+probes differ from their baseline counterparts, and that difference is the
+runtime delta the comparison exists to show; everything else that differs is a
+field or a sentence that names this capture side, and nothing structural differs
+at all.

@@ -43,3 +43,38 @@ suites ADDED — archived on the migrated side only (accounted for, not fatal):
   - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
   - ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest.xml
   - ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml
+
+SANCTIONED SUBSTITUTIONS LOGGED AGAINST THE ARCHIVED REPORTS
+
+Exactly one class of alteration stands between what the test runner emitted and
+what this archive carries, and it is recorded here so that it is disclosed
+rather than inferred from a diff.
+
+  what ...... the runner's system property table, reduced to its runtime
+              identity entries: the runtime and virtual machine name, version,
+              vendor and mode, the class file version, the operating system name,
+              version and architecture, the data model, the file encoding and the
+              debug level.
+  why ....... every entry beyond those either names an absolute filesystem path
+              or enumerates the whole resolved classpath.  This documentation
+              tree carries no absolute path, and an enumerated classpath would
+              additionally publish a library version list, which belongs solely
+              to the dependency change inventory and to nowhere else.
+  scope ..... the properties block only.  The testsuite element keeps the
+              runner's own attributes in the runner's own order, and every
+              testcase, every outcome, every failure or error message with its
+              stack trace and every captured output and error stream is
+              verbatim.  No outcome was altered in either direction: a bare
+              passing testcase and a fabricated failure are equally forbidden.
+  both sides  the same reduction is applied to the baseline capture, which is
+              what keeps a report and its same named twin comparable on the only
+              dimensions that can be compared, namely testcase presence, outcome
+              and failure message content.  Raw byte comparison is not one of
+              them: a web layer context startup emits timestamped log lines, so
+              two runs cannot agree byte for byte even in principle.
+
+No other substitution was applied.  In particular no principal name, request
+header, session identifier or credential of any kind appears in any archived
+report, and no report names a module access JVM argument, that is, an argument
+opening or exporting an otherwise encapsulated JDK package to the unnamed
+module.  Where a report needed to describe such an argument it does so in words.

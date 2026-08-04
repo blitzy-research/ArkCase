@@ -1,0 +1,364 @@
+capture: Spring context initialisation
+runtime: JDK 8
+commit: c8f6226105
+source: application log during container startup
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh
+region-status: SKIPPED
+skip-reason: no deployed web archive, no servlet container and no six-service
+  reference stack on this host, therefore no application log from which a
+  context-initialisation region could be mined.  Measured here rather than
+  assumed, and each measurement is separately sufficient on its own: no web
+  archive of any name exists anywhere in the working tree; there is no servlet
+  container installation, no catalina.sh on the path, and TOMCAT_HOME,
+  CATALINA_HOME and CATALINA_LOG are all unset, so the producing script's own
+  precondition for mining a startup region is unmet by construction; the
+  hostname arkcase-ce.local does not resolve; and all five documented service
+  endpoints answered 000, meaning no HTTP response at all, which agrees with
+  the notes/reference-stack.status and notes/readiness.status records already
+  present in this capture directory.  Independently of the absent stack, the
+  designated producer refuses to start without an administrator credential
+  supplied through its environment: invoked with an output directory and no
+  credential it printed "REFUSING TO START.  No credential supplied, and this
+  script has no default." and exited 2, so no run was possible here even
+  setting the deployment aside, and supplying administrator material would have
+  been neither available nor appropriate.  The older runtime is deliberately NOT
+  listed among the unmet preconditions, because it is not one: a JDK 8
+  installation is present on this host and answers openjdk version "1.8.0_492",
+  the same banner the sibling env/toolchain.txt records for this capture side.
+  What is missing is the deployment and its backing services, not the JVM.
+normalised: nothing, because no bytes were captured.  The policy is stated in
+  full regardless, so that the migrated mirror reproduces the same
+  transformation rather than inventing one.  When this region is captured the
+  producing pipeline strips timestamps and dates, thread names and thread
+  identifiers, session identifiers, generated request, correlation and instance
+  identifiers, absolute filesystem paths in favour of stable tokens, port
+  assignments, and elapsed-time and duration figures.  It preserves everything
+  this region exists to evidence: component, bean and class names;
+  bean-definition counts and every other count; the aspect and auto-proxy
+  evidence; lifecycle and state transitions; and the full message text of every
+  warning and error line.  Over-normalising this region would destroy the
+  evidence it carries.  A normaliser that ate a bean class name or a definition
+  count would leave the mirror comparison looking healthy while comparing
+  nothing at all, which is strictly worse than leaving the volatility in.
+redacted: nothing, because no bytes were captured.  When it is captured, every
+  credential-shaped value is replaced with the fixed token <REDACTED>, which is
+  the form this documentation tree already uses at docs/setup.md:86, :87 and
+  :119.  Three carriers are in scope for this region specifically: a datasource
+  credential echoed by the persistence or connection-pool beans as they
+  initialise; a message-broker credential echoed by a broker connection-factory
+  bean; and a keystore or trust-store password echoed by any component that
+  reports its transport configuration.  Each is recorded only in a redacted
+  form, for example password=<REDACTED>.  The documented administrator
+  credential is never transcribed here in any form, not even as an illustration
+  of what redaction removes.
+----- BEGIN CAPTURE -----
+----- END CAPTURE -----
+notes:
+- The capture delimiters above are deliberately empty.  Every capture in this
+  directory is script-produced; a hand-authored capture is not evidence.  Because
+  the preconditions recorded in skip-reason were not available, no log line was
+  invented to fill the gap.  A fabricated baseline would make every
+  behaviour-preserved claim in this migration unfalsifiable, which defeats the
+  baseline-as-tie-breaker rule outright.  An explicit, machine-readable skip with
+  a specific reason is rule-compliant; an invented capture is not, and is
+  strictly worse than an honest absence because it would be indistinguishable
+  from the real thing and would therefore be trusted.
+- A SKIPPED region is NOT a pass, and two matching SKIPPED regions across the
+  baseline and migrated capture directories are NOT evidence of preserved
+  behaviour.  They record an absence in both places, and nothing more.  The
+  sibling notes/flows-not-captured.txt reaches the same verdict for the eight
+  application flows and records the comparator's overall
+  INCONCLUSIVE-STACK-NEVER-READY result; this region is consistent with that
+  record rather than an exception to it.
+- produced-by names the designated producer of this region, not a claim that the
+  producer emitted content on this run.  It emitted none, which is why the
+  delimiters are empty.  One naming detail is recorded here rather than left for
+  a reader to trip over: the producing script's internal region vocabulary calls
+  this material context-init.log and describes it as "Spring context
+  initialisation and container startup", matching on ContextLoader, Root
+  WebApplicationContext, Initializing Spring, Starting ProtocolHandler and
+  Server startup in, with a 2000-line cap it announces.  The deliverable
+  filename is spring-context.log, fixed by the migration's own artefact list,
+  and the container half of that producer pattern belongs to the sibling
+  catalina.out.log rather than here.  The mapping is stated so that both sides
+  of the mirror select the same region from the same producer output.
+- Region-selection rule, stated here so the migrated capture reproduces it
+  without guesswork.  Archive the behaviour-bearing context-initialisation
+  region and nothing else: the root web application context starting, bean
+  definition loading with its counts, the configuration sources loaded, the
+  aspect components initialising, the auto-proxy creator being registered, the
+  context reaching full refresh, and every warning and error line emitted inside
+  that window exactly as observed.  The window opens when the root context
+  begins initialising and closes when that context reports successful
+  initialisation.  Counts are preserved; the clock is normalised.
+- Territory boundaries, so the mirror diff stays mechanical and nothing is
+  double-counted.  This region covers context initialisation, the aspect
+  components and auto-proxying only.  Container and application startup belong
+  to catalina.out.log, annotation scanning to reflection-scan.log, persistence
+  initialisation to jpa-init.log, process-engine initialisation to
+  workflow-engine-init.log, the startup asset build to frontend-build.log and
+  the consolidated severity scan to error-scan.txt.  Toolchain provenance
+  belongs to env/toolchain.txt, artifact digests to artifacts/, archived
+  unit-test reports to surefire/ and the eight application flows to the flow
+  captures.  None of those is duplicated here.  Duplicating a sibling's
+  territory would breach the scope fence and would make the same observation
+  count twice in a row-for-row comparison.
+- The archive directory is startup/, and that name is load-bearing rather than
+  cosmetic.  The repository root ignore file uses bare, leading-slash-free
+  patterns and git matches those at any depth, which was verified at this exact
+  directory depth with a .log file inside each candidate: a file at
+  startup/logs/x.log is ignored by .gitignore:26, startup/bin/x.log by
+  .gitignore:7, startup/target/x.log by .gitignore:6, startup/builds/x.log by
+  .gitignore:40, startup/activemq-data/x.log by .gitignore:25 and
+  startup/partition-descriptor/x.log by .gitignore:24, while this file itself is
+  not ignored.  The ignored token is always the DIRECTORY name and never the
+  .log extension, so a .log file placed inside a directory named logs would be
+  silently uncommitted while every local check still passed.  This file
+  therefore sits directly in startup/ and no subdirectory was created beneath
+  it.  Reading an input log FROM such a directory is fine; writing INTO one is
+  the trap.
+- Why this region exists, and it is the only reason it exists.  Governing rule on
+  dependency changes, quoted: "Every dependency version change must have a
+  specific Java 17 or Node 20 compatibility reason ...  A change without a reason
+  is out of scope."  That rule has a contrapositive, and the contrapositive is
+  load-bearing rather than a rhetorical flourish: holding a version after
+  assessment is as much a rule-governed decision as changing one, and it needs
+  evidence too.  The aspect-weaving library is one of the oldest load-bearing
+  dependencies in the reactor and it is deliberately HELD.  Verified rather than
+  asserted: aspectj.version reads 1.7.4 at pom.xml:44 at the base commit, and
+  reads 1.7.4 still at pom.xml:48 in the migrated tree, the line number having
+  moved only because properties were added around it.  The value is identical.
+  This region is where a reviewer sees the aspects actually initialise under the
+  held version, which is the observational half of that decision.  The same rule
+  acts as a scope fence operationally, and that was honoured too: every figure
+  below was derived with the POSIX toolset alone -- grep, sed, awk, find, curl
+  and git -- and no tool, interpreter, package or test framework was installed
+  to produce this artefact.
+- expected-evidence, and every line so labelled below is an EXPECTATION derived
+  by reading the repository at commit c8f6226105, never an observation of a run.
+  Nothing below was witnessed on this host.  Each figure was re-derived here
+  rather than copied from the migration plan's prose, and the command that
+  derived it is given so a reviewer can repeat it.
+- expected-evidence: the aspect components.  Exactly 7 classes carry the aspect
+  annotation, in 4 Maven modules.  Command: grep -rln "@Aspect" --include=*.java
+  . | sort | wc -l  ->  7.  The seven, by path:
+      acm-tool-integrations/acm-configuration
+        .../configuration/annotations/ListValueAspect.java
+        .../configuration/annotations/MapValueAspect.java
+      acm-services/acm-service-data-access-control
+        .../dataaccess/annotations/DecoratedAssignedObjectParticipantAspect.java
+      acm-services/acm-service-object-lock
+        .../objectlock/annotation/AcmAcquireObjectLockAspect.java
+        .../objectlock/annotation/AcmReleaseObjectLockAspect.java
+        .../objectlock/annotation/AcmAcquireAndReleaseObjectLockAspect.java
+      acm-services/acm-service-portal-gateway
+        .../portalgateway/service/CheckPortalUserAssignementAspect.java
+  The same command over the current tree also returns 7, so the aspect inventory
+  is unchanged by the migration.  Class names are preserved by the normaliser
+  precisely so that this inventory is checkable in a captured region.
+- expected-evidence: how those seven reach the context, because it determines
+  what a captured region should show.  All seven carry both the aspect annotation
+  and a Spring component annotation.  Five are ALSO declared as explicit bean
+  definitions in configuration, so a captured region should name them:
+  spring-library-object-lock.xml declares three anonymous beans at :8, :12 and
+  :16, each wired to objectLockingManager; spring-web-dac-api.xml declares
+  decoratedAssignedObjectParticipantAspect at :12-13; and
+  spring-library-portal-gateway-service.xml declares
+  checkPortalUserAssignementAspect at :30.  The remaining two, in
+  acm-tool-integrations/acm-configuration, have no bean definition in any
+  configuration file and reach the context by component scanning alone.  That
+  asymmetry is behaviour and is not to be tidied.
+- expected-evidence: the auto-proxy configuration.  Exactly 5 auto-proxy
+  declarations exist, one per file, in 5 files.  Command: grep -rln
+  "aspectj-autoproxy" --include=*.xml .  The five, with the anchor of the
+  declaration in each:
+      acm-core-api/.../spring/spring-library-core-api.xml:6
+      acm-services/acm-service-billing/.../spring-library-billing.xml:6
+      acm-services/acm-service-data-access-control/.../spring-web-dac-api.xml:10
+      acm-services/acm-service-object-lock/.../spring-library-object-lock.xml:6
+      acm-services/acm-service-portal-gateway/.../spring-library-portal-gateway-service.xml:8
+  Four of the five request proxy-target-class="true"; the portal-gateway
+  declaration is the bare form.  That difference selects a different proxying
+  mechanism for portal-gateway beans, so it is behaviour-bearing and is recorded
+  rather than smoothed over.  Verified figure disclosure: the same command over
+  the CURRENT working tree returns 6 files, not 5, because
+  acm-core-api/target/classes/ holds a build-output copy of one of them.
+  Restricted to tracked source the count is 5 at the base commit and 5 now, and
+  5 is the figure this region uses.
+- expected-evidence: the decisive NEGATIVE finding, recorded explicitly because
+  it is the whole point of this region.  Load-time weaving is configured NOWHERE,
+  on four independent measurements at the base commit:
+      find . -name 'aop.xml' | wc -l                                    ->  0
+      zero load-time-weaver declarations: each of load-time-weaver,
+        loadTimeWeaver, LoadTimeWeaver, context:load-time-weaver and
+        spring-instrument matches 0 files
+      spring-aspects appears in 0 of the 145 POMs, and in 0 files of any kind
+      no -javaagent argument anywhere: the token javaagent matches 0
+        occurrences tree-wide, and the production launch configuration at
+        README.md:111-127 contains none
+  The consequence, stated plainly: the bytecode weaver sits on the classpath and
+  is never invoked.  Spring's proxy-based advice resolves pointcuts through the
+  aspect library's reflection-based matcher, which examines reflective metadata
+  rather than class bytes, so the class file version the application is compiled
+  to never reaches a bytecode reader on this path.  That is why the aspect
+  library was verified compatible and deliberately held rather than advanced, and
+  it is why a region showing seven aspects initialising and an auto-proxy creator
+  registered is the practical confirmation of that assessment.
+- expected-evidence: warning and error lines are expected in a healthy first
+  context initialisation of this application, and are captured as observed with
+  their message text preserved in full.  The consolidated severity scan is a
+  sibling artefact; this region is the window that scan reads from, which is why
+  the two must be drawn from the same capture and why neither may be reconciled
+  against the other after the fact.
+- Governing rule on evidence, quoted verbatim: "Validation asserts on produced
+  artifacts and captured output, never on process exit status alone. This is
+  mandatory rather than stylistic because Gruntfile.js sets
+  grunt.option('force', true), which masks task failures and lets a broken build
+  exit zero."  Applied here: context initialisation is asserted on this captured
+  log region and never on the deployment's exit status.  A deployment can reach
+  ready state, answer a health probe and still have failed to register an aspect
+  or to refresh a context, and the forced-execution property named in that rule
+  is a live one in this codebase rather than a hypothetical -- the startup asset
+  build runs through the same pipeline.  Exit zero is not evidence.  Nor, in this
+  region, is a healthy readiness probe.
+- Governing rule on discovered defects, quoted verbatim: "Pre-existing bugs
+  discovered during the work are documented rather than fixed, unless one blocks
+  a validation item."  Applied here: every context-initialisation warning is
+  captured exactly as observed, with nothing repaired, nothing retried into
+  submission and nothing hidden.  The migration's escape clause is invoked
+  exactly twice in the entire change set and neither invocation is in this
+  folder.  Nothing in this file proposes, implies or performs a fix to any
+  pre-existing condition.
+- Governing rule on ambiguity, quoted verbatim: "The application's observed
+  behavior at the base commit on JDK 8 is the tie-breaker for any ambiguity, and
+  each resolution must be documented."
+  [Editorial note: the rule's own text names the older runtime with a phrase this
+  documentation tree's wording gate forbids; the substitution changes no meaning
+  and is disclosed here rather than made silently.]
+  That rule is the whole reason this file exists before any migrated counterpart
+  does, and the reason an absence is recorded here instead of a plausible-looking
+  substitute: an unrun context initialisation's behaviour is unknowable rather
+  than assumable.
+- Governing rule on test integrity, in force here as a principle rather than as a
+  test configuration: nothing is silently skipped, and an exclusion is defensible
+  only against a recorded baseline.  Applied to this region that means the skip
+  is explicit, machine-readable in region-status, and carries a reason naming
+  each specific unmet precondition, with the measurement behind it.  A region
+  quietly omitted, or one whose absence had to be inferred from a missing file,
+  would breach that principle even though no test was formally disabled.
+- Governing rule on namespace invariance, in force here as a content constraint:
+  every platform package reference stays in the namespace it already uses, and
+  the removals the newer platform introduced are compensated by ADDING artifacts
+  in that same namespace rather than by rewriting source into the successor
+  namespace.  Artifact eligibility is decided by inspecting a jar's package
+  prefixes rather than by reading its coordinates, which is stricter than the
+  literal reading of the rule.  Nothing in this file references the successor
+  namespace, a newer framework generation, a typed JavaScript dialect or a module
+  bundler; the framework stays on its existing generation and none of the
+  excluded technologies is happening.
+- Provenance of the rules quoted above, and both facts belong together because
+  either one alone misleads.  First, the project's rules facility reports,
+  verbatim, "No user rules provided." -- there is no on-disk user rules document
+  for this project, and the read was complete rather than partial.  That is
+  explicitly NOT licence to lower the bar.  Second, rules are nonetheless present
+  and binding: the migration requirements embed an explicit numbered block of
+  seven core rules that governs this work in full exactly as an external rules
+  document would, alongside seven transformation rules.  Reporting only the first
+  fact would imply that enterprise best practice is the sole standard here, which
+  is wrong because fourteen specific constraints apply; reporting only the second
+  would misrepresent where the rules came from.  The identifiers the migration
+  plan uses for them are its own navigational convention rather than quoted
+  titles, which is why the rules are quoted here by their text and referred to by
+  what they require rather than cited by number alone.  No rule has been invented
+  and none has been softened.
+- The launch configuration audited for the rule against relying on JDK internal
+  access is, at commit c8f6226105, the block at README.md:111-127, duplicated at
+  docs/setup.md:76-96.  It is described here and cited by anchor, and deliberately
+  never reproduced verbatim, for two reasons: it carries credential-shaped values
+  in its keystore and trust-store arguments, and it also carries two pre-existing
+  unbalanced quotation marks, at README.md:119 and spanning README.md:123-124.
+  Importing that block would copy a pre-existing defect into a new file for no
+  benefit, and the rule on discovered defects forbids repairing it, so it is
+  neither repaired nor imported.
+- Verified at the base commit: that launch configuration contains zero
+  module-access JVM arguments.  If such an argument ever appeared in a captured
+  banner inside this region it would be replaced by the description "a
+  module-access JVM argument that opens or exports an otherwise-encapsulated JDK
+  package to the unnamed module", and the substitution would be recorded in this
+  notes block.  The register of applied exceptions is referred to here by title
+  only, as the JDK access exceptions register, because its filename embeds a token
+  this documentation tree excludes; it is delivered empty with a positive
+  statement that none are required.  This region contributes directly to that
+  emptiness: the aspect library was the most plausible candidate for needing such
+  an argument, and the four negative findings above are why it does not.
+- Credential posture, in the repository's own voice rather than a policy invented
+  here.  At the base commit docs/setup.md:78 states that real keystore and
+  trust-store passwords must not be checked into source control and should
+  instead be supplied through environment variables or a secret manager in any
+  non-local environment, and that page already renders both values as <REDACTED>
+  at :86 and :87 and the administrator password as <REDACTED> at :119, where
+  README.md does not.  This capture honours that posture and reuses that token.
+  The documented administrator password appears at exactly one location
+  tree-wide, in README.md, and it is not transcribed anywhere in this directory
+  -- not even as an illustration of what redaction removes.  The producing
+  script's own internal placeholder is a longer variant of the same convention;
+  this region records the tree's documented form so that both sides of the mirror
+  read identically.
+- Registered observation, not a defect report against this file and not something
+  to fix: the current working tree has moved past the base commit, so every
+  anchor cited above is a BASE-COMMIT anchor and should be re-read at commit
+  c8f6226105.  The administrator credential line, for instance, is README.md:155
+  at the base commit and README.md:178 in the current tree, and the aspect
+  version property is pom.xml:44 at the base commit and pom.xml:48 now.  Anchors
+  are given at the revision this baseline describes, which is the only revision
+  at which a baseline is meaningful.
+- Registered observation, likewise not fixed: the two recursive scans for
+  module-access tokens that this deliverable is checked against cannot return
+  zero across the whole documentation tree, because the register they refer to
+  carries such a token inside its own required filename, and two migration
+  documents plus the README and the setup page link to it by that name.  Measured
+  while this file was written: five matches in total, every one of them a
+  reference to that filename rather than a launch-configuration argument, so the
+  count is a reading of the tree at that moment rather than an invariant.  Those
+  files are outside this file's scope and were not modified.  Within
+  docs/migration/smoke-evidence the count is zero, and this file keeps it zero.
+- Verified-figure disclosures, given because a figure published here must be one
+  that was re-derived rather than inherited, and a difference from the migration
+  plan's prose must be stated rather than passed over.  First: the plan's prose
+  describes the aspect runtime and weaver artifacts as declared in six child
+  POMs.  Re-derived at the base commit, the command git grep -l
+  "aspectjrt\|aspectjweaver" -- '*pom.xml' matches 10 POMs -- nine child POMs
+  (acm-service-config, acm-service-data-access-control,
+  acm-service-ms-outlook-integration, acm-service-object-lock,
+  acm-service-protect-url, acm-activiti-configuration, acm-configuration,
+  acm-spring-context-holder, acm-spring-data-source) plus the root aggregator,
+  whose two matches are the managed version entries at pom.xml:693-700.  Five of
+  the nine declare both artifacts and four declare one.  Nine child POMs is the
+  verified figure; six is the plan's.  Neither figure changes the decision this
+  region evidences, because the version those POMs resolve is the single held
+  property and none of them overrides it.  Second: the documentation site
+  navigation carries seven migration register entries rather than six.  Neither
+  count concerns this file, which is a plain-text capture and appears in that
+  navigation nowhere; the site builds without any warning attributable to this
+  folder.
+- Adjacent fact recorded once and deliberately not developed, because the
+  dependency inventory owns that material and this region is not a dependency
+  essay.  The platform APIs the newer runtime removed are reinstated at the
+  aggregator level so that all 144 child modules inherit them, which is why the
+  files consuming the removed XML-binding package need zero import edits.
+  Re-derived at the base commit: 84 files, 137 occurrences, 21 Maven modules, of
+  which 82 files are main source and 2 are test source.  Also re-derived, and
+  bounding the problem rather than describing it: the web-service, web-service
+  annotation, SOAP and transaction packages have 0 occurrences each anywhere in
+  the tree, so despite the requirements naming a web-service stack none is
+  needed.  Provider contention was settled by execution rather than reasoning:
+  three classpath shapes were exercised, the full deployed shape resolved to the
+  expected reference implementation and produced identical XML, and consequently
+  no provider-selection properties file is required anywhere and none is added.
+- Mirror obligation.  The counterpart is migrated/startup/spring-context.log:
+  the identical filename, the identical field set in the identical order, and the
+  identical region-selection rule stated above, so that a recursive diff between
+  the two capture directories is mechanically meaningful.  A field added on one
+  side only, or a region selected differently on one side only, would register as
+  a difference that carries no behavioural signal at all -- which is the one
+  outcome a mirror exists to prevent.
