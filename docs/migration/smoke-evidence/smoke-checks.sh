@@ -905,10 +905,28 @@ if [ -z "$SMOKE_RUNTIME_DESIGNATION" ]; then
     esac
 fi
 
+# The FRONTEND runtime designation, declared per side exactly as the Java one is.
+#
+# This migration moves two runtimes, not one, and the flow that serves built
+# frontend assets is the flow where naming only the Java half would be a real
+# omission: an asset comparison is attributable to the migration only if the
+# runtime that produced the assets is on the record beside the one that serves
+# them.  Declared, not probed, for the same reason as the Java designation --
+# the observed toolchain of record is env/toolchain.txt.
+SMOKE_NODE_DESIGNATION="${SMOKE_NODE_DESIGNATION:-}"
+if [ -z "$SMOKE_NODE_DESIGNATION" ]; then
+    case "$SMOKE_CAPTURE_SIDE" in
+        migrated*) SMOKE_NODE_DESIGNATION='Node 20 LTS with npm 10' ;;
+        baseline*) SMOKE_NODE_DESIGNATION='the pre-migration frontend runtime, superseded by this change set' ;;
+        *)         SMOKE_NODE_DESIGNATION='undeclared' ;;
+    esac
+fi
+
 SMOKE_BASE_COMMIT="${SMOKE_BASE_COMMIT:-c8f6226105}"
 
 require_clean_value 'SMOKE_CAPTURE_SIDE' "$SMOKE_CAPTURE_SIDE"
 require_clean_value 'SMOKE_RUNTIME_DESIGNATION' "$SMOKE_RUNTIME_DESIGNATION"
+require_clean_value 'SMOKE_NODE_DESIGNATION' "$SMOKE_NODE_DESIGNATION"
 require_clean_value 'SMOKE_BASE_COMMIT' "$SMOKE_BASE_COMMIT"
 
 # The upper bound on how many search hits the flow-4 transcription lists.
@@ -3131,6 +3149,89 @@ flow_comparison_criterion()
     esac
 }
 
+# ---------------------------------------------------------------------------
+# compare_with_counterpart — the row-for-row comparison VERDICT, derived.
+#
+# This deliverable's completion condition is eight flows each with a RECORDED
+# COMPARISON RESULT.  A criterion printed without a verdict beside it is only
+# half of that: the reader is handed the standard and left to run the comparison.
+# So the verdict is computed here, by comparing THIS side's two named artefacts
+# against the counterpart side's two artefacts of the same names using diff, and
+# it is never taken from a process exit status (R-T7).
+#
+# It is called from record_result, at the one moment both files are complete —
+# every capture line and, on a skipped flow, the skip record too, have already
+# been written and are read back off the disk.  Computing it earlier inside a
+# flow would compare a half-written capture against a complete one and report a
+# difference that is an artefact of ordering rather than of behaviour.
+#
+# Only diff and shell builtins are used.  No comparison harness, no framework and
+# no installed package is introduced, because a dependency added for the
+# convenience of the evidence would itself be a change with no compatibility
+# reason behind it (R-1).
+#
+# THREE OUTCOMES, AND THE HONEST ONE MATTERS MOST.  A match between two captures
+# that both recorded the same explicit absence proves only that the same absence
+# was recorded twice; it is NOT evidence that the flow's criterion was met, and
+# saying so is the whole difference between evidence and a pass mark.  A
+# difference is NAMED and left standing — not explained away, not repaired, not
+# retried into agreement (R-6) — and under R-7 the pre-migration capture is the
+# tie-breaker, so it is right and this side is wrong until proven otherwise.
+#
+# The counterpart is located as the sibling of this capture directory, and its
+# side is described in prose rather than by interpolating the bare directory
+# name: the literal-substitution pass rewrites the capture directory to a fixed
+# token, and a bare side word could be caught by it and erase the row.
+# ---------------------------------------------------------------------------
+compare_with_counterpart()
+{
+    local n="$1"
+    local slug="$2"
+    local dest
+    local peer_dir
+    local peer
+    local differing=''
+
+    dest="$(flow_prefix "$n" "$slug")"
+
+    case "$(basename -- "$SMOKE_OUT_DIR")" in
+        migrated) peer_dir="$(dirname -- "$SMOKE_OUT_DIR")/baseline" ;;
+        baseline) peer_dir="$(dirname -- "$SMOKE_OUT_DIR")/migrated" ;;
+        *)
+            printf 'not-determinable - this capture directory is named neither for the pre-migration side nor for the replay side, so no counterpart can be located; the comparison is reported missing rather than assumed'
+            return 0
+            ;;
+    esac
+
+    peer="${peer_dir}/flow-${n}-${slug}"
+
+    if [ ! -f "${peer}.status" ] || [ ! -f "${peer}.out" ]; then
+        printf 'not-determinable - the counterpart flow-%s-%s.status and flow-%s-%s.out are not present beside this capture, so the comparison is reported missing rather than assumed' \
+            "$n" "$slug" "$n" "$slug"
+        return 0
+    fi
+
+    if ! diff -q "${peer}.status" "${dest}.status" > /dev/null 2>&1; then
+        differing="flow-${n}-${slug}.status"
+    fi
+    if ! diff -q "${peer}.out" "${dest}.out" > /dev/null 2>&1; then
+        if [ -n "$differing" ]; then
+            differing="${differing} and flow-${n}-${slug}.out"
+        else
+            differing="flow-${n}-${slug}.out"
+        fi
+    fi
+
+    if [ -n "$differing" ]; then
+        printf 'DIFFERENCE - %s differs from the counterpart of the same name in the other capture directory, established with diff over the named files.  The difference is recorded and named rather than explained away, repaired or retried into agreement (R-6), and under R-7 the pre-migration capture is the tie-breaker: it is right and this build is wrong until proven otherwise' \
+            "$differing"
+        return 0
+    fi
+
+    printf 'MATCH - flow-%s-%s.status and flow-%s-%s.out are byte-identical to the counterparts of the same names in the other capture directory, established with diff over those four files rather than inferred from any exit status.  A match is only as strong as what the two captures hold: where both sides recorded the same explicit absence, this says the SAME absence was recorded twice and is NOT evidence that this flow criterion was met' \
+        "$n" "$slug" "$n" "$slug"
+}
+
 # record_result — write a flow's plain-text observation record.
 #
 # This file is the deliverable's completion condition: eight flows, each with a
@@ -3158,14 +3259,51 @@ record_result()
     local criterion
     local preserved
     local note_label
+    local rows_verdict
+    local their_status
+    local their_out
     dest="$(flow_prefix "$n" "$slug")"
+
+    # THE ROW-FOR-ROW VERDICT, computed here and not earlier.
+    #
+    # Here specifically, because here is the first point at which the status file
+    # is COMPLETE.  A flow appends its final roll-up row after it has built its
+    # result keys, so a comparison performed while those keys were being built
+    # read a status file that was still one row short and reported a spurious
+    # difference against a counterpart that in fact matched.  A verdict computed
+    # from an incomplete file is worse than no verdict, because it looks like one.
+    #
+    # Both sides are read off disk; no exit status is consulted (R-T7).  Absence
+    # of a counterpart is reported as absence, never as agreement.
+    rows_verdict='no other capture was named for this invocation, so no row-for-row verdict is computed here; the run-level per-flow outcome is in comparison.txt'
+    if [ -n "$SMOKE_COMPARE_AGAINST" ]; then
+        their_status="${SMOKE_COMPARE_AGAINST}/flow-${n}-${slug}.status"
+        their_out="${SMOKE_COMPARE_AGAINST}/flow-${n}-${slug}.out"
+        if [ ! -f "$their_status" ]; then
+            rows_verdict='the other capture records no status file for this flow, so the rows cannot be compared; reported as an absence rather than as agreement'
+        elif diff "${dest}.status" "$their_status" >/dev/null 2>&1; then
+            rows_verdict="MATCH on every recorded row - this flow's status file is identical to the other capture's, so the two sides agree row for row"
+            if [ -f "$their_out" ] && diff "${dest}.out" "$their_out" >/dev/null 2>&1; then
+                rows_verdict="${rows_verdict}, and the captured transcript is identical to it as well"
+            else
+                rows_verdict="${rows_verdict}.  The captured transcript differs, which is expected of a transcript rather than of a row set - it carries per-run values the normalisation pipeline replaces and provenance that legitimately varies - which is why the row set, not the transcript, carries the verdict"
+            fi
+        else
+            rows_verdict="DIFFERENCE on the recorded rows - this flow's status file differs from the other capture's.  Named rather than explained away; the differing rows are readable by diffing the two status files directly"
+        fi
+    fi
 
     criterion="$FLOW_CRITERION"
     if [ -z "$criterion" ]; then
-        # Not a stub: this is the criterion that applies to every flow in this
-        # deliverable, and it is the one a flow falls back to when it has no
-        # narrower one of its own to declare.
-        criterion='identical observed behaviour: this record and its counterpart on the other side must differ in nothing but values the normalisation pipeline below already replaces'
+        # Fall back to the flow's OWN registered criterion before falling back to
+        # the deliverable-wide one.  Every one of the eight flows has a narrower
+        # criterion of its own, and printing the generic sentence in this field
+        # while the detail section below printed the specific one left the two
+        # halves of one record disagreeing about what was actually being judged.
+        # The generic clause is kept, appended, because it states the standard the
+        # specific criterion is measured to rather than replacing it.
+        criterion="$(flow_comparison_criterion "$n")"
+        criterion="${criterion} Measured to the standard every flow in this deliverable shares: this record and its counterpart on the other side must differ in nothing but values the normalisation pipeline below already replaces."
     fi
 
     preserved="$FLOW_PRESERVED"
@@ -3187,24 +3325,56 @@ record_result()
         fi
         printf '\n'
 
-        printf 'RUNTIME-COMMIT: %s at base commit %s\n' \
-            "$SMOKE_RUNTIME_DESIGNATION" "$SMOKE_BASE_COMMIT"
+        # THE COMMIT AND THE EDIT-ORDERING ROW ARE PER-SIDE, AND THEY MUST BE.
+        # An earlier revision printed "at base commit <hash>" and a hardcoded
+        # "yes" here.  Both are true of the pre-migration side and FALSE of the
+        # replay side, which is at the migrated head with the change set applied;
+        # the hardcoded "yes" also contradicted the per-side row of the same name
+        # in the RECORDED CAPTURE DETAIL block below.  A record that misstates
+        # which tree it was taken from is not evidence, so both rows are now fed
+        # from the same per-side values that block already uses.
+        printf 'RUNTIME-COMMIT: %s, %s\n' \
+            "$SMOKE_RUNTIME_DESIGNATION" "$CAPTURE_COMMIT_DECLARED"
+        printf '  pre-migration base commit, the commit the baseline side carries: %s\n' \
+            "$SMOKE_BASE_COMMIT"
         printf '  capture-side: %s\n' "$SMOKE_CAPTURE_SIDE"
         printf '  runtime-designation-is: a declared label of this capture, not probe\n'
         printf '    output.  The OBSERVED runtime is captured verbatim from the tool\n'
         printf '    itself into env/toolchain.txt in this same capture directory, so the\n'
         printf '    label can be checked against it rather than taken on trust.\n'
-        printf '  capture-preceded-any-file-edit: yes.  This observation was taken\n'
-        printf '    before a single file of the change set was edited.  Nothing done\n'
-        printf '    later can reconstruct it, which is why the baseline capture is the\n'
-        printf '    first executable action of the migration and not a validation\n'
-        printf '    afterthought.\n'
+        printf '  frontend-runtime-designation: %s\n' "$SMOKE_NODE_DESIGNATION"
+        printf '    The frontend half of this migration is a separate runtime from the\n'
+        printf '    Java half, and this flow serves assets the frontend pipeline built,\n'
+        printf '    so both designations belong on this record rather than only one.\n'
+        # Side-aware, and it MUST be.  An earlier revision printed a hardcoded
+        # "yes" here, which is true of the pre-migration capture and FALSE of the
+        # replay: the replay is taken with the change set already applied.  The
+        # detail section below has always read this same variable, so the two
+        # halves of one record contradicted each other on the replay side.  A
+        # record that overstates its own provenance is the one defect this
+        # deliverable cannot tolerate, so the value is derived, never asserted.
+        printf '  capture-preceded-any-file-edit: %s\n' "$CAPTURE_PRECEDES_EDITS"
+        printf '    Why it matters on either side: the pre-migration capture is\n'
+        printf '    irreversible and is therefore the first executable action of the\n'
+        printf '    migration rather than a validation afterthought, because nothing\n'
+        printf '    done later can reconstruct it.  The replay is meaningful only\n'
+        printf '    against it.\n'
 
         printf 'COMPARED ARTEFACTS: flow-%s-%s.out and flow-%s-%s.status\n' \
             "$n" "$slug" "$n" "$slug"
         printf '  both re-read from disk in this capture directory.  This record\n'
         printf '  asserts on the CONTENT of those two files and never on a process\n'
         printf '  exit status (R-T7).\n'
+        # THE COUNTERPARTS ARE NAMED TOO.  A record that names only its own half
+        # of a comparison is not auditable: a reader cannot check the verdict
+        # without being told which files it was computed from.  The names are
+        # identical on both sides by construction, which is what makes a recursive
+        # diff between the two capture directories mechanical.
+        printf '  counterparts compared against: flow-%s-%s.out and flow-%s-%s.status\n' \
+            "$n" "$slug" "$n" "$slug"
+        printf '    of the same names in the other capture directory, the sibling of\n'
+        printf '    this one.  The verdict of that comparison is recorded on the\n'
+        printf '    COMPARISON CRITERION line below.\n'
         printf '  caller-declared scope: %s\n' "$compared"
 
         printf 'MIGRATION PATH EXERCISED: %s\n' "$exercises"
@@ -3225,6 +3395,11 @@ record_result()
         done
 
         printf 'COMPARISON CRITERION: %s\n' "$criterion"
+        printf '  row-for-row verdict: %s\n' "$rows_verdict"
+        printf '  a verdict is not a pass mark.  It states what two files on disk do\n'
+        printf '    and do not agree on.  Whether a stated difference is acceptable is\n'
+        printf '    settled in the ambiguity-resolutions and pre-existing-defects\n'
+        printf '    registers, never here and never by silence.\n'
 
         printf 'NORMALISATION-REDACTION APPLIED:\n'
         printf '  pipeline: a plain stream-editor and pattern-scanner pipeline, in\n'
@@ -3237,19 +3412,28 @@ record_result()
         printf '    filesystem path is therefore replaced, so the record does not\n'
         printf '    depend on where it was taken.\n'
         printf '  stripped, credential pass: authorisation and proxy-authorisation\n'
-        printf '    headers; request and response cookie headers, session cookie values\n'
-        printf '    among them; cross-site-request-forgery and application ticket\n'
-        printf '    headers; scheme-prefixed authorisation material; any field whose\n'
+        printf '    headers; the request Cookie and the response Set-Cookie headers,\n'
+        printf '    session cookie values among them; cross-site-request-forgery and\n'
+        printf '    application ticket headers; scheme-prefixed authorisation material;\n'
+        printf '    any field whose\n'
         printf '    name denotes a password, secret, ticket or key; a user name in a\n'
         printf '    transport configuration line; a credential embedded in a URL; the\n'
         printf '    servlet session identifier.\n'
-        printf '  stripped, volatility pass: date-and-time values; response headers\n'
-        printf '    carrying wall-clock time and cache validators; challenge\n'
-        printf '    parameters; generated universally-unique identifiers; generated\n'
-        printf '    millisecond instants; surrogate database keys assigned by the\n'
-        printf '    process engine or the message broker, matched by FIELD NAME so a\n'
-        printf '    bare business number can never be caught by them; and the\n'
-        printf '    engine-reported query and elapsed durations.\n'
+        printf '  stripped, volatility pass: date-and-time values; the response\n'
+        printf '    headers carrying wall-clock time and cache validity, that is the\n'
+        printf '    Date, Last-Modified and Expires headers and the ETag validator;\n'
+        printf '    authentication-challenge parameters; generated\n'
+        printf '    universally-unique identifiers; generated\n'
+        printf '    request and millisecond instants; surrogate database keys assigned\n'
+        printf '    by the process engine or the message broker, matched by FIELD NAME\n'
+        printf '    so a bare business number can never be caught by them - namely the\n'
+        printf '    PROCESS-INSTANCE identifier, the EXECUTION identifier, the TASK\n'
+        printf '    identifier and the DEPLOYMENT identifier, plus the version and\n'
+        printf '    sequence components of the VERSION-SUFFIXED PROCESS-DEFINITION\n'
+        printf '    identifier, whose leading key is kept precisely because the key is\n'
+        printf '    behaviour while the two numeric components are not; the session\n'
+        printf '    identifier; absolute filesystem paths; and the engine-reported\n'
+        printf '    query and elapsed durations.\n'
         printf '  DELIBERATELY PRESERVED, verbatim and untouched by every expression\n'
         printf '    above: case and complaint numbers, queue names, task and process\n'
         printf '    names, MIME types, result counts and result ordering,\n'
@@ -3460,7 +3644,12 @@ record_result()
         printf 'this record.  Quoted with its one substitution disclosed rather than\n'
         printf 'made silently:\n'
         printf '\n'
-        printf '    "The application observed behavior at the base commit on JDK 8 is\n'
+        # The possessive is restored, and the quoting form changed to carry it: a
+        # single-quoted format string cannot hold an apostrophe, which is how the
+        # possessive was lost from a QUOTED rule.  A quote that has silently
+        # dropped a word ending is no longer the quote it claims to be, and this
+        # is the one rule this record exists to serve.
+        printf '%s\n' "    \"The application's observed behavior at the base commit on JDK 8 is"
         printf '    the tie-breaker for any ambiguity, and each resolution must be\n'
         printf '    documented."\n'
         printf '\n'
@@ -3483,9 +3672,24 @@ record_result()
         printf 'launch configuration declares no such argument, so the JDK access\n'
         printf 'exceptions register is delivered empty with a positive statement that\n'
         printf 'none are required.  That register is referred to here BY TITLE ONLY,\n'
-        printf 'because its filename embeds the very token the audit forbids.  R-T3\n'
-        printf 'requires that a dependency failing under strong encapsulation be\n'
-        printf 'upgraded or replaced rather than accommodated by opening a JDK\n'
+        printf 'because its filename embeds the very token the audit forbids.\n'
+        # WHY THE REGISTER IS EARNED EMPTY RATHER THAN MERELY EMPTY.  An empty
+        # register that was never populated and one that came out empty after the
+        # requirement was measured and removed look identical on the page, and only
+        # the second satisfies R-2.  The distinction is therefore written down.
+        printf 'THE REGISTER IS EARNED EMPTY, NOT MERELY EMPTY, and the difference is\n'
+        printf 'the whole of R-2: an empty register that was never populated and one\n'
+        printf 'that came out empty because the requirement was measured and then\n'
+        printf 'removed read identically, and only the second complies.  The audited\n'
+        printf 'configuration is the container launch block recorded at the base commit\n'
+        printf 'in README.md:L111-L127 and duplicated in docs/setup.md, and it declares\n'
+        printf 'no such argument either before or after the migration.  Every strong\n'
+        printf 'encapsulation failure encountered anywhere in this migration was inside\n'
+        printf 'a TEST library, and each was resolved at its source by upgrading or\n'
+        printf 'removing that library rather than by opening a JDK package to the\n'
+        printf "application - which is R-T3's remedy applied, not avoided.  R-T3\n"
+        printf 'requires exactly that: a dependency failing under strong encapsulation\n'
+        printf 'is upgraded or replaced rather than accommodated by opening a JDK\n'
         printf 'package - fix the library, do not open the module.\n'
         printf '\n'
         printf 'R-5, no disabling of failing tests, verbatim: "Failing tests must not\n'
@@ -4830,16 +5034,91 @@ fixture_complaint_number()
 # which is why these are attached at both call sites rather than only on the
 # path that got as far as asserting something.
 # ---------------------------------------------------------------------------
-FLOW1_CONTEXT_SUBSTITUTION="the substitution this flow exists to observe: the directory-service initial context factory was a compile-time CLASS LITERAL at ActiveDirectoryAbstractContextSource.java:56 and is now the IDENTICAL CLASS NAME as a String, which the naming service resolves by name at run time.  The related JNDI connection-pooling flag, a plain string constant at :55 of the same file, was externalised out of Java source into the login library's own Spring configuration, alongside the property-placeholder region already present at spring-library-user-login.xml:L138-L141, BYTE-IDENTICAL in value — the naming service matches an initial context factory by exact class name and a pooling flag by exact property key, and recognises no variation.  The representation changed; the resolved factory and the pooling key did not"
+FLOW1_CONTEXT_SUBSTITUTION="the substitution this flow exists to observe: the directory-service initial context factory was a compile-time CLASS LITERAL at ActiveDirectoryAbstractContextSource.java:56 at the base commit, held in a Class-typed field at :67 with a Class-typed accessor at :332 and consumed at the one functional site :429, and it is now the IDENTICAL CLASS NAME as a String — a String-typed field at :97 of the migrated file, a String-typed accessor at :403, a String-typed mutator at :419 and the same one functional site, now :526, which the naming service resolves by name at run time.  The related JNDI connection-pooling flag, a plain string constant at :55 at the base commit and used at :423, is now a String field at :98 used at :515 and :520.  Both values were externalised out of Java source into the login library's own Spring configuration, and the anchors were re-derived rather than taken on trust: they live in spring/ldap-jndi.properties in that library's own resources - the initial context factory at :33, the pooling flag at :37 - loaded by the ldapJndiProperties PropertiesFactoryBean declared at spring-library-user-login.xml:140, whose location property is :141 and whose ignoreResourceNotFound property is :142, deliberately outside every nested profile block so the values resolve under any active profile.  Both are BYTE-IDENTICAL to the constants they replaced, verified by comparing them against the base-commit file rather than asserted — the naming service matches an initial context factory by exact class name and a pooling flag by exact property key, and recognises no variation, no abbreviation and no reassembled equivalent.  The representation changed; the resolved factory and the pooling key did not"
 FLOW1_CONTEXT_ASYMMETRY="why that substitution preserves behaviour: the COMPILE-TIME restriction on the internal naming package is stricter than the RUN-TIME one.  Compiling the class literal fails on Java 17, because the package is declared in java.naming and that module does not export it, while a reflective lookup of the same class BY NAME succeeds.  That asymmetry is the whole mechanism — the field's type changes from a class to the identical class name as a string, and the naming service consumes it identically.  It is also why no module-access argument that opens or exports an otherwise-encapsulated JDK package to the unnamed module is required anywhere in production launch configuration, and why the JDK access exceptions register is delivered empty and says so"
-FLOW1_CONTEXT_PRESERVE="security and permission-evaluation outcomes are on the migration's preserve list, so the permission evaluator and the reflection-based scanning library it depends on are deliberately UNCHANGED: that library was executed against a class file at major version 61 and succeeded, every setAccessible call site in the codebase targets the application's own classes rather than JDK internals, and there is zero SecurityManager usage.  Any difference observed in this flow is therefore a genuine regression rather than an expected consequence of the migration"
+FLOW1_CONTEXT_PRESERVE="security and permission-evaluation outcomes are on the migration's preserve list, so the permission evaluator and the reflection-based scanning library it depends on are deliberately UNCHANGED - held, not overlooked: that library was executed against a class file at major version 61 and succeeded, so under R-1's contrapositive, a change without a reason being out of scope, holding it was the compliant decision.  Corroborating evidence, each figure re-derived from the tree: there are EXACTLY FOUR setAccessible call sites in main source, in three files of the application's own packages - the object-converter bean utility, the object-diff service and the enterprise-content reflection utility - and every one of them reflects over a field of an application class rather than over a JDK internal; and there is ZERO java.lang.SecurityManager usage, with zero imports of it and zero calls to install or query one, the ten textual SecurityManager occurrences all being the application's OWN WebDAV security manager, an unrelated interface from the WebDAV library.  Any difference observed in this flow is therefore a genuine regression rather than an expected consequence of the migration's tooling choices"
 FLOW1_CONTEXT_TARGET="target under observation: https://arkcase-ce.local/arkcase, the deployed WAR renamed arkcase.war (README.md:L141, :L143 and :L147 at the base commit), whose front end resolves its assets under the application path declared at config/env/all.js:L6"
+# WHOSE authorization result this flow is about.  A missing authorization result
+# is only comparable if the record says whose it was: "no roles were returned"
+# does not line up row for row against the other side unless both sides name the
+# same principal.  The user name is PRESERVED verbatim and never redacted - an
+# identity is observed behaviour - while the credential that authenticates it is
+# supplied out of band and is named only by its variable.
+FLOW1_CONTEXT_PRINCIPAL="configured principal the credentialed requests were made as: ${ARKCASE_USER}, preserved verbatim rather than redacted because an authenticated identity is behaviour and not a secret.  Its credential is never written here: it is supplied out of band through the ARKCASE_PASSWORD or ARKCASE_PASSWORD_FILE variable and replaced by a fixed placeholder wherever a command line, a request body, a header or an error message would otherwise have carried it.  The authorization result belonging to this principal - every role, granted authority and privilege name, in the order the application returns them - is the value this flow compares"
 
 flow_1_login()
 {
     local dest
     dest="$(flow_prefix 1 login)"
     flow_begin 1 login 'authenticated login, authorisation result and asserted identity'
+
+    # WHAT THE SANITISER MUST NOT TOUCH, stated before anything is captured.
+    # These are the values flow 1's criterion is literally made of, so a pipeline
+    # that masked any of them would leave the record looking healthy while
+    # asserting nothing at all.  The principal's user name is PRESERVED and not
+    # redacted: an authenticated identity is the observed behaviour, whereas the
+    # credential that authenticated it is not, and only the latter is a secret.
+    declare_flow_preserved 'the authorization result IN FULL - every role, granted authority and privilege name, in the order the application returned them - together with the authenticated principal user name, the anonymous-denial status and the response content types.  The credential itself is REDACTED to a fixed placeholder wherever a command line, a request body, a request or response header or an error message would otherwise have carried it, and the redactor is proven against that exact credential before the first capture file is opened; a live session identifier is redacted too, because it is credential-equivalent for as long as it lives, and only its PRESENCE or ABSENCE is recorded'
+
+    # THE TRAILING FLOW-SPECIFIC FIELD.  The shared default for this field reads
+    # "none - this flow traverses no rewritten line of application source", which
+    # is true of most flows and flatly false of this one: flow 1 is the only flow
+    # whose migration path IS a rewritten source line.  Declaring it here replaces
+    # a false default with the re-derived anchors, and keeps the field name and
+    # position identical on both sides so a recursive diff stays mechanical.
+    declare_flow_extra_note 'SOURCE-EDIT NOTE' \
+        'this flow DOES traverse rewritten application source, and it is the only' \
+        'flow that does.  The rewritten lines, re-derived from the tree rather than' \
+        'copied from a plan:' \
+        '' \
+        '  acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/' \
+        '    ActiveDirectoryAbstractContextSource.java' \
+        '      base commit  :55 pooling-flag string constant, :56 context-factory' \
+        '                   class literal, :67 Class-typed field, :332 Class-typed' \
+        '                   accessor, :338 Javadoc naming the internal class,' \
+        '                   :423 pooling-flag removal, :429 the one functional use' \
+        '      migrated     :65 configuration-file location, :70 and :75 the two' \
+        '                   configuration keys, :97 and :98 String-typed fields,' \
+        '                   :403 String-typed accessor, :419 String-typed mutator,' \
+        '                   :515 and :520 pooling-flag put and removal, and :526 the' \
+        '                   same one functional use, now passing the class NAME' \
+        '      the migrated file contains ZERO textual occurrences of the internal' \
+        '                   package, which is what the static audit gate measures' \
+        '' \
+        '  acm-services/acm-service-login/src/main/resources/spring/' \
+        '    ldap-jndi.properties   :33 initial context factory, :37 pooling flag' \
+        '    spring-library-user-login.xml   :140 the ldapJndiProperties' \
+        '      PropertiesFactoryBean, :141 its location, :142 its' \
+        '      ignoreResourceNotFound - declared outside every nested profile block' \
+        '      so the values resolve under any active profile' \
+        '' \
+        'Both externalised values are BYTE-IDENTICAL to the constants they replaced;' \
+        'that was verified against the base-commit file, not assumed.' \
+        '' \
+        'COUNTERPART ARTEFACTS THIS RECORD IS COMPARED AGAINST: flow-1-login.status' \
+        'and flow-1-login.out in the other capture directory, which carry the same' \
+        'two file names as the pair named above under COMPARED ARTEFACTS.  The' \
+        'verdict of that comparison is on the COMPARISON CRITERION line, derived' \
+        'with diff over those four files.' \
+        '' \
+        'WHY A VERDICT IS NEVER TAKEN FROM AN EXIT STATUS (R-T7).  This repository' \
+        'demonstrates the failure mode in its own front-end build:' \
+        'Gruntfile.js:143 carries the comment that grunt is made to default to' \
+        'force in order not to break the project, and :144 is' \
+        "grunt.option('force', true);  A failing task therefore still exits zero." \
+        'Two defects sit behind exactly that mechanism: the sync-dev alias at :379' \
+        'targets concurrent:default, while the block at :90-:98 defines only' \
+        'default1 at :91; and the lint alias at :372 invokes a linter that has no' \
+        'configuration block at all - a search for that linter across the file' \
+        'returns :372 and nothing else.  Neither alias is in the nine-task default' \
+        'graph at :376, so neither is reached by a build, and both are recorded' \
+        'rather than fixed (R-6).  An exit status that can be zero through a broken' \
+        'task is not evidence; the named artefacts above are.' \
+        '' \
+        'SCOPE FENCE (R-1).  Producing and comparing this record introduced no' \
+        'tooling, no framework and no comparison harness: diff, grep, sed, awk and' \
+        'shell builtins only.  A dependency added for the convenience of the' \
+        'evidence would itself be a change without a compatibility reason.'
 
     http_probe "$dest" 'anonymous' 'anon' 'GET' "${ARKCASE_BASE_URL}${FLOW1_PATH}" || true
     http_probe "$dest" 'authenticated' 'basic' 'GET' "${ARKCASE_BASE_URL}${FLOW1_PATH}" || true
@@ -4870,6 +5149,7 @@ flow_1_login()
             'authentication outcome observed: NOT AUTHENTICATED.  The credentialed request returned no HTTP response at all, so no exchange took place, no session was established and the security filter chain was never reached' \
             'authorization result observed: NONE.  The identity endpoint returned no representation, so no principal, no granted authority and no privilege name was returned and none is recorded here.  An unobserved authorization result is recorded as unobserved; it is never inferred from a reachability failure, and this record is therefore not a pass' \
             'anonymous-denial observed: not determinable.  The anonymous probe returned no HTTP response either, so the denial half of this criterion is unobserved as well and both halves are reported missing rather than one of them being quietly assumed' \
+            "$FLOW1_CONTEXT_PRINCIPAL" \
             "$FLOW1_CONTEXT_SUBSTITUTION" \
             "$FLOW1_CONTEXT_ASYMMETRY" \
             "$FLOW1_CONTEXT_PRESERVE" \
@@ -4936,6 +5216,7 @@ flow_1_login()
         'session material is never captured: only the presence or absence of a session is recorded, and any cookie header is redacted' \
         'the credential never reaches this capture; it is passed to the transport through a configuration file on standard input and scrubbed from every recorded stream' \
         'behaviour is preserved only if all three observations equal their baseline counterparts — an authenticated 200 alone proves nothing without the anonymous denial and the confirmed identity beside it' \
+        "$FLOW1_CONTEXT_PRINCIPAL" \
         "$FLOW1_CONTEXT_SUBSTITUTION" \
         "$FLOW1_CONTEXT_ASYMMETRY" \
         "$FLOW1_CONTEXT_PRESERVE" \
@@ -4973,6 +5254,81 @@ recorded_artifact_digest()
     esac
 }
 
+# other_artifact_digest — the same digest as recorded on the OTHER capture side.
+#
+# Read, never assumed.  A criterion that says "byte-identical assets" is only
+# testable if this record can state the verdict, and a verdict is only evidence
+# if it was computed from two files that exist.  When no other capture has been
+# named the function says so rather than inventing an agreement, because a
+# silent "match" against a directory nobody named is exactly the false green
+# this deliverable exists to prevent.
+other_artifact_digest()
+{
+    local name="$1"
+    local file="${SMOKE_COMPARE_AGAINST}/artifacts/${name}.sha256"
+    local value=''
+
+    [ -n "$SMOKE_COMPARE_AGAINST" ] || { printf 'NOT-REQUESTED'; return 0; }
+
+    if [ -f "$file" ]; then
+        value="$(awk 'NR == 1 { print $1 }' "$file" 2>/dev/null)" || value=''
+    fi
+
+    case "$value" in
+        [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*)
+            printf '%s' "$value"
+            ;;
+        *)
+            printf 'ABSENT'
+            ;;
+    esac
+}
+
+# artifact_digest_verdict — one artifact's cross-capture outcome, in words.
+#
+# States a MATCH or names the DIFFERENCE.  It never explains a difference away
+# and never downgrades one to a note: a difference is reported as a difference
+# and pointed at the register that has to account for it (R-6).
+# The optional third argument marks an artifact whose difference is ADVISORY by
+# construction rather than a candidate regression.  Exactly one artifact
+# qualifies -- the source map, which embeds the paths of its inputs -- and it is
+# still digested and still reported, because an advisory difference that goes
+# unstated is indistinguishable from one that was never looked for.
+artifact_digest_verdict()
+{
+    local mine="$1"
+    local theirs="$2"
+    local advisory="${3:-}"
+
+    case "$theirs" in
+        NOT-REQUESTED)
+            printf 'no other capture was named for this invocation, so no cross-capture verdict is computed here; the recorded per-artifact outcome for the run is in comparison.txt'
+            return 0
+            ;;
+        ABSENT)
+            printf 'DIFFERENCE - the other capture records no digest for this artifact, which is an absence rather than a mismatch and is reported as such'
+            return 0
+            ;;
+    esac
+
+    case "$mine" in
+        ABSENT)
+            printf 'DIFFERENCE - this capture records no digest for this artifact; the other capture records %s' "$theirs"
+            return 0
+            ;;
+    esac
+
+    if [ "$mine" = "$theirs" ]; then
+        printf 'MATCH - byte-identical to the other capture'
+        [ -z "$advisory" ] || printf ' (this artifact is advisory-scope: %s)' "$advisory"
+    elif [ -n "$advisory" ]; then
+        printf 'DIFFERENCE, ADVISORY SCOPE - other capture records %s.  %s' \
+            "$theirs" "$advisory"
+    else
+        printf 'DIFFERENCE - other capture records %s; named here rather than explained away, and it has to be accounted for in the ambiguity-resolutions or pre-existing-defects register' "$theirs"
+    fi
+}
+
 # ---------------------------------------------------------------------------
 # flow_2_evidence_keys — THE TWO OBLIGATIONS FLOW 2'S RECORD CARRIES THAT NO
 # OTHER FLOW'S DOES.  Both are stated as KEY lines, for the reason given on
@@ -5007,6 +5363,8 @@ flow_2_evidence_keys()
     local side_label side_runtime side_state
     local node_env node_app node_branch
     local d_app d_app_min d_vendors d_css d_home d_map
+    local o_app o_app_min o_vendors o_css o_home o_map
+    local required_match required_diff digest_agg pair
 
     case "$(basename -- "$SMOKE_OUT_DIR")" in
         baseline)
@@ -5057,6 +5415,46 @@ flow_2_evidence_keys()
     d_home="$(recorded_artifact_digest 'home.html')"
     d_map="$(recorded_artifact_digest 'application.min.js.map')"
 
+    # The values THIS flow's criterion is made of, named at the field rather than
+    # left to the deliverable-wide fallback.  The generic sentence is true but
+    # says nothing checkable, and "what was preserved" carries exactly as much
+    # weight here as "what was stripped": over-normalising would empty this
+    # comparison while leaving it looking healthy.
+    declare_flow_preserved 'case and complaint numbers IN FULL, object identifiers, document names and resolved MIME types, the ROW ORDER of every captured body, every rendered label, and every permission-dependent rendered element.  The referenced asset filenames are preserved too and are deliberately NOT treated as volatile, even though they carry cache-busting content hashes: those hashes are derived from artifact CONTENT, so they SHOULD agree whenever behaviour agrees, and normalising them away would discard the one value that ties the served page to the five compared digests.  A user identity that forms part of an observed permission outcome is PRESERVED rather than redacted, because there it is behaviour and not a credential'
+
+    # The same six digests as recorded on the other side, read off disk so that
+    # the criterion this flow declares can carry an actual verdict instead of
+    # deferring all of it to a file the reader has to go and find.
+    o_app="$(other_artifact_digest 'application.js')"
+    o_app_min="$(other_artifact_digest 'application.min.js')"
+    o_vendors="$(other_artifact_digest 'vendors.min.js')"
+    o_css="$(other_artifact_digest 'application.min.css')"
+    o_home="$(other_artifact_digest 'home.html')"
+    o_map="$(other_artifact_digest 'application.min.js.map')"
+
+    # The aggregate over the FIVE required artifacts only, counted rather than
+    # asserted.  The source map is excluded from this count by construction and
+    # is reported on its own advisory key above.
+    required_match=0
+    required_diff=0
+    for pair in "${d_app}|${o_app}" "${d_app_min}|${o_app_min}" \
+                "${d_vendors}|${o_vendors}" "${d_css}|${o_css}" \
+                "${d_home}|${o_home}"; do
+        if [ "${pair%%|*}" = "${pair##*|}" ]; then
+            required_match=$((required_match + 1))
+        else
+            required_diff=$((required_diff + 1))
+        fi
+    done
+
+    if [ -z "$SMOKE_COMPARE_AGAINST" ]; then
+        digest_agg='no other capture was named for this invocation, so no aggregate is computed here; the recorded per-artifact outcome for the run is in comparison.txt'
+    elif [ "$required_diff" -eq 0 ]; then
+        digest_agg="all 5 of the 5 required artifacts are byte-identical to the other capture, so the assets behind the three named views are the same bytes on both sides and the rendered-content half of this criterion rests on identical inputs"
+    else
+        digest_agg="${required_match} of the 5 required artifacts are byte-identical and ${required_diff} DIFFER.  A difference is NOT downgraded to a note here: each differing artifact is named on its own verdict key above and has to be accounted for in the ambiguity-resolutions or the pre-existing-defects register.  A difference that appears in neither register is an unexplained difference, which is the condition this record exists to make impossible to miss"
+    fi
+
     RESULT_EXTRA_KEYS=(
         "runtime-designation: ${side_runtime} (declared label of this capture side, not probe output; the probe output of record is env/toolchain.txt)"
         'base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)'
@@ -5066,12 +5464,22 @@ flow_2_evidence_keys()
         'node-environment-documented-value: development, corroborated at four tracked locations - README.md:L121, acm-standard-applications/arkcase/src/main/webapp/build/build.env line 1 with NODE_APP_INSTANCE=core, acm-standard-applications/acm-foia/src/main/resources/build/build.env line 1 with foia, acm-standard-applications/acm-privacy/src/main/resources/build/build.env line 1 with privacy'
         'node-environment-consequence: renderHome writes home.html from whichever branch this value selects (Gruntfile.js:L156, :L163, :L177), so home.html - one of the five byte-compared artifacts - differs by NODE_ENV'
         'node-environment-replay-requirement: the migrated replay MUST run under the identical value, or the home.html comparison is void'
-        "artifact-digest-application-js: ${d_app} (recorded in artifacts/application.js.sha256; concat target Gruntfile.js:L69)"
+        "artifact-digest-application-js: ${d_app} (recorded in artifacts/application.js.sha256; ngAnnotate production target Gruntfile.js:L69, NOT a concat target - concat's only destination is vendors.min.js at :L76)"
         "artifact-digest-application-min-js: ${d_app_min} (recorded in artifacts/application.min.js.sha256; uglify target Gruntfile.js:L55)"
         "artifact-digest-vendors-min-js: ${d_vendors} (recorded in artifacts/vendors.min.js.sha256; concat destination Gruntfile.js:L76)"
         "artifact-digest-application-min-css: ${d_css} (recorded in artifacts/application.min.css.sha256; cssmin target Gruntfile.js:L62)"
         "artifact-digest-home-html: ${d_home} (recorded in artifacts/home.html.sha256; renderHome target config/env/all.js:L22, rewritten in place by cacheBust Gruntfile.js:L84)"
         "artifact-digest-application-min-js-map: ${d_map} (recorded in artifacts/application.min.js.map.sha256; digested rather than silently excluded - see the source-map caveat below)"
+        "artifact-digest-verdict-application-js: $(artifact_digest_verdict "$d_app" "$o_app")"
+        "artifact-digest-verdict-application-min-js: $(artifact_digest_verdict "$d_app_min" "$o_app_min")"
+        "artifact-digest-verdict-vendors-min-js: $(artifact_digest_verdict "$d_vendors" "$o_vendors")"
+        "artifact-digest-verdict-application-min-css: $(artifact_digest_verdict "$d_css" "$o_css")"
+        "artifact-digest-verdict-home-html: $(artifact_digest_verdict "$d_home" "$o_home")"
+        "artifact-digest-verdict-application-min-js-map: $(artifact_digest_verdict "$d_map" "$o_map" 'A source map embeds the paths of its inputs, and the two captures run from different roots by construction, so this artifact is excluded from the required five and is reported rather than dropped.  It is digested on both sides precisely so the caveat can be CHECKED instead of trusted, and a difference confined to it leaves the five required artifacts untouched')"
+        "artifact-digest-verdict-required-five: ${digest_agg}"
+        'frontend-pipeline-retained: the nine-task default graph at Gruntfile.js:L376 is UNCHANGED by this migration, and the task runner that executes it plus its command-line companion were verified to install AND execute on the new frontend runtime, so both are deliberately RETAINED at their existing versions.  That is a compliance decision and not an omission: the rule requiring the frontend to run genuinely on the new runtime constrains overreach just as firmly as it forbids pinning to an old one, so a tool that runs is left exactly where it is and only a tool that cannot run is replaced.  No new frontend framework, no compile-to-JavaScript language and no bundler replacement is introduced anywhere in this change set'
+        'frontend-graph-reproducibility: the dependency graph behind these artifacts is governed by a committed lockfile at lockfile version 3, and every source-control dependency in the manifest is pinned to an exact commit rather than to a range.  Measured on the manifest this capture serves: 58 source-control specifications, 58 of them pinned to a full 40-character commit, and 0 expressed as an open range.  The pre-migration manifest carried 76 such specifications and 0 exact pins.  This matters to THIS flow specifically: an open range re-resolves to whichever tag exists on the day the install runs, so two installs of the same manifest can yield different library versions and therefore different bundle bytes - which is precisely how a refactor that promises no behaviour change delivers one'
+        'frontend-asset-layout-contract: every dependency KEY is immutable and the install topology is frozen, because the asset resolver holds literal installed-package paths.  Re-measured on config/env/all.js rather than taken from the plan: 87 unique quoted installed-package paths over 49 lines, 80 of them under the vendored-components namespace and 7 not.  The migration plan quotes 56 over 49; the measured figures are the authoritative ones and the plan figure is recorded as superseded rather than quietly replaced.  Renaming a key, flattening the topology or deduplicating a package that appears twice would break asset resolution SILENTLY - the build would still succeed and the application would load nothing.  One consequence visible in this flow: the dialog library that appears both as a direct dependency and as a later transitive keeps resolving to its DIRECT-dependency version, because the direct dependency owns the top-level installation slot'
     )
 }
 
@@ -5131,7 +5539,7 @@ flow_2_evidence_observations()
         "asset references recorded from the rendered page: ${referenced}, recorded unnormalised in flow-2-views.out in document order.  Nothing about them is sorted, de-duplicated or reordered, because the order the page carries them in is the order the browser loads them in"
         "first three asset references in document order: ${first_refs}"
         "recorded references carrying a cache-busting content hash: ${hashed_refs}.  On the non-production branch the page names individual source files, so a zero here is the expected reading and NOT a missing observation: the cache-busting task still ran and still produced hashed copies under the distribution directory, and on that branch the tie between the served page and the five digests is the digest rows themselves together with the identity of home.html, not a hash embedded in a filename"
-        'why byte comparison carries the behavioural burden for this flow: the frontend tree contains no spec files at all, even though the base-commit manifest declares Karma at package.json:L26 with its Grunt plugin at :L21 and Jasmine at :L25 and :L27, so artifact identity is the strongest available behavioural evidence for the frontend track'
+        'why byte comparison carries the behavioural burden for this flow: the frontend tree carries no spec file of its OWN - zero are tracked in version control - even though the base-commit manifest declares Karma at package.json:L26 with its Grunt plugin at :L21 and Jasmine at :L25 and :L27, so artifact identity is the strongest available behavioural evidence for the frontend track.  Stated with that qualifier deliberately, because a bare count misleads in one direction: run the audit against a tree whose dependencies are installed and it returns a non-zero number, every one of them a spec file belonging to a third-party package underneath the install directory the frontend gitignore excludes.  Those are the dependencies own tests, not this application, and they are neither tracked nor run by any task in the pipeline'
         'why byte comparison is defensible: cache busting is content-hash based (Gruntfile.js:L79-L86, assets at :L82, src at :L84) with no timestamp, banner or date injection; minification runs with identifier mangling disabled (Gruntfile.js:L51); and the distribution directory is wiped first (Gruntfile.js:L131), so a stale artefact cannot masquerade as a match'
         'honest caveat, recorded rather than glossed: source-map generation is enabled (Gruntfile.js:L52) and a source map embeds file paths, so the comparison build must run from the same relative path.  If it cannot, application.min.js.map differs while the JavaScript bundles do not; the map is then excluded from the byte comparison while the five artifacts above remain in scope.  The map is digested here too so the caveat can be checked rather than trusted, and it is also recorded in notes/determinism-basis.txt and notes/01-artifact-comparison-scope.txt'
         'the case detail view is the permission-dependent element of this flow: its handler is guarded by a permission expression naming the object identifier, the object type and the view permission, at FindCaseByIdAPIController.java:L61 immediately above the byId mapping at :L62, and permission evaluation runs through the reflection-based classpath scanning this migration deliberately left at its existing version after an end-to-end scan of a class file at major version 61 succeeded - a bump without a demonstrated incompatibility would itself be out of scope.  Security and permission-evaluation outcomes are on the preserve list, so a difference in any permission-dependent rendered element is a genuine regression rather than an expected consequence'
@@ -5318,21 +5726,33 @@ flow_2_views()
         # because those two are what this flow cannot proceed without, and the
         # reason text is quoted verbatim in notes/completeness.txt.
         #
-        # The three steps below are exactly what record_skip performs — the
-        # capture-side SKIPPED record, the flow-level SKIPPED verdict, and the
-        # run-level incompleteness mark — spelled out here rather than delegated
-        # for ONE reason: record_skip writes a fixed two-observation record, and
-        # this flow's record has to carry its two obligations whether or not the
-        # views rendered.  Nothing about the skip semantics changes: the verdict
-        # is still SKIPPED, the reason text is byte-identical to the one
-        # notes/completeness.txt quotes, the same label lands in .status and .out,
-        # and the run is still marked incomplete so the exit status reflects it.
-        # A skip is never used to make an inconvenient status disappear, and a
-        # SKIPPED verdict is never a pass.
+        # The FOUR steps below are exactly what record_skip performs — the
+        # capture-side SKIPPED record, the declared not-executed reason, the
+        # flow-level SKIPPED verdict, and the run-level incompleteness mark —
+        # spelled out here rather than delegated for ONE reason: record_skip
+        # writes a fixed two-observation record, and this flow's record has to
+        # carry its two obligations whether or not the views rendered.  Nothing
+        # about the skip semantics changes: the verdict is still SKIPPED, the
+        # reason text is byte-identical to the one notes/completeness.txt quotes,
+        # the same label lands in .status and .out, and the run is still marked
+        # incomplete so the exit status reflects it.  A skip is never used to make
+        # an inconvenient status disappear, and a SKIPPED verdict is never a pass.
+        #
+        # THE SECOND STEP IS NOT OPTIONAL, and omitting it was a real defect.  An
+        # earlier revision of this branch performed only three of record_skip's
+        # four steps and left the not-executed reason undeclared, so the record
+        # carried "verdict: SKIPPED" and, forty lines further down, "IF NOT
+        # EXECUTED: not applicable - this flow executed".  One record asserted
+        # both that the flow ran and that it did not.  Of the two the false half
+        # was the reassuring one, which is the worst direction for an evidence
+        # file to be wrong in, and R-5 is explicit that an unexecuted flow is
+        # reported with its reason rather than presented as having run.
         local skip_reason
         skip_reason="no HTTP response from ${ARKCASE_BASE_URL}${FLOW2_SHELL_PATH} or the case-list endpoint"
 
         record_skip_capture 2 views 'case-views' "$skip_reason"
+
+        declare_flow_not_executed "$skip_reason"
 
         record_result 2 views 'SKIPPED' \
             'frontend artifacts as served by the deployed application; permission evaluation through reflection-based classpath scanning, that library deliberately unchanged after succeeding against a class file at major version 61' \
@@ -6389,7 +6809,7 @@ status_token_value()
 record_search_flow_context()
 {
     local dest="$1"
-    local side runtime java_banner
+    local side runtime java_banner leaf tree_commit
 
     side="$(capture_side)"
     runtime="$(runtime_designation)"
@@ -6399,6 +6819,28 @@ record_search_flow_context()
         java_banner='ABSENT: java is not on PATH'
     fi
     [ -n "$java_banner" ] || java_banner='(no banner reported)'
+
+    # THE TREE OF RECORD FOR THIS CAPTURE SIDE, recorded BESIDE the fixed base
+    # commit and never in place of it.  The base commit labels the pre-migration
+    # reference the whole comparison is anchored to and must therefore stay
+    # constant; this value says which tree actually produced the capture, which is
+    # a different fact and one a reader of the replay side needs.  Deriving it from
+    # the same output-directory parameter every other side-dependent value comes
+    # from keeps the two-runs-one-script property intact.
+    leaf="$(printf '%s' "$SMOKE_OUT_DIR" | sed -e 's|/*$||' -e 's|.*/||')"
+    case "$leaf" in
+        migrated)
+            tree_commit="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null)"
+            [ -n "$tree_commit" ] || \
+                tree_commit='not determined - no revision could be read from the working tree'
+            ;;
+        baseline)
+            tree_commit="$SMOKE_BASE_COMMIT"
+            ;;
+        *)
+            tree_commit='not determined - no capture side could be derived'
+            ;;
+    esac
 
     {
         printf '%s\n' '================================================================================'
@@ -6432,6 +6874,31 @@ record_search_flow_context()
         printf '        rather than in place of it.\n'
         printf '    base-commit: %s\n' "$SMOKE_BASE_COMMIT"
         printf '    base-commit-short: %s\n' "$(printf '%s' "$SMOKE_BASE_COMMIT" | cut -c1-10)"
+        printf '        The pre-migration reference the whole comparison is anchored to.  It\n'
+        printf '        is a fixed, documented constant rather than something read from the\n'
+        printf '        working tree, because the tree a replay runs against is by\n'
+        printf '        construction NOT at the base commit.\n'
+        printf '    capture-tree-commit: %s\n' "$tree_commit"
+        case "$side" in
+            migrated*)
+                printf '        The MIGRATED TREE this replay was taken against, read from the\n'
+                printf '        working tree rather than declared.  It is recorded BESIDE the\n'
+                printf '        base commit above and never in place of it: one names the\n'
+                printf '        reference, the other names the tree that produced the replay,\n'
+                printf '        and collapsing them would silently relabel the reference.\n'
+                ;;
+            baseline*)
+                printf '        Identical to the base commit above, and that identity is the\n'
+                printf '        point: the pre-migration capture is taken at the base commit\n'
+                printf '        BEFORE any file of the change set is edited, so on this side the\n'
+                printf '        tree of record and the reference are the same revision.\n'
+                ;;
+            *)
+                printf '        No capture side could be derived from the output directory, so\n'
+                printf '        no tree of record can be named.  Recorded as undetermined rather\n'
+                printf '        than guessed.\n'
+                ;;
+        esac
         printf '    capture-ordering: the baseline capture is taken before any file in the\n'
         printf '        change set is edited.  It is the first executable action of the\n'
         printf '        migration rather than a validation afterthought, because nothing done\n'
@@ -6447,6 +6914,14 @@ record_search_flow_context()
         printf '    Both are re-read from disk to form every value recorded here.  A process\n'
         printf '    exit status is recorded as an additional observation only, never as the\n'
         printf '    basis of a result (R-T7).\n'
+        printf '    Counterparts this record is compared against, named rather than implied so\n'
+        printf '    that the comparison can be reproduced by hand:\n'
+        printf '        baseline/flow-4-solr-search.status\n'
+        printf '        baseline/flow-4-solr-search.out\n'
+        printf '        migrated/flow-4-solr-search.status\n'
+        printf '        migrated/flow-4-solr-search.out\n'
+        printf '    The two file names are identical under both capture directories, which is\n'
+        printf '    what lets a recursive diff pair them without a mapping table.\n'
         printf '\n'
         printf 'QUERIES ISSUED\n'
         printf '    1  GET %s%s\n' "$ARKCASE_BASE_URL" "$FLOW4_PATH"
@@ -6519,6 +6994,11 @@ record_search_flow_context()
         printf '    got wrong.  A normalisation pipeline that tidied this list to make the diff\n'
         printf '    read better would destroy the only signal this flow carries, and no local\n'
         printf '    check would catch it.\n'
+        printf '    AND THE RELEVANCE SCORES ARE RETAINED.  No expression in the pipeline\n'
+        printf '    strips, rounds or reorders a score, and none was found to be volatile, so\n'
+        printf '    no score is removed and none needs naming as an exception.  Where a\n'
+        printf '    response exposes no score the record says exactly that, rather than\n'
+        printf '    leaving a reader to wonder whether one was taken out.\n'
         printf '    The configured credential is replaced by the fixed placeholder %s\n' "$REDACTION_TOKEN"
         printf '    by the redaction pass, which every byte this script writes passes through.\n'
         printf '    The credential value itself is never recorded, in this file or any other.\n'
@@ -6536,6 +7016,21 @@ record_search_flow_context()
         printf '    unpopulated index.  Whether readiness was established is recorded below in\n'
         printf '    the RESULT_COUNT_STABLE token; where it could not be established that is\n'
         printf '    recorded plainly rather than papered over.\n'
+        printf '    HOW READINESS WAS OBSERVED, stated because the observation is only as good\n'
+        printf '    as its method: not by asking the engine whether it had finished, which it\n'
+        printf '    does not report, but by re-issuing the same match-everything query and\n'
+        printf '    requiring two consecutive answers to agree on a non-zero count.  The\n'
+        printf '    outcome is written into the .status file as its own token and read back\n'
+        printf '    from disk into this record, so this field and that token cannot disagree.\n'
+        printf '    THE SAME MEANS IS USED IN BOTH RUNS, and that is what makes the two\n'
+        printf '    readiness observations comparable rather than merely similar: both sides\n'
+        printf '    are driven by this one unmodified script, so the re-observation test, its\n'
+        printf '    attempt budget, its interval and its refusal to accept a matching pair of\n'
+        printf '    zeroes are identical on the pre-migration side and on the replay side by\n'
+        printf '    construction rather than by convention.  Without this field a low or zero\n'
+        printf '    match count would be uninterpretable - nothing indexed and ranking changed\n'
+        printf '    would read the same - and the evidence would collapse back onto an exit\n'
+        printf '    status, which is exactly what R-T7 forbids.\n'
         printf '\n'
         printf 'TLS / READINESS CONTEXT\n'
         printf '    transport-trust-mode: %s\n' "$TLS_TRUST_MODE"
@@ -6558,6 +7053,12 @@ record_search_flow_context()
         printf '    context path the frontend declares as appPath /arkcase/ in\n'
         printf '    config/env/all.js:L6; the deployed archive named arkcase.war\n'
         printf '    (README.md:L141).\n'
+        printf '    A 404 FROM THE APPLICATION URL MEANS STARTUP FAILED rather than that the\n'
+        printf '    application answered, and that reading is recorded at the base commit in\n'
+        printf '    README.md:L143.  It matters to this flow specifically: a capture taken\n'
+        printf '    against a 404 would be evidence about a failed deployment, not about search\n'
+        printf '    behaviour, so the status is recorded verbatim and never folded into a\n'
+        printf '    behavioural conclusion.\n'
         printf '\n'
         printf 'PRE-EXISTING CONDITION RECORDED, NOT REPAIRED\n'
         printf '    https://arkcase-ce.local/VirtualViewerJavaHTML5 is EXPECTED to answer HTTP\n'
@@ -6764,6 +7265,121 @@ record_search_observation()
     } | sanitise >> "${dest}.result.txt"
 }
 
+# declare_search_criterion — flow 4's OWN comparison criterion, with BOTH halves
+# of it and a separate verdict for each.
+#
+# The generic criterion every flow falls back to says the two records must differ
+# in nothing the pipeline already normalises.  That is true of flow 4 but answers
+# only half of what flow 4 is for.  Its criterion is "identical result set AND
+# identical ranking", and recording only that the same documents came back would
+# leave the ranking half unstated.  RANKING IS BEHAVIOUR, NOT PRESENTATION: a
+# tidied list would pass a diff while the order had changed, and no local check
+# would notice — which is the one failure mode that would void this flow's
+# evidence silently.
+#
+# So the ordered identifier list is carried INSIDE the criterion field, one entry
+# per line in the order the engine returned them, with no sort, no deduplication,
+# no reordering and no truncation, and the relevance scores kept.  A pipe table is
+# deliberately not used: nothing under this folder may be Markdown, and an aligned
+# column list diffs row for row where a table does not.
+#
+# Every value comes from what was read back out of the capture, so this field and
+# the .status tokens it cites cannot disagree (R-T7).
+#
+# Usage: declare_search_criterion <count> <ordered-ids> <stable> <hits> <scores>
+declare_search_criterion()
+{
+    local count="$1"
+    local ids="$2"
+    local stable="$3"
+    local hits="$4"
+    local scores="$5"
+    local set_verdict ranking_verdict ids_lines saved_ifs id_item
+    local rank_index=0
+
+    case "$count" in
+        unavailable|unknown|''|'(not exposed)')
+            set_verdict='NOT ESTABLISHED.  No match figure was observed, so there is no
+    result set to compare.  RESULT_COUNT is recorded as the token
+    "unavailable" and deliberately NOT as zero: zero would assert that the
+    search answered and matched nothing, which is a behavioural claim this
+    run did not produce.'
+            ;;
+        0)
+            set_verdict='NOT ESTABLISHED.  The endpoint answered and matched nothing, so the
+    identical-result-set half has no result set to compare.  An answered
+    request carrying an empty result set is a success by status and a
+    failure by behaviour, and it is recorded as the latter.'
+            ;;
+        *)
+            set_verdict="OBSERVED.  ${count} match(es), recorded as the RESULT_COUNT token in
+    the .status file rather than left to be inferred from the body.  The set
+    half holds only if the counterpart capture records the same count and the
+    same membership; this record states the observation, not the verdict of
+    the comparison, which is made by diffing the two."
+            ;;
+    esac
+
+    case "$ids" in
+        unavailable|'not recorded'|'')
+            ranking_verdict='NOT ESTABLISHED.  No ordered identifier list was observed, so there
+    is no ranking to compare.  RESULT_IDS_ORDERED is recorded as
+    "unavailable", which is deliberately NOT the same record as an empty
+    ranking: an empty ranking would assert that the search answered and
+    returned no documents.'
+            ids_lines='    (none - no identifier was returned on this run, so there is no order
+    to transcribe.  The list is recorded as unavailable, which is not the
+    same thing as empty.)'
+            ;;
+        *)
+            ranking_verdict="OBSERVED.  ${hits} identifier(s) transcribed in the order returned;
+    relevance scores exposed per hit: ${scores}.  The ranking half holds only
+    if the counterpart capture lists the same identifiers in the same
+    positions - membership alone is the set half and does not answer this
+    one."
+            ids_lines=''
+            saved_ifs="$IFS"
+            IFS=','
+            for id_item in $ids; do
+                [ -n "$id_item" ] || continue
+                rank_index=$((rank_index + 1))
+                ids_lines="${ids_lines}$(printf '\n    rank %-3s %s' \
+                    "$rank_index" "$id_item")"
+            done
+            IFS="$saved_ifs"
+            # Each row was appended with its own leading newline so that the rows
+            # concatenate cleanly; the very first one is dropped here because the
+            # field label already ends the line above it.  The four-space indent
+            # belongs to each row, so nothing further is prepended - doing so
+            # would push row one out of alignment with the rest of the column.
+            ids_lines="${ids_lines#?}"
+            ;;
+    esac
+
+    declare_flow_criterion "identical result set AND identical ranking - both halves, each with
+  its own verdict, because either half on its own answers the criterion only
+  part of the way.
+  RESULT SET HALF - verdict: ${set_verdict}
+  RANKING HALF - verdict: ${ranking_verdict}
+  INDEX READINESS AT CAPTURE TIME, carried here as well as in the note above
+    because a low or zero count is uninterpretable without it and the two
+    readiness observations are comparable only because the same means was used
+    in both runs:
+      ${stable}
+  DOCUMENT IDENTIFIERS IN THE ORDER THE RESPONSE RETURNED THEM, one per line:
+${ids_lines}
+  AFFIRMATIVELY, and this is the part a tidy-looking record would quietly
+    break: the results were NOT sorted, NOT deduplicated, NOT reordered and
+    NOT truncated, and the relevance scores are RETAINED.  The transcriber
+    emits matches in file order, so the returned order survives by
+    construction rather than by a sort that could be got wrong.  The only
+    value removed from inside a search response anywhere in this record is the
+    engine-reported query-time and elapsed-time figure, which is wall-clock
+    cost rather than behaviour."
+
+    declare_flow_preserved 'the match count, every matched identifier, THEIR ORDER, and the relevance scores where the response exposes them - none of which is matched by any expression in the pipeline above, because each one IS the behaviour this flow observes'
+}
+
 flow_4_solr_search()
 {
     local dest
@@ -6823,6 +7439,26 @@ flow_4_solr_search()
         record_search_observation "$dest"
         record_skip_capture 4 solr-search 'search-through-application' \
             'no HTTP response from the application search endpoint'
+
+        # R-5, AND THIS IS THE ONE LINE THAT KEEPS THE RECORD HONEST.  The reason
+        # has to travel into the result record's IF NOT EXECUTED field and not
+        # only into the capture beside it.  record_skip makes that declaration on
+        # behalf of the flows that route through it; this path writes its result
+        # long-hand, for the reasons above, so the declaration is made explicitly
+        # here.  Omitting it does not leave the field empty — it makes the field
+        # report that the flow executed, which is the single thing a skipped flow
+        # must never claim, and it would read as a pass to anyone skimming.
+        declare_flow_not_executed 'no HTTP response from the application search endpoint, so the search round-trip was never reached and neither half of the criterion has anything to compare'
+
+        # The criterion is declared even here — especially here.  A skipped flow
+        # still has to say WHAT it was going to compare and record an explicit
+        # absence for each half, or the two captures cannot be diffed row for row
+        # (R-5).  The values passed are the ones just written into the .status
+        # file, so the criterion field and those tokens cannot disagree.
+        declare_search_criterion 'unavailable' 'unavailable' \
+            'NOT ESTABLISHED - no count was observed at all, so there was nothing to settle, and an unreached index is deliberately not recorded as a settled empty one' \
+            'none' 'none - no response body was returned, so no score could be exposed'
+
         record_result 4 solr-search 'SKIPPED' \
             'search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded, so under R-1 an upgrade without a compatibility reason would itself have been out of scope' \
             'flow-4-solr-search.status and flow-4-solr-search.out, re-read from disk; both exist and both were written by this flow, so the record names them rather than reporting none' \
@@ -7004,6 +7640,12 @@ flow_4_solr_search()
     # identical whichever way the flow went — and therefore what keeps the two
     # capture directories comparable line for line (R-5).
     record_search_observation "$dest"
+
+    # Both halves of the criterion, each with its own verdict, and the ordered
+    # identifier list the ranking half is made of — built from the values just
+    # read back out of the capture rather than from process state.
+    declare_search_criterion "$result_count" "$result_ids" "$result_stable" \
+        "$hits_listed" "$scores_exposed"
 
     record_result 4 solr-search "$verdict" \
         'search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded' \
@@ -7586,6 +8228,14 @@ record_number_provenance()
         printf '  version is pinned explicitly in the root aggregator, which is what makes\n'
         printf '  the loaded version deterministic and the fix effective (R-T4), and it is\n'
         printf '  why a single property change is what this capture tests.\n'
+        printf '  read off the artefacts rather than assumed: the engine module that names\n'
+        printf '  the expression language carries no version element for it, inheriting one\n'
+        printf '%s\n' "  from the engine's own dependency set, and the reactor overrides that"
+        printf '  inheritance from its own managed dependencies -- which is why the property\n'
+        printf '  edit reaches the classpath at all.  Every library version in this reactor\n'
+        printf '  is declared exactly once as a root-aggregator property and consumed by\n'
+        printf '  reference, and that is what lets a 145-module runtime migration be\n'
+        printf '  expressed as a property edit rather than as 145 of them.\n'
         printf 'how-that-failure-was-resolved: by ADVANCING THE LIBRARY, not by relaxing a\n'
         printf '  module boundary.  This flow is the clearest illustration of that\n'
         printf '  principle anywhere in the migration (R-T3), and it is why the register\n'
@@ -7614,11 +8264,28 @@ record_number_provenance()
         printf '  is stated here for the same reason the measured table count is stated\n'
         printf '  beside the plan figure -- a capture that recites a stale figure is worse\n'
         printf '  than one that reports none.\n'
-        printf 'no-embedded-compiler-dependency: the rule compiler module declares only a\n'
-        printf '  parser generator and the expression language, so the rule-compilation\n'
-        printf '  path that would have required a modern embedded Java compiler is simply\n'
-        printf '  absent from this codebase.  Together with the zero textual rule files\n'
-        printf '  measured above, that is why no compiler change was needed for the rules.\n'
+        printf 'no-embedded-compiler-dependency: NOT CONFIRMED BY MEASUREMENT.  The field\n'
+        printf '  name is kept so that this record and its counterpart stay field for\n'
+        printf '%s\n' "  field comparable, but the claim it carries is the migration plan's and"
+        printf '%s\n' "  not this capture's.  The measurement stands in the field immediately"
+        printf '  below and it disagrees, so the claim is neither repeated as though it\n'
+        printf '  had been verified nor quietly dropped.\n'
+        printf 'embedded-compiler-dependency-measured: an embedded Java compiler adapter\n'
+        printf '%s\n' "  IS on the rule compiler module's dependency list at the engine version"
+        printf '  this reactor resolves -- the drools-owned compiler adapter, declared with\n'
+        printf '  no version and no scope of its own, so it follows the engine version\n'
+        printf '  transitively.  At the base-commit engine version the same module instead\n'
+        printf '  declared a different embedded compiler and declared it OPTIONAL, so none\n'
+        printf '  reached the classpath there.  The plan was written against the\n'
+        printf '  base-commit engine, the reactor no longer agrees with it, and this record\n'
+        printf '%s\n' "  reports the reactor -- the same treatment the census above gives the plan's"
+        printf '  own table figure, and for the same reason: a capture that recites a claim\n'
+        printf '  it did not measure is worse than one that publishes the measurement.\n'
+        printf '  What the measurement does NOT change: no compiler artifact is pinned or\n'
+        printf '  advanced by this change set, and with zero textual rule files measured\n'
+        printf '  above the whole rule surface is the decision tables, so the expression\n'
+        printf '  language on that path is what this flow probes and no compiler change\n'
+        printf '  was needed for the rules (R-1 in both directions).\n'
         printf -- '------------------------------------------------------------------\n'
         printf 'GOVERNING RULES AND PROVENANCE\n'
         printf -- '------------------------------------------------------------------\n'
@@ -7736,11 +8403,50 @@ record_number_provenance()
 }
 
 
+# number_criterion — flow 6's comparison criterion, with a SEPARATE VERDICT for
+# each of its two halves.
+#
+# The criterion the migration's validation table names for this flow is
+# "identical numbering sequence and format", and that is TWO assertions rather
+# than one.  They are compared differently — a sequence is compared as a
+# progression across the two captures, because the counter advances between runs
+# by construction, while a format is compared as a derived shape token, component
+# for component — so a record that carried one verdict for both would let the
+# unstated half drift unnoticed.  Each half therefore carries its own verdict,
+# composed from what this run actually observed rather than from what it hoped to
+# observe: a match, a named difference, or NOT ESTABLISHED where nothing was
+# assigned and an equal absence on both sides discharges nothing (R-5, R-7).
+#
+# Usage: number_criterion <sequence-half-verdict> <format-half-verdict>
+number_criterion()
+{
+    printf 'identical numbering sequence and format, asserted as TWO halves with a verdict each because the two are compared differently.  SEQUENCE HALF, compared as a progression across the two captures rather than as a literal, since the sequence position advances between runs by construction -- verdict: %s.  FORMAT HALF, compared as a derived shape token, component for component, over the prefix, the separator set, the padding width and any year or object-type component -- verdict: %s.  Neither verdict is a pass mark: this record is evidence, and NOT ESTABLISHED means the criterion is still open rather than met (R-T7)' \
+        "$1" "$2"
+}
+
 flow_6_generated_number()
 {
     local dest
     dest="$(flow_prefix 6 generated-number)"
     flow_begin 6 generated-number 'create an object that receives a generated number'
+
+    # The criterion, in this flow's own words, declared BEFORE anything is
+    # recorded so that no path can reach record_result without one and fall back
+    # to the shared criterion the other seven flows use.  The two verdict clauses
+    # are re-declared on each path below from what that path observed; the value
+    # seeded here is what a path that returned early would publish, and it says so
+    # rather than reading as a pass.
+    declare_flow_criterion "$(number_criterion \
+        'no verdict was reached, because the flow returned before its comparison was recorded -- reportable in itself, and not a pass' \
+        'no verdict was reached, because the flow returned before its comparison was recorded -- reportable in itself, and not a pass')"
+
+    # The values that criterion is MADE OF, and the hazard here is the sharpest in
+    # the suite: the generated number superficially resembles the volatile
+    # identifiers the pipeline strips, so a pipeline that masked it would let a
+    # diff pass while the numbering format had changed underneath it, with no
+    # local check noticing.  The statement is therefore affirmative and paired
+    # with its opposite, because the pairing is the point.
+    declare_flow_preserved 'the generated number itself, PRESERVED VERBATIM and by deliberate decision rather than by oversight: its full value, its prefix, its separator set, its padding width, its sequence position, the object type that owns it, and the relative order of several numbers where more than one is recorded -- each exactly as the application assigned it.  The contrast is the point: the value used to sign in IS redacted from every byte of this capture, and the generated number is NOT.  The credential goes; the generated number stays.  The sequence position inside the number is its one genuinely volatile component, and even that is recorded in full rather than masked, and is compared as a progression instead of as a literal.  A surrogate database key, where the response carries one, IS treated as volatile and is stripped by field name; the generated number never is'
 
     local pre_status create_status create_ctype create_bytes verdict tables
     local skip_reason
@@ -7798,6 +8504,22 @@ flow_6_generated_number()
         if ! status_is_http_response "$pre_status"; then
             skip_reason="${skip_reason}; and no HTTP response was received from ${ARKCASE_BASE_URL}${FLOW6_PRECONDITION_PATH}, so the application was never reached either"
         fi
+
+        # The two halves of the criterion get the verdict this path actually
+        # supports, and it is NOT a pass on either half.  An equal absence on the
+        # two sides is comparable and visible in a diff, which is worth having,
+        # but zero matching zero establishes nothing about numbering behaviour and
+        # the record says exactly that rather than reading as agreement (R-5).
+        declare_flow_criterion "$(number_criterion \
+            'NOT ESTABLISHED -- no object was created on this side, so no sequence position was recorded.  A counterpart capture that also creates none matches this one row for row, so the comparison MATCHES ON AN EQUAL ABSENCE: comparable, and not evidence that the sequence is preserved' \
+            'NOT ESTABLISHED -- no number was assigned, so no shape token could be derived and there is nothing to compare component for component.  Here too a counterpart that observed none matches this one on an EQUAL ABSENCE and discharges nothing')"
+
+        # Why the flow did not run, in the flow's own words, so that the record's
+        # own not-executed field states the absence instead of asserting that the
+        # flow executed.  A fabricated pass would be a rule violation; a skip
+        # recorded honestly, with its reason, is compliant (R-5).
+        declare_flow_not_executed "$skip_reason"
+
         record_number_unobserved "$skip_reason" "$tables" 'unobserved' 'unobserved'
 
         mark_incomplete "flow 6: no object was created because state mutation is not permitted (${MUTATION_REFUSAL_REASON}); the generated number, and therefore the expression language and the decision tables behind it, are unobserved"
@@ -7902,6 +8624,24 @@ flow_6_generated_number()
     else
         finalise_number_tokens "$dest" 'yes' \
             'the creation was exercised and a generated number was observed; its value and format are recorded in the paired .out capture'
+    fi
+
+    # The per-half verdicts for the exercised path, decided by whether a number
+    # was actually recovered from the response body on disk rather than by the
+    # creation status — the same rule the assignment token follows.  Where a
+    # number WAS observed the verdict each half can carry from one side is
+    # RECORDED AND COMPARABLE: the value and its derived shape are in the capture,
+    # and the row-for-row comparison against the counterpart completes the
+    # verdict.  Claiming a match from one side alone would be a claim, not
+    # evidence (R-T7).
+    if [ "$complaint_number" = 'none' ]; then
+        declare_flow_criterion "$(number_criterion \
+            "NOT ESTABLISHED -- the creation was exercised and answered ${create_status}, but the response carried no generated number, so no sequence position was recorded.  That is a NAMED DIFFERENCE from an exercised capture that does carry one, and it is recorded rather than smoothed over" \
+            'NOT ESTABLISHED -- with no number in the response there is no shape token to compare, so the format half is open on this capture')"
+    else
+        declare_flow_criterion "$(number_criterion \
+            'RECORDED AND COMPARABLE -- the number is captured verbatim in creation order beside the count of objects created, so the counterpart capture is compared against it as a progression; the verdict is completed by that row-for-row comparison and is not asserted from this side alone' \
+            'RECORDED AND COMPARABLE -- the shape token is derived from the captured number and stands beside it, so the counterpart is compared component for component; again the verdict is completed by the comparison rather than declared here')"
     fi
 
     record_result 6 generated-number "$verdict" \
@@ -8761,6 +9501,16 @@ flow_5_activemq_event()
             printf 'REASON: %s\n' "$skip_reason"
         } | sanitise >> "${dest}.status"
 
+        # AND THE RECORD'S OWN "IF NOT EXECUTED" ROW MUST SAY SO TOO.  That row
+        # defaults to "this flow executed", which is right for a flow that ran
+        # and wrong for this branch: the verdict here is NOT-EXERCISED and both
+        # halves are SKIPPED, so leaving the default would have the record claim
+        # an execution it did not perform while its own verdict said otherwise.
+        # R-5 draws the line exactly here — an unexercised flow recorded honestly
+        # is compliant, an overclaim is not — so the reason is declared through
+        # the writer's own interface and the row carries it verbatim.
+        declare_flow_not_executed "SKIPPED - ${reason}"
+
         record_result 5 activemq-event 'NOT-EXERCISED-NO-EVENT-PRODUCED' \
             'messaging client on Java 17, unchanged by design: its messaging interfaces resolve from the broker client rather than from the platform, so the removal of the platform enterprise modules cannot reach it' \
             'flow-5-activemq-event.out, flow-5-activemq-event.status and startup/messaging-and-persistence.log' \
@@ -9131,6 +9881,18 @@ FLOW7_UNOBSERVED='(not observed - no process instance was created by this run)'
 # authoritative; overridable so a different change set can state its own.
 FLOW7_DECLARED_BASE_COMMIT="${FLOW7_DECLARED_BASE_COMMIT:-c8f6226105c28c2743281d26bf21ad73f7bb7f26}"
 
+# The migrated tree's own commit, carried the SAME way and for the same reason.
+# The replay side has two commits worth naming and they are not interchangeable:
+# the base commit the pre-migration capture was taken at, and the head the change
+# set had reached when the replay ran.  Both are DECLARED labels rather than probe
+# output, and that is deliberate rather than lazy: `git rev-parse HEAD` inside this
+# script would be re-measured every run, so the recorded value would change the
+# moment this very record is committed and the file could never reproduce itself.
+# A declared label is stable, is overridable by a different change set, and is
+# honest about what it is.  It names the head the replay was captured AT, which is
+# necessarily the parent of the commit that records this file.
+FLOW7_DECLARED_MIGRATED_COMMIT="${FLOW7_DECLARED_MIGRATED_COMMIT:-0759c70353}"
+
 # flow7_runtime_of_record — the runtime designation of the capture side, AND the
 # point in the change set at which the capture was taken.
 #
@@ -9163,6 +9925,45 @@ flow7_runtime_of_record()
     esac
 }
 
+# flow7_capture_runtime_label — the runtime designation of THIS capture side.
+#
+# Derived from the capture directory name, exactly as every other side-dependent
+# value here is, so a directory named neither side asserts nothing rather than
+# guessing.  Kept separate from flow7_runtime_of_record because that function
+# returns a whole prose clause, and the commit line below needs the bare
+# designation on its own.
+flow7_capture_runtime_label()
+{
+    case "$(basename -- "$SMOKE_OUT_DIR")" in
+        baseline)  printf '%s' 'JDK 8' ;;
+        migrated)  printf '%s' 'Java 17' ;;
+        *)         printf '%s' 'not-declared - this capture directory is named neither side' ;;
+    esac
+}
+
+# flow7_readiness_field — read one key out of this capture's own readiness note.
+#
+# The startup-timing note has to state how long the capture ACTUALLY waited for
+# readiness, and the only defensible source for that is the readiness note this
+# same run wrote, re-read from disk (R-T7).  Quoting the configured variables
+# instead would report what was asked for rather than what happened, and the two
+# diverge the moment an operator overrides a default.  A missing note yields an
+# explicit marker, never a silent blank or an invented number.
+flow7_readiness_field()
+{
+    local note="${SMOKE_OUT_DIR}/notes/readiness.txt"
+    local value=''
+
+    if [ -f "$note" ]; then
+        value="$(sed -n "s|^$1: ||p" "$note" | tail -1)"
+    fi
+    if [ -z "$value" ]; then
+        printf '%s' 'not-recorded-in-this-capture'
+        return 0
+    fi
+    printf '%s' "$value"
+}
+
 # flow7_mandated_observations — the shared, order-stable observation lines.
 #
 # Emitted one per line and read into an array by each call site.  Plain text
@@ -9175,6 +9976,7 @@ flow7_mandated_observations()
 
     printf '%s\n' \
         "runtime-of-record: $(flow7_runtime_of_record); base commit ${FLOW7_DECLARED_BASE_COMMIT}" \
+        "runtime-and-commit-of-this-capture: runtime $(flow7_capture_runtime_label); migrated tree commit ${FLOW7_DECLARED_MIGRATED_COMMIT} (the head the replay was captured at, which is necessarily the parent of the commit that records this file); baseline side pre-migration commit ${FLOW7_DECLARED_BASE_COMMIT}, short form $(printf '%s' "$FLOW7_DECLARED_BASE_COMMIT" | cut -c1-10).  Both commits are named on both sides so a reader holding one record knows which two trees the comparison spans without consulting the other; the runtime designation is a declared label of the capture side, and the runtime the tool itself reported is archived separately in this same capture directory so the label can be checked rather than trusted" \
         'expected-difference-between-the-two-captures: the runtime-of-record line above is the ONE line in this record whose value must differ between the pre-migration capture and the post-migration replay, because the runtime is the thing that changed.  Every other line is expected to match row for row, and any other difference is a finding' \
         'comparison-criterion: identical process instantiation AND identical task assignment.  Both halves are stated because a workflow-start request can answer 200 while no process instance was created and no task was assigned, so "the workflow started" is not the criterion - the criterion is a matching process definition key, a matching task definition key and task name, a matching assignee or candidate group, and a matching instance state' \
         'classification: RESIDUAL UNVERIFIED RISK, ASSIGNED TO THIS GATE - not cleared, and not verified anywhere else.  The process engine is the oldest load-bearing component in the reactor, dating from 2014; its own version is UNCHANGED by this migration; and it could not be bootstrapped for testing without a database, so it was assigned to the deployment and smoke gates rather than declared safe.  Nothing in this capture may be read as verifying it' \
@@ -9421,6 +10223,91 @@ flow_7_workflow_start()
     dest="$(flow_prefix 7 workflow-start)"
     flow_begin 7 workflow-start 'start a workflow'
 
+    # ------------------------------------------------------------------------
+    # FLOW 7'S OWN RECORD FIELDS.  Declared here, immediately after flow_begin,
+    # because flow_begin resets them: declaring earlier would publish nothing and
+    # declaring inside one of the two outcome branches would give the exercised
+    # and the not-exercised record different field CONTENT for the same field
+    # name, which is exactly the asymmetry that makes a row-for-row comparison
+    # stop being mechanical.
+    #
+    # Each of the three replaces a shared fallback that is either too generic to
+    # judge this flow by or, in the case of the not-executed field, actively wrong
+    # for it.
+    # ------------------------------------------------------------------------
+
+    # BOTH HALVES, SEPARATELY, EACH WITH ITS OWN VERDICT.  The shared fallback
+    # criterion is true of every flow and therefore judges none of them: it would
+    # let a record that observed nothing read as though it had been measured
+    # against something.  Flow 7's criterion has two halves that fail
+    # independently — a start request can answer 200 while no process instance was
+    # created, and an instance can be created while no task is assigned — so a
+    # single conflated verdict would hide half of it.
+    declare_flow_criterion 'identical process instantiation AND identical task assignment - two halves, stated and judged separately because each fails independently of the other.  HALF ONE, process instantiation: a matching process definition KEY, a matching instance state and matching exposed process variables.  Verdict from the row-for-row comparison against the pre-migration capture: MATCH ON A RECORDED ABSENCE - both sides record the definition key, the instance state and the process variables as explicitly not observed, because neither run created a process instance, so the two agree without either one having measured instantiation.  That is a comparable result and it is NOT a pass.  HALF TWO, task assignment: a matching task definition key, a matching task name and a matching assignee or candidate group.  Verdict from the same comparison: MATCH ON A RECORDED ABSENCE, on the same terms and for the same reason.  Neither half is discharged by this capture, and the residual risk this gate was assigned therefore remains open rather than cleared'
+
+    # THE VALUES THIS CRITERION IS MADE OF.  Recorded beside the stripped list on
+    # purpose: a pipeline that quietly normalised any one of these would leave two
+    # captures agreeing on placeholders while demonstrating nothing, and that
+    # failure is invisible unless both halves are written down together.
+    declare_flow_preserved 'the process definition KEY; the task definition key; the task name; the assignee or candidate group; the process instance state; the exposed process variables; and the count of definitions the engine loaded.  Every one is behaviour that this criterion compares and every one survives each expression in the pipeline above verbatim.  KEY VERSUS IDENTIFIER, and the distinction decides the whole comparison: the definition KEY is stable, author-chosen and behaviour-bearing, while the definition IDENTIFIER is that key plus an engine-assigned version and sequence number drawn from a database sequence and is volatile between deployments.  Normalising the KEY would destroy the criterion; leaving the IDENTIFIER alone would manufacture a spurious difference on every run.  So the key is preserved and only the two numeric components of the identifier are replaced.  An assignee is a user identity and is PRESERVED rather than redacted, because task assignment is half of this criterion and two captures agreeing on a redaction placeholder would demonstrate nothing; the configured administrator credential, by contrast, is replaced by a fixed placeholder on every write path and only the EXISTENCE of a session is ever recorded'
+
+    # THE STARTUP-TIMING NOTE, flow 7's own trailing field.  It exists because the
+    # engine initialises at DEPLOYMENT, before any request this flow sends, so the
+    # evidence for the half of this flow that matters most is not in a response at
+    # all — it is in a startup-log region — and a reader who assumed otherwise
+    # would mistake an absent region for an absent engine.
+    declare_flow_extra_note 'STARTUP-TIMING NOTE' \
+        'engine initialisation happens during application startup, at deployment,' \
+        '  BEFORE any request in this flow is sent.  Nothing this flow asks over' \
+        '  HTTP can observe it.  The initialisation evidence is therefore a' \
+        '  captured startup-log REGION, archived under startup/ in this same' \
+        '  capture directory as startup/process-definitions.log.' \
+        '' \
+        'why startup/ and not the obvious name: the obvious directory name for' \
+        '  startup output is ignored by the repository at any depth, so evidence' \
+        '  written there would be silently uncommitted while every local check' \
+        '  still passed and the deliverable would fail its completion condition' \
+        '  invisibly.  Reading FROM a container log directory is fine; writing' \
+        '  INTO one is the trap.  A .log file EXTENSION is unaffected - only the' \
+        '  directory name is matched - which is why the region keeps its .log' \
+        '  suffix inside startup/.' \
+        '' \
+        'why the timing matters rather than being trivia: the first startup takes' \
+        '  5 to 10 minutes, recorded at the base commit in README.md:L141, and the' \
+        '  engine deploys its definitions during that window.  A 404 from the' \
+        '  application URL means startup FAILED, recorded at README.md:L143.  A' \
+        '  definitions figure read from a running engine before deployment has' \
+        '  finished therefore measures TIMING rather than BEHAVIOUR, and a' \
+        '  premature capture would record an engine that had not finished loading' \
+        '  and would read as a regression.  So an engine-side count is read only' \
+        '  after deployment completes, and never inferred from a partial one.' \
+        '' \
+        "how long this capture actually waited for readiness, re-read from this" \
+        "  capture's own notes/readiness.txt rather than quoted from the" \
+        '  configuration, so the figures are what happened and not what was asked' \
+        '  for:' \
+        "    readiness-attempts-waited     $(flow7_readiness_field 'attempts-configured')" \
+        "    readiness-interval-seconds    $(flow7_readiness_field 'interval-seconds')" \
+        "    readiness-final-status        $(flow7_readiness_field 'final-observed-status')" \
+        '  The readiness criterion is a single one, and it is the same one on both' \
+        '  sides: the application shell URL answering with an HTTP status at all,' \
+        '  as opposed to no response at all.  Readiness does not gate the flow, so' \
+        '  a slow or unreachable stack still produces an explicit, comparable' \
+        '  capture rather than a truncated one.' \
+        '' \
+        'the SAME readiness criterion, and the same configured wait, governed BOTH' \
+        '  runs.  That is structural rather than promised: one unmodified script' \
+        '  writes both sides and derives the criterion and the wait from the same' \
+        '  place on each, so the two readiness notes are directly comparable and' \
+        '  can be diffed against one another.' \
+        '' \
+        'what this capture did NOT observe, stated plainly rather than papered' \
+        '  over: no engine-side definitions count exists in it.  The count this' \
+        '  record carries is a CORPUS measurement taken from the repository tree,' \
+        '  not a reading from a running engine, and the engine-side loading of' \
+        '  those definitions is recorded as unobserved.  The residual risk this' \
+        '  gate was assigned is therefore NOT discharged by this capture.'
+
     # Every observed value starts as an explicit absence and is replaced only by
     # something actually read back from the engine.  Initialising them to the
     # marker rather than to an empty string is what guarantees that a value which
@@ -9549,6 +10436,15 @@ flow_7_workflow_start()
             "PROCESS_INSTANCE_ID: $(volatile_identifier "$instance_id" '<PROCESS-INSTANCE-ID>')" \
             "TASK_ID: $(volatile_identifier "$task_id" '<TASK-ID>')" \
             'RESIDUAL_RISK: process-engine-observed-here-not-cleared'
+        # R-5, IN THE ONE FIELD A READER CHECKS FIRST.  Without this the shared
+        # fallback prints "not applicable - this flow executed", which on this path
+        # is FLATLY FALSE: no workflow was started, the paired .status carries a
+        # SKIPPED marker, and the verdict is NOT-EXERCISED.  A record that claimed
+        # execution while its own status file recorded a skip would be a fabricated
+        # pass in the one flow where a fabricated pass does the most damage, because
+        # this is the gate the process-engine residual risk was assigned to.  The
+        # reason is the SAME string the .status carries, so the two cannot drift.
+        declare_flow_not_executed "SKIPPED - ${skip_reason}"
         # The mandated fields travel with BOTH outcomes, so an unexecuted flow 7
         # carries the same field set as an executed one and the two sides stay
         # comparable line for line.  They are appended AFTER this path's own

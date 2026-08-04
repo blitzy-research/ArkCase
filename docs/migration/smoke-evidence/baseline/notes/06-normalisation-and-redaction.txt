@@ -1,0 +1,915 @@
+normalisation and redaction - the substitution ledger for this capture
+======================================================================
+
+FILE: docs/migration/smoke-evidence/baseline/notes/06-normalisation-and-redaction.txt
+SCOPE: every value the capture pipeline replaced before writing it, and the ledger
+  format in which such a replacement is recorded.  Wherever a captured value was
+  removed or masked, this note says which value, by which helper, in which files,
+  what token went in its place, why, and how the replay reproduces it.  It also
+  states the boundary in the other direction: the values that must survive
+  VERBATIM because they are the behaviour under observation.
+NOT IN SCOPE: the verdict.  Nothing here may be read as a pass mark.  The
+  cross-capture outcome lives in ../comparison.txt, the per-flow observations in
+  the eight ../flow-*.result.txt records, and the closing index in ../summary.txt.
+  Also not in scope: the artifact comparison's own scope limitation, which is a
+  LIMITATION and not a substitution - entry 9 keeps the two apart deliberately.
+CAPTURE: baseline - the state of the system at the base commit, before any file of
+  this migration was edited.
+BASE COMMIT: c8f6226105c28c2743281d26bf21ad73f7bb7f26  (short c8f6226105)
+BASE COMMIT SUBJECT: chore: extend catalog tags (java, javascript, migration, refactor)
+BASE COMMIT DERIVED BY: walking this branch back to the newest commit not authored
+  by the migration agent; the sixteen commits above it are all migration commits.
+  Re-derived for this note rather than copied from any brief, and it agrees with the
+  independent derivations at 01-artifact-comparison-scope.txt:L15-L21, at
+  02-node-env.txt, and at ../env/toolchain.txt.
+HEAD AT WRITING: 0759c703539152efbcf89ec948cbc9c8695df4f8 - a migration commit, NOT
+  the base commit.  Recorded because it is the standing trap of this capture: a
+  reader who reads the branch tip in place of the base commit finds migrated content
+  and concludes the capture is wrong.
+PRODUCED BY: ../../smoke-checks.sh, unmodified, with its output directory pointed at
+  this directory.  The same unmodified script produces the migrated capture.  That
+  is not a convenience - it is the entire mechanism by which the two directories are
+  comparable, and it is developed in entry 1.
+HAND EDITED: no substitution in this capture was applied by hand.  Every one was
+  applied by the script, on the write path, before a byte reached the disk.
+WRITTEN: last among the baseline subdirectories.  artifacts/, surefire/, env/ and
+  startup/ are captured first; the notes in this folder qualify what those four
+  captured, so a note written earlier would be qualifying evidence that did not yet
+  exist.  This note is the last of the numbered notes for the same reason one step
+  further out: it qualifies the other notes as well.
+
+WHY THIS NOTE IS EVIDENCE RATHER THAN COMMENTARY
+------------------------------------------------
+A row-for-row diff between baseline/ and migrated/ carries meaning only if the
+volatile values were removed the SAME WAY on both sides.  A substitution applied in
+one run and not the other, or applied to an archive after the fact, does not merely
+weaken the comparison - it manufactures agreement, or manufactures disagreement, and
+in neither case can a reader tell which.  So the ledger is not documentation of the
+capture; it is part of what makes the capture admissible.
+
+A HAND-EDITED CAPTURE IS NOT EVIDENCE.  That sentence is the whole reason this file
+exists, and every rule in the next section is a consequence of it.
+
+RULES PROVENANCE - both halves, because either one alone misleads
+----------------------------------------------------------------
+1. The project's rules facility reports, verbatim, "No user rules provided."
+   Confirmed for this note by two independent queries against it, one over the whole
+   document and one over its first window; both returned that single line.  There is
+   no on-disk user rules document for this project, so there is no external
+   full-text source to defer to for the statements below.
+2. Rules are nonetheless present and binding.  The requirements embed an explicit
+   numbered block of seven rules that governs this work in full, exactly as an
+   external rules document would, plus seven transformation rules.  Their
+   authoritative statements live in the Agent Action Plan for this migration - the
+   seven at its section 0.7.2 and the seven transformation rules at its section
+   0.1.2 - and that plan is the source of rule text here precisely because the rules
+   facility has none.
+
+Recording only the first half would imply that enterprise best practice is the sole
+standard here, which is wrong: fourteen specific constraints apply.  Recording only
+the second would misrepresent where they came from.  Both are therefore stated.
+
+IDENTIFIER CONVENTION, DISCLOSED: the labels R-1 through R-7 and R-T1 through R-T7
+are the Agent Action Plan's OWN navigational convention.  They are not quoted
+titles - the requirements list the rules as numbered items without names.  They are
+used here so a decision can be traced back to the constraint that produced it.  No
+rule is invented here and none is softened.
+
+WHAT EACH GOVERNING RULE REQUIRES OF THIS NOTE
+----------------------------------------------
+R-T7, evidence over exit codes.  The rule this note's MECHANISM answers.  Every
+  substitution is implemented inside the producing script, as a named reusable
+  helper, applied through one pipeline that every written byte passes through, with
+  a comment beside each pattern naming the value and why it is volatile.  A
+  substitution applied outside the script is not reproducible, and a substitution
+  that is not reproducible is not evidence.
+
+R-7, baseline behaviour is the tie-breaker.  The rule this note OPERATIONALISES.
+  The ledger is what makes the replay reproducible, and therefore what makes any
+  behaviour-preservation claim falsifiable.  An undisclosed substitution would
+  silently manufacture agreement between the two captures, and a claim that cannot
+  fail is not a claim.  The rule reads, with one disclosed substitution: "The
+  application's observed behavior at the base commit on JDK 8 is the tie-breaker for
+  any ambiguity, and each resolution must be documented."
+  [Editorial note that travels with that quote wherever it is reproduced: the rule's
+  own text names the older runtime with a phrase this documentation tree's wording
+  gate forbids.  "JDK 8" is substituted.  The substitution changes no meaning, and
+  it is disclosed here rather than made silently.]
+  Note the symmetry, because it is the point rather than a curiosity: that editorial
+  disclosure is itself an instance of exactly the discipline this note prescribes - a
+  substitution recorded rather than made silently.  The ledger format defined in
+  entry 5 is the general form of it, and the same disclosure appears against the
+  same quote in every one of the eight flow records.
+
+R-2, no JDK-internal access in production launch configuration, each exception
+  documented.  Two properties are asserted here and both were measured.  First, the
+  production launch configuration - the startup environment block at
+  README.md:L134-L146, duplicated at docs/setup.md:L107 - contains NO argument that
+  opens or exports an otherwise-encapsulated JDK package to the unnamed module.
+  That is why the register of applied exceptions is delivered EMPTY, with a positive
+  statement that none are required.  Second, and this is a constraint on the WORDING
+  of this file: those arguments are named nowhere in this tree, so entry 5 describes
+  the class of token in words and never writes one.  The register itself is referred
+  to by TITLE ONLY, as the JDK access exceptions register, and never by path -
+  because its own filename embeds one of the tokens the wording gate forbids.  The
+  same convention is already house practice: see the closing cross-references of
+  01-artifact-comparison-scope.txt, which state that the register's path is
+  deliberately not written and that it is reachable from the documentation
+  navigation instead.
+
+R-6, document discovered bugs rather than fixing them.  This ledger DOCUMENTS; it
+  fixes nothing.  Where a captured value is volatile because of a pre-existing
+  condition, the condition is recorded and the value normalised - never "repaired".
+  The mandated instance: one service of the reference stack is EXPECTED to answer
+  with HTTP 503, documented at README.md:L50 and again at docs/setup.md:L30, and its
+  observed status is captured exactly as observed.  It is not retried into
+  submission, not hidden, and not normalised away, because an expected 503 is
+  behaviour and a comparison that cannot see it is a comparison of less.  The
+  migration's escape clause is invoked EXACTLY TWICE in the whole change set -
+  creating the frontend generated-configuration module, and removing the
+  stylesheet-compiler toolchain that cannot be built on the new runtime - and
+  NEITHER invocation is a file in this folder.  Nothing in this note repairs
+  anything, so the exception count stays auditable and cannot quietly grow through
+  this evidence tree.
+
+R-1, a change without a reason is out of scope.  Entry 6 records only substitutions
+  that were ACTUALLY APPLIED, measured from the capture files themselves.  No
+  hypothetical ledger is written, no further normalisation is proposed, and no
+  tooling is introduced.  Where the standard pipeline was in force but had nothing
+  to replace, entry 6 says so positively rather than leaving a silence a reader must
+  interpret.
+
+R-5, no disabling of failing tests.  Not this note's rule, but one boundary of it
+  lands here: nothing in this pipeline normalises or redacts anything in the archived
+  unit-test evidence under surefire/ in a way that could obscure a failure.  That
+  evidence is ARCHIVED, not rewritten.  The same principle explains why a skipped
+  flow is written as an explicit record with a reason rather than omitted - an
+  absence that is invisible in a diff cannot be compared, and an invisible absence is
+  the diff equivalent of a disabled test.
+
+R-4, genuine execution on the current front-end runtime.  A wording constraint only.
+  The outgoing package manager is never named here as a prerequisite or a
+  recommendation, and this note has no other reason to mention it.
+
+1. THE PIPELINE THAT APPLIES SUBSTITUTIONS
+------------------------------------------
+Every substitution in this capture comes from one of the named helpers below, all of
+them in ../../smoke-checks.sh.  The names and line anchors were read back from the
+script as actually written rather than assumed, because a ledger that cites a helper
+that does not exist is worse than one that cites none: it reads as verified when it
+is not.
+
+  sanitise            :L1914  THE SINGLE PIPELINE EVERY BYTE THIS SCRIPT WRITES
+                              PASSES THROUGH.  Not "every response body" - every
+                              byte, including result records, notes, the closing
+                              summary and mined startup-log regions.  It is the
+                              composition of the three passes below, in that order.
+                              Routing all writers through one function is what makes
+                              the coverage claim CHECKABLE: a reviewer confirms it by
+                              confirming that nothing writes into the capture tree
+                              except through here.
+  redact_literal      :L1589  the fixed-literal pass.  Six substitution pairs, none
+                              of them a pattern: the configured credential, and four
+                              absolute-path prefixes.  A boundary flag stops a path
+                              match that runs on into a longer name, so a directory
+                              prefix is replaced only where it really is that prefix.
+  redact_patterns     :L1669  the credential PATTERN pass.  Every expression is
+                              FIXED - no caller-supplied text is interpolated into
+                              any of them, so the escaping hazard that pattern
+                              substitution normally carries cannot arise.  Its
+                              coverage is deliberately wider than "the response
+                              body", because a credential reaches a capture by more
+                              routes than a body: request and response headers
+                              carrying authorisation material, session cookies, which
+                              are credential-equivalent for as long as they live,
+                              cross-site-request-forgery tokens, bearer and basic
+                              material anywhere including inside a diagnostic,
+                              credential-shaped fields echoed back by the server, the
+                              download endpoint's bearer-equivalent query parameter,
+                              a transport configuration line echoed into a
+                              diagnostic, and credentials embedded in a URL.
+  normalise           :L1707  the visible, auditable pattern pipeline that removes
+                              inter-run volatility, with a comment beside each
+                              expression naming the value and saying why it is
+                              volatile.  It is deliberately NARROW; entry 4 records
+                              what it must not touch and why.
+  verify_sanitiser    :L1944  the pipeline's SELF-TEST, run before the first capture
+                              is written.  It checks three properties: that the
+                              pipeline produces output at all, that the real
+                              configured credential does not survive it, and that
+                              representative credential-bearing header, cookie and
+                              structured-field forms do not survive it.  Failure of
+                              any one is a REFUSAL TO START.
+  digest              :L2134  the artifact digests, with a portable fallback so the
+                              run works on either developer platform: the primary
+                              tool, then the alternative spelling of it, and if
+                              neither is present an explicit unavailable marker
+                              rather than a silent empty value.  digest_value :L2161
+                              is the same result reduced to the hash alone.
+  http_probe          :L2227  writes the paired body and status files for a flow,
+                              appending to the flow's .out and .status.  Every byte
+                              it writes goes through sanitise.
+  record_result       :L3147  writes the flow's plain-text comparison or observation
+                              record.  Plain text by design - no pipe tables, no
+                              headings, no fenced blocks - because nothing under this
+                              folder may be Markdown.  It passes through the
+                              sanitiser like everything else, and the reason is worth
+                              keeping: its format strings are script-authored, but
+                              several of them interpolate values that came back from
+                              the server, and a script-authored format string
+                              carrying a server-supplied value is exactly as
+                              dangerous as a raw body.
+  record_skip         :L3666  writes an explicit skipped record with a reason, so an
+                              unexecuted flow is VISIBLE in the diff rather than
+                              invisible.  The reason travels into the result record
+                              as well as into the capture, and the flow's own named
+                              observations are each written as an explicit absence -
+                              which is what makes a skip COMPARABLE rather than
+                              merely honest.
+
+PUBLISHED CORRECTION, because the names above were checked rather than accepted.  A
+brief in this work package named a helper for the paired body and status write and a
+single helper for redaction.  Neither name exists in the script.  The paired writer
+is http_probe, and redaction is two passes, redact_literal and redact_patterns,
+composed with normalise by sanitise.  The names published above are the names the
+script uses.  This correction is recorded rather than quietly absorbed for the same
+reason every substitution below is: an unrecorded discrepancy between a ledger and
+the thing it describes is indistinguishable from an error.
+
+THE TWO HARD PROPERTIES OF THIS PIPELINE
+
+  applied by the script, never by hand    A substitution reaches a capture file only
+                                          on the write path, before the byte lands.
+                                          No file in this directory was edited after
+                                          the run that produced it.  A substitution
+                                          applied after the fact is not reproducible,
+                                          and what is not reproducible is not
+                                          evidence - it is an assertion about an
+                                          archive that the archive cannot support.
+  the same unmodified script writes both  The migrated capture is produced by this
+                                          same script, unchanged, with its output
+                                          directory pointed at migrated/.  That is
+                                          what makes the two directories comparable
+                                          at all.  Had the script needed editing
+                                          between the two runs, the comparison would
+                                          prove nothing, because a difference between
+                                          the captures could then be attributed to
+                                          the change in the producer rather than to a
+                                          change in the system.
+
+A THIRD PROPERTY, WORTH STATING BECAUSE IT WAS LEARNED THE HARD WAY.  The sanitiser
+is a pipeline, so a malformed expression anywhere in it makes the whole substitution
+program invalid, the utility exits before reading a byte, and EVERY capture file
+comes out at zero length while the run still completes and reports success.  Silent
+total evidence loss, from a one-character mistake, with no error visible in the
+produced artefacts.  That is the worst available failure mode - strictly worse than
+having no redactor at all, because it looks like success.  It is why
+verify_sanitiser exists, why it runs before the first capture, and why its failure is
+a refusal to start rather than a warning.  It is also the clearest illustration of
+R-T7 in this whole tree: the exit code said success, and the evidence said nothing.
+
+2. THE GENERIC VOLATILE SET, STRIPPED FROM EVERY FLOW
+-----------------------------------------------------
+These are removed everywhere, in every flow, because each differs between two runs of
+IDENTICAL behaviour by construction.  Left in place, each would report a difference
+that has nothing to do with behaviour, and a comparison that reports noise on every
+run trains a reader to ignore the one row that matters.  The replacement token is
+given so the replay can be checked against the same token rather than a similar one.
+
+  ISO-8601 date-times     created and modified stamps differ by construction,
+                          including any fractional part and any timezone offset.
+                          Replaced by a timestamp token.
+  date-bearing response   the Date, Last-Modified and Expires headers carry wall-clock
+  headers                 time and nothing else.  Replaced by an HTTP-date token, with
+                          the header NAME and its case preserved so its presence is
+                          still evidence.
+  entity tags             a server-generated response validator, not behaviour.
+                          Replaced by an entity-tag token.
+  authentication          the challenge nonce and opaque parameters are regenerated on
+  challenge parameters    every response.  The challenge SCHEME survives, which is the
+                          part flow-1-login actually asserts on.
+  generated request and   supplied per request, so two identical exchanges disagree on
+  correlation identifiers them by construction.  Replaced by a single token.
+  cookie-setting header   replaced WHOLESALE, and by the redaction pass rather than
+  values                  this one, because a live session identifier is
+                          credential-equivalent and belongs in the credential pass,
+                          not the cosmetic one.  The presence or absence of a session
+                          is still recorded, as a separate observed field - see
+                          entry 7.
+  millisecond epoch       generated instants inside structured bodies, which are
+  values                  timestamps in a different clothing and equally volatile.
+  absolute filesystem     the capture directory, the repository root, the home
+  paths                   directory and the temporary directory all differ by machine
+                          and by checkout location, so an unreplaced one would make
+                          two captures of identical behaviour disagree on every path
+                          they mention.  Each is replaced by its own named token, so a
+                          reader can still tell WHICH root a path was relative to.
+  surrogate database keys generated by a sequence, so the same behaviour produces a
+                          different number on every run and on every database.
+                          Matched BY FIELD NAME rather than by value shape - see the
+                          note on that choice in entry 4, because it is the single
+                          decision that keeps a result count, a queue position and an
+                          object number out of the substitution.
+
+ONE ORDERING DEPENDENCY INSIDE THIS SET, recorded because it is invisible and would
+be easy to break.  The broker-assigned message identifier of entry 3 EMBEDS a
+millisecond instant.  Its expression is therefore placed AHEAD of the epoch
+expression: if the epoch expression ran first it would rewrite the middle of the
+identifier, and the identifier expression would then no longer match what was left.
+The whole identifier collapses to one token, instead of leaving its host and counter
+fragments stranded around a normalised instant.
+
+3. PER-FLOW VOLATILE ADDITIONS
+------------------------------
+Three flows carry volatile values that no expression in entry 2 reaches.  The flow
+slugs below are the fixed artefact-naming slugs, used verbatim so this note aligns
+with the capture filenames.
+
+flow-4-solr-search
+  the reported query-time figure   the search engine reports, on every response, how
+                                   long it spent answering.  It varies with cache
+                                   warmth and host load and with nothing else, so two
+                                   runs of the identical query against the identical
+                                   index routinely differ on it.  It is the ONE value
+                                   inside a search response that is normalised.  Only
+                                   the NUMBER is replaced; the key survives, so a
+                                   reader can still see that the engine reported a
+                                   query time at all.
+  the same figure under its        an engine or an intervening reverse proxy may
+  other names                      report the same measured duration as an elapsed or
+                                   response time, in a body field or in a response
+                                   header.  Each is a measured duration and never a
+                                   behavioural output, so each is replaced on the same
+                                   grounds.
+
+flow-5-activemq-event
+  the broker-assigned message      assigned by the broker as it accepts a send.  Its
+  identifier                       native form is a host, port, start-instant and
+                                   sequence tuple, regenerated on every send, and it
+                                   is not the payload.  Normalised in its wire form
+                                   and in the key-and-value and structured-field forms
+                                   a broker status surface or this script's own
+                                   delivery record uses for it.
+  the generated correlation        normalised ONLY where the identifier is GENERATED.
+  identifier                       A correlation identifier that an application
+                                   SUPPLIES is behaviour-bearing and would have to be
+                                   exempted.  This application supplies none, and that
+                                   is recorded as an observed field in the flow's own
+                                   record rather than assumed here.
+  the enqueue and expiry           the enqueue instant is wall clock; the broker-in and
+  timestamps                       broker-out instants are the same clock at other
+                                   moments; and the expiry instant is derived from the
+                                   enqueue instant, so it is exactly as volatile.
+  the redelivery counter           depends on consumer timing, not on behaviour.
+  the connection or client         assigned per connection by the client library.
+  identifier
+  Every expression in this group names its keys EXACTLY rather than matching a suffix
+  such as a trailing identifier or time word.  That is not verbosity: a
+  suffix-matching expression would have swallowed the destination name and left the
+  flow with nothing to compare.  Nothing here reads the broker's own on-disk store;
+  the observation is taken from the delivery record and the broker's status surface.
+
+flow-7-workflow-start
+  the engine-assigned process-     every identifier the engine ASSIGNS comes from a
+  instance, execution, task and    database sequence, so identical behaviour produces
+  deployment identifiers           a different number on every run and on every
+                                   database.  Matched BY FIELD NAME, in both the
+                                   quoted and the bare structured forms the engine and
+                                   the application emit, and in the plain-text form
+                                   this script uses when it records the same four
+                                   identifiers as its own observations.
+  the VERSION-SUFFIXED form of     THE MOST EASILY GOT WRONG EXPRESSION IN THE WHOLE
+  the process-definition           PIPELINE, and it is written to be conservative on
+  identifier                       purpose.  It substitutes ONLY the two numeric
+                                   components and PRESERVES the leading name, because
+                                   that name is the process definition KEY and the key
+                                   is behaviour.  The distinction between the volatile
+                                   definition IDENTIFIER and the stable definition KEY
+                                   is the entire point of the expression: a rewrite
+                                   that ate the key would leave this flow's criterion
+                                   with nothing to compare.  Keeping the key inside
+                                   the substituted identifier has a second benefit -
+                                   even a false positive elsewhere in a capture can
+                                   then lose no behavioural signal, because it can
+                                   only ever replace two numbers.
+  One guard inside this group is worth naming.  Where the script records one of these
+  four identifiers as its own observation, the value side of the expression is
+  required to be ALL DIGITS.  An explicit not-observed marker therefore survives
+  verbatim instead of being rewritten into something that would read as though an
+  identifier HAD been seen.  That would be worse than no normalisation at all: it
+  would turn an honest absence into an apparent observation.  Startup-log regions for
+  this flow, where the engine reports what it loaded, are captured under startup/ and
+  are subject to the same pipeline as everything else.
+
+4. WHAT MUST SURVIVE VERBATIM - THE OVER-NORMALISATION GUARD
+------------------------------------------------------------
+THE MOST CONSEQUENTIAL ENTRY IN THIS NOTE, because the failure it guards against is
+the one that leaves no trace.  An under-normalised capture is noisy and a reader can
+see that it is noisy.  An OVER-normalised capture is quiet, tidy, and empty: the two
+sides agree because the thing that could have disagreed was removed before either
+side was written.  A comparison that cannot fail has demonstrated nothing, and it
+looks exactly like a comparison that passed.
+
+THE PRINCIPLE: ERR TOWARD CAPTURING MORE AND NORMALISING NARROWLY.  A value stays
+unless it is volatile BY CONSTRUCTION and its volatility is understood.  Where an
+expression could be written either broadly or exactly, it is written exactly, even
+when that makes it longer - which is why the messaging group of entry 3 names its
+keys one by one instead of matching a suffix.  Where a doubt could not be resolved,
+the value stays and the doubt is recorded.
+
+The values below must NEVER be normalised or redacted, per flow slug.
+
+  flow-1-login              the authorization result; role and privilege names.
+                            Whether the credentialed request was authorised, and with
+                            which authorities, IS the criterion.
+
+  flow-2-views              case numbers and object identifiers; document names and
+                            MIME types; list row ORDERING; the content-hashed asset
+                            filenames, which are themselves a content fingerprint and
+                            SHOULD match when behaviour matches, so replacing one
+                            would discard a free integrity check; every
+                            permission-dependent rendered element, because whether an
+                            element renders at all is a security outcome.
+
+  flow-3-alfresco-roundtrip the document name; the resolved MIME type on BOTH legs,
+                            since a round trip that resolves the type differently on
+                            the way back has changed behaviour even though both legs
+                            succeeded; the content digest; the declared content
+                            length; XML element and attribute names and their
+                            ordering, because generated document shape is part of the
+                            preserved contract.
+
+  flow-4-solr-search        the result count; the document identifiers; and above all
+                            THEIR ORDER; relevance scores.  DO NOT SORT, DEDUPLICATE,
+                            REORDER OR TRUNCATE ANY PART OF A SEARCH RESULT.  RANKING
+                            IS BEHAVIOUR, NOT PRESENTATION.  Tidying a result list is
+                            the single easiest way to make this flow pass while the
+                            ranking has silently changed, and the tidied capture would
+                            look better than the honest one.  These values sit a few
+                            bytes from the query-time figure that IS normalised, and
+                            the boundary between them matters in both directions:
+                            leaving the timing in makes the flow diff on pure noise,
+                            and taking anything else out makes it diff on nothing.
+
+  flow-5-activemq-event     the destination name, because the comparison is
+                            per-destination; the payload content, because the
+                            criterion IS an identical payload; the payload's declared
+                            type; the priority and persistence flags, because
+                            quality-of-service settings are behaviour; and every
+                            application-set property, because the publisher set it
+                            deliberately.
+
+  flow-6-generated-number   THE GENERATED NUMBER IN FULL - prefix, separators,
+                            padding and sequence position - plus the object type and
+                            the relative order across multiple creations.  This flow
+                            exists to observe the numbering that the rules engine
+                            produces through the decision tables, so the number IS the
+                            observation.  Its parts are not incidental formatting:
+                            a changed separator or a lost pad is a changed number.
+
+  flow-7-workflow-start     the process-definition KEY, as distinct from the volatile
+                            definition identifier of entry 3 - this is the one place
+                            in the pipeline where a stable value lives INSIDE a
+                            volatile one, and the expression is built around
+                            preserving it; the task name and the task-definition key;
+                            the assignee or candidate group; the instance state; the
+                            process variables; and the definitions-loaded count.  Each
+                            is exactly what this flow's criterion - identical process
+                            instantiation and task assignment - compares.
+
+  flow-8-queue-transition   the case or complaint number; the source and destination
+                            queue names; the onward-route list AND ITS ORDER, for the
+                            same reason ranking is preserved in flow-4-solr-search;
+                            the assignee; and any rule-derived reason code, because
+                            the reason a routing decision was reached is part of the
+                            decision.
+
+TWO CASES THAT LOOK LIKE EXCEPTIONS AND ARE NOT.
+
+  a surrogate key and a behavioural number are both bare integers.  They are told
+  apart by FIELD NAME, never by value shape, and that single choice is what keeps a
+  result count, a queue position and a generated object number out of the
+  substitution.  A shape-based expression would have taken all three.
+
+  an assignee is a user identity, which reads like something to redact.  It is
+  deliberately NOT redacted: task assignment is half of flow-7-workflow-start's
+  criterion, and redacting it would leave the two captures agreeing on a placeholder
+  and demonstrating nothing.  The rule that separates it from a credential is in
+  entry 7 - an identity is behaviour, an authenticator is not.
+
+THE GENERAL SPECIAL CASE, WHICH GENERALISES BEYOND THE INSTANCES ABOVE.  If a
+behaviour-bearing value CONTAINS a genuinely volatile embedded element - a year inside
+a generated number is the obvious example, a definition key inside a version-suffixed
+identifier is the one that actually occurs here - RECORD THE WHOLE VALUE AND NOTE THE
+VOLATILE PART.  Never mask the embedded element silently.  Masking it destroys the
+surrounding value's comparability in exchange for removing one component's noise,
+and worse, it does so invisibly: the capture then shows a well-formed value that no
+longer means what it appears to mean.  Naming the volatile component in the flow's own
+record costs one line and keeps the whole value available to a reader who needs it.
+
+5. THE FORBIDDEN-TOKEN SUBSTITUTION PROTOCOL, AND THE LEDGER FORMAT
+-------------------------------------------------------------------
+PART ONE - THE PROTOCOL.
+
+A captured body, header, banner or stack trace can arrive carrying a token that this
+documentation tree's own wording gates forbid.  Three classes exist:
+
+  a module-access JVM argument   an argument that opens or exports an
+                                 otherwise-encapsulated JDK package to the unnamed
+                                 module.  Described here in words and NEVER written,
+                                 for the reason immediately below.  The production
+                                 launch configuration carries none of them - see the
+                                 R-2 ruling above - so the only route by which one
+                                 could enter this tree is a captured diagnostic that
+                                 quoted one back.
+  the forbidden two-word phrase  the phrase this tree's wording gate replaces with
+  naming the older runtime       "JDK 8" throughout.  Worth stating precisely, because
+                                 the obvious worry is the wrong one: a captured
+                                 runtime banner does NOT contain the phrase, since a
+                                 version report prints a dotted version string
+                                 instead.  Capturing a banner verbatim is therefore
+                                 safe.  What is not safe is HAND-WRITING a banner, or
+                                 hand-writing prose that names the older runtime that
+                                 way, into a capture file or into a note.
+  an excluded-namespace token    the package namespace this migration is directed not
+                                 to adopt.  Described here as an excluded-namespace
+                                 token and never written out.  It could enter a capture
+                                 through a class name inside a stack trace.
+
+Where such a token is captured, the pipeline replaces it with a DESCRIBED PLACEHOLDER
+and the substitution is noted in that flow's paired result file as well as in the
+ledger below.  The surrounding element is kept: only the token is replaced, so the
+reader can still see what kind of thing was reported and where.
+
+THE REASON THIS PROTOCOL HAS TO EXIST IS MECHANICAL, AND IS WORTH STATING PLAINLY.
+These notes and the flow captures live INSIDE the directory that the wording gates
+scan recursively.  A faithful verbatim capture of such a token would therefore fail a
+gate all by itself, on a system that was working perfectly.  The gate is textual, not
+semantic - it reads characters and has no way to know that the characters it found
+were quoted evidence rather than configuration.  So a capture cannot be both faithful
+and gate-clean at the same time, and the protocol is how that is resolved: the
+faithful thing is recorded ABOUT the token, in words, rather than by reproducing it.
+That is a real loss of fidelity, it is bounded, and it is disclosed here rather than
+glossed over.
+
+PART TWO - THE LEDGER FORMAT, WHICH THIS NOTE DEFINES.
+
+Every substitution, of any class, is recorded as one numbered block in the eight
+fields below, separated from the next by a rule.  The format is prescribed here so
+that the migrated replay can be diffed against this capture field by field, and so
+that a substitution cannot be recorded in a shape that hides one of the eight facts.
+
+  SUBSTITUTION-ID   a stable identifier, so the replay can cite the SAME one.  The
+                    identifier is the join key between the two ledgers; if it drifts,
+                    the two ledgers cannot be compared even when they agree.
+  APPLIED-BY        the helper that applied it, by the name the script uses.
+  SCOPE             which capture files it touched, BY FILENAME.  A scope stated as
+                    "the capture" is not auditable; a reader must be able to open the
+                    named files and find it.
+  PATTERN           what was matched, DESCRIBED.  NEVER THE FORBIDDEN LITERAL ITSELF.
+                    This field is where a well-meaning ledger destroys its own tree:
+                    the natural way to record a substitution is to quote what was
+                    replaced, and for a forbidden token that quotation is the very
+                    thing the gate rejects.  The field is specified as a description
+                    for that reason, and the specification is not advisory.
+  REPLACEMENT       the exact placeholder token written in its place.  This one IS
+                    written literally, because a placeholder is chosen precisely so
+                    that writing it is safe, and because the replay can only be
+                    checked against the same token.
+  REASON            exactly one of: volatile value, credential leak path, forbidden
+                    token.  A single closed vocabulary, so the ledger can be read as a
+                    census rather than as prose.
+  REPRODUCIBLE-BY   the statement that the same unmodified script reproduces it in the
+                    replay.  A substitution that cannot carry this statement should
+                    not have been applied.
+  RECORDED-IN       the paired flow result file that also records it, so the ledger and
+                    the flow record corroborate each other rather than duplicating one
+                    unverified claim.  All eight flow records in this capture do carry
+                    their own substitution statements, so this field is a real
+                    cross-check and not a formality.
+
+6. THE SUBSTITUTIONS ACTUALLY APPLIED IN THIS CAPTURE
+----------------------------------------------------
+STATED POSITIVELY FIRST, because a silent or empty ledger is indistinguishable from
+an oversight while a positive statement is itself evidence.  This is the same
+discipline the JDK access exceptions register follows in being delivered empty WITH a
+positive statement rather than merely being empty.
+
+  NO SUBSTITUTION BEYOND THE STANDARD PIPELINE WAS APPLIED TO THIS CAPTURE.  No
+  ad-hoc replacement, no one-off mask, no hand edit, and no additional tool.  Three
+  substitutions were applied, all three by the standard fixed-literal pass, and they
+  are enumerated below because they were ACTUALLY APPLIED and are observable in the
+  named files.  Everything else in the pipeline was in force and had nothing to
+  replace.
+
+THE RUN CONDITION THAT EXPLAINS THE SHAPE OF THIS LEDGER, recorded because without it
+a reader would reasonably suspect the ledger of being incomplete.  ../summary.txt
+records this capture as INCOMPLETE with state mutation not permitted, and all eight
+flows as either skipped or not exercised.  No flow produced a credentialed HTTP
+response body.  So the credential pass and every volatility expression were in force,
+proven working before the first write, and simply never presented with an occurrence
+to replace.  That is a fact about the RUN, not about the pipeline, and the distinction
+is the whole reason this entry separates "applied" from "in force".
+
+SUBSTITUTION-ID   SUBST-PATH-REPO-ROOT
+APPLIED-BY        redact_literal
+SCOPE             ../flow-2-views.out, ../flow-3-alfresco-roundtrip.result.txt,
+                  corpus-figures.txt, surefire-pairing.txt
+PATTERN           the absolute filesystem prefix of this repository checkout,
+                  wherever it began a recorded path.  A boundary condition prevents
+                  the prefix from being replaced where the match continues into a
+                  longer name.
+REPLACEMENT       <REPO-ROOT>
+REASON            volatile value
+REPRODUCIBLE-BY   the same unmodified script, run with its output directory pointed at
+                  migrated/, applies the identical pair from the identical helper.
+RECORDED-IN       ../flow-2-views.result.txt, which lists the absolute repository
+                  prefix among the normalisations applied to its capture
+
+-----------------------------------------------------------------------------------
+
+SUBSTITUTION-ID   SUBST-PATH-CAPTURE-DIR
+APPLIED-BY        redact_literal
+SCOPE             ../summary.txt, ../comparison.txt, ../env/toolchain.txt,
+                  ../flow-3-alfresco-roundtrip.result.txt,
+                  ../flow-4-solr-search.result.txt, ../flow-5-activemq-event.result.txt
+PATTERN           the absolute filesystem path of the output directory this run was
+                  pointed at, wherever it appeared in a recorded path or in a recorded
+                  invocation.  Two configured forms of the same directory are covered
+                  by separate pairs so that either spelling is caught.
+REPLACEMENT       <CAPTURE-DIR>
+REASON            volatile value
+REPRODUCIBLE-BY   the same unmodified script applies it in the replay; and this pair is
+                  the one that MOST needs it, since the two runs are by definition
+                  pointed at different directories, so an unreplaced value here would
+                  guarantee a difference on every file that names the directory.
+RECORDED-IN       ../flow-3-alfresco-roundtrip.result.txt and
+                  ../flow-4-solr-search.result.txt, both of which state that absolute
+                  paths are replaced in every recorded path
+
+-----------------------------------------------------------------------------------
+
+SUBSTITUTION-ID   SUBST-PATH-HOME
+APPLIED-BY        redact_literal
+SCOPE             ../flow-3-alfresco-roundtrip.result.txt
+PATTERN           the absolute filesystem prefix of the invoking account's home
+                  directory, wherever it began a recorded path.  Same boundary
+                  condition as the repository prefix.
+REPLACEMENT       <HOME>
+REASON            volatile value
+REPRODUCIBLE-BY   the same unmodified script applies it in the replay.
+RECORDED-IN       ../flow-3-alfresco-roundtrip.result.txt, in its own normalisation
+                  and redaction inventory
+
+-----------------------------------------------------------------------------------
+
+IN FORCE, PROVEN, AND WITH NO OCCURRENCE TO REPLACE ON THIS RUN.  Named individually
+rather than summarised, because "the pipeline was in force" is exactly the kind of
+claim that needs to be decomposed before it can be checked.
+
+  the credential literal pass       in force.  Proven against the REAL configured
+                                    credential by verify_sanitiser before the first
+                                    capture was written, including whatever
+                                    metacharacters that value happens to contain.  No
+                                    occurrence arose, because no credentialed exchange
+                                    returned a body.
+  the credential pattern pass       in force.  Proven against representative
+                                    credential-bearing header, cookie and structured
+                                    forms.  No occurrence arose.
+  every volatility expression       in force.  No timestamp, validator, challenge
+                                    parameter, generated identifier, epoch value,
+                                    broker field, engine identifier or query-time
+                                    figure arose to be replaced, because no response
+                                    body and no delivery record was captured.
+  the temporary-directory prefix    in force.  No occurrence arose anywhere in the
+                                    capture.
+
+A CHECKABLE CONSEQUENCE OF THE ABOVE, and the reason it is stated rather than left
+implicit.  The placeholder tokens for the credential and for the volatility
+expressions DO appear in this capture - but only as PROSE NAMING THE TOKEN, in the
+flow records that describe what their pipeline would replace, never as a value that
+replaced something.  Anyone auditing this ledger by searching for its tokens will find
+those occurrences and must not read them as applied substitutions.  The distinction is
+verifiable by opening the file at the hit: a naming occurrence sits inside a sentence
+or a pattern inventory; an applied occurrence sits where a value would be.
+
+FORBIDDEN-TOKEN SUBSTITUTIONS APPLIED: NONE.  Stated positively, and it matches what
+the producing script records for each flow - that no captured payload required a token
+to be normalised for a wording gate on this run, because no body was returned and so
+nothing was captured that could carry one.  If a future capture does carry one, the
+substitution and its reason are recorded in the format of entry 5 rather than applied
+silently, and the surrounding element is kept.
+
+ONE DISCLOSED SUBSTITUTION THAT IS EDITORIAL RATHER THAN CAPTURED, so that the count
+above is not read as excluding it.  The quotation of R-7 in this note's rules section
+renders the older runtime as "JDK 8", and the bracketed editorial note beside it
+discloses that.  It is not a capture substitution - nothing was captured and then
+replaced - so it is not a numbered block here.  It is named because a substitution
+disclosed in one place and omitted from the ledger in another is precisely the
+inconsistency this ledger exists to prevent, and because the same disclosure travels
+with the same quotation in all eight flow records.
+
+7. CREDENTIAL POSTURE
+---------------------
+  the fixed placeholder            wherever a credential could leak, a FIXED
+                                   placeholder token is written in its place, not a
+                                   per-occurrence mask.  A fixed token is what lets the
+                                   two captures agree on the redaction itself, so a
+                                   redacted field contributes no difference; a
+                                   varying mask would reintroduce exactly the noise
+                                   the redaction was meant to remove.
+  the covered write paths          command echoes, request bodies, request and response
+                                   headers, and error messages.  A credential reaches
+                                   an archive through a diagnostic at least as often as
+                                   through a body, which is why the coverage is stated
+                                   as write paths rather than as body content.
+  capture the session's EXISTENCE, the presence or absence of a session is recorded as
+  never its value                  an observed field, and the cookie-setting header is
+                                   replaced wholesale.  A live session identifier is
+                                   credential-equivalent for as long as it lives, so it
+                                   belongs in the credential pass and not in the
+                                   cosmetic one.  Recording existence keeps the
+                                   behavioural fact - a session was or was not
+                                   established - which is what the login flow's
+                                   criterion needs, while the value itself is never
+                                   written.
+  no command-tracing region may    shell command tracing is NEVER enabled anywhere in
+  touch the credential             the producing script.  That is a security decision
+                                   rather than a stylistic one: tracing would echo the
+                                   credential-bearing invocation to the diagnostic
+                                   stream, which is captured, and it would do so
+                                   BEFORE the substitution pipeline could see it -
+                                   tracing prints the command, and the pipeline only
+                                   sees the command's output.  The prohibition is
+                                   absolute rather than scoped to the credential-
+                                   handling steps, because a trace enabled anywhere
+                                   tends to outlive the region it was enabled for.
+  the credential is replaced       the substitution is a fixed-literal pass on the
+  BEFORE anything is written       write path, so the value does not reach a temporary
+                                   file, an intermediate buffer, or the disk in any
+                                   form and then get cleaned up.  There is no window
+                                   in which the archive holds it.
+
+FOLLOW THE DEVELOPER-SETUP DOCUMENT'S POSTURE, NOT THE TOP-LEVEL README'S.  The
+repository holds two postures toward the same value and they differ deliberately.
+Measured for this note rather than assumed:
+
+  docs/setup.md          contains ONE redaction marker, at docs/setup.md:L133, where
+                         the administrator password is written as a redaction
+                         placeholder with a pointer to the upstream document for the
+                         development default; and it contains ZERO occurrences of the
+                         credential literal.
+  README.md              carries the documented default administrator credential in
+                         plain text at README.md:L178, and is the only Markdown file
+                         in the repository that does.
+
+The setup document's posture is the one this evidence tree follows: the value is
+referred to, never reproduced.  This note discusses redacting that credential
+throughout and therefore reproduces it nowhere - a rule that applies to this file with
+particular force, since a note about redaction is the most tempting place in the tree
+to write the thing being redacted "just as an illustration".
+
+A MEASURED CORRECTION, recorded rather than absorbed.  A brief in this work package
+stated that the setup document carries THREE redaction markers.  It carries one.  The
+POSTURE the brief describes is correct and is confirmed - the setup document redacts
+what the top-level document does not - and only the count differs.  The measured figure
+is published here so that a reader checking the claim finds agreement rather than an
+unexplained mismatch.
+
+THE ADDITIONAL PER-FLOW LEAK PATHS THE PIPELINE MUST COVER.  Each is named as a leak
+path.  No value is reproduced for any of them.
+
+  flow-3-alfresco-roundtrip  an UPSTREAM REPOSITORY CREDENTIAL can surface in an error
+                             body or in a trace when the document repository refuses or
+                             fails a leg.  This is the most likely of the three to
+                             appear, because a failing integration is exactly the
+                             condition that produces a verbose diagnostic, and a
+                             verbose diagnostic is exactly what quotes configuration
+                             back.
+  flow-5-activemq-event      a BROKER CONNECTION CREDENTIAL can surface in a connection
+                             diagnostic or a status surface.  Separately, and this one
+                             is easy to miss because it is not a credential at all: the
+                             PAYLOAD'S OWN APPLICATION DATA is business content, and it
+                             passes through the same write path.  It is preserved rather
+                             than redacted, because an identical payload IS this flow's
+                             criterion - which is precisely why it must be reasoned
+                             about deliberately rather than swept up by a broad
+                             expression.
+  flow-4-solr-search         the search engine can ECHO INDEXED CONTENT back inside a
+                             response, so a response body can carry document content
+                             that was never part of the query.
+
+THE RULE THAT SEPARATES THESE CASES, since two of them are preserved and one is
+redacted.  An AUTHENTICATOR is redacted; an IDENTITY or a payload is behaviour and is
+preserved.  That is why an assignee, a document name and a message payload all survive
+verbatim while a password, a session value, a bearer token and a connection secret do
+not.  Applying the redaction pass to an identity would leave the two captures agreeing
+on a placeholder and demonstrating nothing - the same failure mode as
+over-normalisation in entry 4, arriving by a different route.
+
+8. MIRROR OBLIGATION
+--------------------
+This directory is the reference SHAPE that ../../migrated/ must mirror.  A file named
+06-normalisation-and-redaction.txt must exist under ../../migrated/notes/ under the
+IDENTICAL filename, and its ledger must use the IDENTICAL entry format defined in
+entry 5 and the IDENTICAL substitution identifiers used in entry 6.
+
+Recorded state at the time this note was written, measured rather than assumed:
+../../migrated/notes/ already holds the same set of files this directory holds,
+including numbered notes 01, 02 and 03 - but it does NOT yet hold a file with this
+name.  So this note creates an asymmetry, deliberately and knowingly, and closing it
+is the obligation.  A brief in this work package described the migrated directory as
+empty; it is not, and the corrected state is published here so a reader does not
+conclude the mirror was never established.  This note does not create the migrated
+file: a baseline note cannot author the migrated capture's ledger without inventing
+its content, which is the one thing a ledger may never contain.
+
+WHY IDENTICAL SHAPE MATTERS, AND WHAT FOLLOWS IF IT IS NOT ACHIEVED.  A recursive
+directory diff between the two captures is meant to reveal a genuine change in a
+QUALIFYING CONDITION - a substitution applied in one run and not the other, a
+placeholder token that changed, a scope that grew.  If the two files differ
+STRUCTURALLY instead, every one of those signals is buried in formatting noise, and
+the reader cannot tell a real divergence from a different author's layout.  A missing
+file is worse still: the diff reports its absence, which reads as a capture fault
+rather than as the open obligation it is.
+
+THE CONSEQUENCE, STATED PLAINLY BECAUSE IT IS THE POINT OF THIS ENTRY: IF THE TWO
+LEDGERS DIFFER, THE AFFECTED FLOW COMPARISON IS NOT ESTABLISHED.  Not "is weaker", not
+"needs review" - not established.  A flow whose volatile values were removed
+differently on the two sides has not been compared, whatever the two files appear to
+say about each other, and no amount of agreement elsewhere in the capture repairs it.
+The remedy is to reconcile the ledgers and re-derive the comparison, never to record
+the flow as compared and footnote the difference.
+
+9. CROSS-REFERENCES
+-------------------
+Paths and one-line descriptions only.  Nothing here may be read as a pass mark.
+
+  ../flow-1-login.result.txt              the authorisation flow's record; each of the
+  ../flow-2-views.result.txt              eight records states, in its own words, what
+  ../flow-3-alfresco-roundtrip.result.txt its capture normalises and what it
+  ../flow-4-solr-search.result.txt        deliberately does not, which is what makes
+  ../flow-5-activemq-event.result.txt     the RECORDED-IN field of entry 5 a real
+  ../flow-6-generated-number.result.txt   cross-check rather than a formality
+  ../flow-7-workflow-start.result.txt
+  ../flow-8-queue-transition.result.txt
+  ../summary.txt                          the closing index over all eight flows, the
+                                          recorded digests and the completeness
+                                          verdict; itself subject to this pipeline, and
+                                          the file in which the capture-directory
+                                          substitution of entry 6 is most visible
+  ../comparison.txt                       the cross-capture comparison outcome.  The
+                                          verdict lives there and nowhere in this note
+  ../artifacts/                           the six recorded artifact digests, produced by
+                                          the digest helper of entry 1 and subject to
+                                          the same pipeline as every other write
+  ../env/toolchain.txt                    the toolchain provenance and run posture,
+                                          subject to the same pipeline; it records the
+                                          run's never-record rule for credential values
+                                          and states that it was not hand edited
+  01-artifact-comparison-scope.txt        the five-artifact byte comparison's scope and
+                                          its ONE limitation.  READ THE DISTINCTION
+                                          DELIBERATELY: that note's source-map caveat is
+                                          a SCOPE LIMITATION, not a substitution.
+                                          Nothing was replaced in the map; the map was
+                                          excluded from the required comparison because
+                                          source maps embed file paths, and the five
+                                          artifacts remain in scope.  A scope limitation
+                                          narrows what is compared; a substitution
+                                          changes what is written.  Conflating the two
+                                          would let a reader believe a value had been
+                                          masked when it had not, or that nothing had
+                                          been excluded when something had
+  02-node-env.txt                         the build-time environment selector's recorded
+                                          value.  THAT VALUE MUST NEVER BE NORMALISED
+                                          AWAY: the rendered page is one of the five
+                                          byte-compared artifacts, and the selector
+                                          decides which asset list it receives, so the
+                                          value is a PRECONDITION of the comparison
+                                          rather than noise inside it.  Normalising it
+                                          would remove the one recorded fact that
+                                          explains why the compared digests are
+                                          comparable at all
+  03-environment-precondition.txt         the artifacts that do not resolve from the
+                                          public registry, and why that precondition is
+                                          not a migration defect
+  the JDK access exceptions register      referred to BY TITLE ONLY.  Its path
+                                          embeds a token this documentation tree's
+                                          wording gate forbids, so the path is
+                                          deliberately not written here; the
+                                          register is reachable from the
+                                          documentation navigation under the
+                                          migration registers.  It is delivered
+                                          EMPTY, with a positive statement that
+                                          the migrated production launch
+                                          configuration requires none
+
+CLOSING RECONCILIATION, so that an earlier disclosure in this folder is not left
+dangling.  01-artifact-comparison-scope.txt records a disclosed delta: at the time it
+was written, neither 02-node-env.txt nor a note under this filename existed, and it
+named the files that were then carrying their roles.  Both now exist.  This note closes
+the second half of that gap and takes over the role that note assigned to the eight
+flow records and the toolchain provenance - which continue to hold the per-flow detail,
+while the ledger, the format that governs it and the boundary in entry 4 live here.
+Recording the closure keeps the two notes consistent with each other, which is the same
+obligation, one level up, that entry 8 places on the two captures.

@@ -1,4 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ================================================================
+  ARCHIVED MIGRATED UNIT-TEST REPORT
+  ================================================================
+  MODULE DIRECTORY: acm-service-search
+  TEST CLASS: com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest
+  RUNTIME: Java 17
+  BASE COMMIT: c8f6226105c28c2743281d26bf21ad73f7bb7f26
+  CAPTURE POINT: after the migration change set was applied
+  ================================================================
+
+  PROVENANCE: GENUINELY CAPTURED FROM A RUN, NOT DERIVED FROM TEST SOURCE.
+  Every element and attribute below was written by the test runner during a
+  real execution of this module's suite. Nothing here was composed by reading
+  test source and writing plausible markup, and no value was estimated.
+
+  THE RUNTIME IS SELF EVIDENCING, WITHOUT REFERENCE TO THIS PROSE. The
+  retained java.runtime.version and java.class.version values are the runner's
+  own, and a class file version of 61.0 is the Java 17 class file version. The
+  runtime named in the header can therefore be checked against the markup
+  rather than taken on trust.
+
+  HARVEST COMMIT: the run this report came from was taken at
+  eb5a6b8f7ab005ed9caa9dd11addade1259cee5e. The BASE COMMIT named in the
+  header above is the pre migration base commit, on JDK 8, that the
+  identically named twin under the baseline side of this archive was captured
+  at. The directory carries the before and after distinction, so neither
+  filename takes a suffix and the two sides diff as a content comparison.
+
+  OUTCOME OBSERVED: 3 tests, 0 failures, 0 errors, 0 skipped.
+
+  THE ERROR PATH TESTCASE PASSED. The third testcase is named for an exception
+  scenario, and that name describes the scenario the test drives, not the
+  outcome the run recorded. The test arranges for the underlying call to fail
+  and then asserts that the controller responds correctly, so passing is the
+  expected result. No failure element and no error element appears anywhere in
+  this file, none is implied, and the suite failure and error counts are both
+  zero. Accordingly this report neither cites nor requires any row of the
+  baseline test failures register. All three tests in this class ran, and none
+  was disabled, skipped or held back from the run.
+
+  RELOCATED, NEVER RENAMED. The runner emits this file already named
+  TEST-<fully qualified class name>.xml, so the archived name is the native one
+  copied verbatim; it was not normalised, shortened or lower cased. It was
+  copied OUT of the module build output directory, whose path is quoted here as
+  text only and is deliberately not recreated anywhere beneath this archive:
+  <module>/target/surefire-reports/. Verified rather than assumed: asking the
+  repository whether it ignores that path returns a match on the ignore rule
+  for that directory name, at any depth, so a report left in place would be
+  invisible to version control and the citation contract that the baseline test
+  failures register depends on would break silently.
+
+  REPRODUCTION CHECK, AND IT REPRODUCED. This class was executed again
+  independently on the same runtime before this comment was added. The fresh
+  emission and this report agree on the suite counts, on all three testcase
+  names, on their order, and on the absence of any failure or error element,
+  and all sixteen retained properties matched the fresh run's values exactly.
+  Only the elapsed times differ, which is simply a second run of the same
+  suite.
+
+  ================================================================
+  CURATIONS, DISCLOSED. TWO, AND NOTHING ELSE.
+  ================================================================
+  1. THE CONSOLE OUTPUT BLOCKS THE RUNNER ATTACHED WERE NOT COMMITTED. This
+     module's test logging configuration sends its own package at debug level
+     to standard output, so the runner attached a voluminous console payload to
+     this Spring context controller test. That payload carried a serialized
+     response document, a principal identifier, and a logged stack trace
+     produced by the deliberately exercised error path. Committing a serialized
+     payload as evidence is not permitted here, and a logged stack trace on a
+     passing test is not a failure and is not recorded as one. The blocks were
+     therefore withheld in full rather than trimmed, and this paragraph is the
+     disclosure: they were not dropped silently. Nothing was substituted in
+     their place, because an authored substitute would be fabricated evidence.
+     The serialized wire shape is compared against the baseline elsewhere in
+     this archive, by the search round trip flow, so this report has no need to
+     carry a payload of its own.
+  2. THE RETAINED PROPERTY SET IS THE BENIGN RUNTIME AND OPERATING SYSTEM
+     IDENTITY SUBSET. The properties omitted were those carrying absolute
+     machine paths. What remains is sixteen values, every one of them the
+     runner's own and none of them a path.
+
+  NEITHER CURATION ALTERED A SUITE COUNT, A TESTCASE NAME, A TESTCASE ORDER OR
+  AN OUTCOME. The elapsed times are the runner's own observed values and were
+  not rounded or zeroed. No hostname and no timestamp is recorded, because the
+  runner emitted neither and inventing either would be fabrication.
+
+  READ THIS REPORT TOGETHER WITH THE COVERAGE LIVENESS PAGE beside this
+  archive, which shows that the pinned test runner declaration sets no literal
+  fork argument override and that the coverage check goal therefore evaluated a
+  real data set rather than an empty one. A green result measured over nothing
+  would be a failure however the process exited.
+
+  The authoritative provenance record for this archive lives in the notes
+  directory two levels up, alongside the surefire directory.
+  ================================================================
+-->
 <testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest" time="3.586" tests="3" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
@@ -18,142 +115,7 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="jsonPayload" classname="com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest" time="1.096">
-    <system-out><![CDATA[2026-08-03 15:26:24,852 main DEBUG Apache Log4j Core 2.17.1 initializing configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-search/target/test-classes/log4j2.xml]
-2026-08-03 15:26:24,877 main DEBUG Installed 4 script engines
-2026-08-03 15:26:24,940 main DEBUG BeanShell Engine version: 1.0, language: BeanShell, threading: MULTITHREADED, compile: true, names: [beanshell, bsh, java], factory class: bsh.engine.BshScriptEngineFactory
-2026-08-03 15:26:24,964 main DEBUG Groovy Scripting Engine version: 2.0, language: Groovy, threading: MULTITHREADED, compile: true, names: [groovy, Groovy], factory class: org.codehaus.groovy.jsr223.GroovyScriptEngineFactory
-2026-08-03 15:26:24,964 main DEBUG MVEL (MVFLEX Expression Language) version: 2.3, language: mvel, threading: THREAD-ISOLATED, compile: true, names: [mvel], factory class: org.mvel2.jsr223.MvelScriptEngineFactory
-2026-08-03 15:26:24,985 main DEBUG juel version: 1.0, language: JSP 2.1 EL, threading: MULTITHREADED, compile: true, names: [juel], factory class: org.activiti.engine.impl.scripting.JuelScriptEngineFactory
-2026-08-03 15:26:24,985 main DEBUG PluginManager 'Core' found 128 plugins
-2026-08-03 15:26:24,985 main DEBUG PluginManager 'Level' found 0 plugins
-2026-08-03 15:26:24,989 main DEBUG PluginManager 'Lookup' found 17 plugins
-2026-08-03 15:26:25,014 main DEBUG Building Plugin[name=layout, class=org.apache.logging.log4j.core.layout.PatternLayout].
-2026-08-03 15:26:25,026 main DEBUG PluginManager 'TypeConverter' found 26 plugins
-2026-08-03 15:26:25,040 main DEBUG PatternLayout$Builder(pattern="%highlight{%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n}", PatternSelector=null, Configuration({REACTOR-ROOT}/acm-services/acm-service-search/target/test-classes/log4j2.xml), Replace=null, charset="null", alwaysWriteExceptions="null", disableAnsi="null", noConsoleNoAnsi="null", header="null", footer="null", )
-2026-08-03 15:26:25,040 main DEBUG PluginManager 'Converter' found 46 plugins
-2026-08-03 15:26:25,060 main DEBUG Building Plugin[name=appender, class=org.apache.logging.log4j.core.appender.ConsoleAppender].
-2026-08-03 15:26:25,068 main DEBUG ConsoleAppender$Builder(target="SYSTEM_OUT", follow="null", direct="null", , bufferedIo="null", bufferSize="null", immediateFlush="null", , ignoreExceptions="null", PatternLayout(%highlight{%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n}), name="Console", Configuration({REACTOR-ROOT}/acm-services/acm-service-search/target/test-classes/log4j2.xml), , Filter=null, ={}, )
-2026-08-03 15:26:25,071 main DEBUG Starting OutputStreamManager SYSTEM_OUT.false.false
-2026-08-03 15:26:25,071 main DEBUG Building Plugin[name=appenders, class=org.apache.logging.log4j.core.config.AppendersPlugin].
-2026-08-03 15:26:25,073 main DEBUG createAppenders(={Console})
-2026-08-03 15:26:25,073 main DEBUG Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
-2026-08-03 15:26:25,078 main DEBUG createAppenderRef(ref="Console", level="DEBUG", Filter=null)
-2026-08-03 15:26:25,078 main DEBUG Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
-2026-08-03 15:26:25,081 main DEBUG createLogger(additivity="false", level="DEBUG", name="com.armedia", includeLocation="null", ={Console}, ={}, Configuration({REACTOR-ROOT}/acm-services/acm-service-search/target/test-classes/log4j2.xml), Filter=null)
-2026-08-03 15:26:25,083 main DEBUG Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
-2026-08-03 15:26:25,083 main DEBUG createAppenderRef(ref="Console", level="INFO", Filter=null)
-2026-08-03 15:26:25,083 main DEBUG Building Plugin[name=root, class=org.apache.logging.log4j.core.config.LoggerConfig$RootLogger].
-2026-08-03 15:26:25,084 main DEBUG createLogger(additivity="false", level="INFO", includeLocation="null", ={Console}, ={}, Configuration({REACTOR-ROOT}/acm-services/acm-service-search/target/test-classes/log4j2.xml), Filter=null)
-2026-08-03 15:26:25,085 main DEBUG Building Plugin[name=loggers, class=org.apache.logging.log4j.core.config.LoggersPlugin].
-2026-08-03 15:26:25,085 main DEBUG createLoggers(={com.armedia, root})
-2026-08-03 15:26:25,086 main DEBUG Configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-search/target/test-classes/log4j2.xml] initialized
-2026-08-03 15:26:25,087 main DEBUG Starting configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-search/target/test-classes/log4j2.xml]
-2026-08-03 15:26:25,087 main DEBUG Started configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-search/target/test-classes/log4j2.xml] OK.
-2026-08-03 15:26:25,087 main DEBUG Shutting down OutputStreamManager SYSTEM_OUT.false.false-1
-2026-08-03 15:26:25,088 main DEBUG OutputStream closed
-2026-08-03 15:26:25,088 main DEBUG Shut down OutputStreamManager SYSTEM_OUT.false.false-1, all resources released: true
-2026-08-03 15:26:25,088 main DEBUG Appender DefaultConsole-1 stopped with status true
-2026-08-03 15:26:25,088 main DEBUG Stopped org.apache.logging.log4j.core.config.DefaultConfiguration@758705fa OK
-2026-08-03 15:26:25,143 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6
-2026-08-03 15:26:25,145 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=StatusLogger
-2026-08-03 15:26:25,147 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=ContextSelector
-2026-08-03 15:26:25,148 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Loggers,name=com.armedia
-2026-08-03 15:26:25,148 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Loggers,name=
-2026-08-03 15:26:25,150 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Appenders,name=Console
-2026-08-03 15:26:25,154 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
-2026-08-03 15:26:25,154 main DEBUG Reconfiguration complete for context[name=1dbd16a6] at URI {REACTOR-ROOT}/acm-services/acm-service-search/target/test-classes/log4j2.xml (org.apache.logging.log4j.core.LoggerContext@5f025000) with optional ClassLoader: null
-2026-08-03 15:26:25,155 main DEBUG Shutdown hook enabled. Registering a new one.
-2026-08-03 15:26:25,155 main DEBUG LoggerContext[name=1dbd16a6, org.apache.logging.log4j.core.LoggerContext@5f025000] started OK.
-&amp#27;[32m2026-08-03 15:26:25,318 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
-&amp#27;[m2026-08-03 15:26:25,323 main DEBUG AsyncLogger.ThreadNameStrategy=UNCACHED (user specified null, default is UNCACHED)
-2026-08-03 15:26:25,324 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
-&amp#27;[32m2026-08-03 15:26:25,342 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@51fe7f15, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@5873f3f0, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@684372d0, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@63dda940, org.springframework.test.context.support.DirtiesContextTestExecutionListener@41f964f9, org.springframework.test.context.transaction.TransactionalTestExecutionListener@652e345, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@7574d4ad, org.springframework.test.context.event.EventPublishingTestExecutionListener@7bede4ea]
-&amp#27;[m&amp#27;[32m2026-08-03 15:26:27,610 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-&amp#27;[m&amp#27;[32m2026-08-03 15:26:27,611 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-&amp#27;[m&amp#27;[32m2026-08-03 15:26:27,613 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 2 ms
-&amp#27;[m]]></system-out>
-    <system-err><![CDATA[Aug 03, 2026 3:26:27 PM org.hibernate.validator.internal.util.Version <clinit>
-INFO: HV000001: Hibernate Validator 5.1.1.Final
-]]></system-err>
-  </testcase>
-  <testcase name="searchObjectByType_oneDocumentFound" classname="com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest" time="0.133">
-    <system-out><![CDATA[&amp#27;[32m2026-08-03 15:26:27,680 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-&amp#27;[m&amp#27;[32m2026-08-03 15:26:27,681 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-&amp#27;[m&amp#27;[32m2026-08-03 15:26:27,681 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-&amp#27;[m&amp#27;[36m2026-08-03 15:26:27,783 [DEBUG] [main] com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIController - User [user] is searching for [object_type_s:COMPLAINT AND -status_lcs:COMPLETE AND -status_lcs:DELETE AND -status_lcs:CLOSED AND -status_lcs:CLOSE AND -status_lcs:INVALID AND -status_lcs:DELETE AND -status_lcs:INACTIVE]
-&amp#27;[m&amp#27;[36m2026-08-03 15:26:27,802 [DEBUG] [main] com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest - Got JSON [{"responseHeader":{"status":0,"QTime":3,"params":{"sort":"","indent":"true","start":"0","q":"object_type_s:Complaint","wt":"json","rows":"10"}},"response":{"numFound":5,"start":0,"docs":[{"id":"142-Complaint","status_lcs":"DRAFT","author":"tester","creator_lcs":"tester","modifier_lcs":"testModifier","last_modified":"2014-08-15T17:13:55Z","create_date_tdt":"2014-08-15T17:13:55Z","title_t":"testTitle","name":"20140815_142","object_id_s":"142","owner_lcs":"tester","object_type_s":"Complaint","_version_":1477062417430085632}]}}]
-&amp#27;[m]]></system-out>
-  </testcase>
-  <testcase name="searchObjectByType_exception" classname="com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest" time="0.028">
-    <system-out><![CDATA[&amp#27;[32m2026-08-03 15:26:27,814 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-&amp#27;[m&amp#27;[32m2026-08-03 15:26:27,814 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-&amp#27;[m&amp#27;[32m2026-08-03 15:26:27,814 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-&amp#27;[m&amp#27;[36m2026-08-03 15:26:27,820 [DEBUG] [main] com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIController - User [user] is searching for [object_type_s:COMPLAINT AND -status_lcs:COMPLETE AND -status_lcs:DELETE AND -status_lcs:CLOSED AND -status_lcs:CLOSE AND -status_lcs:INVALID AND -status_lcs:DELETE AND -status_lcs:INACTIVE]
-&amp#27;[m&amp#27;[1;31m2026-08-03 15:26:27,821 [ERROR] [main] com.armedia.acm.web.api.AcmSpringMvcErrorManager - Last Chance Handler: Test Exception
-&amp#27;[m com.armedia.acm.services.search.exception.SolrException: Test Exception
-	at org.easymock.internal.MockInvocationHandler.invoke(MockInvocationHandler.java:48) ~[easymock-5.6.0.jar:5.6.0]
-	at org.easymock.internal.ObjectMethodsFilter.invoke(ObjectMethodsFilter.java:100) ~[easymock-5.6.0.jar:5.6.0]
-	at org.easymock.internal.ClassProxyFactory$MockMethodInterceptor.interceptSuperCallable(ClassProxyFactory.java:104) ~[easymock-5.6.0.jar:5.6.0]
-	at com.armedia.acm.services.search.service.ExecuteSolrQuery$$$EasyMock$2.getResultsByPredefinedQuery(Unknown Source) ~[?:?]
-	at com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIController.searchObjectByType(SearchObjectByTypeAPIController.java:160) ~[classes/:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
-	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
-	at java.lang.reflect.Method.invoke(Method.java:569) ~[?:?]
-	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205) ~[spring-web-5.3.39.jar:5.3.39]
-	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150) ~[spring-web-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) ~[spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:903) ~[spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:809) ~[spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1072) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:898) [spring-webmvc-5.3.39.jar:5.3.39]
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:687) [javax.servlet-api-3.1.0.jar:3.1.0]
-	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72) [spring-test-5.3.39.jar:5.3.39]
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:790) [javax.servlet-api-3.1.0.jar:3.1.0]
-	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201) [spring-test-5.3.39.jar:5.3.39]
-	at com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest.searchObjectByType_exception(SearchObjectByTypeAPIControllerTest.java:192) [test-classes/:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
-	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
-	at java.lang.reflect.Method.invoke(Method.java:569) ~[?:?]
-	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59) [junit-4.13.1.jar:4.13.1]
-	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56) [junit-4.13.1.jar:4.13.1]
-	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84) [spring-test-5.3.39.jar:5.3.39]
-	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84) [spring-test-5.3.39.jar:5.3.39]
-	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97) [spring-test-5.3.39.jar:5.3.39]
-	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70) [spring-test-5.3.39.jar:5.3.39]
-	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:413) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190) [spring-test-5.3.39.jar:5.3.39]
-	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:316) [surefire-junit4-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.junit4.JUnit4Provider.executeWithRerun(JUnit4Provider.java:240) [surefire-junit4-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:214) [surefire-junit4-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:155) [surefire-junit4-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) [surefire-booter-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) [surefire-booter-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) [surefire-booter-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) [surefire-booter-3.5.2.jar:3.5.2]
-]]></system-out>
-  </testcase>
+  <testcase name="jsonPayload" classname="com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest" time="1.096"/>
+  <testcase name="searchObjectByType_oneDocumentFound" classname="com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest" time="0.133"/>
+  <testcase name="searchObjectByType_exception" classname="com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest" time="0.028"/>
 </testsuite>
