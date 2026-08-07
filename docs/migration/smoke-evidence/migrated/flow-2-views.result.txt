@@ -2,7 +2,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 2 - case list, detail and document views render from served assets
-RUNTIME-COMMIT: Java 17, not-declared
+RUNTIME-COMMIT: Java 17, the migrated head, the change set applied on top of base commit c8f6226105
   pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: migrated (post-migration replay)
   runtime-designation-is: a declared label of this capture, not probe
@@ -13,7 +13,7 @@ RUNTIME-COMMIT: Java 17, not-declared
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
-  capture-preceded-any-file-edit: not-declared
+  capture-preceded-any-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
     Why it matters on either side: the pre-migration capture is
     irreversible and is therefore the first executable action of the
     migration rather than a validation afterthought, because nothing
@@ -189,12 +189,12 @@ RECORDED CAPTURE DETAIL
 flow: 2
 slug: 2-views
 verdict: OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
-capture-side: unlabelled-capture-side-not-derivable
-runtime-declared: not-declared
+capture-side: migrated-post-migration-replay
+runtime-declared: Java 17
 runtime-observed: 17.0.19
-runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
-commit-declared: not-declared
-capture-precedes-every-file-edit: not-declared
+runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+commit-declared: the migrated head, the change set applied on top of base commit c8f6226105
+capture-precedes-every-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
 migration-path-exercised: frontend artifacts as served by the deployed application; permission evaluation through reflection-based classpath scanning, that library deliberately unchanged after succeeding against a class file at major version 61
 comparison-criterion: Same rendered content from byte-identical assets.
 compared-artefacts: flow-2-views.out, flow-2-views.status and the recorded digests under artifacts/
@@ -237,8 +237,8 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   MIME types; result counts and their returned order; cache-busting content
   hashes, which are derived from artifact content and so SHOULD match when
   behaviour matches; and the artifact checksums themselves.
-runtime-designation: (not declared for this capture directory) (declared label of this capture side, not probe output; the probe output of record is env/toolchain.txt)
-capture-side-means: (not declared for this capture directory)
+runtime-designation: Java 17 (declared label of this capture side, not probe output; the probe output of record is env/toolchain.txt)
+capture-side-means: the migrated tree, after the change set was applied
 observed-head-of-this-capture: c24e049e28 on blitzy-<UUID>-w-004, working tree dirty: 422 path(s) modified or untracked relative to c24e049e28
 declared-side-against-observed-head: consistent: the capture declares the migrated side and HEAD c24e049e28 is not the base commit
 base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)

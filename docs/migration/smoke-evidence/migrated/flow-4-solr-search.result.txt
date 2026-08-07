@@ -5,7 +5,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - FLOW 4 OBSERVATION RECORD
 FLOW: 4-solr-search - search round-trip through the search engine
 ARTEFACT: flow-4-solr-search.result.txt
 CAPTURE DIRECTORY: <CAPTURE-DIR>
-CAPTURE SIDE: unnamed capture directory "migrated.run-2229296"
+CAPTURE SIDE: migrated (post-migration)
 MIRRORED BY: the same file name under the other capture directory, written by
     this same unmodified script with the identical field set, so that
     diff -r <baseline-dir> <migrated-dir> compares the two line for line
@@ -17,7 +17,7 @@ HAND EDITED: no
 REPOSITORY: com.armedia:acm:2021.03 - a 145-module Maven reactor
 
 RUNTIME / COMMIT
-    runtime-designation: not declared
+    runtime-designation: Java 17
         The DECLARED label of this capture side, and said to be declared: it is
         not probe output.  Flow 4 issues HTTP requests only; it invokes no
         compiler and no virtual machine, so the runtime is a property of the
@@ -32,10 +32,12 @@ RUNTIME / COMMIT
         is a fixed, documented constant rather than something read from the
         working tree, because the tree a replay runs against is by
         construction NOT at the base commit.
-    capture-tree-commit: not determined - no capture side could be derived
-        No capture side could be derived from the output directory, so
-        no tree of record can be named.  Recorded as undetermined rather
-        than guessed.
+    capture-tree-commit: c24e049e28a270636fd5c3d38a9b5ea77bd36060
+        The MIGRATED TREE this replay was taken against, read from the
+        working tree rather than declared.  It is recorded BESIDE the
+        base commit above and never in place of it: one names the
+        reference, the other names the tree that produced the replay,
+        and collapsing them would silently relabel the reference.
     capture-ordering: the baseline capture is taken before any file in the
         change set is edited.  It is the first executable action of the
         migration rather than a validation afterthought, because nothing done
@@ -328,7 +330,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 4 - search round-trip through the search engine
-RUNTIME-COMMIT: Java 17, not-declared
+RUNTIME-COMMIT: Java 17, the migrated head, the change set applied on top of base commit c8f6226105
   pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: migrated (post-migration replay)
   runtime-designation-is: a declared label of this capture, not probe
@@ -339,7 +341,7 @@ RUNTIME-COMMIT: Java 17, not-declared
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
-  capture-preceded-any-file-edit: not-declared
+  capture-preceded-any-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
     Why it matters on either side: the pre-migration capture is
     irreversible and is therefore the first executable action of the
     migration rather than a validation afterthought, because nothing
@@ -497,12 +499,12 @@ RECORDED CAPTURE DETAIL
 flow: 4
 slug: 4-solr-search
 verdict: OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET
-capture-side: unlabelled-capture-side-not-derivable
-runtime-declared: not-declared
+capture-side: migrated-post-migration-replay
+runtime-declared: Java 17
 runtime-observed: 17.0.19
-runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
-commit-declared: not-declared
-capture-precedes-every-file-edit: not-declared
+runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+commit-declared: the migrated head, the change set applied on top of base commit c8f6226105
+capture-precedes-every-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
 migration-path-exercised: search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded
 comparison-criterion: Identical result set and identical ranking.
 compared-artefacts: flow-4-solr-search.out and flow-4-solr-search.status, re-read from disk

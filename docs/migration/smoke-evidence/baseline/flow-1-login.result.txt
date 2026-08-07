@@ -2,7 +2,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 1 - authenticated login, authorisation result and asserted identity
-RUNTIME-COMMIT: JDK 8, not-declared
+RUNTIME-COMMIT: JDK 8, base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
   pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: baseline (pre-migration)
   runtime-designation-is: a declared label of this capture, not probe
@@ -13,7 +13,7 @@ RUNTIME-COMMIT: JDK 8, not-declared
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
-  capture-preceded-any-file-edit: not-declared
+  capture-preceded-any-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
     Why it matters on either side: the pre-migration capture is
     irreversible and is therefore the first executable action of the
     migration rather than a validation afterthought, because nothing
@@ -200,12 +200,12 @@ RECORDED CAPTURE DETAIL
 flow: 1
 slug: 1-login
 verdict: OBSERVED-INCOMPLETE-1-REQUIREMENTS-UNMET
-capture-side: unlabelled-capture-side-not-derivable
-runtime-declared: not-declared
+capture-side: baseline-pre-migration
+runtime-declared: JDK 8
 runtime-observed: 1.8.0_492
-runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
-commit-declared: not-declared
-capture-precedes-every-file-edit: not-declared
+runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+commit-declared: base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
+capture-precedes-every-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
 migration-path-exercised: security filter chain; directory-service context factory named by class name string rather than class literal
 comparison-criterion: Identical outcome and identical authorization result.
 compared-artefacts: flow-1-login.out and flow-1-login.status, both re-read from disk

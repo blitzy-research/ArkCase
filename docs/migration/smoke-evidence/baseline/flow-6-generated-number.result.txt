@@ -2,7 +2,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 6 - create an object that receives a generated number
-RUNTIME-COMMIT: JDK 8, not-declared
+RUNTIME-COMMIT: JDK 8, base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
   pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: baseline (pre-migration)
   runtime-designation-is: a declared label of this capture, not probe
@@ -13,7 +13,7 @@ RUNTIME-COMMIT: JDK 8, not-declared
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
-  capture-preceded-any-file-edit: not-declared
+  capture-preceded-any-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
     Why it matters on either side: the pre-migration capture is
     irreversible and is therefore the first executable action of the
     migration rather than a validation afterthought, because nothing
@@ -133,12 +133,12 @@ RECORDED CAPTURE DETAIL
 flow: 6
 slug: 6-generated-number
 verdict: OBSERVED-INCOMPLETE-4-REQUIREMENTS-UNMET
-capture-side: unlabelled-capture-side-not-derivable
-runtime-declared: not-declared
+capture-side: baseline-pre-migration
+runtime-declared: JDK 8
 runtime-observed: 1.8.0_492
-runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
-commit-declared: not-declared
-capture-precedes-every-file-edit: not-declared
+runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+commit-declared: base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
+capture-precedes-every-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
 migration-path-exercised: the expression language advanced to 2.4.15.Final, reached through the live decision tables; the rule compiler declares that language with no version of its own, so the reactor property governs which one loads
 comparison-criterion: Identical numbering sequence and format.
 compared-artefacts: flow-6-generated-number.out, flow-6-generated-number.status and notes/corpus-figures.txt
@@ -356,7 +356,7 @@ dependency key, no install topology and no output artifact name.
 ------------------------------------------------------------------
 PROVENANCE AND COMPARISON CONTRACT FOR THIS FLOW
 ------------------------------------------------------------------
-runtime-designation: undeclared, deliberately: the designation is a declared label of a named capture side, and this directory is neither, so no runtime is asserted here
+runtime-designation: JDK 8
 runtime-designation-is-a-declared-label: yes.  It states which side of the
   comparison this capture belongs to and is NOT probe output.  The observed
   runtime is recorded separately in env/toolchain.txt, probe 1 of 4, which
@@ -367,10 +367,10 @@ runtime-designation-is-a-declared-label: yes.  It states which side of the
 base-commit: c8f6226105
 capture-precedence: taken BEFORE any file was edited.  Nothing done later
   can reconstruct the runtime a measurement was taken on, which is why
-  baseline capture is the first executable action of this migration and
-  not a validation afterthought.
-capture-side: undeclared -- the capture directory is named neither baseline nor migrated
-mirrored-by: (none -- an unnamed capture directory has no counterpart to mirror)
+  the pre-migration capture is the first executable action of this
+  migration and not a validation afterthought.
+capture-side: baseline (pre-migration)
+mirrored-by: migrated/flow-6-generated-number.result.txt
 hand-edited: no
 produced-by: docs/migration/smoke-evidence/smoke-checks.sh, by record_result
   followed by this block, with the capture directory named in the

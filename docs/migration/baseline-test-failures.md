@@ -121,15 +121,17 @@ In this checkout the precondition is **satisfied** rather than outstanding. The 
 
 Every figure below was re-derived at base commit `c8f6226105` rather than copied forward. All eleven baseline values match the migration plan's stated values exactly, so no divergence has to be reported against the plan.
 
-The working-tree column is stated separately rather than being asserted equal to the baseline, because for four measures **it is not equal** and saying so is the point: the migration adds seven test classes — six with the runtime work and a seventh holding the deployment defects the QA pass found — and a table that quietly published one number for both columns would either understate the working tree or misattribute the addition to the base commit.
+The working-tree column is stated separately rather than being asserted equal to the baseline, because for four measures **it is not equal** and saying so is the point: the migration added seven test classes across its commits and later removed two of them, for a **net of five**, and a table that quietly published one number for both columns would either understate the working tree or misattribute the addition to the base commit.
+
+The two removals are named rather than folded into a net figure, because a reader reconciling this table against the archive would otherwise be unable to account for the difference. `AngularResourceCopierDeploymentCopyTest` and `AngularResourceCopierSafetyTest` were added and then deleted in the same commit range; `git log --diff-filter=D --format='%h %s' --name-only c8f6226105..HEAD -- '*/src/test/java/*.java'` names both and the commit that removed them. The five that remain are the four `ActiveDirectory*` classes in `acm-services/acm-service-login` and `AngularResourceCopierWiringTest` in `acm-user-interface/ark-angular-starter`, all of which appear in the archive table above. **Nothing in the base-commit column moves**, so no exclusion justification is affected — and there are no exclusions to justify.
 
 | Measure | Verified at base commit `c8f6226105` | Working tree now | Δ |
 | --- | --- | --- | --- |
 | `src/test/java` source trees | 76 | 77 | +1 — `ark-angular-starter` had no test tree at the base commit |
-| Java test source files | 402 | 409 | +7 — the seven classes enumerated above |
-| `*Test.java` (unit) | 280 | 287 | +7 — same seven |
+| Java test source files | 402 | 407 | +5 net — seven added, two later removed |
+| `*Test.java` (unit) | 280 | 285 | +5 net — same five |
 | `*IT.java` (integration) | 86 | 86 | — |
-| Files importing `org.junit.Test` | 366 | 373 | +7 — same seven |
+| Files importing `org.junit.Test` | 366 | 371 | +5 net — same five |
 | Files importing `org.junit.jupiter` (JUnit 5) | 0 | 0 | — |
 | Existing `@Ignore` occurrences | 26 | 26 | — **must not move**; see below |
 | POMs declaring `maven-surefire-plugin` | 0 of 145 | 1 — the root aggregator | +1 — the pinned declaration this migration adds |
@@ -256,7 +258,7 @@ The second method's stack ran through the same `completeTask` helper, and the fi
 
 **What closed it.** `org.openjdk.nashorn:nashorn-core` 15.4 is declared at **runtime scope** by that one plugin — the only module whose resources request an engine — with `net.minidev:json-smart` 2.4.10 and `net.minidev:accessors-smart` 2.4.9 pinned centrally and `asm:asm` excluded for that module, because the engine cannot initialise while a stripped ASM 4 or an ASM 3 jar sorts ahead of `org.ow2.asm:asm` 9.8. This is Goal A2's remediation pattern — a platform module the JDK removed, reinstated as an ordinary Maven artifact, exactly as JAXB was — and the `javax.script` API the listeners go through is untouched. **No source file changed, and no assertion in the test class was added, removed or modified.** The dependency rows are in the [Dependency Change Inventory](dependency-change-inventory.md); the decision record is in [Ambiguity Resolutions](ambiguity-resolutions.md) §4.
 
-**Why it still does not appear in any Surefire archive.** The class is an `*IT`, so Surefire never selects it and it is absent from both halves of the archive by construction. Its evidence lives on its own, as before-and-after Failsafe XML plus a note, at [`smoke-evidence/bpmn-script-engine/`](smoke-evidence/bpmn-script-engine/). That is also the honest answer to why the regression escaped the unit gate in the first place: no validation gate in this project runs the integration corpus, so a fault reachable only through it is invisible to `mvn test`. That remains true after the fix, and it is the reason this section exists rather than being folded into the archive arithmetic above.
+**Why it still does not appear in any Surefire archive.** The class is an `*IT`, so Surefire never selects it and it is absent from both halves of the archive by construction. Its evidence lives on its own, as before-and-after Failsafe XML beside [`smoke-evidence/bpmn-script-engine/notes.txt`](smoke-evidence/bpmn-script-engine/notes.txt), which names both captures. That is also the honest answer to why the regression escaped the unit gate in the first place: no validation gate in this project runs the integration corpus, so a fault reachable only through it is invisible to `mvn test`. That remains true after the fix, and it is the reason this section exists rather than being folded into the archive arithmetic above.
 
 Reproducing either state takes one command, and it needs no external service — the fixture runs against an in-memory database:
 
@@ -355,7 +357,7 @@ MIG=docs/migration/smoke-evidence/migrated/surefire
 
 # the corpus AT THE BASE COMMIT.  Read out of the commit itself with ls-tree and git grep, not
 # out of the working tree: ls-files would answer for the tree as it stands now, and four of these
-# figures legitimately differ there because the migration adds six test classes.  These are the
+# figures legitimately differ there because the migration adds test classes.  These are the
 # left-hand column of the corpus table.
 B=c8f6226105
 git ls-tree -r --name-only $B | grep -oE '^.*/src/test/java/' | sort -u | wc -l                # 76
@@ -370,13 +372,18 @@ git grep -l 'maven-surefire-plugin' $B -- 'pom.xml' '*/pom.xml' | wc -l         
 git grep -l 'org.powermock'             $B -- '*.java' | wc -l                                 # 6
 git grep -l 'org.easymock.classextension' $B -- '*.java' | wc -l                               # 0
 
-# the same corpus IN THE WORKING TREE - the right-hand column.  The four differences are the seven
-# added test classes and the one new test tree that holds three of them.
+# the same corpus IN THE WORKING TREE - the right-hand column.  The four differences are the five
+# net added test classes - seven added across the change set, two later removed - and the one new
+# test tree that holds one of them.  The removals are named by the diff-filter command below.
 git ls-files | grep -oE '^.*/src/test/java/' | sed 's|/src/test/java/||' | sort -u | wc -l     # 77
-git ls-files '*.java' | grep -c '/src/test/java/'                                              # 409
-git ls-files '*Test.java' | grep -c '/src/test/java/'                                          # 287
+git ls-files '*.java' | grep -c '/src/test/java/'                                              # 407
+git ls-files '*Test.java' | grep -c '/src/test/java/'                                          # 285
 git ls-files '*IT.java'   | grep -c '/src/test/java/'                                          # 86
-git ls-files '*.java' | xargs grep -l 'org.junit.Test'    | grep -c '/src/test/java/'          # 373
+git ls-files '*.java' | xargs grep -l 'org.junit.Test'    | grep -c '/src/test/java/'          # 371
+
+# the two removals, so the +5 net reconciles against the seven classes named in the archive table.
+# Expect one commit and the two AngularResourceCopier classes it deleted.
+git log --diff-filter=D --format='%h %s' --name-only c8f6226105..HEAD -- '*/src/test/java/*.java'
 git ls-files '*.java' | xargs grep -l 'org.junit.jupiter' | wc -l                              # 0
 git ls-files '*.java' | xargs grep -l 'org.powermock' | wc -l                                  # 0
 git ls-files '*.java' | xargs grep -l 'org.easymock.classextension' | wc -l                    # 0

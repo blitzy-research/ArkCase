@@ -2,7 +2,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 1 - authenticated login, authorisation result and asserted identity
-RUNTIME-COMMIT: Java 17, not-declared
+RUNTIME-COMMIT: Java 17, the migrated head, the change set applied on top of base commit c8f6226105
   pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: migrated (post-migration replay)
   runtime-designation-is: a declared label of this capture, not probe
@@ -13,7 +13,7 @@ RUNTIME-COMMIT: Java 17, not-declared
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
-  capture-preceded-any-file-edit: not-declared
+  capture-preceded-any-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
     Why it matters on either side: the pre-migration capture is
     irreversible and is therefore the first executable action of the
     migration rather than a validation afterthought, because nothing
@@ -200,12 +200,12 @@ RECORDED CAPTURE DETAIL
 flow: 1
 slug: 1-login
 verdict: OBSERVED-AUTHENTICATED-AND-IDENTITY-CONFIRMED
-capture-side: unlabelled-capture-side-not-derivable
-runtime-declared: not-declared
+capture-side: migrated-post-migration-replay
+runtime-declared: Java 17
 runtime-observed: 17.0.19
-runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
-commit-declared: not-declared
-capture-precedes-every-file-edit: not-declared
+runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+commit-declared: the migrated head, the change set applied on top of base commit c8f6226105
+capture-precedes-every-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
 migration-path-exercised: security filter chain; directory-service context factory named by class name string rather than class literal
 comparison-criterion: Identical outcome and identical authorization result.
 compared-artefacts: flow-1-login.out and flow-1-login.status, both re-read from disk

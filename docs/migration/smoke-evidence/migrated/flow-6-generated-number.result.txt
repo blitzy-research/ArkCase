@@ -2,7 +2,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 6 - create an object that receives a generated number
-RUNTIME-COMMIT: Java 17, not-declared
+RUNTIME-COMMIT: Java 17, the migrated head, the change set applied on top of base commit c8f6226105
   pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: migrated (post-migration replay)
   runtime-designation-is: a declared label of this capture, not probe
@@ -13,7 +13,7 @@ RUNTIME-COMMIT: Java 17, not-declared
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
-  capture-preceded-any-file-edit: not-declared
+  capture-preceded-any-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
     Why it matters on either side: the pre-migration capture is
     irreversible and is therefore the first executable action of the
     migration rather than a validation afterthought, because nothing
@@ -133,12 +133,12 @@ RECORDED CAPTURE DETAIL
 flow: 6
 slug: 6-generated-number
 verdict: OBSERVED-INCOMPLETE-4-REQUIREMENTS-UNMET
-capture-side: unlabelled-capture-side-not-derivable
-runtime-declared: not-declared
+capture-side: migrated-post-migration-replay
+runtime-declared: Java 17
 runtime-observed: 17.0.19
-runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
-commit-declared: not-declared
-capture-precedes-every-file-edit: not-declared
+runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+commit-declared: the migrated head, the change set applied on top of base commit c8f6226105
+capture-precedes-every-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
 migration-path-exercised: the expression language advanced to 2.4.15.Final, reached through the live decision tables; the rule compiler declares that language with no version of its own, so the reactor property governs which one loads
 comparison-criterion: Identical numbering sequence and format.
 compared-artefacts: flow-6-generated-number.out, flow-6-generated-number.status and notes/corpus-figures.txt
@@ -356,7 +356,7 @@ dependency key, no install topology and no output artifact name.
 ------------------------------------------------------------------
 PROVENANCE AND COMPARISON CONTRACT FOR THIS FLOW
 ------------------------------------------------------------------
-runtime-designation: undeclared, deliberately: the designation is a declared label of a named capture side, and this directory is neither, so no runtime is asserted here
+runtime-designation: Java 17
 runtime-designation-is-a-declared-label: yes.  It states which side of the
   comparison this capture belongs to and is NOT probe output.  The observed
   runtime is recorded separately in env/toolchain.txt, probe 1 of 4, which
@@ -365,12 +365,12 @@ runtime-designation-is-a-declared-label: yes.  It states which side of the
   reconciled: a declared label must never read as though it were captured
   output.
 base-commit: c8f6226105
-capture-precedence: taken BEFORE any file was edited.  Nothing done later
+capture-precedence: taken AFTER the change set was applied, as the replay of the pre-migration capture.  Nothing done later
   can reconstruct the runtime a measurement was taken on, which is why
-  baseline capture is the first executable action of this migration and
-  not a validation afterthought.
-capture-side: undeclared -- the capture directory is named neither baseline nor migrated
-mirrored-by: (none -- an unnamed capture directory has no counterpart to mirror)
+  the pre-migration capture is the first executable action of this
+  migration and not a validation afterthought.
+capture-side: migrated (post-migration replay)
+mirrored-by: baseline/flow-6-generated-number.result.txt
 hand-edited: no
 produced-by: docs/migration/smoke-evidence/smoke-checks.sh, by record_result
   followed by this block, with the capture directory named in the

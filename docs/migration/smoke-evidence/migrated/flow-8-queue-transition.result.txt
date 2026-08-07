@@ -2,7 +2,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 8 - queue transition on a case or complaint
-RUNTIME-COMMIT: Java 17, not-declared
+RUNTIME-COMMIT: Java 17, the migrated head, the change set applied on top of base commit c8f6226105
   pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: migrated (post-migration replay)
   runtime-designation-is: a declared label of this capture, not probe
@@ -13,7 +13,7 @@ RUNTIME-COMMIT: Java 17, not-declared
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
-  capture-preceded-any-file-edit: not-declared
+  capture-preceded-any-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
     Why it matters on either side: the pre-migration capture is
     irreversible and is therefore the first executable action of the
     migration rather than a validation afterthought, because nothing
@@ -218,12 +218,12 @@ RECORDED CAPTURE DETAIL
 flow: 8
 slug: 8-queue-transition
 verdict: NOT-EXERCISED-NO-CASE-FILE-AVAILABLE
-capture-side: unlabelled-capture-side-not-derivable
-runtime-declared: not-declared
+capture-side: migrated-post-migration-replay
+runtime-declared: Java 17
 runtime-observed: 17.0.19
-runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
-commit-declared: not-declared
-capture-precedes-every-file-edit: not-declared
+runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+commit-declared: the migrated head, the change set applied on top of base commit c8f6226105
+capture-precedes-every-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
 migration-path-exercised: two paths converge here: (1) the decision tables governing queue entry and exit, reached through the same expression language advanced for flow 6 - routing rather than numbering; and (2) one of the three compiler-visible JDK-internal call sites being rewritten, the string-utility import and emptiness check on the queue correspondence path
 comparison-criterion: Identical routing decision.
 compared-artefacts: flow-8-queue-transition.out and flow-8-queue-transition.status, re-read from disk

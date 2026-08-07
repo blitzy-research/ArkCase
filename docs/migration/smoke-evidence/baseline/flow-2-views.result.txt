@@ -2,7 +2,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 2 - case list, detail and document views render from served assets
-RUNTIME-COMMIT: JDK 8, not-declared
+RUNTIME-COMMIT: JDK 8, base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
   pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: baseline (pre-migration)
   runtime-designation-is: a declared label of this capture, not probe
@@ -13,7 +13,7 @@ RUNTIME-COMMIT: JDK 8, not-declared
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
-  capture-preceded-any-file-edit: not-declared
+  capture-preceded-any-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
     Why it matters on either side: the pre-migration capture is
     irreversible and is therefore the first executable action of the
     migration rather than a validation afterthought, because nothing
@@ -189,12 +189,12 @@ RECORDED CAPTURE DETAIL
 flow: 2
 slug: 2-views
 verdict: OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
-capture-side: unlabelled-capture-side-not-derivable
-runtime-declared: not-declared
+capture-side: baseline-pre-migration
+runtime-declared: JDK 8
 runtime-observed: 1.8.0_492
-runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
-commit-declared: not-declared
-capture-precedes-every-file-edit: not-declared
+runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+commit-declared: base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
+capture-precedes-every-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
 migration-path-exercised: frontend artifacts as served by the deployed application; permission evaluation through reflection-based classpath scanning, that library deliberately unchanged after succeeding against a class file at major version 61
 comparison-criterion: Same rendered content from byte-identical assets.
 compared-artefacts: flow-2-views.out, flow-2-views.status and the recorded digests under artifacts/
@@ -237,8 +237,8 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   MIME types; result counts and their returned order; cache-busting content
   hashes, which are derived from artifact content and so SHOULD match when
   behaviour matches; and the artifact checksums themselves.
-runtime-designation: (not declared for this capture directory) (declared label of this capture side, not probe output; the probe output of record is env/toolchain.txt)
-capture-side-means: (not declared for this capture directory)
+runtime-designation: JDK 8 (declared label of this capture side, not probe output; the probe output of record is env/toolchain.txt)
+capture-side-means: the tree at the base commit, before any file of this migration was edited
 observed-head-of-this-capture: c8f6226105 on HEAD, working tree clean: the working tree matches c8f6226105 exactly
 declared-side-against-observed-head: consistent: the capture declares the pre-migration side and HEAD is the base commit c8f6226105
 base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)

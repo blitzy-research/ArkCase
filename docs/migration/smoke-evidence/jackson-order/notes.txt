@@ -1,5 +1,5 @@
-JACKSON SERIALISATION-ORDER EVIDENCE — 2.7.2 (base commit, Java 8) versus 2.12.7 (migrated)
-===========================================================================================
+JACKSON SERIALISATION-ORDER EVIDENCE — 2.7.2 (base commit, JDK 8) versus 2.12.7 (migrated)
+==========================================================================================
 
 WHY THIS MEASUREMENT EXISTS
 ---------------------------
@@ -80,7 +80,7 @@ RESULT — 2136 classes compared in both versions, identical skip sets
     gov.privacy.service.SARService
 
     Five of these were unstable under 2.7.2 as well, which is the base commit's own behaviour on
-    Java 8. Byte-identical serialisation was never a property these types had, so the upgrade
+    JDK 8. Byte-identical serialisation was never a property these types had, so the upgrade
     cannot have taken it away. Under R-6 this is registered rather than fixed, in
     pre-existing-defects.md. Note also what the list is made of: Spring service and client beans, a
     controller, a thread-pool executor, a DataSource wrapper and a third-party PDF class. None is

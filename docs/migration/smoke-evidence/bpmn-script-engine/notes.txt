@@ -5,7 +5,7 @@ WHAT THIS DIRECTORY PROVES
 --------------------------
 personnelSecurityBackgroundInvestigation_v11.bpmn20.xml drives seven complete-event
 ScriptTaskListener blocks whose language field is javascript, at lines 48, 68, 88, 110, 121,
-144 and 155. Those listeners executed at the base commit on Java 8, where the Nashorn engine
+144 and 155. Those listeners executed at the base commit on JDK 8, where the Nashorn engine
 shipped inside rt.jar. JEP 372 removed the engine from the JDK in 15 while javax.script stayed
 behind in java.scripting, so on Java 17 the request compiled, returned null, and failed on the
 next dereference.
@@ -35,6 +35,40 @@ mvn -B -ntp -o -pl acm-plugins/acm-extra-plugins/acm-personnel-security-plugin -
 -am is required on a cold reactor: with -pl alone the upstream modules resolve from installed
 siblings and a 2.1-vintage XML-binding pair fails before the test runs. Once the reactor is
 installed, -pl alone reproduces identically.
+
+WHAT WAS NORMALISED IN THE TWO XML CAPTURES, AND WHAT WAS NOT
+------------------------------------------------------------
+Both captures carry exactly the two transformations install-surefire-evidence.sh already applies to
+every Surefire report in this evidence tree, for the reasons that script states at its own lines 21
+to 50. These are Failsafe reports rather than Surefire reports, so they were not routed through it
+when they were first committed and arrived unnormalised; they are normalised here so the whole
+evidence tree holds one posture rather than two.
+
+  (1) Absolute machine paths become the same fixed placeholders, {REACTOR-ROOT} and
+      {LOCAL-ARTIFACT-REPOSITORY}. An absolute path names a throwaway container directory that will
+      not exist by the time anyone reads the evidence, and it is not the project's to publish.
+
+  (2) The system-property dump is reduced to the same allowlist. The runner wrote 57 properties into
+      the before capture and 56 into the after capture; most of them are the machine rather than the
+      evidence - two full classpaths, the launcher command line, the user name, home directory,
+      country and language, the temporary directory and several further absolute paths. Dropped:
+      41 properties from the before capture and 40 from the after capture. Retained, native and
+      exactly as the runner wrote them, the 16 that answer the only question the dump is evidence
+      for - which runtime produced this report: java.version, java.runtime.version,
+      java.runtime.name, java.vendor, java.vm.name, java.vm.vendor, java.vm.version, java.vm.info,
+      java.specification.version, java.class.version, os.name, os.arch, os.version,
+      sun.arch.data.model, file.encoding and jdk.debug.
+
+Nothing else changed, and that is checkable rather than asserted. In each file the ONLY lines
+removed are <property> elements - 41 and 40 respectively - no line was added or rewritten, the
+<testsuite> element is byte-identical to what the runner wrote, and every <testcase>, <error>,
+<failure>, <skipped> and <system-out> element is byte-identical too. The outcome counts this note
+publishes below are therefore read out of the same bytes the runner produced: 2 tests and 2 errors
+before, 2 tests and 0 errors after. Confirm with:
+
+  grep -c '/tmp\|/root' *.xml                     # 0 in both - no absolute path remains
+  grep -c '<property name=' before-*.xml after-*.xml   # 16 in both
+  python3 -c 'import sys,xml.dom.minidom; [xml.dom.minidom.parse(p) for p in sys.argv[1:]]' *.xml
 
 BEFORE — before-TEST-BackgroundInvestigationBusinessProcessIT.xml
 -----------------------------------------------------------------

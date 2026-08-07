@@ -849,6 +849,30 @@ SMOKE_FINAL_OUT_DIR="$SMOKE_OUT_DIR"
 SMOKE_STAGED='no'
 SMOKE_STAGING_DIR=''
 
+# capture_leaf — the final path segment of the PUBLISHED capture directory, and
+# the ONE place in this script from which a capture side is derived.
+#
+# Every side-dependent value here — the side name, the declared runtime, the
+# declared commit, the counterpart this record is mirrored by — is read from the
+# capture directory rather than from a separate variable, so that a record can
+# never disagree with where its own files land.  The directory that has to be
+# read for that is the one the operator named and the one that ends up
+# committed, which is SMOKE_FINAL_OUT_DIR, and NOT the live write root.
+#
+# The distinction is not academic.  A full run redirects every write into a
+# sibling staging tree whose leaf carries this process identifier, and publishes
+# by renaming that tree onto the named directory.  Reading the leaf of the live
+# write root would therefore report every record of a full run as belonging to a
+# side named neither baseline nor migrated — a false provenance claim inside the
+# one artefact whose whole purpose is to establish provenance — and would print a
+# volatile process identifier into a file that exists to be compared with
+# diff -r.  The published leaf is the truthful answer at every point in the run,
+# staged or not, which is why it is the only leaf this script reads.
+capture_leaf()
+{
+    printf '%s' "$SMOKE_FINAL_OUT_DIR" | sed -e 's|/*$||' -e 's|.*/||'
+}
+
 ARKCASE_BASE_URL="${ARKCASE_BASE_URL:-https://arkcase-ce.local/arkcase}"
 ARKCASE_USER="${ARKCASE_USER:-arkcase-admin@arkcase.org}"
 
@@ -1480,7 +1504,7 @@ NO_RESPONSE_TOKEN='000'
 # commit — reading it from git would silently relabel every migrated record.
 SMOKE_CAPTURE_SIDE="${SMOKE_CAPTURE_SIDE:-}"
 if [ -z "$SMOKE_CAPTURE_SIDE" ]; then
-    case "$(printf '%s' "$SMOKE_OUT_DIR" | sed -e 's|/*$||' -e 's|.*/||')" in
+    case "$(capture_leaf)" in
         migrated) SMOKE_CAPTURE_SIDE='migrated (post-migration replay)' ;;
         baseline) SMOKE_CAPTURE_SIDE='baseline (pre-migration)' ;;
         *)        SMOKE_CAPTURE_SIDE='unnamed (neither baseline nor migrated)' ;;
@@ -4539,7 +4563,7 @@ SMOKE_BASE_COMMIT_FULL='c8f6226105c28c2743281d26bf21ad73f7bb7f26'
 # very next character continues a name.  A bare side word could therefore be
 # rewritten to that token when the capture directory happens to be named exactly
 # that, which would erase the one row telling the reader which side they hold.
-case "$(basename -- "$SMOKE_OUT_DIR")" in
+case "$(capture_leaf)" in
     baseline)
         CAPTURE_SIDE='baseline-pre-migration'
         CAPTURE_RUNTIME_DECLARED='JDK 8'
@@ -4648,9 +4672,9 @@ compare_with_counterpart()
 
     dest="$(flow_prefix "$n" "$slug")"
 
-    case "$(basename -- "$SMOKE_OUT_DIR")" in
-        migrated) peer_dir="$(dirname -- "$SMOKE_OUT_DIR")/baseline" ;;
-        baseline) peer_dir="$(dirname -- "$SMOKE_OUT_DIR")/migrated" ;;
+    case "$(capture_leaf)" in
+        migrated) peer_dir="$(dirname -- "$SMOKE_FINAL_OUT_DIR")/baseline" ;;
+        baseline) peer_dir="$(dirname -- "$SMOKE_FINAL_OUT_DIR")/migrated" ;;
         *)
             printf 'not-determinable - this capture directory is named neither for the pre-migration side nor for the replay side, so no counterpart can be located; the comparison is reported missing rather than assumed'
             return 0
@@ -8093,7 +8117,7 @@ flow_2_evidence_keys()
     local o_app o_app_min o_vendors o_css o_home o_map
     local required_match required_diff digest_agg pair
 
-    case "$(basename -- "$SMOKE_OUT_DIR")" in
+    case "$(capture_leaf)" in
         baseline)
             side_runtime='JDK 8'
             side_state='the tree at the base commit, before any file of this migration was edited'
@@ -10133,15 +10157,15 @@ SMOKE_BASE_COMMIT='c8f6226105c28c2743281d26bf21ad73f7bb7f26'
 
 # capture_side — which half of the evidence pair this run is writing.
 #
-# Read from the final segment of the capture directory rather than from a
-# separate variable, so that it cannot disagree with where the files are actually
-# landing.  An unrecognised directory is reported as unnamed rather than guessed:
+# Read from the final segment of the published capture directory rather than from
+# a separate variable, so that it cannot disagree with where the files actually
+# end up.  An unrecognised directory is reported as unnamed rather than guessed:
 # a capture that mislabelled its own side would invert every comparison drawn
 # from it.
 capture_side()
 {
     local leaf
-    leaf="$(printf '%s' "$SMOKE_OUT_DIR" | sed -e 's|/*$||' -e 's|.*/||')"
+    leaf="$(capture_leaf)"
 
     case "$leaf" in
         baseline) printf 'baseline (pre-migration)' ;;
@@ -10161,7 +10185,7 @@ capture_side()
 runtime_designation()
 {
     local leaf
-    leaf="$(printf '%s' "$SMOKE_OUT_DIR" | sed -e 's|/*$||' -e 's|.*/||')"
+    leaf="$(capture_leaf)"
 
     case "$leaf" in
         baseline) printf 'JDK 8' ;;
@@ -10219,7 +10243,7 @@ record_search_flow_context()
     # a different fact and one a reader of the replay side needs.  Deriving it from
     # the same output-directory parameter every other side-dependent value comes
     # from keeps the two-runs-one-script property intact.
-    leaf="$(printf '%s' "$SMOKE_OUT_DIR" | sed -e 's|/*$||' -e 's|.*/||')"
+    leaf="$(capture_leaf)"
     case "$leaf" in
         migrated)
             tree_commit="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null)"
@@ -11441,6 +11465,7 @@ record_number_provenance()
     local side
     local runtime
     local mirror
+    local precedence
 
     dest="$(flow_prefix 6 generated-number)"
     tables="$(count_matching_files "$REPO_ROOT" 'drools-*.xlsx')"
@@ -11455,22 +11480,25 @@ record_number_provenance()
     # claim inside the one artefact whose whole purpose is to establish provenance.
     # An unrecognised directory is reported as undeclared rather than defaulted to
     # either side, because a guessed label is worse than an absent one.
-    dir_name="$(printf '%s' "$SMOKE_OUT_DIR" | sed -e 's#/*$##' -e 's#.*/##')"
+    dir_name="$(capture_leaf)"
     case "$dir_name" in
         baseline)
             side='baseline (pre-migration)'
             runtime='JDK 8'
             mirror='migrated/flow-6-generated-number.result.txt'
+            precedence='taken BEFORE any file was edited'
             ;;
         migrated)
             side='migrated (post-migration replay)'
             runtime='Java 17'
             mirror='baseline/flow-6-generated-number.result.txt'
+            precedence='taken AFTER the change set was applied, as the replay of the pre-migration capture'
             ;;
         *)
             side="undeclared -- the capture directory is named neither baseline nor migrated"
             runtime='undeclared, deliberately: the designation is a declared label of a named capture side, and this directory is neither, so no runtime is asserted here'
             mirror='(none -- an unnamed capture directory has no counterpart to mirror)'
+            precedence='undeclared -- with no capture side derived, this record asserts no position relative to the change set'
             ;;
     esac
 
@@ -11487,10 +11515,10 @@ record_number_provenance()
         printf '  reconciled: a declared label must never read as though it were captured\n'
         printf '  output.\n'
         printf 'base-commit: c8f6226105\n'
-        printf 'capture-precedence: taken BEFORE any file was edited.  Nothing done later\n'
+        printf 'capture-precedence: %s.  Nothing done later\n' "$precedence"
         printf '  can reconstruct the runtime a measurement was taken on, which is why\n'
-        printf '  baseline capture is the first executable action of this migration and\n'
-        printf '  not a validation afterthought.\n'
+        printf '  the pre-migration capture is the first executable action of this\n'
+        printf '  migration and not a validation afterthought.\n'
         printf 'capture-side: %s\n' "$side"
         printf 'mirrored-by: %s\n' "$mirror"
         printf 'hand-edited: no\n'
@@ -13749,7 +13777,7 @@ FLOW7_DECLARED_MIGRATED_COMMIT="${FLOW7_DECLARED_MIGRATED_COMMIT:-$SMOKE_OBSERVE
 # omitting the clause entirely.
 flow7_runtime_of_record()
 {
-    case "$(basename -- "$SMOKE_OUT_DIR")" in
+    case "$(capture_leaf)" in
         baseline)
             printf '%s' 'JDK 8 (the declared designation of this, the pre-migration capture side; the toolchain provenance archived in this same capture directory reports openjdk version "1.8.0_492" for it), and this capture was taken BEFORE any file was edited, which is the property that makes it usable as a tie-breaker at all'
             ;;
@@ -13771,7 +13799,7 @@ flow7_runtime_of_record()
 # designation on its own.
 flow7_capture_runtime_label()
 {
-    case "$(basename -- "$SMOKE_OUT_DIR")" in
+    case "$(capture_leaf)" in
         baseline)  printf '%s' 'JDK 8' ;;
         migrated)  printf '%s' 'Java 17' ;;
         *)         printf '%s' 'not-declared - this capture directory is named neither side' ;;
