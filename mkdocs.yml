@@ -14,9 +14,21 @@ nav:
   # Java 17 / Node 20 runtime migration registers.  These are rule-mandated
   # deliverables rather than feature documentation, so they are grouped
   # under one heading instead of being interleaved with the pages above.
-  # Every register is cross-referenced by the others, so all of them are
-  # listed: a page left out of nav is still built by MkDocs, but it is
-  # unreachable from the navigation and is reported as omitted.
+  #
+  # WHAT BELONGS UNDER THIS HEADING.  The six rule-mandated registers, in the
+  # order the migration plan enumerates them, plus the Surefire evidence
+  # archive that Baseline Test Failures cites for its per-suite figures.  The
+  # count is part of the contract rather than an editorial choice, so a page
+  # that is not one of the six and is not cited as the evidence behind one of
+  # them does not belong here: Frontend Dependency Security is supporting
+  # documentation owned by a separate deliverable, and is reached from the
+  # registers that link to it rather than from this list.
+  #
+  # Paths are relative to docs_dir, so they carry no docs/ prefix.  MkDocs
+  # builds every Markdown page under docs_dir whether or not nav references
+  # it, so an omitted page is still published - it is only unreachable from
+  # the site navigation, which is why every register is listed and why the
+  # cross-references that reach the unlisted page are load-bearing.
   - Runtime Migration:
       - Dependency Change Inventory: migration/dependency-change-inventory.md
       - JDK Access Exceptions: migration/add-opens-exceptions.md
@@ -25,7 +37,6 @@ nav:
       - Pre-existing Defects: migration/pre-existing-defects.md
       - Ambiguity Resolutions: migration/ambiguity-resolutions.md
       - Static Audit Output: migration/static-audit-output.md
-      - Frontend Dependency Security: migration/frontend-dependency-security.md
 
 markdown_extensions:
   - admonition

@@ -1,0 +1,482 @@
+================================================================================
+NO FLAKY-TEST TOOLING — why the archived unit-test evidence is sound
+================================================================================
+
+FILE: docs/migration/smoke-evidence/baseline/notes/04-no-flaky-test-tooling.txt
+SCOPE: the trustworthiness of the archived unit-test evidence in ../surefire/.
+  This note establishes that a failure recorded there is a genuine, reproducible
+  failure rather than a flake, and it pre-empts one specific wrong inference a
+  reviewer is very likely to draw.  It is note 4 of 6 in this folder.
+CAPTURE: baseline — the reactor exactly as it stood at the base commit, on
+  JDK 8, before a single file of the migration was edited.
+BASE COMMIT: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short form c8f6226105)
+CONCLUSION: fail-fast is safe; a baseline failure is a real, reproducible
+  failure.
+
+WHERE THE FIGURES COME FROM, stated first because it changes how every count
+below should be read.  This is a baseline note, so every figure is measured AT
+THE BASE COMMIT and not in the working tree.  The reactor in the working tree
+has already been migrated, and several of the figures below legitimately differ
+there; every such difference is named where it occurs, with its reason.  Reading
+a baseline figure out of a migrated tree would not be a smaller error than
+guessing it.  Two consequences follow.  Every command published beside a count
+is therefore scoped to the base commit by reference, so it answers for the
+baseline no matter what state the tree it runs in happens to be in.  And because
+a reference holds only tracked files, none of these commands has to exclude
+build output, which keeps them free of any directory name this repository
+ignores at every depth.
+
+RULES PROVENANCE — both halves, because either one alone misleads.
+  1. There is no on-disk user rules document for this project.  The project's
+     rules facility reports, verbatim, "No user rules provided."  It was queried
+     twice, whole and by range, and returned that single line both times.  There
+     is consequently no external full-text source to defer to for the rules
+     applied below.
+  2. Rules are nonetheless present and binding.  The requirements embed an
+     explicit, numbered block of seven rules that govern this work in full,
+     exactly as an external rules document would, plus seven transformation
+     rules that are the operational form of the preservation and exclusion
+     lists.  Fourteen constraints apply, and their authoritative statements live
+     in the governing migration plan, which is the source of rule text precisely
+     because the facility has none.
+  Recording only the first fact would imply that enterprise best practice is the
+  sole standard here, which is wrong.  Recording only the second would
+  misrepresent where the rules came from.  Best practice is applied on top of
+  the fourteen, never as a substitute, and no rule has been invented or
+  softened.
+
+  The identifiers R-1 through R-7 and R-T1 through R-T7, and the descriptive
+  labels attached to them, are the migration plan's own navigational convention.
+  They are not quoted titles.  They exist so that a decision recorded here can
+  be traced back to the constraint that produced it.
+
+  One quotation convention is disclosed rather than applied silently.  This
+  documentation tree carries a wording gate that forbids the two-word rendering
+  of the older runtime's name, so that runtime is written JDK 8 everywhere in
+  this note, including inside quoted rule text.  R-7 reads: "The application's
+  observed behavior at the base commit on JDK 8 is the tie-breaker for any
+  ambiguity, and each resolution must be documented."  [Editorial note: the
+  rule's own text names the older runtime with the phrase this tree's wording
+  gate forbids; the substitution changes no meaning, and it is disclosed here
+  rather than made silently.  The newer runtime is written Java 17, which the
+  gate does not affect.]
+
+================================================================================
+1. NO FLAKY-TEST TOOLING EXISTS ANYWHERE IN THE REACTOR
+================================================================================
+
+Three counts, each with the command that produced it, because a count without a
+command is an assertion rather than evidence.
+
+reactor-pom-count: 145
+  git ls-tree -r --name-only c8f6226105 | grep -cE '(^|/)pom\.xml$'
+  The working tree also holds 145; the reactor gained and lost no module.
+
+poms-configuring-a-rerun-count: 0 of 145
+  git grep -l "rerunFailingTestsCount" c8f6226105 -- 'pom.xml' '*/pom.xml' | wc -l
+  Re-derived in the working tree as well, where it is also 0.  This is one of
+  the two counts that must not move, and it has not.
+
+poms-configuring-any-rerun-shaped-setting: 0 of 145
+  git grep -lE 'rerunFailingTestsCount|retryCount|flakyTest|skipAfterFailureCount' c8f6226105 -- 'pom.xml' '*/pom.xml' | wc -l
+  Recorded because the first count answers for one property name only.  A
+  reviewer is entitled to ask whether the same effect was configured under a
+  different name, and the answer is that no setting of that shape appears at
+  all.
+
+The plugin question is answered by inventory rather than by a negative search,
+because "a grep found nothing" is a weaker statement than "here is everything,
+and none of it is that".  Every one of the 145 base-commit POMs was parsed as
+XML and every plugin element in it collected:
+
+distinct-build-plugins-declared-reactor-wide: 10
+  git ls-tree -r --name-only c8f6226105 | grep -E '(^|/)pom\.xml$' — then each
+  file read with git show and parsed with Python's ElementTree, collecting the
+  groupId and artifactId of every plugin element under the POM namespace.
+  The complete set, so that nothing is hidden behind a count:
+    com.amashchenko.maven.plugin:gitflow-maven-plugin
+    org.apache.maven.plugins:maven-assembly-plugin
+    org.apache.maven.plugins:maven-checkstyle-plugin
+    org.apache.maven.plugins:maven-compiler-plugin
+    org.apache.maven.plugins:maven-failsafe-plugin
+    org.apache.maven.plugins:maven-war-plugin
+    org.codehaus.mojo:license-maven-plugin
+    org.jacoco:jacoco-maven-plugin
+    org.sonarsource.scanner.maven:sonar-maven-plugin
+    org.zeroturnaround:jrebel-maven-plugin
+
+retry-or-rerun-plugins-among-those-ten: 0
+  the same parse as above, with each collected plugin artifactId matched
+  case-insensitively against retry, rerun, flak and repeat
+  None of the ten reruns a test.  Two of them touch tests at all: the coverage
+  plugin instruments them, and the integration-test plugin runs the classes
+  named in entry 3.  Neither has a rerun facility configured, and the unit-test
+  runner is not in the list — which is entry 3's subject.
+
+distinct-artifact-names-matching-those-words-anywhere-in-the-poms: 1
+  git grep -hoE '<artifactId>[^<]*(retry|rerun|flak|repeat)[^<]*</artifactId>' c8f6226105 -- 'pom.xml' '*/pom.xml' | sort -u
+  The one is spring-retry, and it is a dependency rather than a plugin, which is
+  entry 2's whole subject.  Published here so that the two counts above are not
+  the only place a reader can look: the reactor contains exactly one
+  retry-sounding artifact name in total, and it is not build tooling.
+
+WHAT FOLLOWS FROM THIS.  There is no rerun mechanism of any kind in the reactor
+at the base commit, so a test that failed in the JDK 8 baseline run failed on
+its only attempt.  It was not observed once, retried, and recorded on a second
+or third verdict.  Fail-fast is therefore safe here, and every failure archived
+in ../surefire/ is a real, reproducible failure rather than a flake — which is
+exactly what makes it eligible to be registered in
+docs/migration/baseline-test-failures.md and cited by a later exclusion.  Had a
+rerun count been configured, the archive's verdicts would record the outcome of
+a retry policy rather than the behaviour of the suite, and no row of that
+register could carry the weight R-5 puts on it.
+
+================================================================================
+2. THE APPLICATION RETRY LIBRARY IS A FALSE POSITIVE
+================================================================================
+
+This entry exists for one reason, and it is worth stating before the anchors: a
+reviewer auditing whether this baseline is trustworthy will search the reactor
+for the word "retry", will find it, and could conclude that retry-based
+flaky-test tooling is in play and that the ../surefire/ archive is therefore
+unsound.  That inference would be wrong, and it would discredit every row of the
+baseline-failure register.  Naming the hit explicitly closes it.
+
+WHAT THE SEARCH FINDS.  The reactor does declare a library called spring-retry.
+It is an application library.  Six occurrences across four POMs — three of them
+in the root aggregator, where the property name recurs in the version reference:
+
+occurrences-of-spring-retry-in-the-poms: 6 across 4 files
+  git grep -n "spring-retry" c8f6226105 -- 'pom.xml' '*/pom.xml'
+  git grep -l "spring-retry" c8f6226105 -- 'pom.xml' '*/pom.xml' | wc -l
+  version property   pom.xml:L119   <spring-retry-version>1.3.1</spring-retry-version>
+  managed entry      pom.xml:L687-L691, groupId org.springframework.retry, with
+                     the artifactId at pom.xml:L689 and the version reference at
+                     pom.xml:L690
+  consuming module   acm-plugins/acm-extra-plugins/acm-alfresco-rma-integration/pom.xml:L45
+                     — the Alfresco records-management integration plugin
+  consuming module   acm-tool-integrations/acm-spring-context-holder/pom.xml:L32
+                     — the Spring context-holder tool integration
+  consuming module   acm-services/acm-service-search/pom.xml:L87
+                     — the search service
+
+  Those anchors are base-commit anchors, which is what a baseline note owes its
+  reader.  In the working tree the same two root-POM anchors now read L233 and
+  L865-L866, because the root POM grew; the three child anchors are unmoved.
+  The declaration itself is identical in both.
+
+IT HAS NOTHING TO DO WITH TEST RERUNS.  It is a runtime resilience library used
+by application code.  It configures no test runner, adds no rerun count, and
+cannot cause a failing test to be retried.  Three measurements establish that
+positively rather than by assertion:
+
+scope-declared-by-the-three-consumers: none, in all three
+  git grep -A1 -B2 "spring-retry" c8f6226105 -- 'acm-plugins/acm-extra-plugins/acm-alfresco-rma-integration/pom.xml' 'acm-tool-integrations/acm-spring-context-holder/pom.xml' 'acm-services/acm-service-search/pom.xml'
+  Each of the three dependency elements carries a groupId and an artifactId and
+  no scope element at all, so each resolves at the default compile scope.  The
+  library is on the application classpath.  A test-scoped declaration is what a
+  testing tool looks like, and none of the three is one.
+
+java-files-referencing-the-library: 10
+  git grep -l "org.springframework.retry" c8f6226105 -- '*.java'
+
+of-those-under-a-test-source-tree: 0
+  git grep -l "org.springframework.retry" c8f6226105 -- '*.java' | grep -c '/src/test/java/'
+  All ten are main source: the folder service, the file service and the file
+  transaction in the content service; the mail sender; the two Outlook
+  integration services; the index post client; the sequence registry
+  data-access object and the sequence service; and the Spring configuration
+  class in the context-holder module.  Not one test class in the entire
+  402-file corpus references it.  A library that no test imports cannot be
+  retrying a test.
+
+WHY THE SEARCH LANDS ON IT IN MISLEADING COMPANY.  The version property sits in
+the root POM's property block, which is ordered alphabetically, so it comes to
+rest at pom.xml:L119 among the other properties whose names begin with the same
+letters — pom.xml:L118 and pom.xml:L120 are its immediate neighbours.  A grep
+for "retry" therefore returns a line surrounded by build configuration, which is
+what makes it look like build configuration.  It is not.  That is the whole of
+the explanation, and this note does not extend the discussion further.
+
+RECORDED, NOT ACTED ON.  Nothing here is a recommendation.  The library is not
+removed, not relocated, not renamed and not advanced: it has no demonstrated
+incompatibility with the target runtime, and under R-1 a version change without
+a specific compatibility reason is out of scope — as firmly out of scope as an
+unjustified omission.  It appears in this note only because a reviewer will find
+it and deserves to know what it is.
+
+================================================================================
+3. WHAT IS AND IS NOT DECLARED FOR TEST EXECUTION AT BASELINE
+================================================================================
+
+Two things are declared for running tests at the baseline and one is not.  All
+three counts carry their command, and the absence matters to R-5 more than either
+presence does.
+
+poms-declaring-the-unit-test-runner: 0 of 145
+  git grep -l "maven-surefire-plugin" c8f6226105 -- 'pom.xml' '*/pom.xml' | wc -l
+
+poms-mentioning-the-unit-test-runner-at-all: 0 of 145
+  git grep -l "surefire" c8f6226105 -- 'pom.xml' '*/pom.xml' | wc -l
+  The stronger form of the same finding, recorded because a zero for the plugin
+  artifactId would still permit a provider, a report plugin or a configuration
+  fragment elsewhere.  The token does not occur in any of the 145 POMs.  This is
+  corroborated structurally by entry 1: the unit-test runner is absent from the
+  complete ten-plugin inventory, so the zero is not an artefact of how the
+  search was spelled.
+
+TWO CONSEQUENCES, and the second is the one that matters to R-5.
+
+  First, unit tests at the baseline execute on whatever version Maven implicitly
+  binds for the test phase rather than on a version this repository chose.  Which
+  version that was does not have to be taken on trust, because the archive
+  evidences it directly — the runner's own frames appear in a captured stack
+  trace, carrying the jar they came from:
+
+runner-versions-evidenced-in-the-archive: exactly one, 2.12.4
+  grep -rhoE 'surefire-(api|booter|junit4)-[0-9.]+\.jar' docs/migration/smoke-evidence/baseline/surefire --include='TEST-*.xml' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -u
+  Three of the runner's own jars are named in those frames and all three carry
+  the same version.  Evidenced by one report, the only archived suite whose captured output includes
+  frames from the runner itself.  That is thin as a sample and ample as a fact:
+  a single reactor-wide test phase binds one runner, and no second version
+  appears anywhere in the archive.  Read out of the reports rather than off a
+  build log, per R-T7.
+
+  Second, and consequentially: at the baseline there is no location anywhere in
+  the reactor where a test exclusion could be recorded.  Not a location where
+  none happens to be recorded — a state in which none could be, because the
+  element that would carry one has no declaration to sit in.  The baseline could
+  therefore not have carried an exclusion even if one had been wanted, which is
+  why the register's rows describe failures rather than exclusions.
+
+  The migration adds a pinned declaration precisely to create that single
+  auditable location, so that an exclusion has one reviewable home and cannot be
+  scattered across child modules.  That is recorded here as context, not as a
+  change this note makes: this folder captures the state before any edit, and at
+  that state the declaration does not exist.  This is one of the figures that
+  legitimately differs in the working tree, where the count is 1 — the root
+  aggregator, and only the root aggregator.  A reviewer diffing this note
+  against its migrated twin should expect exactly that difference and should
+  treat its absence as the surprise.
+
+poms-declaring-the-integration-test-runner: 3 of 145
+  git grep -l "maven-failsafe-plugin" c8f6226105 -- 'pom.xml' '*/pom.xml'
+  All three, named in full, because a reviewer auditing integration-test
+  configuration who stops at the root aggregator will miss two declarations and
+  draw an incomplete picture:
+    pom.xml:L308 — the root aggregator, version pinned at pom.xml:L309
+    acm-standard-applications/acm-foia/pom.xml:L32 — the FOIA application
+    acm-standard-applications/acm-privacy/pom.xml:L29 — the privacy application
+  The count is 3 in the working tree as well.  None of the three configures a
+  rerun, per entry 1.  The two child declarations are the reason this count is
+  published as a list rather than as a number: three is only interesting if a
+  reader can see which three.
+
+================================================================================
+4. THE INHERITED IGNORED TESTS
+================================================================================
+
+ignored-test-annotations-at-the-base-commit: 26 occurrences across 12 test classes
+  git grep -o '@Ignore' c8f6226105 -- '*.java' | wc -l
+  git grep -l '@Ignore' c8f6226105 -- '*.java' | wc -l
+  Counted as occurrences rather than as matching lines, because a line-based
+  count would understate a file carrying two on one line and the figure has an
+  obligation attached to it.  Both spellings were run and agree at 26 here.
+
+largest-concentration-in-one-class: 13
+  git show c8f6226105:acm-standard-applications/acm-foia/src/test/java/com/armedia/acm/plugins/casefile/service/CaseFileEnterQueueBusinessRuleTest.java | grep -o '@Ignore' | wc -l
+  Published as measured.  The baseline-failure register records fourteen for
+  this class at docs/migration/baseline-test-failures.md; the measurement above
+  returns thirteen, and the line-based spelling of the same count returns
+  thirteen too, so the difference is not an artefact of how it was counted.  It
+  is stated beside the figure rather than silently resolved in either direction,
+  and it does not disturb either document's obligations: the total of 26 and the
+  twelve-class spread are identical in both, and it is the total that R-5
+  constrains.
+
+THE THREE OBLIGATIONS, stated plainly because each is checkable.
+
+  They are inherited.  All 26 exist at the base commit, before any file of this
+  migration was edited, so they are part of the baseline.  They are not
+  exclusions made by this migration, and no row of the baseline-failure register
+  rests on one.
+
+  No new one may be added anywhere by the change set.  R-5's first clause
+  forbids disabling a failing test, and it forbids it by any mechanism — so an
+  added annotation in test source violates the rule exactly as an added
+  exclusion in build configuration would.  There is no threshold and no
+  allowance.
+
+  A post-migration count must still find the same number.  This is a checkable
+  invariant rather than a promise: re-run the occurrence count against the
+  working tree and it must read 26.  It does at the time this note is written.
+  Any increase is an R-5 violation regardless of where it appears, and a
+  decrease would mean a test was un-ignored, which is a behaviour change this
+  refactor does not authorise either.
+
+HOW THE 26 RECONCILE WITH THE ARCHIVE, which is the part a reviewer cannot
+derive without being told.  The archive in ../surefire/ records 21 skipped
+testcase elements, not 26, and the gap is neither a lost skip nor an
+inconsistency.  Five of the 26 sit in three classes whose names end in IT — the
+category-plugin, person-plugin and content-service integration classes, carrying
+three, one and one — and the unit-test run does not select those.  The remaining
+21 sit in the nine classes the run did select, and the archive records 21.  The
+arithmetic is exact, in both directions:
+
+archived-skipped-elements: 21
+  grep -rho '<skipped' docs/migration/smoke-evidence/baseline/surefire | wc -l
+
+ignored-annotations-in-integration-test-classes: 5
+  git grep -c '@Ignore' c8f6226105 -- '*.java' | grep 'IT\.java:' | awk -F: '{s+=$3} END {print s}'
+
+  26 minus 5 is 21, and the nine classes carrying the 21 are the same nine
+  classes the archive's skipped elements belong to.  So every skip in the
+  archive is an inherited annotation, there is no second kind of skip in it, and
+  no skip in it is a migration exclusion wearing a skip's clothing.  A skipped
+  test is also not a failing test, so an inherited annotation is not a licence
+  to add an exclusion for the same class.
+
+UNDER R-6, RECORDED AND NOT REMOVED.  Some of these 26 mark genuinely broken
+tests.  That makes them documentation events, not repair events.  None is
+removed, none is re-enabled, and none is investigated further here.
+
+================================================================================
+5. THE TEST CORPUS THIS ARCHIVE COVERS
+================================================================================
+
+A short census, so that the archive's expected shape is known rather than
+inferred from the archive itself.  Every figure is measured at the base commit.
+
+test-source-trees: 76
+  git ls-tree -r --name-only c8f6226105 | grep -oE '^.*/src/test/java/' | sort -u | wc -l
+
+java-test-source-files: 402
+  git ls-tree -r --name-only c8f6226105 | grep -c '/src/test/java/.*\.java$'
+
+unit-test-classes-by-name: 280
+  git ls-tree -r --name-only c8f6226105 | grep -c '/src/test/java/.*Test\.java$'
+
+integration-test-classes-by-name: 86
+  git ls-tree -r --name-only c8f6226105 | grep -c '/src/test/java/.*IT\.java$'
+
+files-importing-the-older-junit-test-annotation: 366
+  git grep -l 'org.junit.Test' c8f6226105 -- '*.java' | grep -c '/src/test/java/'
+
+files-using-the-newer-junit-generation: 0
+  git grep -l 'org.junit.jupiter' c8f6226105 -- '*.java' | wc -l
+
+poms-declaring-the-newer-junit-generation: 0 of 145
+  git grep -l 'junit-jupiter' c8f6226105 -- 'pom.xml' '*/pom.xml' | wc -l
+  Recorded alongside the source count because a framework can be on the
+  classpath before it is imported anywhere, and neither figure alone rules that
+  out.  Both are zero.
+
+  Four of these figures are larger in the working tree, which at the time this
+  note was written reads 77 trees, 407 files, 285 unit classes, 86 integration
+  classes and 371 importing files.  Those five are stated as a measurement taken
+  at a moment, not as an invariant: the migrated corpus is the one still being
+  added to, so a later reading may be larger again, and only the baseline column
+  above is fixed.  The growth is added test classes, enumerated with their
+  reasons in docs/migration/baseline-test-failures.md.  The integration-class
+  count and the newer-generation count are unmoved, and a figure that grew
+  because a test was added is the opposite of what R-5 guards against.
+
+WHAT FOLLOWS FROM THIS.  The corpus sits entirely on the older JUnit generation
+— 366 annotated files and not one on the newer one — and no assertion anywhere
+in it is modified by this migration.  So the two halves of the archive are
+comparable on their merits: a difference between the baseline reports and the
+migrated reports cannot come from a changed assertion, from a changed test
+framework or from a changed selection convention within a class, because none of
+those changed.  It can only come from the runtime or from the dependency graph,
+which is precisely what the comparison exists to detect and precisely what makes
+it informative.  An archive of a corpus half-migrated to another framework would
+have carried the same file names and answered a different question.
+
+================================================================================
+6. CROSS-REFERENCES
+================================================================================
+
+../surefire/
+  The archive this note vouches for: per-module unit-test reports from the JDK 8
+  baseline run, with their run provenance and a digest manifest beside them.
+
+docs/migration/baseline-test-failures.md
+  The register whose rows an exclusion must cite.  Entry 1 is what makes a row
+  on it mean a real failure.
+
+03-environment-precondition.txt
+  The sibling note that bounds the archive's completeness and defines the
+  category of behaviour this capture does not cover.
+
+05-coverage-vs-test-exclusions.txt
+  The sibling note that pre-empts the coverage-glob inference — an exclusion
+  expressed for coverage measurement is not a test exclusion.
+
+THE DIVISION OF LABOUR, in one sentence, because the three sibling notes are
+easy to conflate.  Note 03 says what is missing, note 04 says what is
+trustworthy, and note 05 says what is not a test exclusion.
+
+================================================================================
+RULINGS APPLIED IN THIS NOTE
+================================================================================
+
+R-5 — no disabling of failing tests; exclusions limited to failures already
+  present at baseline.  This is the rule the note exists to keep enforceable,
+  and it lands here four times.  Entry 1 records that fail-fast is safe, so a
+  baseline failure is real and therefore a legitimate register row.  Entry 2
+  defuses the false positive, so nobody dismisses the archive on the strength of
+  a word.  Entry 3 records that at the baseline there is nowhere an exclusion
+  could be written down at all, and that the migration adds the one location
+  where it could be.  Entry 4 records the inherited annotations with the
+  obligation that their count must not move.
+
+R-6 — document discovered bugs, do not fix them.  Every count above is recorded
+  and none is acted on.  No rerun tooling is proposed, no ignored test is
+  removed or re-enabled, the retry library is not touched, and no test is
+  excluded.  The change set invokes R-6's escape clause exactly twice — tracking
+  the frontend generated-configuration module, and removing the unbuildable
+  stylesheet-compiler toolchain — and neither invocation is in this folder.
+  Both belong to the frontend track and are recorded, with the reason each
+  blocked a validation item, in docs/migration/pre-existing-defects.md, which
+  also carries the authoritative count of registered defects and records that
+  none of them is repaired.  Nothing in this capture repairs one.
+
+R-7 — baseline behaviour is the tie-breaker.  This note supplies the reason a
+  baseline observation can function as a tie-breaker at all.  If the failures
+  were flaky, the baseline would not be a stable reference, a second capture
+  could contradict the first, and R-7 would be unusable however diligently it
+  was invoked.  The rule's own wording, and the substitution disclosed under
+  RULES PROVENANCE above, are stated there rather than repeated here.
+
+R-T7 — evidence over exit codes.  Every count in this note is published with the
+  command that produced it, so a reviewer can re-run it rather than trust it.
+  Nothing here rests on a process exit status, and nothing rests on a summary
+  line: the runner version in entry 3 and the skipped-element count in entry 4
+  are both read back out of the archived reports themselves.  Where a figure of
+  this note's disagrees with a figure of another document's, the disagreement is
+  printed rather than reconciled away — see the concentration figure in entry 4.
+
+R-1 — a change without a reason is out of scope.  This note reports counts and
+  names one false positive.  It recommends nothing, and specifically does not
+  suggest advancing the retry library, which has no demonstrated incompatibility
+  with the target runtime.
+
+================================================================================
+MIRROR OBLIGATION
+================================================================================
+
+This directory is the reference shape the migrated capture must mirror.  A file
+of the identical name, notes/04-no-flaky-test-tooling.txt, must exist on the
+migrated side, so that a recursive diff of the two captures reveals a genuine
+change in a qualifying condition — a changed ignored-test count, or the
+appearance of the pinned unit-test-runner declaration recorded in entry 3 —
+rather than a structural difference between two folders.  A missing file on
+either side reads as a hole in the evidence; a present file whose numbers differ
+reads as the finding it actually is.  Stating the obligation is this note's part
+in it: the migrated twin is not created from here.
+
+NOT IN SCOPE HERE: any verdict on the capture.  The completeness verdict is in
+notes/completeness.txt, the per-flow observations in the eight flow result
+records, and the classification of an individual failing test in
+docs/migration/baseline-test-failures.md.  This note establishes only that the
+unit-test evidence is sound enough to be classified at all.

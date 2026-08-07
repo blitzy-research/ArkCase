@@ -1,0 +1,142 @@
+property allowlist line continuation — a pre-existing defect, registered not fixed
+
+scope of this note: the archived baseline Surefire reports in the sibling module
+directories, and specifically the system property dump inside each of them.
+It records one defect and one capture attempt.  It changes no evidence.
+
+why this note exists rather than a code change: R-6 requires that a
+pre-existing defect discovered during the work be documented rather than
+fixed unless it blocks a validation item.  This one blocks none, and the
+constraint on preserving a genuinely captured payload forbids editing the
+reports to tidy it.  Both point the same way, so the defect is registered
+here and the reports are left exactly as the harvest wrote them.
+
+
+THE DEFECT
+
+what is observed: in every archived baseline report the line that follows the
+os.arch property is a bare four-character fragment consisting of a quotation
+mark, an angle bracket pair and a slash, sitting on its own line inside the
+properties element.  It is the tail of a property element whose head is gone.
+
+extent, counted rather than assumed:
+  baseline reports carrying the fragment: 278 of 278
+  migrated reports carrying the fragment:   0 of 284
+
+root cause: install-surefire-evidence.sh reduces the property dump to an
+exact-literal allowlist with a LINE-ORIENTED filter.  It drops a line when the
+line both matches the property-element opening pattern and names a property
+outside the allowlist.  The older runner that produced the baseline writes
+line.separator with a value that IS a literal newline, so that single property
+element occupies TWO physical lines.  The filter drops the first line, because
+line.separator is not allowlisted; the second line is not an element opening,
+so the filter prints it.  The fragment is that second line.
+
+why the script's own guard does not catch it: the guard is a bracket-balance
+invariant.  It requires the installed file to have lost exactly the angle
+brackets the dropped lines carried.  The dropped line carries one opening
+bracket and no closing bracket, and the surviving fragment carries the closing
+bracket, so the arithmetic balances and the guard is satisfied.  The guard was
+added to stop a substitution from mangling markup; a bracket-balanced
+line-continuation residue is outside what it can see.
+
+why it is harmless, verified rather than asserted: the fragment lands as
+character data inside the properties element, so every report remains
+well-formed.  Each report was parsed to confirm this.  No counter, no testcase,
+no outcome and no failure body is affected: the fragment sits in the property
+dump, which is provenance rather than evidence, and the runtime provenance the
+dump exists to carry is intact — java.runtime.version is present and native in
+every report, which is the property the harvest refuses to install without.
+
+why it is not fixed here: the archive is digest-bound.  sha256-manifest.txt
+covers all 278 reports and the run-provenance note, and smoke-checks.sh runs
+that manifest as a live check and reports a failure when a carried copy does
+not match.  Rewriting one report would break that check, would leave a single
+file of 278 formatted unlike the rest, and would require regenerating a
+manifest that spans the whole archive.  The correct repair belongs in the
+harvest script, not in the harvested evidence: make the property filter
+element-aware so it consumes a property element whole rather than by line,
+and it will drop both physical lines of a multi-line value together.  Until
+the script is corrected a re-harvest reproduces the fragment identically,
+which is why the archive is internally consistent.
+
+
+THE GENUINE CAPTURE ATTEMPT
+
+The preferred provenance for any report here is a real run, relocated
+unchanged.  An independent re-capture was therefore attempted in this
+checkout before anything else, and it is recorded here because it did not
+succeed and the reason is worth keeping.
+
+what was attempted: the base commit was materialised read-only into a scratch
+directory, its own reactor descriptors confirmed pre-migration, and the single
+suite was compiled and run against the warmed local artifact repository on the
+older runtime.
+
+what happened, quoted from the captured build log with the machine path
+replaced by the placeholder this archive already uses for it:
+
+  cannot access com.armedia.acm.core.AcmObject
+  bad class file: {LOCAL-ARTIFACT-REPOSITORY}/com/armedia/acm/acm-core-api/
+    2021.03/acm-core-api-2021.03.jar(com/armedia/acm/core/AcmObject.class)
+    class file has wrong version 61.0, should be 52.0
+
+why that blocks it: the warmed local artifact repository is shared host state
+and currently holds the intra-reactor artifacts as the migrated build
+installed them, at the newer class-file version.  The older compiler cannot
+read them.  Clearing or rebuilding that repository in place would corrupt
+state other work depends on, and seeding a private copy and rebuilding the
+ancestor closure would produce a reconstruction rather than the authoritative
+run — while changing nothing about the report that is already installed.
+
+no tool was installed to make the attempt look complete.  The runtimes and
+the build tool used were the ones already present.
+
+corroboration that was obtainable, and was taken: the same suite was executed
+on the target runtime against the current tree.  It reported two tests run,
+zero failures, zero errors, zero skipped, and produced a report naming the two
+methods in source order — the same counters and the same two names, in the same
+order, as the archived baseline report for this suite.  The suite's source is
+byte-identical at the base commit and at the current commit, so the class the
+baseline exercised is the class that still exists.  That run also left a
+non-empty coverage data file, which is the observable form of the requirement
+that the runner declaration must not set a literal argument-line element: the
+agent's export survived, so the coverage gate evaluated a real data set rather
+than an empty one.
+
+
+AUDIT RESULTS FOR THIS ARCHIVE
+
+Recorded as outcomes, each counted across all archived reports:
+  module-access JVM arguments, in any of the three spellings — that is, an
+    argument that opens or exports an otherwise-encapsulated JDK package to the
+    unnamed module: 0.  This zero is EARNED, not incidental.  Every
+    accessibility failure met in this migration was inside a test library and
+    was resolved by upgrading or removing that library; every reflective
+    access-widening call site in the tree targets the application's own
+    classes; and there is no security-manager usage.
+  successor-namespace token: 0.  Every namespace string in the archive is the
+    original one.  The property allowlist is what keeps it that way: both
+    classpath properties are dropped, and a classpath is the one place in a
+    report where such a token would otherwise appear.
+  configured administrator password: 0.
+  absolute machine paths surviving into the archive: 0, verified by search
+    rather than claimed; see the run-provenance note for the extent of the
+    replacement.
+
+substitutions performed while writing this note: 1.  The build-log excerpt
+above had its local artifact repository path replaced with the placeholder,
+for the same reason the harvest replaces it everywhere else — the path names a
+directory specific to one machine and one run.  Nothing else in the excerpt
+was altered, and no report was touched.
+
+
+WHAT WAS NOT DONE
+
+No report was edited, reformatted or regenerated.  No skipped, failure or
+error element was added to any report, and no log line was invented for any
+suite whose class declares a logger.  No report was created for an
+integration-test class: those run in phases after the unit-test phase, so the
+unit-test run this archive records never reached them, and an absent
+integration test is neither a pass nor a failure and can never justify a test
+exclusion.  No test was disabled and no ignore annotation was added anywhere.

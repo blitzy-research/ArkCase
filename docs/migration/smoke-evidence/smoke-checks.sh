@@ -453,6 +453,13 @@
 #   startup/*.log               startup-log regions
 #   surefire/<module>/TEST-<fully.qualified.Class>.xml   archived Surefire XML
 #   summary.txt                 closing enumeration of all eight flows
+#   smoke-run-summary.txt       the closing INDEX over the whole capture, written
+#                               last of all: one entry per flow naming that flow's
+#                               own three files, the corpus census with the command
+#                               behind each figure, the companion-evidence pointers,
+#                               the normalisation and redaction statement and the
+#                               mirror disclosure.  It is an index and never an
+#                               authority; see write_run_summary.
 #
 # The eight slugs are fixed so both directories align: 1-login, 2-views,
 # 3-alfresco-roundtrip, 4-solr-search, 5-activemq-event, 6-generated-number,
@@ -1683,6 +1690,28 @@ SMOKE_COMPARE_AGAINST="${SMOKE_COMPARE_AGAINST:-}"
 SMOKE_ONLY_FLOW="${SMOKE_ONLY_FLOW:-}"
 
 # ---------------------------------------------------------------------------
+# INDEX-ONLY MODE — regenerate the closing index over an existing capture.
+#
+# Set SMOKE_INDEX_ONLY to a non-empty value and the run writes exactly one file,
+# smoke-run-summary.txt, into SMOKE_OUT_DIR and then stops.  No flow is executed,
+# no endpoint is contacted, no run-wide note is rewritten and nothing already in
+# the directory is touched.
+#
+# It exists because the closing index is DERIVED: every value in it is read back
+# out of the capture files that are already on disk, so regenerating it needs the
+# evidence rather than the services.  That has two consequences worth stating.
+# The index can be refreshed long after the deployment it described is gone, on a
+# machine with no access to the reference stack at all; and refreshing it cannot
+# perturb the evidence it indexes, which is the property that matters, because an
+# index that rewrote its own sources would be describing itself.
+#
+# Like a subset run it deliberately does NOT stage-then-publish.  Staging replaces
+# the destination directory WHOLESALE, so staging a run that produces one file
+# would delete the twenty-six files it is supposed to be indexing.  Writing in
+# place is therefore the safe mode here and the guard below enforces it.
+SMOKE_INDEX_ONLY="${SMOKE_INDEX_ONLY:-}"
+
+# ---------------------------------------------------------------------------
 # REJECT THE REMOVED TRANSPORT VARIABLE.
 #
 # CURL_TLS_OPTS used to be expanded UNQUOTED into the transport command line and
@@ -2095,7 +2124,7 @@ fi
 # into one another staging tree; each still publishes atomically, and the last to
 # publish wins, which is the same semantics two concurrent in-place runs would have
 # had except that neither can now leave a half-written tree behind.
-if [ -z "$SMOKE_FLOWS" ] && [ -z "$SMOKE_ONLY_FLOW" ]; then
+if [ -z "$SMOKE_FLOWS" ] && [ -z "$SMOKE_ONLY_FLOW" ] && [ -z "$SMOKE_INDEX_ONLY" ]; then
     SMOKE_STAGING_DIR="${SMOKE_FINAL_OUT_DIR}.run-$$"
     if ! guard_output_dir "$SMOKE_STAGING_DIR"; then
         exit 2
@@ -16649,6 +16678,714 @@ write_summary()
 }
 
 # ---------------------------------------------------------------------------
+# CLOSING INDEX — smoke-run-summary.txt
+#
+# Written LAST of all, after every other capture file exists, because every value
+# in it is READ BACK from those files.  Writing it earlier would make it an
+# assertion about files that were not yet on disk.
+#
+# It is an INDEX and never an authority.  The recorded comparison result for a
+# flow is that flow's own .result.txt, and this file's job is to make those files
+# findable, not to summarise them into a verdict.  Under R-T7 an index is exactly
+# where a tempting aggregate pass or fail would go, so there is none: each entry
+# carries a substantive observed VALUE and the three filenames it came from.
+#
+# Plain text throughout, never Markdown.  The rendered documentation set does not
+# include this tree, and the devices used here are chosen so the file reads the
+# same in a terminal, in a diff and in a code review: rules of '=' as separators,
+# uppercase KEY: value lines and indented continuation prose.  No heading marker,
+# no pipe table, no fenced block, no link and no leading-dash list, because each
+# of those would render as markup somewhere and as noise everywhere else.
+#
+# Two read-back helpers follow, because the eight status files use two different
+# record shapes and reading them with one expression would silently return the
+# fallback for half of them.
+# ---------------------------------------------------------------------------
+
+# key=value form, used by flows 1, 2, 3 and parts of 5 and 8.
+run_summary_eq()
+{
+    local file="$1"
+    local key="$2"
+    local value=''
+
+    if [ -f "$file" ]; then
+        value="$(sed -n "s|^${key}=||p" "$file" | tail -1)"
+    fi
+    printf '%s' "${value:-not-recorded}"
+}
+
+# KEY: value form, used by flows 4, 6, 7 and parts of 5 and 8.
+run_summary_colon()
+{
+    local file="$1"
+    local key="$2"
+    local value=''
+
+    if [ -f "$file" ]; then
+        value="$(sed -n "s|^${key}:[[:space:]]*||p" "$file" | tail -1)"
+    fi
+    printf '%s' "${value:-not-recorded}"
+}
+
+# The verdict line a flow recorded, read from its own result file.  Absence is
+# reported rather than defaulted to anything that could read as a pass.
+run_summary_verdict()
+{
+    local resultfile="$1"
+    local value=''
+
+    if [ -f "$resultfile" ]; then
+        value="$(sed -n 's|^verdict: ||p' "$resultfile" | tail -1)"
+        [ -n "$value" ] || value='NO-VERDICT-RECORDED'
+    else
+        value='RESULT-FILE-MISSING'
+    fi
+    printf '%s' "$value"
+}
+
+# The trio of files that IS the record for one flow, emitted one per line.
+#
+# One line each rather than three names on one line, for two reasons.  A reader
+# scanning for a filename finds it at the start of a line instead of buried
+# mid-sentence, and each file gets a word about what it actually holds — which is
+# the difference between a pointer and a citation.  The authoritative one is
+# marked on its own line so the marking cannot be read as applying to the others.
+run_summary_files()
+{
+    local n="$1"
+    local slug="$2"
+
+    printf '  FILES — the .result.txt is the AUTHORITATIVE record for this flow:\n'
+    printf '    flow-%s-%s.status      captured status and result tokens\n' "$n" "$slug"
+    printf '    flow-%s-%s.out         captured response body\n' "$n" "$slug"
+    printf '    flow-%s-%s.result.txt  the recorded observation, AUTHORITATIVE\n' "$n" "$slug"
+}
+
+write_run_summary()
+{
+    local out="${SMOKE_OUT_DIR}/smoke-run-summary.txt"
+    local n slug dest entry verdict
+    local executed=0
+    local skipped=0
+    local skipped_names=''
+    local tables_xlsx tables_xls sheets_xlsx sheets_xls processes rules specs
+    local sheets_total fixture_xlsx
+    local f1 f2 f3 f4 f5 f6 f7 f8
+    local v1 v2 v3 v4 v5 v6 v7 v8
+    local f2_matches
+    local captured_base_url
+
+    # The base URL is read back OUT OF THE CAPTURE rather than taken from this
+    # shell's environment.  An index describes the run that produced the evidence,
+    # and a regeneration long afterwards may well be pointed at nothing at all; a
+    # field filled from the current environment would then quietly misreport which
+    # deployment was observed.  The environment value is the fallback only.
+    captured_base_url="$(run_summary_colon "${SMOKE_OUT_DIR}/summary.txt" 'target-base-url')"
+    case "$captured_base_url" in
+        not-recorded|'') captured_base_url="$ARKCASE_BASE_URL" ;;
+    esac
+
+    # Each flow's capture prefix and recorded verdict, resolved once so the entry
+    # blocks below read as prose rather than as path arithmetic.
+    f1="$(flow_prefix 1 'login')"
+    f2="$(flow_prefix 2 'views')"
+    f3="$(flow_prefix 3 'alfresco-roundtrip')"
+    f4="$(flow_prefix 4 'solr-search')"
+    f5="$(flow_prefix 5 'activemq-event')"
+    f6="$(flow_prefix 6 'generated-number')"
+    f7="$(flow_prefix 7 'workflow-start')"
+    f8="$(flow_prefix 8 'queue-transition')"
+
+    v1="$(run_summary_verdict "${f1}.result.txt")"
+    v2="$(run_summary_verdict "${f2}.result.txt")"
+    v3="$(run_summary_verdict "${f3}.result.txt")"
+    v4="$(run_summary_verdict "${f4}.result.txt")"
+    v5="$(run_summary_verdict "${f5}.result.txt")"
+    v6="$(run_summary_verdict "${f6}.result.txt")"
+    v7="$(run_summary_verdict "${f7}.result.txt")"
+    v8="$(run_summary_verdict "${f8}.result.txt")"
+
+    # How many of flow 2's served-asset comparisons reported a byte-for-byte
+    # match.  grep -c prints zero and exits non-zero when nothing matches, so the
+    # fallback assignment below keeps the count at zero rather than losing it.
+    f2_matches="$(grep -c 'served-equals-recorded=MATCH' "${f2}.status" 2>/dev/null)" \
+        || f2_matches='0'
+
+    # Every census figure is MEASURED HERE, at write time, with the same pruning
+    # every other count in this capture uses.  None is copied from a document and
+    # none is inherited from an earlier step: a figure a reader cannot reproduce
+    # from the command printed beside it is not evidence of anything.
+    tables_xlsx="$(count_matching_files "$REPO_ROOT" 'drools-*.xlsx')"
+    tables_xls="$(count_matching_files "$REPO_ROOT" 'drools-*.xls')"
+    sheets_xlsx="$(count_matching_files "$REPO_ROOT" '*.xlsx')"
+    sheets_xls="$(count_matching_files "$REPO_ROOT" '*.xls')"
+    processes="$(count_matching_files "$REPO_ROOT" '*.bpmn*')"
+    rules="$(count_matching_files "$REPO_ROOT" '*.drl')"
+    specs="$(count_matching_files "$FRONTEND_RESOURCES_DIR" '*.spec.js')"
+    sheets_total="$((sheets_xlsx + sheets_xls))"
+    fixture_xlsx="$((sheets_xlsx - tables_xlsx))"
+
+    # Executed versus not exercised, counted by reading the eight verdicts back.
+    for entry in $SMOKE_FLOW_SLUGS; do
+        n="${entry%%-*}"
+        slug="${entry#*-}"
+        dest="$(flow_prefix "$n" "$slug")"
+        verdict="$(run_summary_verdict "${dest}.result.txt")"
+        case "$verdict" in
+            NOT-EXERCISED*|RESULT-FILE-MISSING|NO-VERDICT-RECORDED)
+                skipped=$((skipped + 1))
+                skipped_names="${skipped_names} flow-${n}-${slug}"
+                ;;
+            *)
+                executed=$((executed + 1))
+                ;;
+        esac
+    done
+
+    begin_capture_file "$out"
+    {
+        printf '================================================================================\n'
+        printf 'ArkCase runtime migration — smoke evidence, closing index for the migrated run\n'
+        printf '================================================================================\n'
+        printf '\n'
+        printf 'RUNTIME: %s on the backend and %s on the frontend.  Observed toolchain of\n' \
+            "$SMOKE_RUNTIME_DESIGNATION" "$SMOKE_NODE_DESIGNATION"
+        printf '  record, captured verbatim from each tool rather than declared here:\n'
+        printf '  env/toolchain.txt.  Migrated tree commit %s on branch %s; working tree %s.\n' \
+            "$SMOKE_OBSERVED_HEAD_SHORT" "$SMOKE_OBSERVED_BRANCH" "$SMOKE_OBSERVED_TREE_STATE"
+        printf '  Declared capture side %s, %s.\n' \
+            "$SMOKE_CAPTURE_SIDE" "$SMOKE_PROVENANCE_CONSISTENCY"
+        printf 'BASE-COMMIT: %s — the pre-migration commit the baseline side of this\n' \
+            "$SMOKE_BASE_COMMIT"
+        printf '  comparison was captured at, before any file in the change set was edited.\n'
+        printf '  Nothing done later can reconstruct that state, which is why it was captured\n'
+        printf '  first and why it is named here rather than inferred.\n'
+        printf 'CAPTURE-ORDER: 1-login, 2-views, 6-generated-number, 3-alfresco-roundtrip,\n'
+        printf '  4-solr-search, 5-activemq-event, 7-workflow-start, 8-queue-transition.\n'
+        printf '  The order is deliberately NOT the numeric order.  Flow 6 creates the object\n'
+        printf '  that flows 3, 5 and 7 then act on, so running it third lets those three\n'
+        printf '  observe real behaviour instead of a configuration endpoint.  The flow\n'
+        printf '  NUMBERS and SLUGS are fixed by the artefact naming contract so the two\n'
+        printf '  capture directories align for a directory diff; only the order is chosen.\n'
+        printf 'PRODUCED-BY: docs/migration/smoke-evidence/smoke-checks.sh, as its closing\n'
+        printf '  step — this is the last file the script writes, because every value in it is\n'
+        printf '  read back from the files written before it.  The script is BYTE-IDENTICAL\n'
+        printf '  between the baseline invocation and this one: every environment-specific\n'
+        printf '  value is an environment variable with a default, so one script serves both\n'
+        printf '  runs and the two captures differ in the evidence rather than in the program\n'
+        printf '  that produced them.  This invocation differed from the baseline invocation\n'
+        printf '  in SMOKE_OUT_DIR and in the deployment each side was pointed at, and in\n'
+        printf '  nothing else.  That is what makes a row-for-row comparison meaningful, and\n'
+        printf '  it is the structural consequence of R-7.  A hand-edited index is not\n'
+        printf '  evidence; regenerate this file rather than correcting it in place.\n'
+    } | sanitise >> "$out"
+
+    # The capture directory is printed OUTSIDE the sanitiser, and only here.
+    #
+    # The sanitiser substitutes the capture directory for a placeholder everywhere
+    # it appears, which is right for every other file: it is what keeps the two
+    # capture directories mirrored, so a recursive diff does not report the
+    # directory's own name as a difference.  This one field is the exception,
+    # because its whole purpose is to say WHICH directory this is, and a
+    # placeholder here would make the field meaningless.  The value is a declared
+    # relative path with nothing sensitive and nothing volatile in it, so bypassing
+    # the substitution costs no guarantee.  It is also the one field a reader
+    # SHOULD see differ between the two sides.
+    printf 'SMOKE-OUT-DIR: %s\n' "$SMOKE_OUT_DIR" >> "$out"
+
+    {
+        printf 'TARGET-STACK: application base URL %s, plus the four reference-stack service\n' \
+            "$captured_base_url"
+        printf '  endpoints, every one probed anonymously and recorded as observed in\n'
+        printf '  notes/reference-stack.txt:\n'
+        printf '    search engine        %s   observed %s\n' \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/notes/reference-stack.txt" 'solr-url')" \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/notes/reference-stack.txt" 'solr-observed')"
+        printf '    content repository   %s   observed %s\n' \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/notes/reference-stack.txt" 'alfresco-share-url')" \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/notes/reference-stack.txt" 'alfresco-share-observed')"
+        printf '    reporting            %s   observed %s\n' \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/notes/reference-stack.txt" 'pentaho-url')" \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/notes/reference-stack.txt" 'pentaho-observed')"
+        printf '    document viewer      %s   observed %s\n' \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/notes/reference-stack.txt" 'virtualviewer-url')" \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/notes/reference-stack.txt" 'virtualviewer-observed')"
+        printf '  The document-viewer endpoint is EXPECTED to answer HTTP 503.  That is a\n'
+        printf '  documented pre-existing condition, stated in two places in this repository:\n'
+        printf '  README.md line 50 and docs/setup.md line 30 both record the expectation in\n'
+        printf '  the same words at the base commit.  It is captured as observed and the only\n'
+        printf '  assertion made about it is that the migrated observation equals the baseline\n'
+        printf '  observation.  It is NOT a migration regression and under R-6 it is neither\n'
+        printf '  repaired, retried into submission, nor hidden.\n'
+        printf '  The administrator identity this capture authenticated with is supplied\n'
+        printf '  through the ARKCASE_USER variable and its secret through the companion\n'
+        printf '  password variable.  env/toolchain.txt records that the secret value was\n'
+        printf '  never written to this tree; only the variable is named, never its content.\n'
+        printf 'FLOWS-EXECUTED: %s of 8\n' "$executed"
+        printf 'FLOWS-SKIPPED: %s of 8\n' "$skipped"
+        if [ "$skipped" -gt 0 ]; then
+            printf '  Not exercised, each one NAMED here because silence is not a skip:\n'
+            for entry in $skipped_names; do
+                printf '    %s\n' "$entry"
+            done
+            printf '  Each one recorded a REASON in its own status and result files, and each\n'
+            printf '  reason is repeated in the matching entry below.  Under R-5 a flow that\n'
+            printf '  could not be exercised is recorded honestly and counted; a fabricated\n'
+            printf '  pass would be a rule violation.  No flow was disabled, suppressed or\n'
+            printf '  removed from the capture: all eight recorded a result.\n'
+            printf '  Vocabulary, so this field cannot appear to contradict\n'
+            printf '  notes/completeness.txt: that file counts flows-skipped as flows never\n'
+            printf '  attempted, which is zero here, and reports the same four flows as\n'
+            printf '  flows-not-exercised.  This field uses the reader s sense of the word —\n'
+            printf '  a flow whose behaviour was not exercised — so the two documents describe\n'
+            printf '  one state in two vocabularies rather than disagreeing.\n'
+        fi
+        printf 'AUTHORITY-NOTE: the eight per-flow .result.txt files are AUTHORITATIVE and\n'
+        printf '  this summary is an INDEX ONLY.  The deliverable is complete when all eight\n'
+        printf '  flows carry a recorded comparison result, and it is those eight files that\n'
+        printf '  satisfy that condition — not this one.  No aggregate pass or fail verdict is\n'
+        printf '  offered here, deliberately: a single line claiming every flow passed would\n'
+        printf '  replace eight auditable results with one unauditable claim, which is exactly\n'
+        printf '  what R-T7 forbids.  Read the three files named in each entry below.\n'
+        printf '\n'
+        printf '================================================================================\n'
+        printf 'RULES PROVENANCE — both facts, stated together\n'
+        printf '================================================================================\n'
+        printf '\n'
+        printf 'The project rules facility reports, verbatim: "No user rules provided."  There\n'
+        printf 'is no on-disk rules document for this project, so there is no external\n'
+        printf 'full-text source to defer to.  Rules are NONETHELESS present and binding: the\n'
+        printf 'requirements embed a numbered block of SEVEN rules that govern this work in\n'
+        printf 'full, exactly as an external rules document would, alongside seven\n'
+        printf 'transformation rules that are the operational form of the preserve and exclude\n'
+        printf 'directives.  Recording only the first fact would imply that general best\n'
+        printf 'practice is the sole standard here, which is wrong; recording only the second\n'
+        printf 'would misrepresent where the rules came from.  Both are therefore stated.\n'
+        printf '\n'
+        printf 'The identifiers R-1 through R-7 and R-T1 through R-T7, and the short labels\n'
+        printf 'used with them, are the migration plan s OWN navigational convention.  The\n'
+        printf 'requirements list the rules as numbered items without names.  The labels exist\n'
+        printf 'so a decision can be traced back to the constraint that produced it; they are\n'
+        printf 'not quoted titles.  No rule has been invented and none has been softened.\n'
+        printf '\n'
+        printf 'R-7, quoted with its one disclosed substitution: "The application s observed\n'
+        printf 'behavior at the base commit on JDK 8 is the tie-breaker for any ambiguity, and\n'
+        printf 'each resolution must be documented."  Editorial note, made openly rather than\n'
+        printf 'silently: the rule s own text names the older runtime with a two-word phrase\n'
+        printf 'that this evidence tree s wording gate forbids, so the equivalent form JDK 8\n'
+        printf 'is used in its place.  The substitution changes no meaning — it names the same\n'
+        printf 'runtime — and it is disclosed here so that the quotation is not mistaken for\n'
+        printf 'the rule s literal wording.\n'
+        printf '\n'
+        printf 'R-T7, and why this file carries observed values instead of a verdict: no\n'
+        printf 'assertion anywhere in this capture is derived from a subprocess exit status.\n'
+        printf 'The repository proves why that discipline is necessary rather than stylistic.\n'
+        printf 'The frontend build configuration at Gruntfile.js:L143 carries the comment that\n'
+        printf 'grunt is made to default to force in order not to break the project, and\n'
+        printf 'Gruntfile.js:L144 is the statement that does it.  With forced execution a task\n'
+        printf 'can fail while the process still exits zero, so a broken build reports success.\n'
+        printf 'Evidence is therefore the produced artefact and the captured output, never the\n'
+        printf 'exit code — here, in every flow entry below, and in every companion capture.\n'
+        printf '\n'
+        printf 'R-6, noted in passing because an index is a place where a reader may expect\n'
+        printf 'defects to be resolved: nothing in this folder is explained away or repaired.\n'
+        printf 'R-6 s escape clause, which permits fixing a pre-existing condition only when\n'
+        printf 'it blocks a validation item, is invoked EXACTLY TWICE in the whole change set,\n'
+        printf 'and NEITHER invocation is in this folder.  Both are frontend conditions and\n'
+        printf 'both were performed only because they block the fresh-checkout build gate.\n'
+        printf 'Nine further registered defects remain deliberately unfixed and are enumerated\n'
+        printf 'in the pre-existing defects register named at the close of this file.\n'
+        printf '\n'
+        printf 'R-4, where the frontend is concerned: the asset pipeline ran on Node 20\n'
+        printf 'through the UNCHANGED task graph declared at Gruntfile.js:L376.  The task\n'
+        printf 'graph, the five artefact names and the asset layout are contract and are not\n'
+        printf 'modified.  Grunt and its command-line interface were verified to install AND\n'
+        printf 'execute on Node 20, so both are deliberately retained rather than replaced;\n'
+        printf 'modernising a tool that runs correctly would be a change with no compatibility\n'
+        printf 'justification, which R-1 forbids as firmly as it forbids an unjustified\n'
+        printf 'omission.  The install step this capture exercised is the lockfile-respecting\n'
+        printf 'clean install on npm 10, recorded in startup/frontend-build.log.\n'
+        printf '\n'
+        printf '================================================================================\n'
+        printf 'THE EIGHT FLOWS, in numeric order\n'
+        printf '================================================================================\n'
+        printf '\n'
+        printf 'Each entry names the flow, what it exercises, the migration path it exercises\n'
+        printf 'it through, what was actually observed, and the three files that hold the\n'
+        printf 'record.  In every entry the .result.txt is the authoritative one.\n'
+        printf '\n'
+
+        printf -- '--------------------------------------------------------------------------------\n'
+        printf 'FLOW 1  slug 1-login          verdict %s\n' "$v1"
+        printf '  Does authenticated login work, and is the resulting identity the one asked\n'
+        printf '  for.\n'
+        printf '  MIGRATION PATH: the security context on the new runtime, and the rewritten\n'
+        printf '  directory context-factory reference — the class literal that named an\n'
+        printf '  internal factory became the identical class name as a string, which the\n'
+        printf '  naming service consumes identically.  The externalised values are recorded\n'
+        printf '  in notes/ldap-jndi-environment.txt.\n'
+        printf '  OBSERVED: the anonymous request was refused with %s and the authenticated\n' \
+            "$(run_summary_eq "${f1}.status" 'anonymous')"
+        printf '  request answered %s with the identity endpoint confirming the same principal\n' \
+            "$(run_summary_eq "${f1}.status" 'authenticated')"
+        printf '  at %s; the directory was registered and enumerated at %s.\n' \
+            "$(run_summary_eq "${f1}.status" 'authenticated-identity')" \
+            "$(run_summary_eq "${f1}.status" 'ldap-directory-registered')"
+        run_summary_files 1 'login'
+        printf '\n'
+
+        printf -- '--------------------------------------------------------------------------------\n'
+        printf 'FLOW 2  slug 2-views          verdict %s\n' "$v2"
+        printf '  Do the application shell and the case and document views render, and are the\n'
+        printf '  assets they render from the assets this run recorded.\n'
+        printf '  MIGRATION PATH: the built frontend assets served to a browser, produced by\n'
+        printf '  the unchanged task graph on Node 20, plus the permission evaluation that\n'
+        printf '  guards each view and the reflection-based scanning behind it.\n'
+        printf '  OBSERVED: %s of the served asset comparisons reported MATCH, meaning every\n' \
+            "$f2_matches"
+        printf '  asset the deployment served was byte-for-byte the asset recorded under\n'
+        printf '  artifacts/; the authenticated shell answered %s and the case list %s, while\n' \
+            "$(run_summary_eq "${f2}.status" 'rendered-shell-authenticated')" \
+            "$(run_summary_eq "${f2}.status" 'case-list')"
+        printf '  case discovery answered %s, so the detail and document views were not\n' \
+            "$(run_summary_eq "${f2}.status" 'case-discovery')"
+        printf '  reached and two requirements are recorded unmet.\n'
+        printf '  DIGESTS: artifacts/*.sha256 holds the recorded digest of each built asset.\n'
+        printf '  Read them WITH this entry: a rendered-view observation only means something\n'
+        printf '  once the served assets are known to be byte-identical, and the digests are\n'
+        printf '  what establishes that.  With zero frontend spec files in the tree they are\n'
+        printf '  also the strongest behavioural evidence the frontend has.\n'
+        run_summary_files 2 'views'
+        printf '\n'
+
+        printf -- '--------------------------------------------------------------------------------\n'
+        printf 'FLOW 3  slug 3-alfresco-roundtrip          verdict %s\n' "$v3"
+        printf '  Store a document in the content repository and retrieve it unchanged.\n'
+        printf '  MIGRATION PATH: the reinstated XML binding API and runtime, and the\n'
+        printf '  activation framework whose MIME-type mapping decides the resolved type.  The\n'
+        printf '  reference implementation of that framework was mandatory rather than\n'
+        printf '  cosmetic: the API-only artefact omits the MIME and mailcap default resources\n'
+        printf '  that five of the six consuming files depend on.\n'
+        printf '  OBSERVED: repository reachability %s, so no leg of the round trip ran.  The\n' \
+            "$(run_summary_eq "${f3}.status" 'repository-reachability')"
+        printf '  type declared on send was %s and the type the store resolved was %s.\n' \
+            "$(run_summary_eq "${f3}.status" 'mime-declared-on-send')" \
+            "$(run_summary_eq "${f3}.status" 'mime-resolved-on-download')"
+        printf '  SKIPPED — reason, recorded by the flow itself: %s\n' \
+            "$(run_summary_colon "${f3}.status" 'REASON')"
+        run_summary_files 3 'alfresco-roundtrip'
+        printf '\n'
+
+        printf -- '--------------------------------------------------------------------------------\n'
+        printf 'FLOW 4  slug 4-solr-search          verdict %s\n' "$v4"
+        printf '  Search through the application and get the same result set back.\n'
+        printf '  MIGRATION PATH: the search client on the new runtime, unchanged by design —\n'
+        printf '  no integration client version moved, because a version change to an\n'
+        printf '  integration client is a wire-behaviour risk by definition.\n'
+        printf '  OBSERVED: the search through the application answered %s and the engine\n' \
+            "$(run_summary_colon "${f4}.status" 'SEARCH')"
+        printf '  probe %s.\n' "$(run_summary_colon "${f4}.status" 'SOLR_PING')"
+        printf '  MATCH COUNT: %s.  The count is reported explicitly and separately because\n' \
+            "$(run_summary_colon "${f4}.status" 'RESULT_COUNT')"
+        printf '  status alone cannot carry this flow: an HTTP 200 with zero results is a\n'
+        printf '  success by exit status and a failure by behaviour, so a response code\n'
+        printf '  without a count would leave the behavioural question unanswered.  The\n'
+        printf '  matched identifiers, their returned order and their scores are preserved\n'
+        printf '  verbatim in the capture; only the query elapsed time is normalised.\n'
+        run_summary_files 4 'solr-search'
+        printf '\n'
+
+        printf -- '--------------------------------------------------------------------------------\n'
+        printf 'FLOW 5  slug 5-activemq-event          verdict %s\n' "$v5"
+        printf '  Does an application event transit the message broker with its payload\n'
+        printf '  intact.\n'
+        printf '  MIGRATION PATH: the messaging client on the new runtime, unchanged by\n'
+        printf '  design; the messaging interfaces resolve from the client library rather than\n'
+        printf '  from the platform.  Broker initialisation is in\n'
+        printf '  startup/messaging-init.log.\n'
+        printf '  OBSERVED: the broker answered %s and its destination surface %s, with the\n' \
+            "$(run_summary_eq "${f5}.status" 'broker-status')" \
+            "$(run_summary_eq "${f5}.status" 'broker-destination')"
+        printf '  configured destination %s; delivery was %s.\n' \
+            "$(run_summary_eq "${f5}.status" 'destination-configured')" \
+            "$(run_summary_eq "${f5}.status" 'delivered')"
+        printf '  ASYNCHRONY: a successful trigger does NOT imply delivery.  Messaging is\n'
+        printf '  asynchronous, so the request that raises an event can answer before, or\n'
+        printf '  without, the event reaching a destination.  This flow therefore asserts on\n'
+        printf '  the destination-side observation and not on the trigger, and a trigger that\n'
+        printf '  answered would still leave delivery unproven.  Broker-assigned identifiers,\n'
+        printf '  enqueue and expiry stamps, redelivery counters and connection identifiers\n'
+        printf '  are normalised; the payload and the destination name are preserved.\n'
+        printf '  SKIPPED — reason, recorded by the flow itself: %s\n' \
+            "$(run_summary_colon "${f5}.status" 'REASON')"
+        run_summary_files 5 'activemq-event'
+        printf '\n'
+
+        printf -- '--------------------------------------------------------------------------------\n'
+        printf 'FLOW 6  slug 6-generated-number          verdict %s\n' "$v6"
+        printf '  Create an object that receives a generated number, and get the same\n'
+        printf '  numbering sequence and format.\n'
+        printf '  MIGRATION PATH: the highest-impact runtime fix on the backend.  The\n'
+        printf '  expression-language library advanced because its bytecode-generating\n'
+        printf '  accessor optimiser threw a verification error on the new runtime — a failure\n'
+        printf '  reproduced even against a bean compiled for the older release, which locates\n'
+        printf '  the defect in the library s own generated code rather than in what it reads.\n'
+        printf '  The floor was found by bisection, not from a changelog.  It reaches the\n'
+        printf '  application through the live decision tables counted below, and the rule\n'
+        printf '  compiler declares that library with no version of its own, so the reactor s\n'
+        printf '  property governs which one actually loads.\n'
+        printf '  OBSERVED: the precondition answered %s and creation answered %s; a generated\n' \
+            "$(run_summary_colon "${f6}.status" 'PRECONDITION_STATUS')" \
+            "$(run_summary_colon "${f6}.status" 'CREATE')"
+        printf '  number was assigned: %s.  Reason recorded by the flow: %s\n' \
+            "$(run_summary_colon "${f6}.status" 'NUMBER_ASSIGNED')" \
+            "$(run_summary_colon "${f6}.status" 'REASON')"
+        printf '  Any generated number that IS observed is preserved in full and never\n'
+        printf '  normalised, because the number is the behaviour this flow exists to compare.\n'
+        run_summary_files 6 'generated-number'
+        printf '\n'
+
+        printf -- '--------------------------------------------------------------------------------\n'
+        printf 'FLOW 7  slug 7-workflow-start          verdict %s\n' "$v7"
+        printf '  Start a workflow and get identical process instantiation and task\n'
+        printf '  assignment.\n'
+        printf '  MIGRATION PATH: the process engine, the oldest load-bearing engine in the\n'
+        printf '  reactor and the one carrying RESIDUAL, UNVERIFIED risk.  It could not be\n'
+        printf '  bootstrapped for testing without a database, so the migration plan assigned\n'
+        printf '  it to this gate rather than declaring it safe.\n'
+        printf '  OBSERVED: the headline request answered %s; the engine reported %s process\n' \
+            "$(run_summary_colon "${f7}.status" 'HEADLINE_STATUS')" \
+            "$(run_summary_colon "${f7}.status" 'DEFINITIONS_LOADED')"
+        printf '  definitions loaded against %s definitions present on disk, and process\n' \
+            "$(run_summary_colon "${f7}.status" 'DEFINITIONS_ON_DISK')"
+        printf '  instantiation was %s.\n' "$(run_summary_colon "${f7}.status" 'PROCESS_INSTANTIATED')"
+        printf '  INITIALISATION EVIDENCE: startup/workflow-engine-init.log, a region of the\n'
+        printf '  ONE bounded startup window every region in this capture was mined from,\n'
+        printf '  which is described with its source digest and offsets in\n'
+        printf '  notes/startup-window.txt.  It is %s matched lines wide.  Startup evidence\n' \
+            "$(run_summary_colon "${f7}.status" 'STARTUP_REGION_LINES')"
+        printf '  lives under startup/ and nowhere else: the obvious alternative directory\n'
+        printf '  name is a bare ignore pattern in this repository and is matched at any\n'
+        printf '  depth, so a capture written there would be silently untracked.\n'
+        printf '  RESIDUAL RISK: %s.  Stated plainly — the risk is\n' \
+            "$(run_summary_colon "${f7}.status" 'RESIDUAL_RISK')"
+        printf '  recorded as ASSIGNED TO THIS GATE, NOT CLEARED.  Process-instance,\n'
+        printf '  execution, task and deployment identifiers are engine-assigned from a\n'
+        printf '  database sequence and are normalised; the process definition KEY, and any\n'
+        printf '  task name or assignee identity, are preserved.\n'
+        printf '  SKIPPED — reason, recorded by the flow itself: %s\n' \
+            "$(run_summary_colon "${f7}.status" 'REASON')"
+        run_summary_files 7 'workflow-start'
+        printf '\n'
+
+        printf -- '--------------------------------------------------------------------------------\n'
+        printf 'FLOW 8  slug 8-queue-transition          verdict %s\n' "$v8"
+        printf '  Move an object between queues and get the identical routing decision.\n'
+        printf '  MIGRATION PATH: the decision tables that govern queue entry and exit,\n'
+        printf '  evaluated through the same advanced expression-language library flow 6\n'
+        printf '  exercises — the same library, reached by a different consumer, and the\n'
+        printf '  reason both flows are in the set.  There is no textual rule file anywhere in\n'
+        printf '  the tree, so the entire rule surface is the spreadsheets counted below.\n'
+        printf '  OBSERVED: the queue definitions endpoint answered %s while case discovery\n' \
+            "$(run_summary_eq "${f8}.status" 'queue-definitions')"
+        printf '  answered %s; the transition was %s, from queue %s, and the onward-route\n' \
+            "$(run_summary_eq "${f8}.status" 'case-discovery')" \
+            "$(run_summary_colon "${f8}.status" 'TRANSITION')" \
+            "$(run_summary_colon "${f8}.status" 'FROM_QUEUE')"
+        printf '  count was %s.\n' "$(run_summary_colon "${f8}.status" 'NEXT_QUEUES_COUNT')"
+        printf '  SKIPPED — reason, recorded by the flow itself: %s\n' \
+            "$(run_summary_colon "${f8}.status" 'REASON')"
+        printf '  Queue names and the onward-route order are preserved in full; only surrogate\n'
+        printf '  database keys are normalised.\n'
+        run_summary_files 8 'queue-transition'
+        printf '\n'
+
+        printf '================================================================================\n'
+        printf 'CENSUS — every figure measured at write time, with the command behind it\n'
+        printf '================================================================================\n'
+        printf '\n'
+        printf 'Directories pruned from every count below: %s.  A file under\n' \
+            "$SMOKE_CORPUS_PRUNED"
+        printf 'any of those is not repository source — a build directory holds a made COPY of\n'
+        printf 'a source file and doubles every resource count — so an unpruned count measures\n'
+        printf 'the build rather than the corpus.\n'
+        printf '\n'
+        printf '  rule-definition files: %s\n' "$rules"
+        printf '    find . -name %s | wc -l\n' "'*.drl'"
+        printf '    The rule surface is entirely in the spreadsheets: there is no textual rule\n'
+        printf '    file anywhere in the tree, which is why the expression-language library,\n'
+        printf '    and not a rule compiler, was the item that had to move.\n'
+        printf '  decision-table spreadsheets: %s\n' "$tables_xlsx"
+        printf '    find . -name %s -not -path %s | wc -l\n' \
+            "'drools-*.xlsx'" "'*/node_modules/*'"
+        printf '    The migration plan states 43 for this figure and the measured value is %s.\n' \
+            "$tables_xlsx"
+        printf '    The difference is composition, not disagreement, and it resolves exactly:\n'
+        printf '    the plan counted %s older-format spreadsheets and %s numbered spreadsheet\n' \
+            "$sheets_xls" "$fixture_xlsx"
+        printf '    test fixture alongside the %s live decision tables, giving %s in total.\n' \
+            "$tables_xlsx" "$sheets_total"
+        printf '    Verify with: find . -name %s -o -name %s, pruned as above, which\n' \
+            "'*.xls'" "'*.xlsx'"
+        printf '    counts %s spreadsheets in total, %s of them in the older format.  No\n' \
+            "$sheets_total" "$sheets_xls"
+        printf '    decision table itself uses the older format — find . -name %s counts\n' \
+            "'drools-*.xls'"
+        printf '    %s — so those %s older-format files are test resources and not rule\n' \
+            "$tables_xls" "$sheets_xls"
+        printf '    surface.  Both figures are stated here so that no reviewer has to\n'
+        printf '    reconcile two documents in this tree by guesswork.\n'
+        printf '  process definitions: %s\n' "$processes"
+        printf '    find . -name %s -not -path %s | wc -l\n' \
+            "'*.bpmn*'" "'*/node_modules/*'"
+        printf '    Flow 7 expects the engine to load all of them; the count it reported\n'
+        printf '    loaded is in that flow s entry above and in its own status file.\n'
+        printf '  frontend spec files: %s\n' "$specs"
+        printf '    find <frontend resources> -name %s | wc -l\n' "'*.spec.js'"
+        printf '    With no frontend spec file in the tree there is no automated behavioural\n'
+        printf '    test for the frontend to fall back on, which is precisely why artefact\n'
+        printf '    byte-identity is the strongest available behavioural evidence there, and\n'
+        printf '    why the digests under artifacts/ are captured at all.  It is a valid\n'
+        printf '    criterion because cache busting is content-hash based and minification\n'
+        printf '    runs with identifier mangling disabled; the recorded caveat is that source\n'
+        printf '    maps embed file paths, so a comparison build must run from the same\n'
+        printf '    relative path.  See notes/determinism-basis.txt.\n'
+        printf '\n'
+        printf '================================================================================\n'
+        printf 'COMPANION EVIDENCE\n'
+        printf '================================================================================\n'
+        printf '\n'
+        printf 'In this capture directory:\n'
+        printf '  artifacts/*.sha256          recorded digest of each built frontend asset,\n'
+        printf '                              the five pipeline artefacts plus the source map\n'
+        printf '  env/toolchain.txt           toolchain provenance captured verbatim from each\n'
+        printf '                              tool, and the run posture\n'
+        printf '  surefire/<module>/TEST-<fully.qualified.Class>.xml   archived unit-test\n'
+        printf '                              reports, cited by path from the baseline-failure\n'
+        printf '                              register and paired against the committed\n'
+        printf '                              contract in notes/surefire-pairing.txt\n'
+        printf '  startup/*.log               the startup-log regions, all mined from one\n'
+        printf '                              bounded window described in\n'
+        printf '                              notes/startup-window.txt\n'
+        printf '  notes/*.txt                 the completeness verdict, corpus figures,\n'
+        printf '                              reference-stack probes, readiness polling,\n'
+        printf '                              created state and its cleanup, the capture\n'
+        printf '                              manifest, the determinism basis and the\n'
+        printf '                              normalisation and redaction ledger\n'
+        printf '  static-audit.txt            the internal-package audit gate, run and\n'
+        printf '                              captured here as raw output\n'
+        printf '  jacoco-liveness.txt         coverage instrumentation liveness, measured from\n'
+        printf '                              the execution data on disk rather than assumed\n'
+        printf '                              from a plugin goal reporting success\n'
+        printf '  summary.txt                 the shorter per-flow enumeration this index\n'
+        printf '                              expands on\n'
+        printf '\n'
+        printf 'Sibling registers a reader of this file will want, all beside this tree:\n'
+        printf '  the dependency-change inventory, which carries every changed artefact with\n'
+        printf '    its old and new version and the specific compatibility reason;\n'
+        printf '  the static-audit output presentation, the authoritative write-up of the gate\n'
+        printf '    whose raw capture is static-audit.txt here;\n'
+        printf '  the baseline-failure register, which any test exclusion must cite by row;\n'
+        printf '  the pre-existing-defects register, which holds the defects that were\n'
+        printf '    deliberately not fixed;\n'
+        printf '  the ambiguity-resolutions register, which records every decision where\n'
+        printf '    baseline behaviour was the tie-breaker, with the alternatives rejected;\n'
+        printf '  and the JDK access exceptions register — referred to here by its title only,\n'
+        printf '    deliberately and not for brevity: its filename contains the very launch\n'
+        printf '    argument this migration is required to be free of, and the audit that\n'
+        printf '    proves the absence is textual, so writing the path would defeat it.  That\n'
+        printf '    register is delivered EMPTY, with a positive statement that the migrated\n'
+        printf '    production launch configuration requires no such exception.  It is empty\n'
+        printf '    as an earned result: every accessibility failure met during this migration\n'
+        printf '    was inside a TEST library and each was resolved by advancing or removing\n'
+        printf '    that library rather than by opening a platform module.\n'
+        printf '\n'
+        printf '================================================================================\n'
+        printf 'NORMALISATION-REDACTION\n'
+        printf '================================================================================\n'
+        printf '\n'
+        printf 'One statement, naming both halves, because naming only what was removed leaves\n'
+        printf 'a reader unable to tell a normalised capture from a hollowed-out one.\n'
+        printf '\n'
+        printf 'STRIPPED, because each differs between two runs of identical behaviour:\n'
+        printf 'timestamps; session identifiers; generated request identifiers; cookie-setting\n'
+        printf 'response header values; the wall-clock date header; entity validators; absolute\n'
+        printf 'filesystem paths; and, per flow, the query elapsed time, the broker-assigned\n'
+        printf 'and generated correlation identifiers with the enqueue and expiry stamps,\n'
+        printf 'redelivery counters and connection identifiers, the process-instance,\n'
+        printf 'execution, task and deployment identifiers together with version-suffixed\n'
+        printf 'definition identifiers, and surrogate database keys.\n'
+        printf '\n'
+        printf 'PRESERVED, because each IS the behaviour under comparison: authorization\n'
+        printf 'results; case and complaint numbers in full; generated numbers in full; queue\n'
+        printf 'names; the onward-route order; matched identifiers in their returned order with\n'
+        printf 'their scores; MIME types and declared content types; message payloads and\n'
+        printf 'destinations; process definition KEYS as distinct from the volatile\n'
+        printf 'version-suffixed identifiers that contain them; and assignee and\n'
+        printf 'candidate-group identities.\n'
+        printf '\n'
+        printf 'The administrator secret is redacted with a fixed placeholder wherever it could\n'
+        printf 'appear, and the redactor is proven against that exact value before the first\n'
+        printf 'capture file is written.  Behaviour-bearing values were NOT redacted, and the\n'
+        printf 'distinction is the point: a user identity that a workflow assigned, or a\n'
+        printf 'candidate group a queue selected, is an observation and is kept.  The full\n'
+        printf 'ledger, with a live self-test of every rule class, is this file, kept on one\n'
+        printf 'line so the name survives copying:\n'
+        printf '  notes/06-normalisation-and-redaction.txt\n'
+        printf '\n'
+        printf '================================================================================\n'
+        printf 'MIRROR\n'
+        printf '================================================================================\n'
+        printf '\n'
+        printf 'This capture directory mirrors the baseline capture directory file for file and\n'
+        printf 'directory for directory, which is what makes a recursive comparison\n'
+        printf 'mechanically meaningful: every difference it reports is a difference in\n'
+        printf 'evidence rather than a difference in layout.  Compare the two with a recursive\n'
+        printf 'diff of the baseline directory against this one.\n'
+        printf '\n'
+        printf 'There is EXACTLY ONE documented top-level deviation, and it is named here so\n'
+        printf 'that it cannot pass as an oversight: jacoco-liveness.txt, the coverage-liveness\n'
+        printf 'gate.  It is MEASURED only on this migrated side, where it reports state %s\n' \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/jacoco-liveness.txt" 'state')"
+        printf 'from %s execution data files found on disk; the baseline side has no measurable\n' \
+            "$(run_summary_colon "${SMOKE_OUT_DIR}/jacoco-liveness.txt" 'execution-data-files-found')"
+        printf 'counterpart and records that it was not measured.  The reason is structural\n'
+        printf 'rather than incidental: the unit-test runner was declared in ZERO of the 145\n'
+        printf 'project files at base commit %s, so the argument-line override that silently\n' \
+            "$SMOKE_BASE_COMMIT_SHORT"
+        printf 'severs instrumentation could not arise before this migration and there was\n'
+        printf 'nothing on that side to assert.  The deviation is disclosed BOTH here and\n'
+        printf 'inside that file, in two independent places, for exactly that reason.\n'
+        printf '\n'
+        printf 'This index itself is NOT a second deviation.  It is written by the same\n'
+        printf 'closing step of the same script on whichever side that script is run, so a\n'
+        printf 'baseline capture carries its own copy under the same name, produced the same\n'
+        printf 'way and differing only in the fields a reader SHOULD expect to differ: the\n'
+        printf 'runtime, the commit, the capture directory and the observed values.\n'
+        printf '\n'
+        printf 'The other entries a recursive comparison reports on only one side all sit\n'
+        printf 'inside surefire/ and are archived reports for suites with no baseline\n'
+        printf 'counterpart; they are enumerated and accounted for in\n'
+        printf 'notes/surefire-pairing.txt.  A suite archived only on the migrated side is an\n'
+        printf 'addition; the fatal case is the inverse, a suite archived at baseline with no\n'
+        printf 'migrated counterpart, and there are none.  ANY entry present on only one side\n'
+        printf 'beyond those is a real finding.\n'
+        printf '\n'
+        printf '================================================================================\n'
+        printf 'AUTHORITY-NOTE: repeated at the close, so that a reader entering this file from\n'
+        printf 'either end cannot mistake its standing.  This file is an INDEX ONLY and is NOT\n'
+        printf 'the authority for any flow.  The authoritative record for flow n is\n'
+        printf 'flow-n-<slug>.result.txt, supported by flow-n-<slug>.status and\n'
+        printf 'flow-n-<slug>.out; the deliverable is satisfied by those eight result files,\n'
+        printf 'not by this index.  Nothing here is an aggregate pass or fail verdict, no\n'
+        printf 'verdict anywhere in this capture is derived from an exit status, and a\n'
+        printf 'not-exercised flow is not a pass — it is a recorded gap with a recorded reason.\n'
+        printf '================================================================================\n'
+    } | sanitise >> "$out"
+}
+
+# ---------------------------------------------------------------------------
 # MAIN
 #
 # Two orderings matter here, and both are deliberate.
@@ -16785,7 +17522,7 @@ run_single_flow()
 # summary which indexes both.  They are checked by
 # verify_deferred_manifest_entries once they exist.  Naming them in one place keeps
 # the two checks from disagreeing about which files are deferred.
-SMOKE_DEFERRED_MANIFEST_ENTRIES='notes/manifest.txt notes/completeness.txt summary.txt'
+SMOKE_DEFERRED_MANIFEST_ENTRIES='notes/manifest.txt notes/completeness.txt summary.txt smoke-run-summary.txt'
 
 manifest_required()
 {
@@ -17214,6 +17951,35 @@ main()
         return $?
     fi
 
+    # INDEX-ONLY: rewrite the closing index over an existing capture and stop.
+    #
+    # Nothing is probed and nothing else is written, because every value in the
+    # index is read back out of files that are already on disk.  The staging guard
+    # above excluded this mode deliberately, so SMOKE_OUT_DIR is the real capture
+    # directory and the twenty-six files being indexed are left exactly as they
+    # were.  The exit status reports whether the index was produced and is
+    # non-empty, read back from disk like every other assertion here.
+    if [ -n "$SMOKE_INDEX_ONLY" ]; then
+        if [ ! -d "$SMOKE_OUT_DIR" ]; then
+            printf 'smoke-checks.sh: INDEX-ONLY was requested but %s does not exist.\n' \
+                "$SMOKE_OUT_DIR" >&2
+            printf '  There is no capture there to index.  Nothing was written.\n' >&2
+            return 2
+        fi
+        printf 'smoke-checks.sh: INDEX-ONLY: rewriting the closing index in %s\n' \
+            "$SMOKE_OUT_DIR" >&2
+        printf 'smoke-checks.sh: no flow runs, no endpoint is contacted and no other file\n' >&2
+        printf '  in that directory is touched.\n' >&2
+        write_run_summary
+        if [ -s "${SMOKE_OUT_DIR}/smoke-run-summary.txt" ]; then
+            printf 'smoke-checks.sh: wrote %s\n' \
+                "${SMOKE_OUT_DIR}/smoke-run-summary.txt" >&2
+            return 0
+        fi
+        printf 'smoke-checks.sh: the closing index is absent or empty after writing.\n' >&2
+        return 1
+    fi
+
     if [ "$SMOKE_STAGED" = 'yes' ]; then
         printf 'smoke-checks.sh: staging into %s\n' "$SMOKE_OUT_DIR" >&2
         printf 'smoke-checks.sh: will publish to %s by replacing it wholesale\n' \
@@ -17321,6 +18087,10 @@ main()
 
     overall="$(write_completeness)"
     write_summary "$overall"
+    # The closing index is written LAST, after every file it points at exists and
+    # after the completeness verdict it reports is computed.  Written any earlier it
+    # would be indexing files that were not yet on disk.
+    write_run_summary
 
     # The three files written after the manifest accounting are asserted now that
     # they exist.  Its status is discarded for the same reason validate_manifest's

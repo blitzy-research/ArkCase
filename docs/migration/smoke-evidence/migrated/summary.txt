@@ -77,24 +77,75 @@ MIRROR:
   The two capture directories mirror each other file for file and directory
   for directory, which is what makes the recursive comparison below
   mechanically meaningful: every difference it reports is a difference in
-  evidence rather than a difference in layout.  There is EXACTLY ONE
-  permitted TOP-LEVEL asymmetry, and it is named here so that it cannot
-  pass as an oversight.  The migrated capture directory additionally
-  carries the top-level file jacoco-liveness.txt, the coverage-liveness
-  gate, and the baseline capture directory has no counterpart to it.  The
-  reason is that maven-surefire-plugin was declared in zero of the 145 POMs
-  at base commit c8f6226105, so the argLine-override hazard that file
-  records could not arise on the baseline side and there was nothing there
-  to assert.  That file discloses the same deviation itself, so the
-  asymmetry is recorded in two independent places.
-  The other migrated-only entries a recursive comparison reports all sit
-  inside surefire/ and are archived reports for suites that have no
-  baseline counterpart; they are enumerated by name and accounted for in
-  notes/surefire-pairing.txt, and a suite archived only on the migrated
-  side is an addition rather than a hole.  The fatal case is the inverse --
-  a suite archived at baseline with no migrated counterpart -- and there
-  are none.  ANY entry present on only one side beyond those is a real
-  finding.
+  evidence rather than a difference in layout.  Every entry that a recursive
+  comparison finds on ONE side only is enumerated below, measured from the
+  two path sets rather than recalled, so that none of them can pass as an
+  oversight.  ANY entry present on only one side and NOT named here is a
+  real finding.
+
+  Present on the PRE-MIGRATION side only (2):
+    startup/error-scan.txt
+      The recorded RESULT of the startup error scan on this runtime, as
+      distinct from startup/errors.log, which is the scan's raw output and
+      is carried on both sides.  It states the scan command and the three
+      region-selection decisions verbatim so that the migrated side can run
+      the scan byte-identically, and it says of itself that it covers the
+      pre-migration side only.  The migrated side's counterpart to it is
+      that side's own scan, which is a separate artefact and not a copy of
+      this one.
+    surefire/notes/property-allowlist-line-continuation.txt
+      The register for one harvest defect that exists on this side alone:
+      the archived pre-migration reports carry an orphaned property-element
+      tail, 278 of 278, because the older runner writes line.separator with
+      a value that is a literal newline and the installer's property filter
+      is line-oriented.  The migrated reports carry it 0 of 284, so there is
+      nothing on that side to register.  The note sits BESIDE the module
+      directories, never inside one, which is the same placement rule
+      run-provenance.txt and sha256-manifest.txt follow.  The defect is
+      documented and deliberately NOT fixed: the archive is digest-bound, so
+      editing a report to tidy it would break the manifest that proves the
+      report is an unaltered relocated capture, and the defect blocks no
+      validation item.
+
+  Present on the MIGRATED side only, outside surefire/ (2):
+    comparison.txt
+      The recursive cross-capture comparison itself.  It is written once,
+      from the migrated side, because it is a statement ABOUT the pair; a
+      second copy on the pre-migration side would either duplicate it or
+      contradict it.
+    smoke-run-summary.txt
+      The closing index for this capture, written by the closing step of
+      smoke-checks.sh.  It is an INDEX ONLY and is the authority for
+      nothing: the deliverable is satisfied by the eight flow-n result
+      files.  The pre-migration capture in this tree predates that closing
+      step and therefore carries no counterpart; the script emits the file
+      on whichever side it is next run, so this asymmetry is a property of
+      when each side was captured, not of what either side found.
+
+  Present on the MIGRATED side only, inside surefire/ (6):
+      Archived reports for suites that do not exist at base commit
+      c8f6226105, so the pre-migration run could not have produced them:
+      one plural-named class the implicitly bound runner's default includes
+      did not match, four LDAP context-source suites and one angular
+      starter wiring suite.  They are enumerated by name and accounted for
+      in notes/surefire-pairing.txt.  A suite archived only on the migrated
+      side is an ADDITION rather than a hole.  The fatal case is the
+      inverse - a suite archived at pre-migration with no migrated
+      counterpart - and there are NONE.
+
+  Carried on BOTH sides, and named here because an earlier revision of this
+  block wrongly listed it as a migrated-only deviation:
+    jacoco-liveness.txt
+      The coverage-instrumentation liveness gate.  It is MEASURED on the
+      migrated side, where it reports state LIVE from the execution data
+      found on disk.  The pre-migration side carries the file too and
+      records that it was NOT measured there, with the reason: the
+      unit-test runner was declared in ZERO of the 145 project files at
+      base commit c8f6226105, so the argument-line override that silently
+      severs instrumentation could not arise before this migration and
+      there was nothing on that side to assert.  Recording the
+      not-measured state in a file of the same name, rather than omitting
+      the file, is what keeps the two directories comparable.
 
 how to use this capture:
   diff -r <baseline-capture-dir> <migrated-capture-dir>
