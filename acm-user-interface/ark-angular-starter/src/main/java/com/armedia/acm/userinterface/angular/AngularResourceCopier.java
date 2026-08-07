@@ -150,7 +150,6 @@ public class AngularResourceCopier implements ServletContextAware
             // delete all files that exist in the tmp dir, but we didn't copy them there; such files must have been
             // removed from the project. Exceptions are files managed by npm and grunt: lib folder, node_modules
             // folder, bower_components folder, package-lock.json
-            
             List<File> oldFilesInTmpFolder = tmpFilesFound.stream()
                     .filter(p -> !p.contains("node_modules"))
                     .filter(p -> !p.contains("bower_components"))

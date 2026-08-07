@@ -32,33 +32,57 @@ variables:
   # and the deployment tokens, so "which image runs" is a question about where those secrets go. Naming the
   # registry removes the first ambiguity; pinning the digest removes the second.
   #
-  # Both properties are ENFORCED BY THE VERIFICATION STEP BELOW rather than assembled into the string
-  # here, and that is a deliberate correction of an earlier attempt. Assembling the reference from
-  # "$CI_REGISTRY/..." looks tidier but is not safe: $CI_REGISTRY is populated only where the GitLab
-  # Container Registry is enabled, and when it is empty the assembled value becomes "/arkcase/...", which
-  # Docker rejects as an invalid reference format while creating the container - before any message this
-  # file could print. So the DEFAULT stays the well-formed, always-pullable tag form the base commit used,
-  # which guarantees that a pipeline can always start far enough to reach the check and be told what to do,
-  # and the check then refuses to let any job proceed on it.
+  # WHERE THE CONTROL HAS TO SIT, and why an earlier revision of this block had it in the wrong place.
+  # That revision made the default a well-formed, always-pullable tag and left both properties to the
+  # verification step further down, reasoning that a pipeline should always start far enough to be told what
+  # to do. That reasoning trades away the only thing the control is for. The verification step is a
+  # before_script: it runs INSIDE a container that has already been created from the unverified image, and
+  # GitLab injects the job's variables - $MVN_PASSWORD, $SFTP_USER, the deployment tokens - into that
+  # container as it is created. By the time any check can print a diagnostic, the image it is complaining
+  # about is already holding the secrets. A check that cannot run before the thing it guards is not a
+  # guard.
+  #
+  # So the reference is composed from parts that must be supplied, and the failure is deliberately moved
+  # earlier than any script this file can run. With either part unset the reference expands to
+  # "/arkcase/arkcase-gitlab-ci@", which a container runtime rejects as an invalid reference format while
+  # creating the container: the container is never created, so no variable is ever injected into it. The
+  # cost is real and is accepted knowingly - the operator sees the runtime's own "invalid reference format"
+  # rather than the remediation text below - and it is mitigated by this comment being the first thing in
+  # the variables block of the file the operator opens next, and by the same instruction appearing in
+  # docs/migration/dependency-change-inventory.md.
   #
   # The one operator action, performed once and auditable thereafter. Obtain the digest of the image you
-  # intend to build on and set the WHOLE reference as a PROTECTED, non-maskable project or group CI
-  # variable, so that changing the build image is a recorded event rather than a registry-side edit:
+  # intend to build on and set BOTH parts as PROTECTED, non-maskable project or group CI variables, so that
+  # changing the build image is a recorded event rather than a registry-side edit:
   #
   #   docker buildx imagetools inspect <registry>/arkcase/arkcase-gitlab-ci:2.0.0 \
   #       --format '{{.Manifest.Digest}}'
-  #   ARKCASE_CI_IMAGE = <registry>/arkcase/arkcase-gitlab-ci@sha256:<64 hex characters>
+  #   ARKCASE_CI_IMAGE_REGISTRY = <registry host, e.g. registry.example.com>
+  #   ARKCASE_CI_IMAGE_DIGEST   = sha256:<64 lower-case hex characters>
   #
-  # Until that variable is set the pipeline does not run, and that is the intended posture: this project's
-  # jobs receive deployment credentials, and refusing to run is the correct response to not knowing which
-  # image will receive them. The image must provide JDK 17 - the release the reactor compiles at - together
-  # with Maven 3.8 or newer, Node 20 LTS and npm 10, the runtime the committed frontend lockfile was
-  # produced with, and it must keep providing the sshpass and sftp clients the snapshot job below uses. Its
-  # provenance - a build attestation, an SBOM and a signature over the digest named here - is produced
-  # where the image is built, not here. docs/migration/dependency-change-inventory.md records the contract
-  # in full, including what remains a prerequisite outside this repository.
+  # Setting the whole reference in one variable, ARKCASE_CI_IMAGE, is also honoured: it overrides the
+  # composed value. Splitting it in two is preferred only because it makes a reference that names a
+  # registry but no digest, or a digest but no registry, impossible to express by accident.
+  #
+  # WHAT THIS REPOSITORY STILL CANNOT ENFORCE, stated rather than implied. A .gitlab-ci.yml can determine
+  # which reference a job asks for; it cannot determine that the runner honours the request. A runner
+  # configured to override the image, or to reuse a locally cached layer for a digest it never pulled,
+  # defeats anything written here. Closing that is runner-side configuration and is a prerequisite outside
+  # this repository: allowed_images restricted to the intended registry, pull_policy set to always so a
+  # digest is fetched rather than assumed, and the two variables above marked protected so they are exposed
+  # only to protected branches and tags. The verification step below is retained for exactly this residual
+  # case - it is corroboration that the container actually is what was asked for, and a diagnostic, not the
+  # primary control.
+  #
+  # The image must provide JDK 17 - the release the reactor compiles at - together with Maven 3.8 or newer,
+  # Node 20 LTS and npm 10, the runtime the committed frontend lockfile was produced with, and it must keep
+  # providing the sshpass and sftp clients the snapshot job below uses. Its provenance - a build
+  # attestation, an SBOM and a signature over the digest named here - is produced where the image is built,
+  # not here.
   ARKCASE_CI_IMAGE_VERSION: "2.0.0"
-  ARKCASE_CI_IMAGE: "arkcase-gitlab-ci:$ARKCASE_CI_IMAGE_VERSION"
+  ARKCASE_CI_IMAGE_REGISTRY: ""
+  ARKCASE_CI_IMAGE_DIGEST: ""
+  ARKCASE_CI_IMAGE: "$ARKCASE_CI_IMAGE_REGISTRY/arkcase/arkcase-gitlab-ci@$ARKCASE_CI_IMAGE_DIGEST"
 
   # Toolchain the build image must provide. These are the majors the reactor compiles at and the majors the
   # committed frontend lockfile was produced with; they are enforced rather than assumed.
@@ -74,9 +98,20 @@ image: "$ARKCASE_CI_IMAGE"
 
 default:
   before_script:
-    # Fail closed on the build image before any job does anything else. This runs in every job, in this
+    # Corroborate that the container really is the image that was asked for. This runs in every job, in this
     # file and in the release file it includes, because the image reference above governs all of them and
     # neither file declares a before_script of its own.
+    #
+    # Read what this can and cannot do. A before_script executes inside a container that already exists and
+    # into which this job's variables have already been injected, so it CANNOT prevent an unintended image
+    # from being pulled, started, or handed the credentials. The control that does that is the composed,
+    # must-be-supplied reference in the variables block above, which fails at container creation, plus the
+    # runner-side allowed_images and pull_policy settings named there. What this step adds is the case
+    # neither of those covers: a runner that overrode the reference, or satisfied a digest from a stale local
+    # layer, or supplied an image whose contents do not match what its name claims. Detecting that after the
+    # fact is still worth doing - it stops a wrong toolchain from producing artifacts that look valid - but
+    # it is corroboration and diagnosis, not prevention, and it is described that way here so that no reader
+    # mistakes its position in the sequence.
     - |
       set -eu
 

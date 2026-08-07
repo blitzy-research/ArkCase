@@ -107,7 +107,7 @@ The arithmetic closes exactly, and it is stated for the archive and for the work
 - The migrated half was re-harvested from the runner's own output at final `HEAD` on JDK 17 — `mvn -B -ntp -fae test`, BUILD SUCCESS, 284 suites across 67 modules — and installed by `install-surefire-evidence.sh`, which refuses rather than warns on a report that cannot state its own runtime. So **the archive and the working tree agree at 284 / 933 by construction**, and there is no reconciliation paragraph to get wrong. Re-running the install produces a byte-identical tree.
 - **No test method was removed from a suite the baseline ran.** Every one of the 278 paired suites carries the same method set on both sides; the whole of the 41-method delta is in the six unpaired suites enumerated above, and all 41 pass. The frontend-assembly bean's runtime contract is covered by the wiring suite, which asserts the two migrated values against the production context rather than against a copy of it.
 
-In both halves the red outcomes are **3 failures, 1 error and 21 skips**, and **all four red outcomes are the four rows registered below**. Within the unit-test corpus, therefore, the entire delta against the baseline is additive coverage with no regression. That claim is deliberately scoped to the unit corpus: there is exactly one migration-attributable red outside it, it is an integration test, and it is registered in its own section below rather than folded into this sentence.
+In both halves the red outcomes are **3 failures, 1 error and 21 skips**, and **all four red outcomes are the four rows registered below**. Within the unit-test corpus, therefore, the entire delta against the baseline is additive coverage with no regression. That claim is deliberately scoped to the unit corpus. One migration-attributable red did exist outside it — an integration test — and it is recorded, with its cause and its fix, in its own section below rather than folded into this sentence. It is now green; the section is kept because a regression that was found and closed is part of this page's record, not something to delete once it stops being red.
 
 ### The environment precondition that gates a complete run
 
@@ -231,32 +231,34 @@ The archive covers **66 of the 76 test-source-bearing modules**. The remaining *
 
 Every one of the ten is uncovered for the same benign reason: its test tree holds no Surefire-eligible test class. The tests there are `*IT` classes, which Failsafe executes in the integration-test phase and which emit their own reports, so they are correctly absent from a Surefire-only archive; the few remaining files in those trees are fixtures, entities and message listeners with no test method at all, which the runner correctly declines to run. **Nothing was skipped, excluded or lost to reach this boundary** — the run reached every module.
 
-The migrated half covers **67** modules against the baseline's 66, and the whole of that difference is `ark-angular-starter`, which had no `src/test/java` tree at the base commit and now has three classes in one. The set difference in the other direction is **empty**: every module the baseline covered is covered by the migrated half too. The working tree now holds **77** test-source trees against the base commit's 76, for the same single reason.
+The migrated half covers **67** modules against the baseline's 66, and the whole of that difference is `ark-angular-starter`, which had no `src/test/java` tree at the base commit and now has **one** test class, `AngularResourceCopierWiringTest`, carrying four methods. An earlier revision of this page said three classes, and that was wrong: three classes existed in a revision of this change set that was withdrawn, and the withdrawal took two of them — a deployment-copy suite and a safety suite — along with two of this class's six methods, `enforcesTheRuntimeMajorVersions` and `launcherPathsResolveEvenWhenNotConfigured`. Both of those methods tested copier hardening that the delivered 593-line copier does not have, so they were removed with the code they exercised rather than left asserting behaviour that no longer exists; the position they leave behind is recorded as entry 58 of [Pre-existing Defects](pre-existing-defects.md). The four that remain — `contextInitialisesAndDefinesTheCopier`, `installsFromTheCommittedLockfile`, `carriesTheLockfileIntoTheStagingFolder` and `retainsTheGruntPipeline` — cover exactly the wiring the migration does change, and all four pass. The archive holds one XML for this module, consistent with one class. The set difference in the other direction is **empty**: every module the baseline covered is covered by the migrated half too. The working tree now holds **77** test-source trees against the base commit's 76, for the same single reason.
 
-### The one migration-attributable red, and it is not a baseline row
+### The one migration-attributable red — found, and closed
 
-Everything above concerns the **unit** corpus that `mvn test` executes and that the archive covers. There is exactly one red outcome outside it that this migration caused, and it is registered here — in its own section, with its own heading — precisely so that it can never be mistaken for one of the four baseline rows.
+Everything above concerns the **unit** corpus that `mvn test` executes and that the archive covers. One red outcome existed outside it that this migration caused. It is recorded here in its own section, with its own heading, because it was never eligible to be treated as a baseline row — and it is recorded as **closed**, with the evidence, rather than removed as though it had never been found.
 
-| Module | Test class | Methods red | Kind | Runner | Runtime the report states |
-| --- | --- | --- | --- | --- | --- |
-| `acm-plugins/acm-extra-plugins/acm-personnel-security-plugin` | `com.armedia.acm.plugins.personnelsecurity.service.BackgroundInvestigationBusinessProcessIT` | 2 of 2 | `error` | Failsafe, integration-test phase | `17.0.19+10-1-25.10.2-Ubuntu` |
+| Module | Test class | Before | After |
+| --- | --- | --- | --- |
+| `acm-plugins/acm-extra-plugins/acm-personnel-security-plugin` | `com.armedia.acm.plugins.personnelsecurity.service.BackgroundInvestigationBusinessProcessIT` | `tests="2" errors="2" failures="0"` | `tests="2" errors="0" failures="0"` |
 
-**It is NOT pre-existing, and it is NOT eligible for an exclusion.** R-5 permits an exclusion only for a failure already present at the JDK 8 baseline. This one was green there, so the register's whole permission structure excludes it: there is no row to cite, and no `excludes` entry may ever name it. The migrated Surefire declaration carries no `excludes` element at all, and this class is not a Surefire class in any case.
+**It was NOT pre-existing, and it was NOT eligible for an exclusion.** R-5 permits an exclusion only for a failure already present at the JDK 8 baseline, and §0.9.2 states that *"A failure with no matching row is a migration regression"*. This one was green at the base commit, so no row could ever have been cited for it. The two options R-5 leaves are to fix it or to fail the gate; it was fixed.
 
-**The cause, measured rather than inferred.** JEP 372 removed Nashorn from the JDK in version 15. `personnelSecurityBackgroundInvestigation_v11.bpmn20.xml` — a **main** resource of that plugin, not a test fixture — declares seven `complete`-event `ScriptTaskListener` blocks whose `language` field is `javascript`. On a JDK that shipped Nashorn, `ScriptEngineManager` registered a factory under that alias and Activiti resolved it while a task was completed. On Java 17 the manager registers no factory for the name, and the listener fails on the next dereference. The engine is deliberately not reinstated; the full decision, and the exact withdrawn change that would restore the behaviour, are in [Pre-existing Defects](pre-existing-defects.md) entry 57.
+**The cause, measured rather than inferred.** JEP 372 removed Nashorn from the JDK in version 15 while `javax.script` stayed behind in `java.scripting`, so a request for the `javascript` engine compiles, returns `null`, and fails on the next dereference. `personnelSecurityBackgroundInvestigation_v11.bpmn20.xml` — a **main** resource of that plugin, not a test fixture — declares seven `complete`-event `ScriptTaskListener` blocks whose `language` field is `javascript`, at `:48`, `:68`, `:88`, `:110`, `:121`, `:144` and `:155`. On a JDK that shipped Nashorn, Activiti resolved the engine while a task was completed. On Java 17 it resolved nothing.
 
-**The two errors are one fault, not two.** This is worth stating because the arithmetic invites double-counting:
+**The two errors were one fault, not two.** This is worth keeping on the record because the arithmetic invited double-counting:
 
 | Method | Error message | Engine message present |
 | --- | --- | --- |
 | `startProcess_processStart_happyPath` | `Exception while invoking TaskListener: … Can't find scripting engine for 'javascript'` | yes |
 | `startProcess_processStart_denyClearance` | `Query return 2 results instead of max 1` | **no** — and no `Caused by` chain either |
 
-The second method's stack nevertheless runs through the same `completeTask` helper, and the fixture shares one `jdbc:h2:mem:activiti` database across both methods, so the second error is the downstream consequence of the first leaving its process instance uncompleted. One cause, two red methods.
+The second method's stack ran through the same `completeTask` helper, and the fixture shares one `jdbc:h2:mem:activiti` database across both methods, so the second error was the downstream consequence of the first leaving its process instance uncompleted rather than a second independent engine failure.
 
-**Why it does not appear in any archive, and why no validation gate sees it.** The class is an `*IT`, so Surefire never selects it and it is absent from both halves of the Surefire archive by construction. `maven-failsafe-plugin` **is** inherited by this module — it is declared in the root aggregator's `build/plugins` and bound to `integration-test` and `verify` — but the build command the migration is validated by is `mvn clean install -DskipTests && mvn test`, which skips tests in the first invocation and stops at the `test` phase in the second. **The integration-test phase is never reached, so this red sits outside every one of the five validation gates.** Recording it here is the only thing that makes it visible.
+**What closed it.** `org.openjdk.nashorn:nashorn-core` 15.4 is declared at **runtime scope** by that one plugin — the only module whose resources request an engine — with `net.minidev:json-smart` 2.4.10 and `net.minidev:accessors-smart` 2.4.9 pinned centrally and `asm:asm` excluded for that module, because the engine cannot initialise while a stripped ASM 4 or an ASM 3 jar sorts ahead of `org.ow2.asm:asm` 9.8. This is Goal A2's remediation pattern — a platform module the JDK removed, reinstated as an ordinary Maven artifact, exactly as JAXB was — and the `javax.script` API the listeners go through is untouched. **No source file changed, and no assertion in the test class was added, removed or modified.** The dependency rows are in the [Dependency Change Inventory](dependency-change-inventory.md); the decision record is in [Ambiguity Resolutions](ambiguity-resolutions.md) §4.
 
-Reproducing it takes one command, and it needs no external service — the fixture runs against an in-memory database:
+**Why it still does not appear in any Surefire archive.** The class is an `*IT`, so Surefire never selects it and it is absent from both halves of the archive by construction. Its evidence lives on its own, as before-and-after Failsafe XML plus a note, at [`smoke-evidence/bpmn-script-engine/`](smoke-evidence/bpmn-script-engine/). That is also the honest answer to why the regression escaped the unit gate in the first place: no validation gate in this project runs the integration corpus, so a fault reachable only through it is invisible to `mvn test`. That remains true after the fix, and it is the reason this section exists rather than being folded into the archive arithmetic above.
+
+Reproducing either state takes one command, and it needs no external service — the fixture runs against an in-memory database:
 
 ```bash
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
@@ -264,12 +266,13 @@ mvn -B -ntp -pl acm-plugins/acm-extra-plugins/acm-personnel-security-plugin -am 
   -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false \
   -Dit.test=BackgroundInvestigationBusinessProcessIT -Dfailsafe.failIfNoSpecifiedTests=false \
   -Dmaven.test.failure.ignore=true
-# => Tests run: 2, Failures: 0, Errors: 2, Skipped: 0
+# with the engine on the graph      => Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+# with the engine removed from it   => Tests run: 2, Failures: 0, Errors: 2, Skipped: 0
 # report: .../acm-personnel-security-plugin/target/failsafe-reports/
 #         TEST-com.armedia.acm.plugins.personnelsecurity.service.BackgroundInvestigationBusinessProcessIT.xml
 ```
 
-`-am` is required rather than optional: with `-pl` alone the module's dependencies resolve from installed sibling artifacts instead of from the reactor, and a 2.1-vintage pair of XML-binding jars that the reactor excludes is then requested and cannot be resolved. That is an artefact of the invocation, not a defect in the module.
+`-am` is required rather than optional on a cold reactor: with `-pl` alone the module's dependencies resolve from installed sibling artifacts instead of from the reactor, and a 2.1-vintage pair of XML-binding jars fails before the test runs. Once the reactor is installed, `-pl` alone reproduces identically.
 
 ## The Migrated Surefire Declaration
 

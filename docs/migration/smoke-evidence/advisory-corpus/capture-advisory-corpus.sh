@@ -93,6 +93,69 @@ metadata = audit.get("metadata", {})
 vulnerabilities = metadata.get("vulnerabilities", {})
 if vulnerabilities.get("total") != len(audit.get("vulnerabilities", {})):
     raise SystemExit("npm audit vulnerability totals do not match the report body")
+
+# npm audit is not byte-deterministic, and the verification gate compares these documents
+# byte for byte, so the nondeterminism has to be removed here or the gate fails on an
+# unchanged graph.
+#
+# Two captures of the identical lockfile disagree about which of two advisory-carrying
+# packages owns a shared downstream effect: one run attributes "template" to config-cache
+# and the other to option-cache, and config-cache's "fixAvailable" flips between the
+# fix-target object and a bare true as the edge moves. Everything else is identical across
+# runs, and that was measured rather than assumed: the 101 advisory names, every severity,
+# every version range, every "isDirect", every "nodes" list, every "via" list, the union of
+# affected packages (63 packages, "template" among them on both sides), the set of fix
+# targets, and all dependency and severity totals in "metadata". Only the attribution of a
+# shared edge between two sibling advisories moves.
+#
+# An earlier revision of this script sorted "effects" and "via" and claimed that settled
+# it. It does not. The difference is set membership, not order, so sorting cannot remove
+# it -- the gate still failed on an unchanged graph. The attribution is therefore hoisted
+# to document level, where it is deterministic. Each finding keeps every field npm computes
+# stably, and surrenders only the two whose value depends on which path the graph walk
+# reached a shared dependency by first: "effects" moves to a document-wide sorted union,
+# and per-finding "fixAvailable" is reduced to the boolean it is actually used as, with the
+# fix-target detail retained as a document-wide sorted set.
+#
+# This is canonicalisation of a nondeterministic field, not suppression of a difference,
+# and the security meaning is retained in full. A newly affected package changes the union.
+# A new or withdrawn advisory changes the names. A changed severity or range changes the
+# finding. A fix that stops being available changes the boolean or the target set. Every
+# one of those still fails the gate. "via" is still sorted because its ordering is
+# genuinely nondeterministic too, and ordering is all that varies there.
+effects_union = set()
+fix_targets = {}
+for finding in audit.get("vulnerabilities", {}).values():
+    if isinstance(finding.get("effects"), list):
+        effects_union.update(finding["effects"])
+        finding["effects"] = []
+    via = finding.get("via")
+    if isinstance(via, list):
+        finding["via"] = sorted(
+            via,
+            key=lambda entry: (
+                (0, entry, "")
+                if isinstance(entry, str)
+                else (1, str(entry.get("name", "")), str(entry.get("url", "")))
+            ),
+        )
+    fix = finding.get("fixAvailable")
+    if isinstance(fix, dict):
+        fix_targets[json.dumps(fix, sort_keys=True)] = fix
+        finding["fixAvailable"] = True
+
+audit["blitzyCanonicalisedAttribution"] = {
+    "note": (
+        "npm attributes a shared downstream effect to one of several sibling advisories "
+        "nondeterministically. The per-finding 'effects' lists and 'fixAvailable' detail "
+        "objects were hoisted here so this document is byte-reproducible; per-finding "
+        "'fixAvailable' was reduced to a boolean. No advisory, severity, range, node or "
+        "affected package is hidden by this."
+    ),
+    "effectsUnion": sorted(effects_union),
+    "fixTargets": [fix_targets[key] for key in sorted(fix_targets)],
+}
+
 with (work_dir / "npm-audit.json").open("w", encoding="utf-8") as handle:
     json.dump(audit, handle, indent=2, sort_keys=True)
     handle.write("\n")

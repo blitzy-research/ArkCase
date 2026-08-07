@@ -22,6 +22,19 @@
             <groupId>com.armedia.acm.acm-services</groupId>
             <artifactId>acm-service-ecm</artifactId>
             <version>${acm.version}</version>
+            <exclusions>
+                <!-- asm:asm 3.3.1 reaches this module through chemistry-opencmis-client-bindings and
+                     cxf-rt-frontend-jaxws, and it declares org.objectweb.asm.FieldVisitor as an INTERFACE -
+                     ASM made it a class in 4. It sorts ahead of org.ow2.asm:asm 9.8 on this module's
+                     classpath, so anything that generates bytecode here at run time loads the ASM 3 shape and
+                     dies with IncompatibleClassChangeError. Excluded for this module only: it needs a
+                     coherent ASM because the BPMN task listeners compile scripts, and nothing here uses the
+                     JAX-WS frontend that drags the old jar in. -->
+                <exclusion>
+                    <groupId>asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.armedia.acm.acm-service</groupId>
@@ -95,17 +108,17 @@
             <artifactId>asm</artifactId>
         </dependency>
 
-        <!-- No script engine is declared here, and that is a decision rather than an omission.
-             personnelSecurityBackgroundInvestigation_v11.bpmn20.xml drives seven complete-event
+        <!-- scripting: personnelSecurityBackgroundInvestigation_v11.bpmn20.xml drives seven complete-event
              ScriptTaskListener blocks whose language field is javascript, so Activiti asks
-             ScriptEngineManager for a 'javascript' engine while one of those tasks is completed. JEP 372
-             removed that engine from the JDK in 15 while javax.script stayed behind in java.scripting, so
-             the request still compiles and returns null at run time. The governing migration plan settles
-             this explicitly: the removal is registered as a latent defect rather than remedied by adding a
-             library to the production graph, and the plan's definition of done permits no pre-existing
-             defect to be fixed beyond its two named exceptions, neither of which is this one. The register
-             entry, with the reachability finding for these listeners, is
-             docs/migration/pre-existing-defects.md entry 7. -->
+             ScriptEngineManager for a 'javascript' engine while a task is completed. JEP 372 removed that
+             engine from the JDK in 15 and javax.script stayed behind, so the request compiles and then
+             returns null at run time. The standalone OpenJDK build restores it, at runtime scope because no
+             source file in this module references it. Version comes from the root aggregator. -->
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
     </dependencies>
 

@@ -1,0 +1,117 @@
+JACKSON SERIALISATION-ORDER EVIDENCE — 2.7.2 (base commit, Java 8) versus 2.12.7 (migrated)
+===========================================================================================
+
+WHY THIS MEASUREMENT EXISTS
+---------------------------
+The Jackson advance from 2.7.2 to 2.12.7 is required at run time: below the 2.12 line
+ClassUtil.checkAndFixAccess calls setAccessible on LocalDate's private fields, and java.base does
+not open java.time to the unnamed module, so building a bean deserializer for a type carrying a
+java.time property fails on Java 17 when the JSR-310 module is not registered. The FOIA and
+privacy portal submission paths do exactly that.
+
+The question this directory answers is the separate one the AAP's contract-preservation
+requirement raises: does the advance change the order in which any type's members are serialised?
+An earlier revision of the root pom comment asserted flatly that "serialisation output is
+unaffected". That assertion was too strong, so it was replaced with a measurement.
+
+METHOD
+------
+PropOrder.java loads every class found under the reactor's target/classes directories and asks
+Jackson, through the public serializer API present in both versions, for the ordered list of
+properties it would write:
+
+    JsonSerializer<Object> ser = mapper.getSerializerProviderInstance().findValueSerializer(c, null);
+    Iterator<PropertyWriter> it = ser.properties();
+
+Three properties of the harness matter for the result to be trustworthy:
+
+  1. Mapper configuration is the deployed one. Run with the "deployed" argument it reproduces the
+     sourceObjectMapper bean of spring-library-object-converter.xml, mirrored by
+     ObjectConverter.createJSONMarshallerForTests(): WRITE_DATES_AS_TIMESTAMPS disabled,
+     FAIL_ON_UNKNOWN_PROPERTIES disabled, and findAndRegisterModules().
+
+  2. Module jars are era-matched. jackson-datatype-jsr310 and jackson-module-jsonSchema are
+     swapped to each version's own line. Without this the 2.7.2 run cannot even start:
+     findAndRegisterModules() hits the 2.12.7 JavaTimeModule and fails with
+     ServiceConfigurationError "Unable to get public no-arg constructor".
+
+  3. Six trials per version. This is the control that makes the result meaningful, and it changed
+     the conclusion. Jackson collects getter-only properties in Class.getDeclaredMethods() order,
+     and the JVM does not guarantee that order is stable between runs. A single run of each version
+     showed 8 differing classes; repeating the SAME version three times showed 4 classes differing
+     from themselves. Only a class whose order is identical across all six runs of each version,
+     and differs between them, is attributable to the upgrade.
+
+analyse.py applies exactly that rule. Raw captures are in trials.tar.gz; the verdict is in
+analysis.txt.
+
+RESULT — 2136 classes compared in both versions, identical skip sets
+--------------------------------------------------------------------
+2 classes have a STABLE order that genuinely differs between versions:
+
+    com.armedia.acm.calendar.config.model.PurgeOptionsDeserializer
+    com.armedia.acm.calendar.service.ZonedDateTimeDeserializer
+
+    2.7.2   nullValue,knownPropertyNames,delegatee,cachable,emptyValue,objectIdReader
+    2.12.7  nullValue,knownPropertyNames,delegatee,cachable,nullAccessPattern,emptyAccessPattern,
+            emptyValue,objectIdReader
+
+    Both are JsonDeserializer implementations, and the delta is that 2.12 added
+    getNullAccessPattern() and getEmptyAccessPattern() to JsonDeserializer. The listed "properties"
+    are therefore the deserializer object's own inherited getters, not application data. Neither
+    class is ever serialised: each is referenced only as a @JsonDeserialize(using = ...) handler,
+    on AcmCalendarEvent (two properties), RecurrenceDetails (two properties) and PurgeOptions. No
+    response body, no persisted document and no message payload contains either type.
+
+13 classes have NO stable order at EITHER version — reflection-order noise, not a version change:
+
+    com.armedia.acm.configuration.client.ConfigurationServiceBootClient
+    com.armedia.acm.objectdiff.model.AcmObjectDiff
+    com.armedia.acm.plugins.admin.web.api.EmailSenderConfigurationAPIController
+    com.armedia.acm.quartz.scheduler.AcmSchedulerService
+    com.armedia.acm.service.stateofarkcase.service.ErrorsLogFileService
+    com.armedia.acm.services.config.model.ConfigBean
+    com.armedia.acm.services.config.model.ConfigMap
+    com.armedia.acm.services.email.smtp.InputStreamDataSource
+    com.armedia.acm.services.users.model.AcmRoleToGroupMapping
+    com.armedia.acm.web.api.MDCThreadPoolExecutor
+    com.itextpdf.text.pdf.ColumnText
+    gov.privacy.service.AcknowledgementDocumentService
+    gov.privacy.service.SARService
+
+    Five of these were unstable under 2.7.2 as well, which is the base commit's own behaviour on
+    Java 8. Byte-identical serialisation was never a property these types had, so the upgrade
+    cannot have taken it away. Under R-6 this is registered rather than fixed, in
+    pre-existing-defects.md. Note also what the list is made of: Spring service and client beans, a
+    controller, a thread-pool executor, a DataSource wrapper and a third-party PDF class. None is
+    a REST response type.
+
+Every other class produced a byte-identical ordered property model in all twelve trials.
+
+ON THE REVIEW FINDING THIS REPLACES
+-----------------------------------
+The review reported that "Jackson 2.12.7 changes ordering for nine project types, including
+gov.privacy.model.SubjectAccessRequest". The count and the named type are both unsupported by this
+measurement. gov.privacy.model.SubjectAccessRequest produced the identical ordered property model
+in all six 2.7.2 trials and all six 2.12.7 trials — digest 4c134e5c82e2 in every one. The
+underlying observation the review was probably reaching is real, but it is the 13-class
+nondeterminism above, which predates the migration, rather than a version-attributable change to a
+live response type.
+
+CONCLUSION
+----------
+No REST response type changes its stable serialisation order across the Jackson advance. The
+AAP's contract-preservation requirement holds for this dependency change, and no @JsonPropertyOrder
+was added to any type — adding one would have changed the base-commit output for types whose order
+was already stable, which is the opposite of what preservation requires.
+
+REPRODUCTION
+------------
+    javac -cp <jackson 2.12.7 core+databind+annotations> -d . PropOrder.java
+    # class list: every *.class under the reactor's target/classes, '/'->'.', no inner classes
+    # classpath:  all module target/classes + the union of runtime jars from arkcase, acm-foia,
+    #             acm-service-ecm, acm-personnel-security-plugin and
+    #             acm-service-calendar-integration-exchange (791 jars), with the three jackson core
+    #             jars and the two jackson module jars swapped to the version under test
+    java -cp <above> PropOrder <class-list> trial-<version>-<n>.txt deployed
+    python3 analyse.py '/tmp/trial-2.7.2-*.txt' '/tmp/trial-2.12.7-*.txt' 2.7.2 2.12.7

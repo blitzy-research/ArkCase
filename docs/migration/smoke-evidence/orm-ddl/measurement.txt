@@ -1,0 +1,27 @@
+entities with @Entity and @Table            : 88
+of those whose table appears in the DDL     : 88
+columns present in BOTH DDL and an @Column  : 957
+DDL columns with no matching @Column        : 132  (separate finding, not counted below)
+
+entities carrying at least one omission     : 86
+omitted length declarations                 : 512
+omitted nullability declarations            : 467
+omitted uniqueness declarations             : 44
+TOTAL omitted dimensions                    : 1023
+
+top 15 entities by omission count:
+  acm_file                             29  (len  18, null   9, uniq  2)  EcmFile.java
+  acm_case_file                        26  (len  16, null   9, uniq  1)  CaseFile.java
+  acm_costsheet                        24  (len  11, null  12, uniq  1)  AcmCostsheet.java
+  acm_person                           24  (len  15, null   9, uniq  0)  Person.java
+  acm_consultation                     23  (len  13, null   9, uniq  1)  Consultation.java
+  acm_user_org                         22  (len  16, null   5, uniq  1)  UserOrg.java
+  acm_notification                     21  (len  15, null   6, uniq  0)  Notification.java
+  acm_object_association               21  (len  12, null   9, uniq  0)  ObjectAssociation.java
+  acm_comprehend_medical               20  (len   9, null  10, uniq  1)  ComprehendMedical.java
+  acm_timesheet                        20  (len   8, null  11, uniq  1)  AcmTimesheet.java
+  acm_user                             20  (len  12, null   6, uniq  2)  AcmUser.java
+  acm_file_version                     19  (len  12, null   7, uniq  0)  EcmFileVersion.java
+  acm_ocr                              19  (len   8, null  10, uniq  1)  OCR.java
+  acm_participant                      19  (len   7, null   8, uniq  4)  AcmParticipant.java
+  acm_complaint                        18  (len   7, null  10, uniq  1)  ComplaintListView.java

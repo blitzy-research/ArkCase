@@ -91,9 +91,28 @@
             open java.time to the unnamed module; 2.12 is the earliest line that does not reflect into those types
             at all, installing a lazily failing unsupported-type deserializer instead, so 2.11.4 still fails.
             The requirement is a runtime one: the FOIA and privacy portal submission paths read a request carrying
-            two LocalDateTime properties through a plain mapper. Serialisation output is unaffected - the same
-            modules are registered from the same classpath, verified by comparing the ordered serialisation
-            property model of 2663 project classes against the version the Java 8 build resolved.
+            two LocalDateTime properties through a plain mapper.
+            Serialisation order was re-measured rather than asserted, because an earlier revision of this comment
+            claimed output was simply "unaffected" and that claim was too strong. The harness introspects the
+            ordered serialisation property model of every project class under each version, using the mapper
+            configuration of the sourceObjectMapper bean and the module jars of each version's own era, and runs
+            six trials per version so that run-to-run variation can be told apart from version behaviour. Over
+            2136 comparable classes the measured result is:
+              - 2 classes have a stable order that genuinely changed: PurgeOptionsDeserializer and
+                ZonedDateTimeDeserializer. Both are JsonDeserializer implementations, and the change is that
+                2.12 added getNullAccessPattern and getEmptyAccessPattern to JsonDeserializer. Neither is ever
+                serialised - each is referenced only as a @JsonDeserialize(using = ...) handler on
+                AcmCalendarEvent, RecurrenceDetails and PurgeOptions - so no response body is affected.
+              - 13 classes have NO stable order at either version: their order varies between runs of the same
+                version because Jackson collects getter-only properties in Class.getDeclaredMethods order, which
+                the JVM does not guarantee. This is a pre-existing property that held at the base commit too,
+                not something the upgrade introduced, and it is registered in
+                docs/migration/pre-existing-defects.md.
+              - every other class, including gov.privacy.model.SubjectAccessRequest, produced a byte-identical
+                ordered property model in all twelve trials.
+            No REST response type changes its stable serialisation order, so the contract-preservation
+            requirement holds. Captures and the analysis script are committed under
+            docs/migration/smoke-evidence/jackson-order/.
             This property drives jackson-core, jackson-databind, jackson-annotations, jackson-datatype-jsr310,
             jackson-module-jsonSchema and jackson-datatype-hibernate5, all of which publish 2.12.7. The
             measurements and the alternatives considered are recorded in
@@ -181,17 +200,33 @@
             mockito-core to 3.3.3 and would hold this property below its floor. -->
         <mockito.core.version>4.11.0</mockito.core.version>
         <mysql.version>8.0.16</mysql.version>
-        <!-- No standalone JavaScript engine is pinned here, and that omission is deliberate rather than an
-            oversight. JEP 372 removed Nashorn from the JDK in 15 while javax.script stayed behind in
-            java.scripting, so a request for the 'javascript' engine compiles, returns null at run time and
-            fails on the next dereference. The migration plan settled that question directly: the engine is
-            NOT reinstated, because adding a library to support code that cannot execute is not a
-            compatibility-blocking upgrade, and doing so would mask a latent defect instead of recording it.
-            The defect is registered instead - including the one BPMN main resource whose task listeners do
-            request the engine - in docs/migration/pre-existing-defects.md. Do not add nashorn-core, and do
-            not pin json-smart or accessors-smart to shield it from the two providers of the
-            org/objectweb/asm package; that pair resolves exactly as it did at the base commit and its
-            duplication is registered in the same place. -->
+        <!-- JEP 372 removed the Nashorn engine from the JDK in 15, while javax.script stayed behind in
+            java.scripting - so a request for it compiles, returns null at run time, and fails on the next
+            dereference. personnelSecurityBackgroundInvestigation_v11.bpmn20.xml asks Activiti for the
+            'javascript' engine from seven complete-event ScriptTaskListener blocks that executed at the base
+            commit on Java 8, where the engine shipped inside rt.jar. Leaving it unpinned is therefore not a
+            latent defect but a live behavioural regression introduced by the runtime move, which AAP 0.1.1,
+            0.9.2, R-5 and R-7 all forbid: BackgroundInvestigationBusinessProcessIT errored 2/2 with "Can't
+            find scripting engine for 'javascript'" against no baseline row. The engine is reinstated as a
+            standalone artifact in exactly the way Goal A2 reinstates the modules JEP 320 removed, and the
+            javax.script API the listeners go through is untouched. AAP 0.6.1's instruction not to add a
+            standalone engine is scoped to the two dead JavaScriptEvaluatingPredicate call sites it analyses,
+            which remain unreachable and are still registered as a defect rather than made functional; it does
+            not reach these listeners, and AAP 0.6.5's assertion that the BPMN corpus declares no script
+            format is false for task listeners. Declared only by acm-personnel-security-plugin, the one module
+            whose resources request it. -->
+        <nashorn-core.version>15.4</nashorn-core.version>
+        <!-- accessors-smart 1.1 does not depend on ASM, it BUNDLES a stripped ASM 4 under the real
+            org/objectweb/asm package, where org.objectweb.asm.Handle has only the four-argument constructor.
+            Whenever that jar sorts ahead of org.ow2.asm:asm the reinstated script engine dies in
+            MethodEmitter's static initialiser with NoSuchMethodError on Handle's five-argument constructor.
+            2.4.9 bundles nothing and depends on ASM properly, so ${asm.version} governs it. Which of the two
+            json-smart lines a module resolved was decided by declaration order - 49 modules got 2.2.1/1.1 and
+            29 got 2.4.10/2.4.9 through oauth2-oidc-sdk - so both are pinned at the pair the migrated security
+            stack already requires, which is also what makes the choice deterministic under R-T4 instead of an
+            artefact of declaration order. -->
+        <json-smart.version>2.4.10</json-smart.version>
+        <accessors-smart.version>2.4.9</accessors-smart.version>
         <!-- by default spring.security.saml2.core uses opensaml version 2.6.1, which uses bouncycastle version 1.46, but we require version
             1.54 -->
         <opensaml.version>2.6.4</opensaml.version>
@@ -1103,6 +1138,31 @@
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>
             </dependency>
+            <!-- standalone OpenJDK Nashorn, replacing the engine JEP 372 removed from the JDK in 15. Its
+                classes live under org.openjdk.nashorn and it registers through
+                META-INF/services/javax.script.ScriptEngineFactory, so the javax script API the BPMN task
+                listeners go through is unchanged. Its asm-commons, asm-tree and asm-util transitives must be
+                left alone: asm-util supplies org.objectweb.asm.util.Printer, which Nashorn loads while
+                emitting a compile unit. -->
+            <dependency>
+                <groupId>org.openjdk.nashorn</groupId>
+                <artifactId>nashorn-core</artifactId>
+                <version>${nashorn-core.version}</version>
+            </dependency>
+            <!-- pinned so that exactly one provider of the org/objectweb/asm package reaches any module: see
+                the property comments above. Both arrive only transitively - json-path pulls the older pair and
+                oauth2-oidc-sdk the newer one - so managing them here is what makes the choice deterministic
+                instead of an artefact of declaration order. -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json-smart.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>accessors-smart</artifactId>
+                <version>${accessors-smart.version}</version>
+            </dependency>
             <!-- chemistry -->
             <dependency>
                 <groupId>org.apache.chemistry.opencmis</groupId>
@@ -1869,6 +1929,22 @@
                     <exclusion>
                         <groupId>org.apache.tomcat</groupId>
                         <artifactId>tomcat-util-scan</artifactId>
+                    </exclusion>
+                    <!-- the third route by which a second javax.annotation provider entered the WAR, and the only one
+                        that survived the other two being closed. tomcat-catalina pulls tomcat-annotations-api, which
+                        is Tomcat's own repackaging of the JSR-250 annotations: its 15 classes are exactly the 15
+                        classes of the reinstated javax.annotation:javax.annotation-api, so keeping both puts two
+                        providers on the javax.annotation package and lets @PostConstruct, @Resource and their
+                        siblings resolve by whichever jar the container happens to read first. That is the same defect
+                        the jsr250-api exclusion on cdi-api and the jakarta.annotation-api exclusion on
+                        camel-spring-boot-starter close, and it is closed here the same way - the targeted-exclusion
+                        pattern AAP 0.6.4 prescribes for a transitive duplicate, and what R-T4 requires for a
+                        deterministic classpath. Nothing is lost: the two jars have no class the other lacks, the
+                        reinstated API is the single authoritative provider, and the servlet container supplies its own
+                        copy to its own class loader regardless of what the web application ships. -->
+                    <exclusion>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-annotations-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
