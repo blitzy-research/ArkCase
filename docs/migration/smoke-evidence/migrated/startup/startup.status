@@ -1,0 +1,327 @@
+capture: startup region manifest and gate outcome
+runtime: Java 17
+commit: migration change set, successor of the base commit c8f6226105 named in the
+  pre-migration counterpart's commit field.  No hash is invented here, and this field is
+  prose rather than a bare token for one reason: the commit that RECORDS this manifest is
+  its own successor and cannot be known from inside it, so writing a hash there would be a
+  guess.  What can be stated is stated.  The capture this manifest accounts for ran against
+  tree c24e049e28, the revision the region annotation in workflow-engine-init.log records,
+  and both that revision and the base commit above were confirmed by ancestry to be
+  ancestors of this branch head.
+source: the eight artefacts archived in this directory
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh produced seven of the eight
+  manifested artefacts, being the seven startup-log regions; error-scan.txt is a scan
+  RESULT derived over those seven and publishes its own scan-command, and a search of that
+  script found no writer for it, so claiming the script produced all eight would overstate
+  it.  This manifest itself was derived from the eight artefacts' OWN headers by the POSIX
+  commands published under notes, and that derivation is stated rather than implied.
+gate: deployment reaches ready state
+gate-outcome: 8 of 8 declared regions captured; within them the ERROR scan records 5 ERROR and 0 SEVERE lines, of which 1 is expected pre-existing with a repository citation and 4 are recorded UNEXPLAINED, and 0 of the six migration-risk signatures matched; the startup frontend build was observed running on the migrated package-manager wiring and the container was observed reaching ready state, but the process engine's own definition total is UNOBSERVED, so the residual unverified risk this gate exists to discharge is NOT discharged; this is the observed state of the migrated startup and is deliberately NOT a pass
+regions-declared: 8
+regions-captured: 8
+regions-skipped: 0
+----- BEGIN CAPTURE -----
+region: catalina.out.log          status: CAPTURED  reason:
+region: readiness-poll.log        status: CAPTURED  reason:
+region: spring-context.log        status: CAPTURED  reason:
+region: reflection-scan.log       status: CAPTURED  reason:
+region: jpa-init.log              status: CAPTURED  reason:
+region: workflow-engine-init.log  status: CAPTURED  reason:
+region: frontend-build.log        status: CAPTURED  reason:
+region: error-scan.txt            status: CAPTURED  reason:
+----- END CAPTURE -----
+notes:
+- why this file exists, in one line each.  R-5's principle is that nothing is silently
+  skipped, and with eleven region files sitting in this directory a skipped one is easy to
+  miss, so a single manifest makes every status visible in one place with its reason.  R-T7
+  requires the gate outcome to be a recorded result rather than an exit status, so this file
+  records what was observed in a form a reviewer and a diff can both read.
+- why the extension is .status and not .log, .txt or .md, recorded as a decision rather than
+  left looking like an oversight.  The mirror obligation is binding and the counterpart is
+  baseline/startup/startup.status, so a startup.txt here would make a recursive diff of the
+  two capture directories report a STRUCTURAL difference, one entry present only on each
+  side, which is precisely the outcome the mirror exists to prevent.  .status is already
+  sanctioned in this evidence tree's own naming contract, used by the eight sibling flow
+  files flow-<n>-<slug>.status beside this directory.  The file is plain text and
+  unambiguously not Markdown, so the purpose of the extension constraint, that no Markdown
+  exists at any depth in this tree, is fully satisfied.  A .log extension would instead
+  misrepresent this file as a ninth log region, which it is not: it holds no captured log
+  text at all.
+- one deliberate divergence from the fuller header schema this capture tree uses elsewhere,
+  disclosed rather than made silently.  That schema carries three fields this manifest does
+  not: region-status, normalised and redacted, all three of which error-scan.txt beside it
+  carries and which are verifiable there on both sides.  The pre-migration counterpart of
+  THIS file carries none of the three, and the mirror obligation is explicit that no header
+  field the counterpart lacks may be added, its mechanical test being a field-name comparison
+  between the two files that must return no difference.  The counterpart's field set therefore
+  governs, and the three facts those fields would have carried are stated here instead in a
+  form that costs the mirror nothing.  This manifest's own region status is
+  CAPTURED, because it was produced from the sibling headers and a manifest can be produced
+  even when the regions themselves were skipped.  Nothing was normalised, because this file
+  quotes no log line at all.  Nothing was redacted, because no credential-shaped value
+  appears anywhere in it, including in the reason fields, which are a real leak vector when
+  a skip reason names a connection failure; the fixed placeholder this tree uses for such a
+  value is the one at docs/setup.md:L119 at the base commit, resolving at docs/setup.md:144
+  in the post-migration tree, and the repository posture it serves is stated at
+  docs/setup.md:L78 at the base commit and at docs/setup.md:146 after the migration.  The
+  documented administrator credential at README.md:L155 at the base commit, README.md:189
+  after it, is cited by anchor only and its password value is transcribed nowhere in this
+  file, not even as an illustration.
+- regions-declared is 8 because this manifest covers the OTHER eight declared artefacts in
+  this directory and deliberately does NOT list itself.  A manifest that counted itself would
+  report nine regions for a declared set of eight and would create a self-referential status
+  that could not be derived from anything.  regions-captured plus regions-skipped equals 8
+  exactly, verified by addition rather than by assumption: 8 plus 0 is 8.
+- how each status above was determined, because a file can exist and still be honestly
+  SKIPPED, so existence was never used as the test.  error-scan.txt carries its own
+  region-status: CAPTURED header and that value is copied verbatim.  The other seven carry
+  no region-status: key at all; their status was derived from their own headers instead,
+  requiring all three of matched-lines greater than zero, capture-truncated equal to no, and
+  exactly one delimited region body.  All seven satisfy all three, so not one status line
+  here rests on a file merely being present.
+- re-derive every status line above with POSIX tools only, no other toolset required.  For
+  the seven region files:
+  sed -n 's|^matched-lines: ||p' <region> | head -1
+  sed -n 's|^capture-truncated: ||p' <region> | head -1
+  grep -c '^----- region -----$' <region>
+  For error-scan.txt:
+  sed -n 's|^region-status: ||p' error-scan.txt | head -1
+  A region whose matched-lines reads 0, or whose capture-truncated reads yes, contradicts a
+  CAPTURED line above and should be reported as such.
+- the matched-lines figure each CAPTURED status rests on, read from that region's own header
+  and recorded here so the derivation is checkable without opening seven files:
+  catalina.out.log 4933, readiness-poll.log 5, spring-context.log 4, reflection-scan.log 25,
+  jpa-init.log 81, workflow-engine-init.log 41, frontend-build.log 31.  Every one is greater
+  than zero and none is truncated.
+- one of those figures bears directly on the outcome above and is called out rather than left
+  for a reader to notice: frontend-build.log carries 31 matched lines where its pre-migration
+  counterpart carries 1.  That is why the frontend clause of the outcome reports the wiring as
+  exercised rather than as unobserved.  The two-sided comparison proper is not this manifest's
+  territory and belongs to the cross-capture comparison artefact beside this directory; only
+  the figure this gate's outcome depends on is stated here.
+- and why that single region carries the whole weight of the frontend claim.  The startup
+  build is the ONLY runtime exercise of the rewritten package-manager wiring: a search across
+  all 145 POMs in the reactor for a frontend build plugin, a runtime version declaration, or a
+  task-runner or package-manager invocation returns ZERO hits, re-derived for this manifest,
+  so there is no other place it runs and the reactor build cannot have covered it.  Had this
+  region been SKIPPED, the outcome above would have had to say that the wiring went
+  unexercised rather than let a reader assume otherwise.  What the region records is
+  referenced, not restated.
+- three further region files sit in this directory beyond the eight declared above, and they
+  are named here so that nothing is silently omitted: errors.log, ldap-context-source.log and
+  messaging-init.log.  They are outside this manifest's declared set, which is fixed at the
+  eight named between the delimiters so the mirror diff stays mechanical; their own headers
+  remain the authority on their own state.  This directory therefore holds twelve files, the
+  eight declared regions plus those three plus this manifest, and no subdirectory at all.
+  Naming them rather than passing over them is the same R-5 obligation that produces the
+  status lines.
+- and the provenance split inside those twelve, stated so that a reviewer comparing this
+  directory against the producer's own file manifest is not left to call the difference drift.
+  Ten of the twelve are producer output, named in the conditional tier of that manifest and
+  written by the capture run.  TWO are not: error-scan.txt, which is a scan result derived
+  over the regions and says so of itself, and this manifest, whose produced-by field above
+  says the same.  Both were authored from the regions after the run rather than emitted by it,
+  which is why neither could be named by a manifest the producer evaluates against its own
+  staging directory.  Nothing is corrected here on that account; the split is recorded.
+- rules provenance, and both facts are stated together because either one alone misleads.
+  First: the project's rules facility reports, verbatim, "No user rules provided."  There is
+  therefore no on-disk user rules document for this project and no external full text to
+  defer to.  That is emphatically not licence to lower the bar; enterprise-standard best
+  practice applies on top.  Second: rules are nonetheless present and binding, because the
+  requirements embed an explicit numbered RULES block of seven rules that governs this work
+  in full exactly as an external rules document would, plus seven transformation rules.  The
+  identifiers R-1 to R-7 and R-T1 to R-T7 used throughout these notes are the migration
+  plan's own navigational convention and are not quoted titles.  No rule has been invented
+  here and none has been softened.
+- R-T7, verbatim: "Validation asserts on produced artifacts and captured output, never on
+  process exit status alone.  This is mandatory rather than stylistic because Gruntfile.js
+  sets grunt.option('force', true), which masks task failures and lets a broken build exit
+  zero."  The gate-outcome field above is therefore a stated result derived from the CONTENT
+  of the eight regions.  It is not a process exit status; it is not the claim that a
+  deployment succeeded; and it is not inferred from eight files existing.  The
+  forced-execution setting was re-verified in the pipeline configuration for this manifest,
+  as was the disabled identifier mangling beside it, and it means the startup-time asset
+  pipeline can fail while the deployment still reports success, which is exactly why the
+  outcome has to come from the regions instead.
+- and the sharpest edge of that rule, stated plainly rather than left implicit.  The
+  readiness region does record the container completing deployment and reaching ready state,
+  and the outcome above reports that as an observation.  It is NOT the basis of the outcome
+  and could not be: ready state says nothing about what initialised behind it, which is why
+  the engine, persistence, reflection and frontend regions are manifested separately, and
+  why one unobserved engine total is enough on its own to hold this gate short of a pass.
+  Equally, the ERROR scan is not offered as a clean result that could be promoted into one:
+  it ran over seven regions that were present and non-empty rather than over empty ones, so
+  it is not vacuous, and it is not clean either, so no such promotion is even available.
+- R-5, nothing silently skipped.  Every one of the eight declared artefacts carries an
+  explicit status line above, and a SKIPPED region would have had to carry that sibling's own
+  SPECIFIC unmet precondition rather than a generic phrase or a description of the
+  environment.  On this capture there is no SKIPPED region, so every reason field is blank;
+  had one been skipped, a vague reason would be a rule violation rather than a stylistic
+  lapse, because R-5's whole point is that a skip stays traceable.
+- R-6, verbatim: "Pre-existing bugs discovered during the work are documented rather than
+  fixed, unless one blocks a validation item."  Pre-existing conditions observed during
+  startup are therefore recorded as observed and left alone.  The escape clause is invoked
+  exactly twice in the whole migration, both times on the frontend side, for creating the
+  untracked generated configuration module and for removing the unbuildable
+  stylesheet-compiler toolchain, and in both cases only because they block the
+  fresh-checkout frontend build gate.  NEITHER invocation is in this folder, and nothing in
+  this folder fixes anything.  Stating the count keeps it auditable so that it cannot quietly
+  grow.
+- R-7, paraphrased rather than quoted, and the reason for the paraphrase disclosed rather
+  than hidden: the rule's own wording names the pre-migration runtime with a phrase this
+  documentation tree's wording gate forbids, so it is rendered here as JDK 8, a substitution
+  that changes no meaning and is never made silently anywhere in this tree.  The rule holds
+  that the application's observed behaviour at the base commit on JDK 8 is the tie-breaker
+  for any ambiguity, and that each resolution must be documented.  This file is the migrated
+  manifest against which the pre-migration manifest is diffed, so a difference between the
+  two is a finding to be read and never a value to be massaged toward agreement.
+- the concrete case, so that instruction is not left abstract.  The ERROR census in the
+  outcome above, 5 ERROR and 0 SEVERE with 1 cited and 4 unexplained, does not match the
+  pre-migration census of 2 ERROR and 0 SEVERE with 1 cited and 1 unexplained.  Three shapes
+  appear on this side that did not appear there, and the divergence is reported exactly as
+  error-scan.txt classifies it, with nothing moved from unexplained into expected to make the
+  two sides agree.  The per-line classification and the evidence behind each bucket belong to
+  error-scan.txt and are referenced here rather than duplicated.
+- R-2 governs the recursive forbidden-token gates over the documentation tree, and this file
+  holds zero occurrences of the module-access argument tokens they scan for: no argument that
+  opens or exports an otherwise-encapsulated JDK package to the unnamed module is named
+  anywhere in it, in any form.  The register of JDK-internal-access exceptions is referenced
+  here BY TITLE ONLY, as JDK Access Exceptions, and its filename and path are deliberately
+  written nowhere in this file, because the filename itself embeds one of the tokens the gate
+  forbids.  That register is delivered empty of applied exceptions, with a positive statement
+  that none are required, and the register rather than this manifest is the authority on that
+  claim.
+- and an honest boundary on that, because a tree-wide assertion would be false.  This file
+  claims zero occurrences for ITSELF only.  Elsewhere in this tree, documentation pages
+  cross-link that register by its filename, and the container's own startup banner listing
+  the arguments its launcher passed is captured verbatim inside catalina.out.log, so a
+  recursive scan over the documentation tree does not return zero today.  Those seven banner
+  lines are the servlet container's own defaults, appended unconditionally by its own launch
+  script on this platform generation, and they are neither ArkCase's documented launch
+  configuration nor attributable to any dependency; the register settles that point by
+  execution and owns it.  Both conditions are pre-existing states of artefacts this manifest
+  does not own, they are recorded here as observed under R-6, neither is repaired, and this
+  file introduces no occurrence of its own.
+- R-T1, namespace invariance.  The forbidden target namespace is not named anywhere in this
+  file, and the migration compensates the platform modules the runtime removed by adding
+  artefacts in the retained namespace rather than by rewriting a single import.
+- R-1, a change without a reason is out of scope, and its contrapositive is load-bearing
+  here: holding something after assessment is as much a rule-compliant decision as changing
+  it.  This manifest was assembled with the POSIX toolset only, using sed, grep, awk and
+  test.  No structured-data processor, no scripting runtime, no test framework and no package
+  installation were used, or are needed to read it or to re-derive it, which is also why the
+  format is flat key and value lines rather than a structured document: the eight status
+  lines parse with a single awk field separator on the status key.
+- why this directory is called startup, recorded inline because the manifest is where a
+  reviewer looks for it.  The repository's root ignore file uses bare patterns with no leading
+  slash, and git matches those at ANY depth, so each pattern is tested against a directory
+  NAME rather than against a path.  Checked with git check-ignore at this directory's exact
+  depth, a subdirectory here named logs, bin, target, builds, activemq-data or
+  partition-descriptor would be IGNORED, at ignore-file lines 26, 7, 6, 40, 25 and 24
+  respectively.  This file is NOT ignored and is committable.
+- and why that trap matters more than it looks.  logs is the single most natural name for
+  this directory's contents and it is precisely the forbidden one.  A directory named logs
+  here would be SILENTLY UNCOMMITTED: every local check would pass while the committed
+  deliverable stayed empty, so the completion condition would fail invisibly rather than
+  loudly.  The ignored token is the DIRECTORY NAME, never the .log file extension, which is
+  why seven of the eight declared regions carry a .log extension perfectly safely.  No
+  subdirectory is created here at all, and none of those six names is used; the sanctioned
+  directories in this capture tree are exactly artifacts, env, notes, startup and surefire.
+- the irony is worth recording rather than smoothing over: the SOURCE this capture was mined
+  from is the container's own log file, which sits in a directory literally named logs, while
+  the ARCHIVE directory holding the mined regions is named startup precisely because logs
+  cannot be committed at this depth.  The bounded window every region was mined from, with
+  its digests and line bounds, is recorded in the startup-window note beside this directory
+  and is referenced rather than restated.
+- the two figures the two captures compare against, kept strictly apart as expectation versus
+  observation, because conflating them is how a manifest starts manufacturing evidence.
+  definitions-expected: 36 is a verified repository fact, re-derived for this manifest by
+  find . -name '*.bpmn*' -not -path '*/node_modules/*' | wc -l
+  which returns 36.  It is an EXPECTATION about the repository and is not an observation about
+  this runtime.
+- definitions-loaded: UNOBSERVED.  The loaded count is an observation and its owning artefact
+  is workflow-engine-init.log, which records the engine's own repository total as UNOBSERVED
+  and states that no engine-side total exists anywhere in this window.  No figure is therefore
+  stated here, the expected figure above is explicitly NOT presented as an observed one, and
+  no count is borrowed from a neighbouring artefact to fill the gap.  An UNOBSERVED
+  observation is rule-compliant; a borrowed one would not be.  That is why the outcome above
+  reports the residual unverified risk assigned to this gate as NOT discharged: the region
+  itself classifies it that way, and an engine bean that constructs without throwing is not
+  evidence that definitions loaded.
+- workflow-engine-init.log is cited BY NAME from artefacts outside this directory, so its
+  filename must not drift, and the citation counts were re-derived for this manifest: nine
+  citations in flow-7-workflow-start.result.txt, one in flow-7-workflow-start.out, one in the
+  cross-capture comparison, one in the closing index and eight in error-scan.txt beside it.
+  The companion flow-7-workflow-start.status carries none, and that measured zero is recorded
+  as it stands rather than assumed upward to match its sibling, because a citation asserted
+  and absent misleads a reviewer exactly as badly as one that is missing.  A rename of that
+  region would break every one of those references silently.
+- the expected document-viewer 503 is a pre-existing condition documented in TWO independent
+  places, and being documented twice is itself the evidence that it is by design rather than a
+  fault.  At the base commit named in the commit field above, which is the correct frame for a
+  citation shared with the pre-migration side, the two lines are README.md:L53 and
+  docs/setup.md:L33, both re-verified against that commit for this manifest; in the
+  post-migration tree the same two lines sit at README.md:50 and docs/setup.md:30, because
+  edits above them removed lines, and both positions are given so a reviewer finds the line
+  from either side.  Under R-6 the condition is captured as observed: not retried into
+  submission, not repaired, not hidden, and never counted as a migration regression.  Its
+  ABSENCE on this side would be the anomaly worth investigating, not its presence.
+- and the honest boundary on that expectation, because stating it without the boundary would
+  misrepresent this manifest.  The viewer is observed by an HTTP probe in a flow record and in
+  the reference-stack note beside this directory, not by a line in a startup log, so its
+  absence from the startup regions is expected rather than a gap.  The detailed
+  classification of what the ERROR scan did and did not match belongs to error-scan.txt and is
+  referenced here rather than duplicated.
+- the five frontend artifact names are frozen contract under R-T6 and are recorded here as
+  NAMES ONLY: assets/dist/application.js, application.min.js, vendors.min.js,
+  application.min.css, and the rewritten home.html.  All five were re-confirmed for this
+  manifest against the unchanged pipeline configuration that emits them.  Their digests live
+  in the artifacts directory beside this one, which owns them; no digest value is stated here
+  and none was computed for this manifest.
+- why byte-identical artifact comparison is a valid gate at all, since it carries a burden it
+  would not normally have to carry.  The frontend contains ZERO test-specification files
+  despite declaring a test runner and an assertion library, re-derived for this manifest, so
+  artifact-level identity is the strongest behavioural evidence available on that track.  It
+  is valid because cache busting is content-hash based with no timestamp, banner or date
+  injection, and minification runs with identifier mangling disabled, which together remove
+  the ordinary sources of inter-build variance.
+- one honest caveat on that comparison rather than a silent scoping.  Source-map generation is
+  enabled and embeds file paths, so the comparison build must execute from the same relative
+  path or the map file will differ while the bundles do not; the map is scoped out of the
+  comparison if it cannot.  The comparison is scoped to the five artifacts above accordingly.
+  The full treatment of the caveat, and of the comparison's provenance, belongs to the
+  notes directory beside this one and is referenced rather than restated.
+- the mirror obligation, stated as this directory's contract.  Both sides use identical
+  filenames, an identical field set, identical field order and identical region selection, so
+  that a recursive diff of the two capture directories is mechanical rather than
+  interpretive.  A reviewer should run that diff and expect CONTENT differences only, never
+  structural ones; the values that legitimately differ by design are the runtime field, which
+  reads Java 17 here and JDK 8 there, and the commit field.  Every other difference is a
+  finding.
+- the division of labour, so that no reader expects the wrong content here.  Toolchain
+  provenance is the toolchain note in the env directory beside this one, and no toolchain
+  version detail beyond the runtime field appears here; the five artifact digests are the
+  .sha256 files in the artifacts directory; per-module unit-test report XML is under the
+  surefire directory, one directory per module, and no unit-test result is restated here; the
+  static-audit and coverage-liveness evidence are the static-audit and jacoco-liveness files
+  beside this directory; and the eight flow captures are the flow files beside this directory,
+  each in .out, .status and .result.txt form, under the fixed slugs 1-login, 2-views,
+  3-alfresco-roundtrip, 4-solr-search, 5-activemq-event, 6-generated-number, 7-workflow-start
+  and 8-queue-transition.  This directory owns the deployment and startup-log regions and
+  nothing else.
+- one direction of resolution stated explicitly, so a discrepancy is not settled the wrong
+  way.  The closing smoke-run-summary index beside this directory lists the startup log
+  regions in its companion-evidence block, and it declares of itself that it is an INDEX ONLY
+  and the authority for nothing.  THIS FILE is the authority for the statuses it reports and
+  for this gate's outcome.  Where the index and this manifest disagree, the manifest and the
+  region headers it was derived from govern, and the index is the thing to correct.
+- what this manifest deliberately does NOT do.  It states no aggregate verdict over the whole
+  smoke run and no roll-up of the eight flows; its gate field is scoped to deployment reaching
+  ready state and it pronounces on nothing wider.  It carries no captured log text, no matched
+  ERROR line, no digest value, no toolchain version, no unit-test result, no flow result, no
+  dependency inventory and no artifact coordinate; each of those has an owning artefact or
+  register that holds it, and each is referenced by name rather than copied.
+- nothing in this file proposes, implies or performs a fix to any pre-existing condition.
+  Every condition named above is recorded as observed, and the two places where the migration
+  does repair a pre-existing condition are named in the R-6 note above precisely so that the
+  count of such repairs stays auditable and cannot quietly grow.
