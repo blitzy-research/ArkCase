@@ -78,36 +78,35 @@ MIRROR:
   for directory, which is what makes the recursive comparison below
   mechanically meaningful: every difference it reports is a difference in
   evidence rather than a difference in layout.  Every entry that a recursive
-  comparison finds on ONE side only is enumerated below, measured from the
-  two path sets rather than recalled, so that none of them can pass as an
-  oversight.  ANY entry present on only one side and NOT named here is a
-  real finding.
+  comparison finds on ONE side only is enumerated below, MEASURED from the
+  two path sets when this file was written rather than recalled from a list
+  kept by hand, so that none of them can pass as an oversight and so that a
+  file added to either side afterwards cannot leave this accounting quietly
+  wrong.  ANY entry present on only one side and NOT named here is a real
+  finding.
 
-  Present on the PRE-MIGRATION side only (2):
-    startup/error-scan.txt
-      The recorded RESULT of the startup error scan on this runtime, as
-      distinct from startup/errors.log, which is the scan's raw output and
-      is carried on both sides.  It states the scan command and the three
-      region-selection decisions verbatim so that the migrated side can run
-      the scan byte-identically, and it says of itself that it covers the
-      pre-migration side only.  The migrated side's counterpart to it is
-      that side's own scan, which is a separate artefact and not a copy of
-      this one.
+  Present on the PRE-MIGRATION side only (1):
     surefire/notes/property-allowlist-line-continuation.txt
       The register for one harvest defect that exists on this side alone:
       the archived pre-migration reports carry an orphaned property-element
-      tail, 278 of 278, because the older runner writes line.separator with
-      a value that is a literal newline and the installer's property filter
-      is line-oriented.  The migrated reports carry it 0 of 284, so there is
+      tail, because the older runner writes line.separator with a value that
+      is a literal newline and the installer property filter is
+      line-oriented.  The migrated reports do not carry it, so there is
       nothing on that side to register.  The note sits BESIDE the module
       directories, never inside one, which is the same placement rule
       run-provenance.txt and sha256-manifest.txt follow.  The defect is
       documented and deliberately NOT fixed: the archive is digest-bound, so
       editing a report to tidy it would break the manifest that proves the
       report is an unaltered relocated capture, and the defect blocks no
-      validation item.
+      validation item.  The measured figures are in the register itself.
 
-  Present on the MIGRATED side only, outside surefire/ (2):
+  Present on the MIGRATED side only, outside surefire/ (3):
+    artifacts/diff-result.txt
+      The adjudication of the frontend artifact byte-identity criterion,
+      per artifact and with one overall verdict.  Like comparison.txt it is
+      a statement ABOUT the pair rather than an observation of either half,
+      so it is written once and from the migrated side; the per-artifact
+      digests it adjudicates are carried on both sides beside it.
     comparison.txt
       The recursive cross-capture comparison itself.  It is written once,
       from the migrated side, because it is a statement ABOUT the pair; a
@@ -123,18 +122,23 @@ MIRROR:
       when each side was captured, not of what either side found.
 
   Present on the MIGRATED side only, inside surefire/ (6):
-      Archived reports for suites that do not exist at base commit
-      c8f6226105, so the pre-migration run could not have produced them:
-      one plural-named class the implicitly bound runner's default includes
-      did not match, four LDAP context-source suites and one angular
-      starter wiring suite.  They are enumerated by name and accounted for
-      in notes/surefire-pairing.txt.  A suite archived only on the migrated
-      side is an ADDITION rather than a hole.  The fatal case is the
-      inverse - a suite archived at pre-migration with no migrated
-      counterpart - and there are NONE.
+    surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml
+    surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest.xml
+    surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
+    surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
+    surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
+    surefire/ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml
+      Archived reports for suites that do not exist at base commit c8f6226105,
+      so the pre-migration run could not have produced them.  Each is
+      accounted for by name in notes/surefire-pairing.txt.  A suite
+      archived only on the migrated side is an ADDITION rather than a
+      hole.  The fatal case is the inverse -- a suite archived at
+      pre-migration with no migrated counterpart -- and that direction is
+      measured and reported above rather than asserted absent.
 
-  Carried on BOTH sides, and named here because an earlier revision of this
-  block wrongly listed it as a migrated-only deviation:
+  Carried on BOTH sides, and named here because each is easy to mistake
+  for a deviation.  Each is listed only while both sides are observed to
+  carry it, so this section cannot contradict the measured sets above:
     jacoco-liveness.txt
       The coverage-instrumentation liveness gate.  It is MEASURED on the
       migrated side, where it reports state LIVE from the execution data
@@ -146,6 +150,15 @@ MIRROR:
       there was nothing on that side to assert.  Recording the
       not-measured state in a file of the same name, rather than omitting
       the file, is what keeps the two directories comparable.
+    startup/error-scan.txt
+      The recorded RESULT of the startup error scan, as distinct from
+      startup/errors.log, which is the scan raw output.  Each side
+      carries its own under this name and states the scan command and
+      its region-selection decisions verbatim for its own runtime, so
+      the two are COUNTERPARTS rather than copies and neither is a
+      duplicate of the other.  An earlier revision of this block listed
+      it as present on the pre-migration side only, which it no longer
+      is now that both scans are recorded.
 
 how to use this capture:
   diff -r <baseline-capture-dir> <migrated-capture-dir>

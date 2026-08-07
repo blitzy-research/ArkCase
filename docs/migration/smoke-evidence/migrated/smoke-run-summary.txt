@@ -4,8 +4,8 @@ ArkCase runtime migration — smoke evidence, closing index for the migrated run
 
 RUNTIME: Java 17 on the backend and Node 20 LTS with npm 10 on the frontend.  Observed toolchain of
   record, captured verbatim from each tool rather than declared here:
-  env/toolchain.txt.  Migrated tree commit 6f779b7fbc on branch blitzy-<UUID>-w-013; working tree dirty: 2 path(s) modified or untracked relative to 6f779b7fbc.
-  Declared capture side migrated, consistent: the capture declares the migrated side and HEAD 6f779b7fbc is not the base commit.
+  env/toolchain.txt.  Migrated tree commit cfad63f685 on branch blitzy-<UUID>; working tree dirty: 5 path(s) modified or untracked relative to cfad63f685.
+  Declared capture side migrated (post-migration replay), consistent: the capture declares the migrated side and HEAD cfad63f685 is not the base commit.
 BASE-COMMIT: c8f6226105c28c2743281d26bf21ad73f7bb7f26 — the pre-migration commit the baseline side of this
   comparison was captured at, before any file in the change set was edited.
   Nothing done later can reconstruct that state, which is why it was captured
@@ -439,56 +439,55 @@ mechanically meaningful: every difference it reports is a difference in
 evidence rather than a difference in layout.  Compare the two with a recursive
 diff of the baseline directory against this one.
 
-Every entry a recursive comparison finds on ONE side only is enumerated here,
-measured from the two path sets rather than recalled.  ANY entry present on
-only one side and NOT named here is a real finding.  The authoritative copy of
-this accounting is the MIRROR block of summary.txt, which both sides carry
-identically; this section repeats it so that a reader entering from the index
-is not left to assume symmetry.
+Every entry a recursive comparison finds on ONE side only is enumerated below,
+MEASURED from the two path sets at the moment this index was written rather than
+recalled from a list maintained by hand.  A list kept by hand goes stale the
+moment a file is added to either capture directory, and it goes stale silently;
+measuring it means a newly added file appears here by itself and a file that
+gains a counterpart leaves.  ANY entry present on only one side and NOT named
+here is a real finding.  The authoritative copy of this accounting is the
+MIRROR block of summary.txt, which both capture directories carry identically;
+this section measures the same two path sets with the same code rather than
+restating it, so the two cannot drift apart.
 
-Present on the PRE-MIGRATION side only, 2:
-  startup/error-scan.txt, the recorded RESULT of that side's startup error
-    scan, as distinct from startup/errors.log, the scan's raw output, which
-    both sides carry.  It states the scan command and its region-selection
-    decisions verbatim so this side's scan can be run byte-identically, and it
-    says of itself that it covers the pre-migration side only.
-  surefire/notes/property-allowlist-line-continuation.txt, the register for a
-    harvest defect that exists on that side alone: its archived reports carry
-    an orphaned property-element tail, 278 of 278, where this side's carry it
-    0 of 284.  Documented and deliberately not fixed, because the archive is
-    digest-bound and the defect blocks no validation item.
+Present on the baseline side only, 1:
+  surefire/notes/property-allowlist-line-continuation.txt
+    the register for a harvest defect that exists on that side alone, documented and deliberately not fixed because the archive is digest-bound and the defect blocks no validation item; the measured figures are in the register itself
 
-Present on THIS migrated side only, outside surefire/, 2:
-  comparison.txt, the recursive cross-capture comparison itself.  It is
-    written once, from this side, because it is a statement ABOUT the pair.
-  smoke-run-summary.txt, this index.  It is written by the closing step of
-    smoke-checks.sh, and the pre-migration capture in this tree predates that
-    step, so that side carries no counterpart.  The script emits the file on
-    whichever side it is next run, so the asymmetry is a property of WHEN each
-    side was captured and not of what either side found.  This index is an
-    INDEX ONLY and is the authority for nothing.
+Present on THIS migrated side only, outside surefire/, 3:
+  artifacts/diff-result.txt
+    the adjudication of the frontend artifact byte-identity criterion, likewise a statement ABOUT the pair and therefore written once
+  comparison.txt
+    the recursive cross-capture comparison itself, written once and from this side only because it is a statement ABOUT the pair rather than an observation of either half
+  smoke-run-summary.txt
+    this index, written by the closing step of smoke-checks.sh on whichever side that script is run; it is an INDEX ONLY and the authority for nothing
 
 Present on THIS migrated side only, inside surefire/, 6:
-  Archived reports for suites that do not exist at base commit c8f6226105, so
-  the pre-migration run could not have produced them: one plural-named class
-  the implicitly bound runner's default includes did not match, four LDAP
-  context-source suites and one angular starter wiring suite.  They are
-  enumerated and accounted for in notes/surefire-pairing.txt.  A suite
-  archived only on this side is an ADDITION; the fatal case is the inverse, a
-  suite archived at pre-migration with no counterpart here, and there are
-  NONE.
+  surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
+  surefire/ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml
+  Each of those is an archived report for a suite the other side did not
+  produce, and each is enumerated with the reason that applies to it in
+  notes/surefire-pairing.txt and in docs/migration/baseline-test-failures.md.
+  A suite archived only on this side is an ADDITION; the fatal case is the
+  inverse, a suite archived on the other side with no counterpart here, and
+  that direction is measured and reported above rather than asserted absent.
 
-Carried on BOTH sides, named because an earlier revision of this section
-wrongly listed it as a deviation:
-  jacoco-liveness.txt, the coverage-instrumentation liveness gate.  It is
-  MEASURED here, where it reports state LIVE from 69 execution data files
-  found on disk.  The pre-migration side carries the file too and records that
-  it was NOT measured there: the unit-test runner was declared in ZERO of the
-  145 project files at base commit c8f6226105, so the argument-line override
-  that silently severs instrumentation could not arise before this migration
-  and there was nothing on that side to assert.  Recording the not-measured
-  state under the same filename, rather than omitting the file, is what keeps
-  the two directories comparable.
+Carried on BOTH sides and therefore NOT a path-set deviation, named here because
+it is the entry most easily mistaken for one: jacoco-liveness.txt, the
+coverage-instrumentation liveness gate.  This side records state LIVE
+from 69 execution data files found on disk.  It is MEASURED on the
+migrated side alone, and the reason is structural rather than incidental: the
+unit-test runner was declared in ZERO of the 145 project files at base commit
+c8f6226105, so the argument-line override that silently severs instrumentation
+could not arise before this migration and there was nothing on the
+pre-migration side to assert.  That side carries the file too and records that
+it was NOT measured there; recording the not-measured state under the same
+filename, rather than omitting the file, is what keeps the two directories
+comparable and is why this file is absent from the sets above.
 
 ================================================================================
 AUTHORITY-NOTE: repeated at the close, so that a reader entering this file from

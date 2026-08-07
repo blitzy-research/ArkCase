@@ -16553,14 +16553,223 @@ write_completeness()
 # convenience index over the evidence and is explicitly not the assertion for any
 # flow — every flow's own three files remain authoritative.
 # ---------------------------------------------------------------------------
+# run_summary_peer_dir — the counterpart capture directory of this one.
+#
+# Derived from the PUBLISHED capture leaf, exactly as every other side-dependent
+# value here is, so that the peer this index measures against cannot disagree
+# with the side the index declares itself to be.  A directory named neither side
+# has no counterpart and yields the empty string rather than a guess: an invented
+# peer would manufacture a one-side-only set out of nothing.
+run_summary_peer_dir()
+{
+    case "$(capture_leaf)" in
+        migrated) printf '%s' "$(dirname -- "$SMOKE_FINAL_OUT_DIR")/baseline" ;;
+        baseline) printf '%s' "$(dirname -- "$SMOKE_FINAL_OUT_DIR")/migrated" ;;
+        *)        printf '' ;;
+    esac
+}
+
+# run_summary_oneside — the entries present in one capture directory and absent
+# from the other, MEASURED from the two path sets on disk.
+#
+# It is measured rather than recalled for a reason that is not stylistic.  A list
+# of one-side-only entries maintained by hand inside this script goes stale the
+# moment a file is added to either capture directory, and it goes stale silently:
+# the index would keep asserting an accounting that a recursive diff of the two
+# directories no longer agrees with, which is precisely the class of claim this
+# file exists to make checkable.  Measuring it means a newly added file appears
+# in the enumeration by itself, and a file that gains a counterpart leaves it.
+#
+# Arguments: the directory whose exclusive entries are wanted, the directory to
+# compare it against, and optionally a region filter — 'in' for the paths under
+# surefire/, 'out' for everything else, omitted for all of them.  Paths are
+# emitted relative to the capture directory and sorted in the byte order a
+# recursive diff walks them in, so this enumeration and that diff read alike.
+run_summary_oneside()
+{
+    local mine="$1"
+    local theirs="$2"
+    local region="${3:-all}"
+    local p
+
+    [ -n "$theirs" ] || return 0
+    [ -d "$mine" ] && [ -d "$theirs" ] || return 0
+
+    ( cd "$mine" 2>/dev/null && find . -type f ) \
+        | sed -e 's|^\./||' \
+        | LC_ALL=C sort \
+        | while IFS= read -r p; do
+              [ -n "$p" ] || continue
+              [ -e "${theirs}/${p}" ] && continue
+              case "$region" in
+                  in)  case "$p" in surefire/*) ;; *) continue ;; esac ;;
+                  out) case "$p" in surefire/*) continue ;; esac ;;
+              esac
+              printf '%s\n' "$p"
+          done
+}
+
+# run_summary_oneside_count — how many such entries there are, for the count that
+# precedes the enumeration.  Counted from the same measurement that produces the
+# enumeration, so the number and the list can never disagree.
+run_summary_oneside_count()
+{
+    run_summary_oneside "$1" "$2" "${3:-all}" | grep -c . || true
+}
+
+# run_summary_entry_note — what this script can say about a specific one-side-only
+# path, on one line, or nothing at all.
+#
+# Only paths whose asymmetry is a KNOWN structural property of the capture pair
+# are annotated.  Anything else is emitted as a bare path deliberately: an
+# unannotated entry is an entry nobody has accounted for yet, and that is exactly
+# what a reader should notice.
+run_summary_entry_note()
+{
+    case "$1" in
+        comparison.txt)
+            printf '%s' 'the recursive cross-capture comparison itself, written once and from this side only because it is a statement ABOUT the pair rather than an observation of either half'
+            ;;
+        artifacts/diff-result.txt)
+            printf '%s' 'the adjudication of the frontend artifact byte-identity criterion, likewise a statement ABOUT the pair and therefore written once'
+            ;;
+        smoke-run-summary.txt)
+            printf '%s' 'this index, written by the closing step of smoke-checks.sh on whichever side that script is run; it is an INDEX ONLY and the authority for nothing'
+            ;;
+        surefire/notes/property-allowlist-line-continuation.txt)
+            printf '%s' 'the register for a harvest defect that exists on that side alone, documented and deliberately not fixed because the archive is digest-bound and the defect blocks no validation item; the measured figures are in the register itself'
+            ;;
+        *)
+            printf ''
+            ;;
+    esac
+}
+
+# summary_entry_note — the accounting note for one measured one-side-only path, as
+# summary.txt renders it: wrapped prose indented under the path it belongs to.
+#
+# Separate from run_summary_entry_note because the two files render at different
+# widths and indents, and because this one is the AUTHORITATIVE copy of the
+# accounting while that one is an index entry.  A path with nothing recorded here
+# is emitted bare on purpose: an unannotated entry is one nobody has accounted
+# for, which is exactly what a reader should stop at.
+summary_entry_note()
+{
+    case "$1" in
+        surefire/notes/property-allowlist-line-continuation.txt)
+            printf '      The register for one harvest defect that exists on this side alone:\n'
+            printf '      the archived pre-migration reports carry an orphaned property-element\n'
+            printf '      tail, because the older runner writes line.separator with a value that\n'
+            printf '      is a literal newline and the installer property filter is\n'
+            printf '      line-oriented.  The migrated reports do not carry it, so there is\n'
+            printf '      nothing on that side to register.  The note sits BESIDE the module\n'
+            printf '      directories, never inside one, which is the same placement rule\n'
+            printf '      run-provenance.txt and sha256-manifest.txt follow.  The defect is\n'
+            printf '      documented and deliberately NOT fixed: the archive is digest-bound, so\n'
+            printf '      editing a report to tidy it would break the manifest that proves the\n'
+            printf '      report is an unaltered relocated capture, and the defect blocks no\n'
+            printf '      validation item.  The measured figures are in the register itself.\n'
+            ;;
+        comparison.txt)
+            printf '      The recursive cross-capture comparison itself.  It is written once,\n'
+            printf '      from the migrated side, because it is a statement ABOUT the pair; a\n'
+            printf '      second copy on the pre-migration side would either duplicate it or\n'
+            printf '      contradict it.\n'
+            ;;
+        artifacts/diff-result.txt)
+            printf '      The adjudication of the frontend artifact byte-identity criterion,\n'
+            printf '      per artifact and with one overall verdict.  Like comparison.txt it is\n'
+            printf '      a statement ABOUT the pair rather than an observation of either half,\n'
+            printf '      so it is written once and from the migrated side; the per-artifact\n'
+            printf '      digests it adjudicates are carried on both sides beside it.\n'
+            ;;
+        smoke-run-summary.txt)
+            printf '      The closing index for this capture, written by the closing step of\n'
+            printf '      smoke-checks.sh.  It is an INDEX ONLY and is the authority for\n'
+            printf '      nothing: the deliverable is satisfied by the eight flow-n result\n'
+            printf '      files.  The pre-migration capture in this tree predates that closing\n'
+            printf '      step and therefore carries no counterpart; the script emits the file\n'
+            printf '      on whichever side it is next run, so this asymmetry is a property of\n'
+            printf '      when each side was captured, not of what either side found.\n'
+            ;;
+    esac
+}
+
+# summary_both_sides_note — the short curated list of entries that ARE carried on
+# both sides and are nevertheless easy to mistake for a deviation.
+#
+# It is curated rather than measured, because the measured both-sides set is the
+# whole capture; what is worth naming is the handful of entries a reader is likely
+# to reach for. Each is emitted only while both sides are observed to carry it, so
+# this section cannot contradict the measured sets above it: an entry that lost
+# its counterpart would drop out of here and appear there instead.
+summary_both_sides_note()
+{
+    local base="$1"
+    local migr="$2"
+    local shortsha="$3"
+    local p
+    local emitted=0
+
+    for p in jacoco-liveness.txt startup/error-scan.txt; do
+        [ -e "${base}/${p}" ] && [ -e "${migr}/${p}" ] || continue
+        if [ "$emitted" -eq 0 ]; then
+            printf '  Carried on BOTH sides, and named here because each is easy to mistake\n'
+            printf '  for a deviation.  Each is listed only while both sides are observed to\n'
+            printf '  carry it, so this section cannot contradict the measured sets above:\n'
+            emitted=1
+        fi
+        printf '    %s\n' "$p"
+        case "$p" in
+            jacoco-liveness.txt)
+                printf '      The coverage-instrumentation liveness gate.  It is MEASURED on the\n'
+                printf '      migrated side, where it reports state %s from the execution data\n' \
+                    "$(run_summary_colon "${migr}/jacoco-liveness.txt" 'state')"
+                printf '      found on disk.  The pre-migration side carries the file too and\n'
+                printf '      records that it was NOT measured there, with the reason: the\n'
+                printf '      unit-test runner was declared in ZERO of the 145 project files at\n'
+                printf '      base commit %s, so the argument-line override that silently\n' "$shortsha"
+                printf '      severs instrumentation could not arise before this migration and\n'
+                printf '      there was nothing on that side to assert.  Recording the\n'
+                printf '      not-measured state in a file of the same name, rather than omitting\n'
+                printf '      the file, is what keeps the two directories comparable.\n'
+                ;;
+            startup/error-scan.txt)
+                printf '      The recorded RESULT of the startup error scan, as distinct from\n'
+                printf '      startup/errors.log, which is the scan raw output.  Each side\n'
+                printf '      carries its own under this name and states the scan command and\n'
+                printf '      its region-selection decisions verbatim for its own runtime, so\n'
+                printf '      the two are COUNTERPARTS rather than copies and neither is a\n'
+                printf '      duplicate of the other.  An earlier revision of this block listed\n'
+                printf '      it as present on the pre-migration side only, which it no longer\n'
+                printf '      is now that both scans are recorded.\n'
+                ;;
+        esac
+    done
+}
+
 write_summary()
 {
     local overall="$1"
     local out="${SMOKE_OUT_DIR}/summary.txt"
     local n slug dest verdict
     local entry
+    local sm_base sm_migr sm_entry
 
     begin_capture_file "$out"
+
+    # The two capture directories the MIRROR accounting below is measured between.
+    # THIS side is the live write root, because a staged run has not published yet
+    # and its files exist only there; the other side is derived from the published
+    # leaf.  Naming the two sets absolutely, rather than as this-side and
+    # other-side, is what lets both capture directories carry a byte-identical copy
+    # of that block.
+    sm_base=''
+    sm_migr=''
+    case "$(capture_leaf)" in
+        baseline) sm_base="$SMOKE_OUT_DIR"; sm_migr="$(run_summary_peer_dir)" ;;
+        migrated) sm_migr="$SMOKE_OUT_DIR"; sm_base="$(run_summary_peer_dir)" ;;
+    esac
     {
         printf 'ArkCase migration smoke evidence — closing summary\n'
         printf 'capture-directory: %s\n' "$SMOKE_OUT_DIR"
@@ -16649,24 +16858,50 @@ write_summary()
         printf '  The two capture directories mirror each other file for file and directory\n'
         printf '  for directory, which is what makes the recursive comparison below\n'
         printf '  mechanically meaningful: every difference it reports is a difference in\n'
-        printf '  evidence rather than a difference in layout.  There is EXACTLY ONE\n'
-        printf '  permitted TOP-LEVEL asymmetry, and it is named here so that it cannot\n'
-        printf '  pass as an oversight.  The migrated capture directory additionally\n'
-        printf '  carries the top-level file jacoco-liveness.txt, the coverage-liveness\n'
-        printf '  gate, and the baseline capture directory has no counterpart to it.  The\n'
-        printf '  reason is that maven-surefire-plugin was declared in zero of the 145 POMs\n'
-        printf '  at base commit c8f6226105, so the argLine-override hazard that file\n'
-        printf '  records could not arise on the baseline side and there was nothing there\n'
-        printf '  to assert.  That file discloses the same deviation itself, so the\n'
-        printf '  asymmetry is recorded in two independent places.\n'
-        printf '  The other migrated-only entries a recursive comparison reports all sit\n'
-        printf '  inside surefire/ and are archived reports for suites that have no\n'
-        printf '  baseline counterpart; they are enumerated by name and accounted for in\n'
-        printf '  notes/surefire-pairing.txt, and a suite archived only on the migrated\n'
-        printf '  side is an addition rather than a hole.  The fatal case is the inverse --\n'
-        printf '  a suite archived at baseline with no migrated counterpart -- and there\n'
-        printf '  are none.  ANY entry present on only one side beyond those is a real\n'
+        printf '  evidence rather than a difference in layout.  Every entry that a recursive\n'
+        printf '  comparison finds on ONE side only is enumerated below, MEASURED from the\n'
+        printf '  two path sets when this file was written rather than recalled from a list\n'
+        printf '  kept by hand, so that none of them can pass as an oversight and so that a\n'
+        printf '  file added to either side afterwards cannot leave this accounting quietly\n'
+        printf '  wrong.  ANY entry present on only one side and NOT named here is a real\n'
         printf '  finding.\n'
+        printf '\n'
+        if [ -z "$sm_base" ] || [ -z "$sm_migr" ] || [ ! -d "$sm_base" ] || [ ! -d "$sm_migr" ]; then
+            printf '  NOT MEASURABLE: only one of the two capture directories is present, so\n'
+            printf '  no one-side-only set could be measured.  The accounting is reported\n'
+            printf '  absent rather than assumed symmetric, and it is regenerated by writing\n'
+            printf '  this file again once both sides exist.\n'
+        else
+            printf '  Present on the PRE-MIGRATION side only (%s):\n' \
+                "$(run_summary_oneside_count "$sm_base" "$sm_migr")"
+            run_summary_oneside "$sm_base" "$sm_migr" | while IFS= read -r sm_entry; do
+                printf '    %s\n' "$sm_entry"
+                summary_entry_note "$sm_entry"
+            done
+            printf '\n'
+            printf '  Present on the MIGRATED side only, outside surefire/ (%s):\n' \
+                "$(run_summary_oneside_count "$sm_migr" "$sm_base" out)"
+            run_summary_oneside "$sm_migr" "$sm_base" out | while IFS= read -r sm_entry; do
+                printf '    %s\n' "$sm_entry"
+                summary_entry_note "$sm_entry"
+            done
+            printf '\n'
+            printf '  Present on the MIGRATED side only, inside surefire/ (%s):\n' \
+                "$(run_summary_oneside_count "$sm_migr" "$sm_base" in)"
+            run_summary_oneside "$sm_migr" "$sm_base" in | while IFS= read -r sm_entry; do
+                printf '    %s\n' "$sm_entry"
+            done
+            printf '      Archived reports for suites that do not exist at base commit %s,\n' \
+                "$SMOKE_BASE_COMMIT_SHORT"
+            printf '      so the pre-migration run could not have produced them.  Each is\n'
+            printf '      accounted for by name in notes/surefire-pairing.txt.  A suite\n'
+            printf '      archived only on the migrated side is an ADDITION rather than a\n'
+            printf '      hole.  The fatal case is the inverse -- a suite archived at\n'
+            printf '      pre-migration with no migrated counterpart -- and that direction is\n'
+            printf '      measured and reported above rather than asserted absent.\n'
+            printf '\n'
+            summary_both_sides_note "$sm_base" "$sm_migr" "$SMOKE_BASE_COMMIT_SHORT"
+        fi
         printf '\n'
         printf 'how to use this capture:\n'
         printf '  diff -r <baseline-capture-dir> <migrated-capture-dir>\n'
@@ -16775,6 +17010,7 @@ write_run_summary()
     local v1 v2 v3 v4 v5 v6 v7 v8
     local f2_matches
     local captured_base_url
+    local rs_peer rs_peer_leaf rs_leaf rs_entry rs_note
 
     # The base URL is read back OUT OF THE CAPTURE rather than taken from this
     # shell's environment.  An index describes the run that produced the evidence,
@@ -16785,6 +17021,14 @@ write_run_summary()
     case "$captured_base_url" in
         not-recorded|'') captured_base_url="$ARKCASE_BASE_URL" ;;
     esac
+
+    # The capture pair, resolved once.  The peer directory is where the
+    # one-side-only accounting in the MIRROR section is measured against; an
+    # unnamed capture directory yields none and that section says so.
+    rs_leaf="$(capture_leaf)"
+    rs_peer="$(run_summary_peer_dir)"
+    rs_peer_leaf="$(printf '%s' "$rs_peer" | sed -e 's|/*$||' -e 's|.*/||')"
+    [ -n "$rs_peer_leaf" ] || rs_peer_leaf='other'
 
     # Each flow's capture prefix and recorded verdict, resolved once so the entry
     # blocks below read as prose rather than as path arithmetic.
@@ -17344,33 +17588,72 @@ write_run_summary()
         printf 'evidence rather than a difference in layout.  Compare the two with a recursive\n'
         printf 'diff of the baseline directory against this one.\n'
         printf '\n'
-        printf 'There is EXACTLY ONE documented top-level deviation, and it is named here so\n'
-        printf 'that it cannot pass as an oversight: jacoco-liveness.txt, the coverage-liveness\n'
-        printf 'gate.  It is MEASURED only on this migrated side, where it reports state %s\n' \
+        printf 'Every entry a recursive comparison finds on ONE side only is enumerated below,\n'
+        printf 'MEASURED from the two path sets at the moment this index was written rather than\n'
+        printf 'recalled from a list maintained by hand.  A list kept by hand goes stale the\n'
+        printf 'moment a file is added to either capture directory, and it goes stale silently;\n'
+        printf 'measuring it means a newly added file appears here by itself and a file that\n'
+        printf 'gains a counterpart leaves.  ANY entry present on only one side and NOT named\n'
+        printf 'here is a real finding.  The authoritative copy of this accounting is the\n'
+        printf 'MIRROR block of summary.txt, which both capture directories carry identically;\n'
+        printf 'this section measures the same two path sets with the same code rather than\n'
+        printf 'restating it, so the two cannot drift apart.\n'
+        printf '\n'
+        if [ -z "$rs_peer" ]; then
+            printf 'NOT MEASURABLE: this capture directory is named neither for the pre-migration\n'
+            printf 'side nor for the replay side, so no counterpart could be located and no\n'
+            printf 'one-side-only set could be measured.  The accounting is reported absent\n'
+            printf 'rather than assumed symmetric.\n'
+            printf '\n'
+        else
+            printf 'Present on the %s side only, %s:\n' "$rs_peer_leaf" \
+                "$(run_summary_oneside_count "$rs_peer" "$SMOKE_OUT_DIR")"
+            run_summary_oneside "$rs_peer" "$SMOKE_OUT_DIR" | while IFS= read -r rs_entry; do
+                printf '  %s\n' "$rs_entry"
+                rs_note="$(run_summary_entry_note "$rs_entry")"
+                if [ -n "$rs_note" ]; then
+                    printf '    %s\n' "$rs_note"
+                fi
+            done
+            printf '\n'
+            printf 'Present on THIS %s side only, outside surefire/, %s:\n' "$rs_leaf" \
+                "$(run_summary_oneside_count "$SMOKE_OUT_DIR" "$rs_peer" out)"
+            run_summary_oneside "$SMOKE_OUT_DIR" "$rs_peer" out | while IFS= read -r rs_entry; do
+                printf '  %s\n' "$rs_entry"
+                rs_note="$(run_summary_entry_note "$rs_entry")"
+                if [ -n "$rs_note" ]; then
+                    printf '    %s\n' "$rs_note"
+                fi
+            done
+            printf '\n'
+            printf 'Present on THIS %s side only, inside surefire/, %s:\n' "$rs_leaf" \
+                "$(run_summary_oneside_count "$SMOKE_OUT_DIR" "$rs_peer" in)"
+            run_summary_oneside "$SMOKE_OUT_DIR" "$rs_peer" in | while IFS= read -r rs_entry; do
+                printf '  %s\n' "$rs_entry"
+            done
+            printf '  Each of those is an archived report for a suite the other side did not\n'
+            printf '  produce, and each is enumerated with the reason that applies to it in\n'
+            printf '  notes/surefire-pairing.txt and in docs/migration/baseline-test-failures.md.\n'
+            printf '  A suite archived only on this side is an ADDITION; the fatal case is the\n'
+            printf '  inverse, a suite archived on the other side with no counterpart here, and\n'
+            printf '  that direction is measured and reported above rather than asserted absent.\n'
+            printf '\n'
+        fi
+        printf 'Carried on BOTH sides and therefore NOT a path-set deviation, named here because\n'
+        printf 'it is the entry most easily mistaken for one: jacoco-liveness.txt, the\n'
+        printf 'coverage-instrumentation liveness gate.  This side records state %s\n' \
             "$(run_summary_colon "${SMOKE_OUT_DIR}/jacoco-liveness.txt" 'state')"
-        printf 'from %s execution data files found on disk; the baseline side has no measurable\n' \
+        printf 'from %s execution data files found on disk.  It is MEASURED on the\n' \
             "$(run_summary_colon "${SMOKE_OUT_DIR}/jacoco-liveness.txt" 'execution-data-files-found')"
-        printf 'counterpart and records that it was not measured.  The reason is structural\n'
-        printf 'rather than incidental: the unit-test runner was declared in ZERO of the 145\n'
-        printf 'project files at base commit %s, so the argument-line override that silently\n' \
+        printf 'migrated side alone, and the reason is structural rather than incidental: the\n'
+        printf 'unit-test runner was declared in ZERO of the 145 project files at base commit\n'
+        printf '%s, so the argument-line override that silently severs instrumentation\n' \
             "$SMOKE_BASE_COMMIT_SHORT"
-        printf 'severs instrumentation could not arise before this migration and there was\n'
-        printf 'nothing on that side to assert.  The deviation is disclosed BOTH here and\n'
-        printf 'inside that file, in two independent places, for exactly that reason.\n'
-        printf '\n'
-        printf 'This index itself is NOT a second deviation.  It is written by the same\n'
-        printf 'closing step of the same script on whichever side that script is run, so a\n'
-        printf 'baseline capture carries its own copy under the same name, produced the same\n'
-        printf 'way and differing only in the fields a reader SHOULD expect to differ: the\n'
-        printf 'runtime, the commit, the capture directory and the observed values.\n'
-        printf '\n'
-        printf 'The other entries a recursive comparison reports on only one side all sit\n'
-        printf 'inside surefire/ and are archived reports for suites with no baseline\n'
-        printf 'counterpart; they are enumerated and accounted for in\n'
-        printf 'notes/surefire-pairing.txt.  A suite archived only on the migrated side is an\n'
-        printf 'addition; the fatal case is the inverse, a suite archived at baseline with no\n'
-        printf 'migrated counterpart, and there are none.  ANY entry present on only one side\n'
-        printf 'beyond those is a real finding.\n'
+        printf 'could not arise before this migration and there was nothing on the\n'
+        printf 'pre-migration side to assert.  That side carries the file too and records that\n'
+        printf 'it was NOT measured there; recording the not-measured state under the same\n'
+        printf 'filename, rather than omitting the file, is what keeps the two directories\n'
+        printf 'comparable and is why this file is absent from the sets above.\n'
         printf '\n'
         printf '================================================================================\n'
         printf 'AUTHORITY-NOTE: repeated at the close, so that a reader entering this file from\n'
