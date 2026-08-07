@@ -6,7 +6,7 @@ The Java 17 and Node 20 migration reproduces the frontend dependency graph **exa
 
 The unavoidable consequence is that the graph's **age** is reproduced along with its content. This page measures that exposure honestly, records what was remediated inside the migration's own rules, and states what remains, why it remains, and what has to happen next. It exists because a reproducible graph with known vulnerabilities in it is a security position that must be *stated*, not one that may be left implicit in a lockfile.
 
-Everything below was measured with `npm audit` on the committed lockfile, on Node 20.20.2 with npm 10.8.2, and every count is reproducible with the commands in the last section.
+Everything below was measured on **August 7, 2026** with `npm audit` on the committed lockfile, on Node 20.20.2 with npm 10.8.2. The complete npm and OSV responses, the lockfile-derived SBOM, their integrity manifest and the commands that reproduce them are committed with the migration evidence.
 
 ## Measured position
 
@@ -21,6 +21,27 @@ Everything below was measured with `npm audit` on the committed lockfile, on Nod
 | Direct dependencies carrying an advisory | 40 | **37** | −3 |
 
 Half the installed tree, and half the Critical findings, were dead weight.
+
+## Dated advisory corpus and continuous gate
+
+The August 7, 2026 capture queried the npm registry and OSV.dev directly. It reproduced the 71 frontend advisories above, generated a CycloneDX 1.5 SBOM with **399 components and 400 dependency entries**, and queried the **57 Maven coordinates governed by migration-changed versions**. OSV reported **11 affected coordinates and 40 unique advisories** in that bounded Maven set. The Maven result is deliberately not described as a whole-reactor scan; unchanged coordinates are outside this capture's stated scope.
+
+| Evidence | Purpose |
+| --- | --- |
+| [Capture metadata](smoke-evidence/advisory-corpus/2026-08-07-capture-metadata.json) | Source-input digests, tool versions, counts and SBOM normalisation record |
+| [npm audit response](smoke-evidence/advisory-corpus/2026-08-07-npm-audit.json) | Complete advisory response for the committed frontend lockfile |
+| [CycloneDX SBOM](smoke-evidence/advisory-corpus/2026-08-07-frontend-sbom.cdx.json) | Lockfile-derived component and dependency graph |
+| [Maven OSV queries](smoke-evidence/advisory-corpus/2026-08-07-maven-osv-queries.json) | The exact 57 Maven package/version queries |
+| [Maven OSV batch response](smoke-evidence/advisory-corpus/2026-08-07-maven-osv-response.json) | Coordinate-to-advisory result set |
+| [Maven OSV advisory records](smoke-evidence/advisory-corpus/2026-08-07-maven-osv-advisories.json) | Complete records for the 40 unique advisory identifiers |
+| [SHA-256 manifest](smoke-evidence/advisory-corpus/2026-08-07-sha256-manifest.txt) | Integrity check for every captured JSON document |
+| [Capture](smoke-evidence/advisory-corpus/capture-advisory-corpus.sh) and [verification](smoke-evidence/advisory-corpus/verify-advisory-corpus.sh) scripts | Reproducible acquisition and fail-closed comparison |
+
+The SHA-256 manifest is an integrity record, not a claimed signature. Dependency assurance uses approved live access to the authoritative npm and OSV services and fails closed when either cannot be queried. The CI image is a separate subject: its guard requires an operator-verified signature, SPDX SBOM and SLSA provenance bound to the executing digest.
+
+npm emits a wall-clock timestamp and a random serial UUID in each generated SBOM. The capture script makes only those two fields deterministic: the timestamp is the explicit capture date at midnight UTC, and the serial is UUIDv5 over the capture date and committed lockfile digest. Two independent captures for August 7 produced byte-identical JSON documents and manifests.
+
+The `verify_dependency_security` CI job runs before the build on every pipeline. It checks the committed manifest, re-queries both authoritative advisory sources, regenerates and normalises the SBOM, and requires the five security payloads plus all non-tool metadata to match the reviewed corpus exactly. A new, withdrawn or modified advisory, a changed package graph, an unavailable advisory service, or an SBOM difference therefore fails the pipeline and requires a dated corpus refresh and security review. The inherited image guard independently prevents that job from running in an image whose digest, signature, SPDX SBOM, SLSA provenance or required toolchain has not been configured and bound to the executing subject.
 
 ## What was remediated, and why it was permitted
 
@@ -98,32 +119,51 @@ Group B is nevertheless the group that should be remediated first, because it is
 
 The exposure is not left unmitigated. Three controls introduced by this change set narrow it:
 
-- **The startup build no longer trusts its own workspace.** `AngularResourceCopier` deletes every package-manager run-control file and every stale file from the staging folder *before* npm runs, forces npm's user and global configuration to a path it never creates, and sets the registry explicitly — so a compromised or planted configuration file cannot redirect an install, and a file left behind by a previous dependency's install script is gone before the next install reads it.
-- **The runtime is enforced, not declared.** The same class asks the Node.js and npm launchers for their own versions and refuses to install unless the majors are the ones the committed lockfile was produced with. npm treats a manifest `engines` field as advisory; this check is not advisory and cannot be switched off.
-- **Every write is contained and refuses to follow a link.** Copies into the staging and deployment folders are proven to resolve inside their folder and are opened with `NOFOLLOW_LINKS`, so a package that plants a symbolic link during installation cannot make the assembly write outside the tree.
+- **The startup build receives an allowlisted environment, not Tomcat's environment.** `AngularResourceCopier` starts from an empty child environment, constructs `PATH` from the verified Node launcher directory and configured system entries, and supplies only fixed npm/Git safety settings plus explicitly configured proxy or CA values. It rejects ambient Node, npm, Git, SSH, TLS-loader and credential-shaped variables; points npm and Git configuration at UUID-suffixed files that do not exist; disables system Git configuration and terminal prompting; and removes package-manager run-control files with checked deletion before npm executes. Host tokens, startup hooks and planted configuration therefore do not cross the process boundary.
+- **The runtime and execution bounds are enforced, not declared.** The copier invokes the configured launchers, asks Node.js and npm for their own versions, and refuses to install unless their majors match the committed lockfile's toolchain. npm treats a manifest `engines` field as advisory; these checks are mandatory. Version probes and build commands also have finite watchdogs and exact-child process destruction, so an unresponsive registry or lifecycle script cannot hold Tomcat startup indefinitely.
+- **Staging and deployment writes are handle-relative.** On filesystems that provide `SecureDirectoryStream`, cleanup, source opens, destination copies and link recreation stay relative to once-opened directory handles and reject symbolic-link traversal. The documented fallback uses no-follow opens, containment checks and parent-identity revalidation before a link is recreated. Failed deletion or changed parent identity aborts assembly instead of leaving stale executable content in place.
 
-The install itself is also fully determined by an immutable lockfile: `npm ci` resolves nothing at install time, so the graph cannot silently acquire a *new* vulnerable version between two deployments.
+The install itself is also determined by an immutable lockfile: `npm ci` selects no package version outside `package-lock.json`, so the graph cannot silently acquire a different version between two deployments.
 
-## Remediation plan
+## Owner-authorised remediation programme
 
-Sequenced so that each step is verifiable before the next begins. Steps 1 and 2 are outside this migration's rules and belong to a follow-on change; the migration's job was to establish the reproducible baseline they need.
+QA finding C-1 and the AAP's §0.8.5 execution-evidence authority establish this as a separate security programme rather than an unreviewed extension of the behaviour-preserving runtime migration. The accountable role is the **ArkCase release-security evidence owner**. The frontend build owner, application-platform owner and Java platform owner deliver the workstreams below; release governance maps those roles to named people and target releases in its controlled change record. That staffing record is intentionally not embedded in source control, but the sequence, gates and evidence contract are.
 
-1. **Group B, tooling.** Advance the Grunt pipeline to the versions npm names above, in one change set whose acceptance criterion is a **diff of the five build artifacts against the digests recorded here**. Expect the minifier changes to alter `application.min.js` and `application.min.css`; that is acceptable in a change set whose stated purpose is a tooling upgrade, and it is exactly why it must not be folded into a behaviour-preserving migration. Re-run `npm audit` and record the new totals on this page.
-2. **Group A, served libraries.** This is a frontend framework programme, not a dependency bump: AngularJS 1.x has no patched release. Treat it as such and scope it deliberately. `crypto-js` and `sockjs-client` should be pulled forward from it and handled first, because both are reachable and both have a published later line — `crypto-js` 4.2.0 fixes the Critical PBKDF2 finding directly.
-3. **Deployed surface.** The assembled deployment currently carries the complete `node_modules` tree, because `config/env/all.js` and two application source files resolve runtime paths inside it. Narrowing the deployment to only the referenced package subtrees is a worthwhile reduction, but it requires enumerating those paths exhaustively and is a change to a property list the migration plan freezes; it is recorded here rather than attempted.
-4. **Duplicate installs.** The registry copies `node_modules/angular` 1.8.2, `node_modules/jquery` 3.5.1 and `node_modules/moment` 2.29.1 sit alongside the `@bower_components` copies that the asset layout actually uses (`angular` 1.4.14, `jquery` 2.1.4, `moment` 2.10.6). **Verified: the only non-`@bower_components` package roots referenced by `config/env/all.js` are `angular-aria`, `angular-bootstrap-contextmenu`, `angular-bootstrap-nav-tree`, `angular-moment-picker` and `bootbox`, and the only `node_modules` paths in application source point at `@bower_components/videogular-themes-default` and `@bower_components/pdf.js-viewer`.** That makes the three registry copies look unreferenced, and removing them would drop their advisories. They were **not** removed here, because "no path references it" is a weaker proof than the one used for the five packages above — an AngularJS module could resolve one lazily, and a peer dependency could require it — and a weaker proof is not enough to change a served library's graph. Confirm by exhaustive reference analysis, then remove.
-5. **Continuous measurement.** Add `npm audit` to the pipeline as a reporting step with a recorded baseline, so the totals on this page are re-measured rather than re-asserted, and so a *new* advisory is distinguishable from an accepted one.
+**Programme status: AUTHORISED.** This section is the governed execution contract required by C-1, not advice awaiting later ratification. The current migration does not perform the programme's behaviour-changing upgrades; it establishes the owner, ordering, entry gate, completion evidence and explicit boundary that make those follow-on changes reviewable.
+
+The sequence is mandatory: build tooling is remediated before served libraries, and no stage may be closed merely because installation succeeds.
+
+| Stage | Accountable delivery role | Work | Completion and revalidation gate |
+| --- | --- | --- | --- |
+| 0 — continuous evidence | Release-security evidence owner | **Delivered here:** run `verify_dependency_security` before every CI build; re-query npm and OSV; regenerate the CycloneDX SBOM; compare against the reviewed corpus; require the executing CI image's immutable identity and three evidence artifacts. | A successful pipeline must print the image/evidence identifiers and pass the advisory/SBOM comparison. Any source or graph drift requires a new dated corpus, an updated triage and explicit owner review before the build proceeds. |
+| 1 — Group B build tooling | Frontend build owner | Upgrade Grunt, its CLI, annotation, minification, lint, watch and template toolchain as one isolated change set, using the fixed versions reported in the current npm response as the starting floor rather than applying an unbounded automated rewrite. | Two clean builds from the new lockfile must be byte-identical to each other; all five required artifacts must exist; every difference from the migration digests must be explained and reviewed; `npm audit` and the SBOM must be recaptured; the Grunt task graph, generated `home.html`, source maps and startup assembly tests must pass. No Critical or High Group B advisory may remain without a separately recorded, time-bounded owner exception. |
+| 2 — remove startup-time installation | Application-platform owner | Move dependency installation and asset generation into the trusted CI build, package the reviewed outputs in the WAR, and reduce or remove the deployed `node_modules` tree after exhaustively replacing runtime path dependencies. Tomcat startup must not contact a package registry. | A clean WAR build must succeed with network access disabled during deployment; the five frontend artifacts and every configured asset path must resolve; two WARs from the same inputs must match; startup evidence must show no npm or Grunt child process; module tests and the runtime smoke flows must pass. |
+| 3 — Group A served libraries | Frontend product owner | Remediate reachable Critical packages first (`crypto-js`, then `sockjs-client`), then replace the end-of-life AngularJS ecosystem and its jQuery/Bootstrap/Moment/Summernote integrations as a governed frontend programme. | Add browser-level tests before changing the served graph. Re-run login/session/authority, ACL-filtered views, generated-number, workflow and queue-transition flows; run content-security and XSS regression cases; recapture audit/SBOM evidence. No Critical or High served-library advisory may remain without a separately recorded, time-bounded owner exception. |
+| 4 — migration-owned Maven coordinates | Java platform owner | Triage the 40 OSV records attached to the 11 affected migration-owned coordinates for reachability and vendor-supported fixes. Implement required upgrades in separate, bounded change sets rather than silently broadening this migration. | For every record, retain a reachability/fix verdict; run the full reactor and affected module suites; repeat the runtime security flows; regenerate the OSV corpus. This gate covers only the 57 recorded coordinates and must not be represented as a whole-reactor result. |
+
+### Exclusions from this migration
+
+These are named boundaries of the current migration, not permission to omit them from the programme above:
+
+- **No advisory-driven version advance is folded into the runtime migration.** R-1 permits a dependency change here only for a demonstrated target-runtime compatibility reason, and the five byte-identical frontend artifacts are a mandatory migration acceptance criterion.
+- **No frontend framework replacement is folded into this migration.** AngularJS replacement changes application behaviour and belongs to programme stage 3 with browser-level tests.
+- **No frozen asset-layout property is changed here.** Removing startup installation or narrowing the deployed package tree changes the R-T6 layout contract and belongs to programme stage 2 with exhaustive path and WAR validation.
+- **The Maven corpus is bounded.** It covers the 57 coordinates whose versions changed under this migration; unchanged reactor dependencies and operating-system/container packages require their own inventory and scanner.
+- **No advisory is suppressed to make a gate pass.** Automated force-upgrade, audit-level overrides, vulnerability allowlists without an owner and expiry, and count-only acceptance are prohibited.
+
+The deployed surface still deserves specific work inside stage 2. The assembled deployment currently carries the complete `node_modules` tree because `config/env/all.js` and two application source files resolve runtime paths inside it. The registry copies `node_modules/angular` 1.8.2, `node_modules/jquery` 3.5.1 and `node_modules/moment` 2.29.1 also sit beside the older `@bower_components` copies used by the asset layout. Current reference analysis finds no direct configured path to those three registry copies, but an AngularJS module or peer dependency may resolve one lazily. Exhaustive runtime and package-resolution evidence is therefore required before they can be removed.
 
 ## Risk acceptance
 
 The 71 remaining advisories are **accepted for this change set**, on these terms:
 
-- The acceptance is scoped to the migration. It is not an assessment that the graph is safe; it is a statement that reproducing it exactly was the migration's requirement and that changing it was forbidden by four separate rules named above.
+- The accountable role is the ArkCase release-security evidence owner, and the acceptance is scoped to this behaviour-preserving migration. It is not an assessment that the graph is safe; it is the bounded bridge into the separately authorised programme above.
 - The residual exposure is predominantly **XSS and prototype pollution in an end-of-life browser framework**, plus **weak key derivation in `crypto-js`** and a **superseded SockJS client**. The first requires a framework programme; the second and third have published later lines and should be taken first.
 - No advisory was silenced, suppressed or excluded from the audit. There is no `.npmrc` audit-level override and no `npm audit` allowlist in this repository; the numbers above are the raw output.
-- **24 of the remaining direct findings have no upstream fix at all**, which is the condition the review's own resolution anticipated when it asked for exceptions to be documented where no fix exists.
+- As of August 7, 2026, **26 of the 37 remaining direct findings have no npm-reported fix**; the other 11 require a deliberate toolchain or application change. Lack of a published fix does not close a finding: it determines whether the owner must replace, isolate or time-bound the affected capability.
+- The CI gate continuously re-measures the accepted corpus. Any advisory or graph drift invalidates this snapshot and blocks the build until the owner reviews and records the changed position.
 
-## Reproducing every figure on this page
+## Reproducing every figure and gate
 
 ```bash
 cd acm-standard-applications/arkcase/src/main/webapp/resources
@@ -131,11 +171,39 @@ nvm use 20                       # Node 20.20.2, npm 10.8.2
 
 npm ci                           # restores exactly 401 packages from the committed lockfile
 npm audit                        # 71 advisories: 15 critical, 26 high, 27 moderate, 3 low
-npm audit --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["metadata"])'
+npm audit --package-lock-only --json |
+  python3 -c 'import json,sys; print(json.load(sys.stdin)["metadata"])'
 
 npm run build                    # the unchanged Grunt default task graph
 sha256sum assets/dist/application.js assets/dist/application.min.js \
           assets/dist/vendors.min.js assets/dist/application.min.css home.html
+```
+
+From the repository root, verify the committed corpus and re-query the authoritative services into an empty temporary directory:
+
+```bash
+(
+  cd docs/migration/smoke-evidence/advisory-corpus
+  sha256sum --check 2026-08-07-sha256-manifest.txt
+)
+
+CURRENT_CORPUS="$(mktemp -d)"
+docs/migration/smoke-evidence/advisory-corpus/verify-advisory-corpus.sh \
+  "$CURRENT_CORPUS"
+rm -rf "$CURRENT_CORPUS"
+```
+
+To create a reviewed replacement snapshot, pass its explicit UTC date to the capture script, inspect every difference, then update the date named by `verify-advisory-corpus.sh`:
+
+```bash
+NEW_CORPUS="$(mktemp -d)"
+docs/migration/smoke-evidence/advisory-corpus/capture-advisory-corpus.sh \
+  2026-08-07 "$NEW_CORPUS"
+(
+  cd "$NEW_CORPUS"
+  sha256sum --check 2026-08-07-sha256-manifest.txt
+)
+rm -rf "$NEW_CORPUS"
 ```
 
 Artifact digests recorded when this page was written, and unchanged across the removal of the five dead packages:

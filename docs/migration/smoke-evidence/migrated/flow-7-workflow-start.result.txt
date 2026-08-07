@@ -2,36 +2,43 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 7 - start a workflow
-RUNTIME-COMMIT: Java 17 at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+RUNTIME-COMMIT: Java 17, not-declared
+  pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: migrated (post-migration replay)
   runtime-designation-is: a declared label of this capture, not probe
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  capture-preceded-any-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
-    The pre-migration capture is irreversible - nothing done later can
-    reconstruct it - which is why it is the first executable action of
-    the migration and not a validation afterthought, and why the replay
-    side is compared against it rather than standing on its own.
+  frontend-runtime-designation: Node 20.20.2 with npm 10.8.2
+    The frontend half of this migration is a separate runtime from the
+    Java half, and this flow serves assets the frontend pipeline built,
+    so both designations belong on this record rather than only one.
+  capture-preceded-any-file-edit: not-declared
+    Why it matters on either side: the pre-migration capture is
+    irreversible and is therefore the first executable action of the
+    migration rather than a validation afterthought, because nothing
+    done later can reconstruct it.  The replay is meaningful only
+    against it.
 COMPARED ARTEFACTS: flow-7-workflow-start.out and flow-7-workflow-start.status
   both re-read from disk in this capture directory.  This record
   asserts on the CONTENT of those two files and never on a process
   exit status (R-T7).
-  caller-declared scope: flow-7-workflow-start.out, flow-7-workflow-start.status and startup/process-definitions.log
+  counterparts compared against: flow-7-workflow-start.out and flow-7-workflow-start.status
+    of the same names in the other capture directory, the sibling of
+    this one.  The verdict of that comparison is recorded on the
+    COMPARISON CRITERION line below.
+  caller-declared scope: flow-7-workflow-start.out, flow-7-workflow-start.status and startup/workflow-engine-init.log
 MIGRATION PATH EXERCISED: process engine residual risk: the oldest load-bearing component in the reactor, assigned to this gate rather than declared safe because it could not be bootstrapped for testing without a database
 OBSERVATION:
   verdict: NOT-EXERCISED-WORKFLOW-NOT-STARTED
-  state-mutation-permitted: no
+  state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-7-workflow-start.status:
-    task-list-before=000
+    task-list-before=500
     start-workflow=NOT-ATTEMPTED
     task-list-after=NOT-ATTEMPTED
-    SKIPPED
-    REASON: no HTTP response from /api/latest/plugin/task/businessProcessTasks; the reference stack was not reachable, so no workflow was started and process instantiation, task assignment and process-definition loading are all unobserved
-    START: not-attempted
-    PROCESS_INSTANTIATED: no
-    TASK_ASSIGNED: no
-    DEFINITIONS_LOADED: unavailable
+    OUTCOME: SKIPPED
+    REASON: no fixture object was available to start a workflow on, so process instantiation is unobserved
+    STARTUP_REGION_LINES: 41
     DEFINITIONS_ON_DISK: 36
     PROCESS_DEFINITION_KEY: not-observed
     TASK_NAME: not-observed
@@ -40,22 +47,22 @@ OBSERVATION:
     TASK_ID: none
     RESIDUAL_RISK: process-engine-observed-here-not-cleared
   observations, each derived from the two artefacts named above:
-    - workflow surface observed: 000 (/api/latest/plugin/task/businessProcessTasks)
-    - workflow start recorded as NOT ATTEMPTED: state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), and a workflow cannot be started without changing application state
+    - workflow surface observed: 500 (/api/latest/plugin/task/businessProcessTasks)
+    - workflow start recorded as NOT ATTEMPTED: no fixture object was available to start a workflow on, so there was nothing to instantiate a process against
     - the start-workflow and task-list-after sections are present in flow-7-workflow-start.out as explicit NOT-ATTEMPTED records, so the capture has the same section layout as an exercised run and a row-for-row comparison stays meaningful
     - process definitions measured at run time: 36 (expected 36, all of which the engine must load)
     - the engine-readiness and workflow-instantiation-observations sections of flow-7-workflow-start.out carry the definitions count, the declared definition keys, and every value this criterion compares - process definition key, task definition key, task name, assignee or candidate group, instance state and process variables - each recorded as an explicit absence because no process instance was created
     - declared process definition key for this flow: cmComplaintWorkflow; observed: (not observed - no process instance was created by this run)
     - observed task assignee: (not observed - no process instance was created by this run) - task assignment is half this criterion, so it is recorded explicitly rather than left implied
-    - process-engine startup lines NOT captured: no container log was supplied, so engine initialisation and process-definition loading remain unobserved and the residual risk of this flow is NOT discharged
-    - state mutation permitted: no
+    - process-engine startup lines matched: 41 (see startup/workflow-engine-init.log, mined from the single window recorded in notes/startup-window.txt)
+    - state mutation permitted: yes
     - listing tasks exercises a query; it does not instantiate a process and therefore observes none of the residual risk this flow exists for.  The flow says so rather than labelling a listing as a start
     - normalisation applied to the captured output: the engine-assigned process-instance, execution, task and deployment identifiers, and the version and sequence components of the version-suffixed process-definition identifier.  Deliberately NOT normalised: the process definition key, task definition key, task name, assignee or candidate group, instance state, process variables and definitions count
     - requirements unmet: 1
     - execution-status: this flow did NOT execute.  The explicit machine-readable SKIPPED token and its reason are in the observed-statuses block above, quoted from flow-7-workflow-start.status, so the absence is visible in a directory diff instead of vanishing.  A SKIPPED verdict is not a pass and must not be read as one: the residual risk was assigned to this gate precisely so that it would be observed rather than assumed, and an honest skip leaves it undischarged while a fabricated pass would be the single most damaging thing this capture could contain
-    - observed-values-this-criterion-compares: process definition key (not observed - no process instance was created by this run); task definition key (not observed - no process instance was created by this run); task name (not observed - no process instance was created by this run); assignee (not observed - no process instance was created by this run); candidate group (not observed - no process instance was created by this run); instance state (not observed - no process instance was created by this run); process variables (not observed - no process instance was created by this run); definitions loaded by the engine unavailable; definitions on disk 36.  Every one of those was read back from flow-7-workflow-start.out, and the declared counterparts this criterion is compared against - definition key cmComplaintWorkflow, its task definition key, its task name expression and its assignee expression - are recorded in the workflow-instantiation-observations section of that same file
-    - runtime-of-record: Java 17 (the declared designation of this, the post-migration capture side; the toolchain provenance archived in this same capture directory reports the runtime it was replayed on), and this capture is a replay taken AFTER the change set was applied, compared row for row against the pre-migration capture that was taken before any file was edited; base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
-    - runtime-and-commit-of-this-capture: runtime Java 17; migrated tree commit 0759c70353 (the head the replay was captured at, which is necessarily the parent of the commit that records this file); baseline side pre-migration commit c8f6226105c28c2743281d26bf21ad73f7bb7f26, short form c8f6226105.  Both commits are named on both sides so a reader holding one record knows which two trees the comparison spans without consulting the other; the runtime designation is a declared label of the capture side, and the runtime the tool itself reported is archived separately in this same capture directory so the label can be checked rather than trusted
+    - observed-values-this-criterion-compares: process definition key (not observed - no process instance was created by this run); task definition key (not observed - no process instance was created by this run); task name (not observed - no process instance was created by this run); assignee (not observed - no process instance was created by this run); candidate group (not observed - no process instance was created by this run); instance state (not observed - no process instance was created by this run); process variables (not observed - no process instance was created by this run); definitions loaded by the engine 41; definitions on disk 36.  Every one of those was read back from flow-7-workflow-start.out, and the declared counterparts this criterion is compared against - definition key cmComplaintWorkflow, its task definition key, its task name expression and its assignee expression - are recorded in the workflow-instantiation-observations section of that same file
+    - runtime-of-record: unlabelled capture side - this capture directory is named neither baseline nor migrated, so neither a runtime designation nor a position in the change set is asserted here, and the archived toolchain provenance is the only record of what this run executed on; base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+    - runtime-and-commit-of-this-capture: runtime not-declared - this capture directory is named neither side; migrated tree commit c24e049e28 (the head the replay was captured at, which is necessarily the parent of the commit that records this file); baseline side pre-migration commit c8f6226105c28c2743281d26bf21ad73f7bb7f26, short form c8f6226105.  Both commits are named on both sides so a reader holding one record knows which two trees the comparison spans without consulting the other; the runtime designation is a declared label of the capture side, and the runtime the tool itself reported is archived separately in this same capture directory so the label can be checked rather than trusted
     - expected-difference-between-the-two-captures: the runtime-of-record line above is the ONE line in this record whose value must differ between the pre-migration capture and the post-migration replay, because the runtime is the thing that changed.  Every other line is expected to match row for row, and any other difference is a finding
     - comparison-criterion: identical process instantiation AND identical task assignment.  Both halves are stated because a workflow-start request can answer 200 while no process instance was created and no task was assigned, so "the workflow started" is not the criterion - the criterion is a matching process definition key, a matching task definition key and task name, a matching assignee or candidate group, and a matching instance state
     - classification: RESIDUAL UNVERIFIED RISK, ASSIGNED TO THIS GATE - not cleared, and not verified anywhere else.  The process engine is the oldest load-bearing component in the reactor, dating from 2014; its own version is UNCHANGED by this migration; and it could not be bootstrapped for testing without a database, so it was assigned to the deployment and smoke gates rather than declared safe.  Nothing in this capture may be read as verifying it
@@ -65,7 +72,7 @@ OBSERVATION:
     - bounding-finding-3: it reads no class bytes and touches no encapsulated platform package.  This is also the reason the register of production launch-configuration exceptions for encapsulated-package access - referred to here by title only, because its filename embeds a token this evidence folder carries nowhere, in any file, at any depth - is earned empty rather than assumed empty: no module needs opening on this engine behalf
     - verified-corpus-figure: 36 process definitions, re-derived at capture time rather than adopted.  Two commands, both recorded in flow-7-workflow-start.out: a find over the repository with target, node_modules and .git pruned, which is the primary measurement, and the plain form find . -name '*.bpmn*' -not -path '*/node_modules/*' | wc -l.  Both return 36 in a tree that carries no build output.  In a tree where a module has been built the plain form additionally counts the build copies of definition files beneath that module target directory, which is exactly why the pruned form is primary; the difference is a property of the working tree, not of the corpus.  The engine must load all 36
     - startup-timing-note: engine initialisation happens at deployment, before any request in this flow is sent, and the deployment step in the repository documentation records that the first startup takes 5 to 10 minutes, during which the engine deploys its definitions.  A definitions figure read from a running engine before deployment has finished therefore measures timing rather than behaviour, so an engine-side count is read only after deployment completes.  In this capture no engine-side count exists at all: the figure above is a corpus measurement taken from the tree, and the engine-side loading of those definitions is recorded as unobserved.  The limitation is stated plainly rather than papered over
-    - startup-evidence-location: the engine-initialisation region for this flow is archived under startup/ in this same capture directory, as startup/process-definitions.log, and never under a directory named after a log folder - that bare name is ignored by the repository at any depth, so such evidence would be silently uncommitted while every local check still passed and the deliverable would fail its completion condition invisibly
+    - startup-evidence-location: the engine-initialisation region for this flow is archived under startup/ in this same capture directory, as startup/workflow-engine-init.log, and never under a directory named after a log folder - that bare name is ignored by the repository at any depth, so such evidence would be silently uncommitted while every local check still passed and the deliverable would fail its completion condition invisibly
     - tls-and-readiness-context: the reference stack presents a self-signed TLS certificate, documented in the repository README and again in the setup guide under docs, so this capture accommodates it by verifying against a supplied authority bundle or a public-key pin rather than by disabling verification.  Without that accommodation every flow would fail on certificate verification instead of on behaviour, which is a false negative rather than evidence.  The trust mode this run actually used is recorded in the transport-trust-mode line above; readiness polling tolerates the slow first startup and does not gate the flow, so an unreachable stack still produces an explicit, comparable capture
     - scripting-engine-posture: the latent defect at the two dead call sites is REGISTERED, NOT FIXED, and no scripting-engine artifact is declared by either module that holds one.  Those call sites are provably unreachable dead code - the bean declaration that would instantiate one sits inside a comment region, its only consumer is commented out with it, the single active declaration names a different class, and no build file, configuration file or script references the engine by name - so their baseline behaviour is that they never run, and adding an engine for them would convert dead code into live code, which is a behaviour CHANGE measured against the baseline.  Separately and narrowly, the one path that DID execute at the baseline, the seven task listeners named in bounding-finding-1, is restored by a standalone engine artifact declared at runtime scope by the single module whose resources request it.  The two decisions are opposite because the two baselines are opposite, and reading either as the general rule would break the other
     - engine-version-deliberately-held: the engine own version is unchanged, deliberately, because no incompatibility was demonstrated for it and a version change without a demonstrated reason is out of scope.  It is held rather than overlooked: bumping the oldest load-bearing component in the reactor without a reason would itself be a rule violation, and a far larger behavioural risk than the one this gate manages
@@ -74,8 +81,13 @@ OBSERVATION:
     - escape-clause-accounting: pre-existing conditions are documented rather than repaired.  The change set invokes the escape clause exactly twice - the removal of an unbuildable stylesheet-compiler toolchain, and a tracked frontend configuration module - and BOTH belong to the frontend track, so NEITHER invocation is in this folder.  Stating the count here keeps it auditable and stops it growing quietly.  Nothing in this capture repairs anything, retries a failure into submission, or hides an unexpected outcome
     - pre-existing-condition-recorded-not-repaired: the document-viewer surface of the reference stack is documented to answer HTTP 503, in two places - the repository README and the setup guide under docs - so it is captured as observed, is not treated as a migration regression, and is not repaired.  In this run it did not answer at all, because the reference host did not resolve
     - credential-handling-and-assignee: the configured administrator password never reaches an artefact - it is replaced by the fixed redaction placeholder on every write path, and only the EXISTENCE of a session is recorded, never its value.  The task assignee is deliberately NOT redacted: an assignee is a user identity and it is the behaviour under test, because task assignment is half the comparison criterion, and redacting it would leave two captures agreeing on a placeholder and demonstrating nothing
-    - assertion-source-files: every value in this record was read back from flow-7-workflow-start.status and flow-7-workflow-start.out after they had been written, and the engine-initialisation half from startup/process-definitions.log.  A transport exit status is recorded inside flow-7-workflow-start.out as one further observation and is never the basis of anything here.  The standing demonstration of why: the frontend build configuration at Gruntfile.js:L143-L144 sets the force option so that a failing task does not break the project, which lets a broken build exit zero, and two registered pre-existing defects in that same file are masked by exactly that setting
+    - assertion-source-files: every value in this record was read back from flow-7-workflow-start.status and flow-7-workflow-start.out after they had been written, and the engine-initialisation half from startup/workflow-engine-init.log.  A transport exit status is recorded inside flow-7-workflow-start.out as one further observation and is never the basis of anything here.  The standing demonstration of why: the frontend build configuration at Gruntfile.js:L143-L144 sets the force option so that a failing task does not break the project, which lets a broken build exit zero, and two registered pre-existing defects in that same file are masked by exactly that setting
 COMPARISON CRITERION: identical process instantiation AND identical task assignment - two halves, stated and judged separately because each fails independently of the other.  HALF ONE, process instantiation: a matching process definition KEY, a matching instance state and matching exposed process variables.  Verdict from the row-for-row comparison against the pre-migration capture: MATCH ON A RECORDED ABSENCE - both sides record the definition key, the instance state and the process variables as explicitly not observed, because neither run created a process instance, so the two agree without either one having measured instantiation.  That is a comparable result and it is NOT a pass.  HALF TWO, task assignment: a matching task definition key, a matching task name and a matching assignee or candidate group.  Verdict from the same comparison: MATCH ON A RECORDED ABSENCE, on the same terms and for the same reason.  Neither half is discharged by this capture, and the residual risk this gate was assigned therefore remains open rather than cleared
+  row-for-row verdict: DIFFERENCE on the recorded rows - this flow's status file differs from the other capture's.  Named rather than explained away; the differing rows are readable by diffing the two status files directly
+  a verdict is not a pass mark.  It states what two files on disk do
+    and do not agree on.  Whether a stated difference is acceptable is
+    settled in the ambiguity-resolutions and pre-existing-defects
+    registers, never here and never by silence.
 NORMALISATION-REDACTION APPLIED:
   pipeline: a plain stream-editor and pattern-scanner pipeline, in
     three passes - literal substitution, credential patterns, then
@@ -134,13 +146,13 @@ TLS-READINESS CONTEXT:
     false negative rather than evidence, so the trust mode is recorded
     above beside every observation it produced.
   readiness-wait: the repository records a first startup of five to ten
-    minutes, so readiness is polled up to 1 attempt(s) at 10 second
+    minutes, so readiness is polled up to 60 attempt(s) at 10 second
     intervals before the flows run, and a slow start is tolerated
     rather than treated as a failure.
     Readiness does NOT gate this flow: the flow records its own
     evidence either way, so an unreachable stack produces an explicit,
     comparable capture instead of a truncated one.
-IF NOT EXECUTED: SKIPPED - no HTTP response from /api/latest/plugin/task/businessProcessTasks; the reference stack was not reachable, so no workflow was started and process instantiation, task assignment and process-definition loading are all unobserved
+IF NOT EXECUTED: SKIPPED - no fixture object was available to start a workflow on, so process instantiation is unobserved
   The paired flow-7-workflow-start.status carries the matching SKIPPED marker
   and flow-7-workflow-start.out carries an explicit section recording the same
   absence, so the gap is visible in a directory diff rather than
@@ -151,7 +163,7 @@ STARTUP-TIMING NOTE:
     BEFORE any request in this flow is sent.  Nothing this flow asks over
     HTTP can observe it.  The initialisation evidence is therefore a
     captured startup-log REGION, archived under startup/ in this same
-    capture directory as startup/process-definitions.log.
+    capture directory as startup/workflow-engine-init.log.
 
   why startup/ and not the obvious name: the obvious directory name for
     startup output is ignored by the repository at any depth, so evidence
@@ -176,9 +188,9 @@ STARTUP-TIMING NOTE:
     capture's own notes/readiness.txt rather than quoted from the
     configuration, so the figures are what happened and not what was asked
     for:
-      readiness-attempts-waited     1
-      readiness-interval-seconds    1
-      readiness-final-status        000
+      readiness-attempts-waited     60
+      readiness-interval-seconds    10
+      readiness-final-status        302
     The readiness criterion is a single one, and it is the same one on both
     sides: the application shell URL answering with an HTTP status at all,
     as opposed to no response at all.  Readiness does not gate the flow, so
@@ -203,15 +215,15 @@ RECORDED CAPTURE DETAIL
 flow: 7
 slug: 7-workflow-start
 verdict: NOT-EXERCISED-WORKFLOW-NOT-STARTED
-capture-side: migrated-post-migration-replay
-runtime-declared: Java 17
+capture-side: unlabelled-capture-side-not-derivable
+runtime-declared: not-declared
 runtime-observed: 17.0.19
-runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
-commit-declared: the migrated head, the change set applied on top of base commit c8f6226105
-capture-precedes-every-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
+runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
+commit-declared: not-declared
+capture-precedes-every-file-edit: not-declared
 migration-path-exercised: process engine residual risk: the oldest load-bearing component in the reactor, assigned to this gate rather than declared safe because it could not be bootstrapped for testing without a database
 comparison-criterion: Identical process instantiation and task assignment.
-compared-artefacts: flow-7-workflow-start.out, flow-7-workflow-start.status and startup/process-definitions.log
+compared-artefacts: flow-7-workflow-start.out, flow-7-workflow-start.status and startup/workflow-engine-init.log
 transport-trust-mode: verify-default-trust-store
 transport-certificate-context: the deployed application serves a self-signed
   TLS certificate, recorded at the base commit in README.md:L45, so a real run
@@ -225,7 +237,7 @@ readiness-context: readiness was polled rather than assumed, because the first
   evidence either way, so a slow or unreachable stack yields an explicit,
   comparable capture instead of a truncated one.  Observations:
   notes/readiness.txt.
-state-mutation-permitted: no
+state-mutation-permitted: yes
 normalisation-applied: every byte of this record left through the single
   sanitising pipeline this script uses for all output.  The volatility pass
   removes only inter-run noise, and only these: ISO-8601 date-times; the Date,
@@ -252,15 +264,12 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   hashes, which are derived from artifact content and so SHOULD match when
   behaviour matches; and the artifact checksums themselves.
 observed-statuses:
-  task-list-before=000
+  task-list-before=500
   start-workflow=NOT-ATTEMPTED
   task-list-after=NOT-ATTEMPTED
-  SKIPPED
-  REASON: no HTTP response from /api/latest/plugin/task/businessProcessTasks; the reference stack was not reachable, so no workflow was started and process instantiation, task assignment and process-definition loading are all unobserved
-  START: not-attempted
-  PROCESS_INSTANTIATED: no
-  TASK_ASSIGNED: no
-  DEFINITIONS_LOADED: unavailable
+  OUTCOME: SKIPPED
+  REASON: no fixture object was available to start a workflow on, so process instantiation is unobserved
+  STARTUP_REGION_LINES: 41
   DEFINITIONS_ON_DISK: 36
   PROCESS_DEFINITION_KEY: not-observed
   TASK_NAME: not-observed
@@ -269,22 +278,22 @@ observed-statuses:
   TASK_ID: none
   RESIDUAL_RISK: process-engine-observed-here-not-cleared
 observations:
-  - workflow surface observed: 000 (/api/latest/plugin/task/businessProcessTasks)
-  - workflow start recorded as NOT ATTEMPTED: state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), and a workflow cannot be started without changing application state
+  - workflow surface observed: 500 (/api/latest/plugin/task/businessProcessTasks)
+  - workflow start recorded as NOT ATTEMPTED: no fixture object was available to start a workflow on, so there was nothing to instantiate a process against
   - the start-workflow and task-list-after sections are present in flow-7-workflow-start.out as explicit NOT-ATTEMPTED records, so the capture has the same section layout as an exercised run and a row-for-row comparison stays meaningful
   - process definitions measured at run time: 36 (expected 36, all of which the engine must load)
   - the engine-readiness and workflow-instantiation-observations sections of flow-7-workflow-start.out carry the definitions count, the declared definition keys, and every value this criterion compares - process definition key, task definition key, task name, assignee or candidate group, instance state and process variables - each recorded as an explicit absence because no process instance was created
   - declared process definition key for this flow: cmComplaintWorkflow; observed: (not observed - no process instance was created by this run)
   - observed task assignee: (not observed - no process instance was created by this run) - task assignment is half this criterion, so it is recorded explicitly rather than left implied
-  - process-engine startup lines NOT captured: no container log was supplied, so engine initialisation and process-definition loading remain unobserved and the residual risk of this flow is NOT discharged
-  - state mutation permitted: no
+  - process-engine startup lines matched: 41 (see startup/workflow-engine-init.log, mined from the single window recorded in notes/startup-window.txt)
+  - state mutation permitted: yes
   - listing tasks exercises a query; it does not instantiate a process and therefore observes none of the residual risk this flow exists for.  The flow says so rather than labelling a listing as a start
   - normalisation applied to the captured output: the engine-assigned process-instance, execution, task and deployment identifiers, and the version and sequence components of the version-suffixed process-definition identifier.  Deliberately NOT normalised: the process definition key, task definition key, task name, assignee or candidate group, instance state, process variables and definitions count
   - requirements unmet: 1
   - execution-status: this flow did NOT execute.  The explicit machine-readable SKIPPED token and its reason are in the observed-statuses block above, quoted from flow-7-workflow-start.status, so the absence is visible in a directory diff instead of vanishing.  A SKIPPED verdict is not a pass and must not be read as one: the residual risk was assigned to this gate precisely so that it would be observed rather than assumed, and an honest skip leaves it undischarged while a fabricated pass would be the single most damaging thing this capture could contain
-  - observed-values-this-criterion-compares: process definition key (not observed - no process instance was created by this run); task definition key (not observed - no process instance was created by this run); task name (not observed - no process instance was created by this run); assignee (not observed - no process instance was created by this run); candidate group (not observed - no process instance was created by this run); instance state (not observed - no process instance was created by this run); process variables (not observed - no process instance was created by this run); definitions loaded by the engine unavailable; definitions on disk 36.  Every one of those was read back from flow-7-workflow-start.out, and the declared counterparts this criterion is compared against - definition key cmComplaintWorkflow, its task definition key, its task name expression and its assignee expression - are recorded in the workflow-instantiation-observations section of that same file
-  - runtime-of-record: Java 17 (the declared designation of this, the post-migration capture side; the toolchain provenance archived in this same capture directory reports the runtime it was replayed on), and this capture is a replay taken AFTER the change set was applied, compared row for row against the pre-migration capture that was taken before any file was edited; base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
-  - runtime-and-commit-of-this-capture: runtime Java 17; migrated tree commit 0759c70353 (the head the replay was captured at, which is necessarily the parent of the commit that records this file); baseline side pre-migration commit c8f6226105c28c2743281d26bf21ad73f7bb7f26, short form c8f6226105.  Both commits are named on both sides so a reader holding one record knows which two trees the comparison spans without consulting the other; the runtime designation is a declared label of the capture side, and the runtime the tool itself reported is archived separately in this same capture directory so the label can be checked rather than trusted
+  - observed-values-this-criterion-compares: process definition key (not observed - no process instance was created by this run); task definition key (not observed - no process instance was created by this run); task name (not observed - no process instance was created by this run); assignee (not observed - no process instance was created by this run); candidate group (not observed - no process instance was created by this run); instance state (not observed - no process instance was created by this run); process variables (not observed - no process instance was created by this run); definitions loaded by the engine 41; definitions on disk 36.  Every one of those was read back from flow-7-workflow-start.out, and the declared counterparts this criterion is compared against - definition key cmComplaintWorkflow, its task definition key, its task name expression and its assignee expression - are recorded in the workflow-instantiation-observations section of that same file
+  - runtime-of-record: unlabelled capture side - this capture directory is named neither baseline nor migrated, so neither a runtime designation nor a position in the change set is asserted here, and the archived toolchain provenance is the only record of what this run executed on; base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+  - runtime-and-commit-of-this-capture: runtime not-declared - this capture directory is named neither side; migrated tree commit c24e049e28 (the head the replay was captured at, which is necessarily the parent of the commit that records this file); baseline side pre-migration commit c8f6226105c28c2743281d26bf21ad73f7bb7f26, short form c8f6226105.  Both commits are named on both sides so a reader holding one record knows which two trees the comparison spans without consulting the other; the runtime designation is a declared label of the capture side, and the runtime the tool itself reported is archived separately in this same capture directory so the label can be checked rather than trusted
   - expected-difference-between-the-two-captures: the runtime-of-record line above is the ONE line in this record whose value must differ between the pre-migration capture and the post-migration replay, because the runtime is the thing that changed.  Every other line is expected to match row for row, and any other difference is a finding
   - comparison-criterion: identical process instantiation AND identical task assignment.  Both halves are stated because a workflow-start request can answer 200 while no process instance was created and no task was assigned, so "the workflow started" is not the criterion - the criterion is a matching process definition key, a matching task definition key and task name, a matching assignee or candidate group, and a matching instance state
   - classification: RESIDUAL UNVERIFIED RISK, ASSIGNED TO THIS GATE - not cleared, and not verified anywhere else.  The process engine is the oldest load-bearing component in the reactor, dating from 2014; its own version is UNCHANGED by this migration; and it could not be bootstrapped for testing without a database, so it was assigned to the deployment and smoke gates rather than declared safe.  Nothing in this capture may be read as verifying it
@@ -294,7 +303,7 @@ observations:
   - bounding-finding-3: it reads no class bytes and touches no encapsulated platform package.  This is also the reason the register of production launch-configuration exceptions for encapsulated-package access - referred to here by title only, because its filename embeds a token this evidence folder carries nowhere, in any file, at any depth - is earned empty rather than assumed empty: no module needs opening on this engine behalf
   - verified-corpus-figure: 36 process definitions, re-derived at capture time rather than adopted.  Two commands, both recorded in flow-7-workflow-start.out: a find over the repository with target, node_modules and .git pruned, which is the primary measurement, and the plain form find . -name '*.bpmn*' -not -path '*/node_modules/*' | wc -l.  Both return 36 in a tree that carries no build output.  In a tree where a module has been built the plain form additionally counts the build copies of definition files beneath that module target directory, which is exactly why the pruned form is primary; the difference is a property of the working tree, not of the corpus.  The engine must load all 36
   - startup-timing-note: engine initialisation happens at deployment, before any request in this flow is sent, and the deployment step in the repository documentation records that the first startup takes 5 to 10 minutes, during which the engine deploys its definitions.  A definitions figure read from a running engine before deployment has finished therefore measures timing rather than behaviour, so an engine-side count is read only after deployment completes.  In this capture no engine-side count exists at all: the figure above is a corpus measurement taken from the tree, and the engine-side loading of those definitions is recorded as unobserved.  The limitation is stated plainly rather than papered over
-  - startup-evidence-location: the engine-initialisation region for this flow is archived under startup/ in this same capture directory, as startup/process-definitions.log, and never under a directory named after a log folder - that bare name is ignored by the repository at any depth, so such evidence would be silently uncommitted while every local check still passed and the deliverable would fail its completion condition invisibly
+  - startup-evidence-location: the engine-initialisation region for this flow is archived under startup/ in this same capture directory, as startup/workflow-engine-init.log, and never under a directory named after a log folder - that bare name is ignored by the repository at any depth, so such evidence would be silently uncommitted while every local check still passed and the deliverable would fail its completion condition invisibly
   - tls-and-readiness-context: the reference stack presents a self-signed TLS certificate, documented in the repository README and again in the setup guide under docs, so this capture accommodates it by verifying against a supplied authority bundle or a public-key pin rather than by disabling verification.  Without that accommodation every flow would fail on certificate verification instead of on behaviour, which is a false negative rather than evidence.  The trust mode this run actually used is recorded in the transport-trust-mode line above; readiness polling tolerates the slow first startup and does not gate the flow, so an unreachable stack still produces an explicit, comparable capture
   - scripting-engine-posture: the latent defect at the two dead call sites is REGISTERED, NOT FIXED, and no scripting-engine artifact is declared by either module that holds one.  Those call sites are provably unreachable dead code - the bean declaration that would instantiate one sits inside a comment region, its only consumer is commented out with it, the single active declaration names a different class, and no build file, configuration file or script references the engine by name - so their baseline behaviour is that they never run, and adding an engine for them would convert dead code into live code, which is a behaviour CHANGE measured against the baseline.  Separately and narrowly, the one path that DID execute at the baseline, the seven task listeners named in bounding-finding-1, is restored by a standalone engine artifact declared at runtime scope by the single module whose resources request it.  The two decisions are opposite because the two baselines are opposite, and reading either as the general rule would break the other
   - engine-version-deliberately-held: the engine own version is unchanged, deliberately, because no incompatibility was demonstrated for it and a version change without a demonstrated reason is out of scope.  It is held rather than overlooked: bumping the oldest load-bearing component in the reactor without a reason would itself be a rule violation, and a far larger behavioural risk than the one this gate manages
@@ -303,7 +312,7 @@ observations:
   - escape-clause-accounting: pre-existing conditions are documented rather than repaired.  The change set invokes the escape clause exactly twice - the removal of an unbuildable stylesheet-compiler toolchain, and a tracked frontend configuration module - and BOTH belong to the frontend track, so NEITHER invocation is in this folder.  Stating the count here keeps it auditable and stops it growing quietly.  Nothing in this capture repairs anything, retries a failure into submission, or hides an unexpected outcome
   - pre-existing-condition-recorded-not-repaired: the document-viewer surface of the reference stack is documented to answer HTTP 503, in two places - the repository README and the setup guide under docs - so it is captured as observed, is not treated as a migration regression, and is not repaired.  In this run it did not answer at all, because the reference host did not resolve
   - credential-handling-and-assignee: the configured administrator password never reaches an artefact - it is replaced by the fixed redaction placeholder on every write path, and only the EXISTENCE of a session is recorded, never its value.  The task assignee is deliberately NOT redacted: an assignee is a user identity and it is the behaviour under test, because task assignment is half the comparison criterion, and redacting it would leave two captures agreeing on a placeholder and demonstrating nothing
-  - assertion-source-files: every value in this record was read back from flow-7-workflow-start.status and flow-7-workflow-start.out after they had been written, and the engine-initialisation half from startup/process-definitions.log.  A transport exit status is recorded inside flow-7-workflow-start.out as one further observation and is never the basis of anything here.  The standing demonstration of why: the frontend build configuration at Gruntfile.js:L143-L144 sets the force option so that a failing task does not break the project, which lets a broken build exit zero, and two registered pre-existing defects in that same file are masked by exactly that setting
+  - assertion-source-files: every value in this record was read back from flow-7-workflow-start.status and flow-7-workflow-start.out after they had been written, and the engine-initialisation half from startup/workflow-engine-init.log.  A transport exit status is recorded inside flow-7-workflow-start.out as one further observation and is never the basis of anything here.  The standing demonstration of why: the frontend build configuration at Gruntfile.js:L143-L144 sets the force option so that a failing task does not break the project, which lets a broken build exit zero, and two registered pre-existing defects in that same file are masked by exactly that setting
 pre-existing-condition-in-the-reference-stack: the VirtualViewer service is
   EXPECTED to answer HTTP 503.  That is a documented pre-existing condition at
   the base commit, recorded in TWO places — README.md:L53 and
@@ -394,9 +403,20 @@ that every such exception be documented.  Observed: the production
 launch configuration declares no such argument, so the JDK access
 exceptions register is delivered empty with a positive statement that
 none are required.  That register is referred to here BY TITLE ONLY,
-because its filename embeds the very token the audit forbids.  R-T3
-requires that a dependency failing under strong encapsulation be
-upgraded or replaced rather than accommodated by opening a JDK
+because its filename embeds the very token the audit forbids.
+THE REGISTER IS EARNED EMPTY, NOT MERELY EMPTY, and the difference is
+the whole of R-2: an empty register that was never populated and one
+that came out empty because the requirement was measured and then
+removed read identically, and only the second complies.  The audited
+configuration is the container launch block recorded at the base commit
+in README.md:L111-L127 and duplicated in docs/setup.md, and it declares
+no such argument either before or after the migration.  Every strong
+encapsulation failure encountered anywhere in this migration was inside
+a TEST library, and each was resolved at its source by upgrading or
+removing that library rather than by opening a JDK package to the
+application - which is R-T3's remedy applied, not avoided.  R-T3
+requires exactly that: a dependency failing under strong encapsulation
+is upgraded or replaced rather than accommodated by opening a JDK
 package - fix the library, do not open the module.
 
 R-5, no disabling of failing tests, verbatim: "Failing tests must not

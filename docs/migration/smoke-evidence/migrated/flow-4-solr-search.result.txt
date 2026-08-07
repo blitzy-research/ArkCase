@@ -5,7 +5,7 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - FLOW 4 OBSERVATION RECORD
 FLOW: 4-solr-search - search round-trip through the search engine
 ARTEFACT: flow-4-solr-search.result.txt
 CAPTURE DIRECTORY: <CAPTURE-DIR>
-CAPTURE SIDE: migrated (post-migration)
+CAPTURE SIDE: unnamed capture directory "migrated.run-2229296"
 MIRRORED BY: the same file name under the other capture directory, written by
     this same unmodified script with the identical field set, so that
     diff -r <baseline-dir> <migrated-dir> compares the two line for line
@@ -17,7 +17,7 @@ HAND EDITED: no
 REPOSITORY: com.armedia:acm:2021.03 - a 145-module Maven reactor
 
 RUNTIME / COMMIT
-    runtime-designation: Java 17
+    runtime-designation: not declared
         The DECLARED label of this capture side, and said to be declared: it is
         not probe output.  Flow 4 issues HTTP requests only; it invokes no
         compiler and no virtual machine, so the runtime is a property of the
@@ -32,12 +32,10 @@ RUNTIME / COMMIT
         is a fixed, documented constant rather than something read from the
         working tree, because the tree a replay runs against is by
         construction NOT at the base commit.
-    capture-tree-commit: 0759c703539152efbcf89ec948cbc9c8695df4f8
-        The MIGRATED TREE this replay was taken against, read from the
-        working tree rather than declared.  It is recorded BESIDE the
-        base commit above and never in place of it: one names the
-        reference, the other names the tree that produced the replay,
-        and collapsing them would silently relabel the reference.
+    capture-tree-commit: not determined - no capture side could be derived
+        No capture side could be derived from the output directory, so
+        no tree of record can be named.  Recorded as undetermined rather
+        than guessed.
     capture-ordering: the baseline capture is taken before any file in the
         change set is edited.  It is the first executable action of the
         migration rather than a validation afterthought, because nothing done
@@ -63,7 +61,7 @@ COMPARED ARTEFACTS
     what lets a recursive diff pair them without a mapping table.
 
 QUERIES ISSUED
-    1  GET https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=*%3A*&start=0&n=5
+    1  GET http://localhost:20040/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
        through the application search endpoint, Accept: application/json,
        authenticated as the administrator account; auth-mode recorded as basic
     2  GET https://arkcase-ce.local/solr
@@ -180,7 +178,7 @@ TLS / READINESS CONTEXT
     Accommodation means supplying the certificate authority bundle or pinning
     the peer public key - verification itself is never silently disabled, and a
     run that does disable it is recorded as carrying degraded trust.
-    readiness-poll: 1 attempt(s) at 10s, transport ceiling 120s.  The first
+    readiness-poll: 60 attempt(s) at 10s, transport ceiling 120s.  The first
     Tomcat startup takes 5 to 10 minutes, recorded at the base commit in
     README.md:L141, so readiness polling tolerates a slow start rather than
     assuming one.
@@ -298,14 +296,13 @@ R-1 - JUSTIFIED CHANGES, AS A SCOPE FENCE.
 
 OBSERVATION
     Read back from flow-4-solr-search.status and flow-4-solr-search.out.
-    query-issued-application-search: GET https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=*%3A*&start=0&n=5
+    query-issued-application-search: GET http://localhost:20040/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
     query-issued-search-engine-direct: GET https://arkcase-ce.local/solr
-    status-token-application-search: 000
+    status-token-application-search: 500
     status-token-search-engine-direct: 000
     match-count-observed: unavailable
     match-count-settled-across-two-consecutive-observations: unavailable
     ranking-observed-raw: unavailable
-    reason-recorded-in-the-capture: no HTTP response from the application search endpoint
 
     RANKING - document identifiers in the order the search returned them.
     Not sorted, not deduplicated, not reordered, not truncated.
@@ -331,50 +328,63 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 4 - search round-trip through the search engine
-RUNTIME-COMMIT: Java 17 at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+RUNTIME-COMMIT: Java 17, not-declared
+  pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: migrated (post-migration replay)
   runtime-designation-is: a declared label of this capture, not probe
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  capture-preceded-any-file-edit: yes.  This observation was taken
-    before a single file of the change set was edited.  Nothing done
-    later can reconstruct it, which is why the baseline capture is the
-    first executable action of the migration and not a validation
-    afterthought.
+  frontend-runtime-designation: Node 20.20.2 with npm 10.8.2
+    The frontend half of this migration is a separate runtime from the
+    Java half, and this flow serves assets the frontend pipeline built,
+    so both designations belong on this record rather than only one.
+  capture-preceded-any-file-edit: not-declared
+    Why it matters on either side: the pre-migration capture is
+    irreversible and is therefore the first executable action of the
+    migration rather than a validation afterthought, because nothing
+    done later can reconstruct it.  The replay is meaningful only
+    against it.
 COMPARED ARTEFACTS: flow-4-solr-search.out and flow-4-solr-search.status
   both re-read from disk in this capture directory.  This record
   asserts on the CONTENT of those two files and never on a process
   exit status (R-T7).
-  caller-declared scope: flow-4-solr-search.status and flow-4-solr-search.out, re-read from disk; both exist and both were written by this flow, so the record names them rather than reporting none
-MIGRATION PATH EXERCISED: search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded, so under R-1 an upgrade without a compatibility reason would itself have been out of scope
+  counterparts compared against: flow-4-solr-search.out and flow-4-solr-search.status
+    of the same names in the other capture directory, the sibling of
+    this one.  The verdict of that comparison is recorded on the
+    COMPARISON CRITERION line below.
+  caller-declared scope: flow-4-solr-search.out and flow-4-solr-search.status, re-read from disk
+MIGRATION PATH EXERCISED: search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded
 OBSERVATION:
-  verdict: SKIPPED
-  state-mutation-permitted: no
+  verdict: OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET
+  state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-4-solr-search.status:
-    search-through-application=000
+    search-request-declaration=OBSERVED
+    search-through-application=500
     search-engine-direct=000
-    SEARCH: 000
+    SEARCH: 500
     SOLR_PING: 000
     RESULT_COUNT: unavailable
     RESULT_COUNT_STABLE: unavailable
     RESULT_IDS_ORDERED: unavailable
-    REASON: no HTTP response from the application search endpoint
-    search-through-application=SKIPPED
   observations, each derived from the two artefacts named above:
-    - SKIPPED: no HTTP response from the application search endpoint, so the search round-trip was never reached
-    - a SKIPPED verdict is not a pass and must not be read as one
-    - application search endpoint observed: 000; the token 000 is this transport's record of no HTTP response at all, not a server status
+    - application search endpoint observed: 500 content-type text/plain;charset=UTF-8
     - search engine direct observed: 000
-    - application search response body bytes observed: 0
-    - match count observed: unavailable - deliberately NOT recorded as zero, because zero would assert that the search answered and matched nothing, which is a behavioural claim no run here produced
-    - ranking observed: unavailable - neither the result set nor its ordering was observed, so neither half of the criterion has anything to compare yet
-    - index readiness could not be established on this run: the query never reached the index, so RESULT_COUNT_STABLE is recorded as unavailable.  That limitation is stated plainly rather than papered over, and an unreached index is deliberately not recorded as a settled empty one
-    - the transport exit status recorded in the .out is an ADDITIONAL observation only; this verdict is derived from the captured status tokens and the captured body, never from a subprocess exit status (R-T7)
-    - the result count and the ordered identifier list are recorded as tokens in their own right in flow-4-solr-search.status, so a later replay that answers 200 with an empty result set cannot be mistaken for a match
-    - no captured payload required a value to be normalised on this run: no body was returned, so nothing was captured that could carry one
-    - nothing was repaired, retried into submission or hidden to make this record read better (R-6)
-    - behaviour is preserved only if the result set AND its ordering match the counterpart capture exactly
+    - application search response body bytes observed: 37
+    - result count observed: unknown
+    - result count settled across two consecutive observations: unavailable (after 0 re-observation(s), limit 12 at 5s)
+    - document identifiers returned, in the order returned: unavailable
+    - requirements unmet: 5
+    - the full result body is captured verbatim; result ordering and result counts are NOT normalised because ranking is the behaviour under observation
+    - the result count is also recorded as a token in the .status file, because a search answering 200 with an empty result set is a success by status and a failure by behaviour
+    - the query-time figure the engine reports is normalised away: it is wall-clock cost rather than behaviour, and it differs on every run
+    - RESULT_COUNT: unknown
+    - hits transcribed in returned order: 0
+    - relevance scores exposed per hit: no
+    - index readiness at capture time: not established: the response exposes no total-match figure, so this capture cannot say whether the index was populated (search engine reached directly: no, observed 000)
+    - the ordered result set is additionally transcribed into the search-result-set section of the .out, unsorted, undeduplicated, unreordered and untruncated, with scores retained; the engine query-time figure is the only value inside the response that is normalised away
+    - RESULT_COUNT above is read back out of flow-4-solr-search.out rather than carried in a variable, so this file and that one cannot disagree about it
+    - behaviour is preserved only if the result set and its ordering match the baseline capture exactly
 COMPARISON CRITERION: identical result set AND identical ranking - both halves, each with
   its own verdict, because either half on its own answers the criterion only
   part of the way.
@@ -392,7 +402,7 @@ COMPARISON CRITERION: identical result set AND identical ranking - both halves, 
     because a low or zero count is uninterpretable without it and the two
     readiness observations are comparable only because the same means was used
     in both runs:
-      NOT ESTABLISHED - no count was observed at all, so there was nothing to settle, and an unreached index is deliberately not recorded as a settled empty one
+      unavailable
   DOCUMENT IDENTIFIERS IN THE ORDER THE RESPONSE RETURNED THEM, one per line:
     (none - no identifier was returned on this run, so there is no order
     to transcribe.  The list is recorded as unavailable, which is not the
@@ -405,6 +415,11 @@ COMPARISON CRITERION: identical result set AND identical ranking - both halves, 
     value removed from inside a search response anywhere in this record is the
     engine-reported query-time and elapsed-time figure, which is wall-clock
     cost rather than behaviour.
+  row-for-row verdict: MATCH on every recorded row - this flow's status file is identical to the other capture's, so the two sides agree row for row.  The captured transcript differs, which is expected of a transcript rather than of a row set - it carries per-run values the normalisation pipeline replaces and provenance that legitimately varies - which is why the row set, not the transcript, carries the verdict
+  a verdict is not a pass mark.  It states what two files on disk do
+    and do not agree on.  Whether a stated difference is acceptable is
+    settled in the ambiguity-resolutions and pre-existing-defects
+    registers, never here and never by silence.
 NORMALISATION-REDACTION APPLIED:
   pipeline: a plain stream-editor and pattern-scanner pipeline, in
     three passes - literal substitution, credential patterns, then
@@ -416,19 +431,28 @@ NORMALISATION-REDACTION APPLIED:
     filesystem path is therefore replaced, so the record does not
     depend on where it was taken.
   stripped, credential pass: authorisation and proxy-authorisation
-    headers; request and response cookie headers, session cookie values
-    among them; cross-site-request-forgery and application ticket
-    headers; scheme-prefixed authorisation material; any field whose
+    headers; the request Cookie and the response Set-Cookie headers,
+    session cookie values among them; cross-site-request-forgery and
+    application ticket headers; scheme-prefixed authorisation material;
+    any field whose
     name denotes a password, secret, ticket or key; a user name in a
     transport configuration line; a credential embedded in a URL; the
     servlet session identifier.
-  stripped, volatility pass: date-and-time values; response headers
-    carrying wall-clock time and cache validators; challenge
-    parameters; generated universally-unique identifiers; generated
-    millisecond instants; surrogate database keys assigned by the
-    process engine or the message broker, matched by FIELD NAME so a
-    bare business number can never be caught by them; and the
-    engine-reported query and elapsed durations.
+  stripped, volatility pass: date-and-time values; the response
+    headers carrying wall-clock time and cache validity, that is the
+    Date, Last-Modified and Expires headers and the ETag validator;
+    authentication-challenge parameters; generated
+    universally-unique identifiers; generated
+    request and millisecond instants; surrogate database keys assigned
+    by the process engine or the message broker, matched by FIELD NAME
+    so a bare business number can never be caught by them - namely the
+    PROCESS-INSTANCE identifier, the EXECUTION identifier, the TASK
+    identifier and the DEPLOYMENT identifier, plus the version and
+    sequence components of the VERSION-SUFFIXED PROCESS-DEFINITION
+    identifier, whose leading key is kept precisely because the key is
+    behaviour while the two numeric components are not; the session
+    identifier; absolute filesystem paths; and the engine-reported
+    query and elapsed durations.
   DELIBERATELY PRESERVED, verbatim and untouched by every expression
     above: case and complaint numbers, queue names, task and process
     names, MIME types, result counts and result ordering,
@@ -454,18 +478,14 @@ TLS-READINESS CONTEXT:
     false negative rather than evidence, so the trust mode is recorded
     above beside every observation it produced.
   readiness-wait: the repository records a first startup of five to ten
-    minutes, so readiness is polled up to 1 attempt(s) at 10 second
+    minutes, so readiness is polled up to 60 attempt(s) at 10 second
     intervals before the flows run, and a slow start is tolerated
     rather than treated as a failure.
     Readiness does NOT gate this flow: the flow records its own
     evidence either way, so an unreachable stack produces an explicit,
     comparable capture instead of a truncated one.
-IF NOT EXECUTED: no HTTP response from the application search endpoint, so the search round-trip was never reached and neither half of the criterion has anything to compare
-  The paired flow-4-solr-search.status carries the matching SKIPPED marker
-  and flow-4-solr-search.out carries an explicit section recording the same
-  absence, so the gap is visible in a directory diff rather than
-  missing from it.  R-5 forbids a silent omission: an unexecuted
-  flow is reported, never dropped, and this is not a pass mark.
+IF NOT EXECUTED: not applicable - this flow executed and its
+  observations above are captured rather than declared absent.
 SOURCE-EDIT NOTE: none - this flow traverses no rewritten line of
   application source.  The field is present rather than omitted so
   that all sixteen records carry the same field names in the same
@@ -476,16 +496,16 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 4
 slug: 4-solr-search
-verdict: SKIPPED
-capture-side: migrated-post-migration-replay
-runtime-declared: Java 17
+verdict: OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET
+capture-side: unlabelled-capture-side-not-derivable
+runtime-declared: not-declared
 runtime-observed: 17.0.19
-runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
-commit-declared: the migrated head, the change set applied on top of base commit c8f6226105
-capture-precedes-every-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
-migration-path-exercised: search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded, so under R-1 an upgrade without a compatibility reason would itself have been out of scope
+runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
+commit-declared: not-declared
+capture-precedes-every-file-edit: not-declared
+migration-path-exercised: search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded
 comparison-criterion: Identical result set and identical ranking.
-compared-artefacts: flow-4-solr-search.status and flow-4-solr-search.out, re-read from disk; both exist and both were written by this flow, so the record names them rather than reporting none
+compared-artefacts: flow-4-solr-search.out and flow-4-solr-search.status, re-read from disk
 transport-trust-mode: verify-default-trust-store
 transport-certificate-context: the deployed application serves a self-signed
   TLS certificate, recorded at the base commit in README.md:L45, so a real run
@@ -499,7 +519,7 @@ readiness-context: readiness was polled rather than assumed, because the first
   evidence either way, so a slow or unreachable stack yields an explicit,
   comparable capture instead of a truncated one.  Observations:
   notes/readiness.txt.
-state-mutation-permitted: no
+state-mutation-permitted: yes
 normalisation-applied: every byte of this record left through the single
   sanitising pipeline this script uses for all output.  The volatility pass
   removes only inter-run noise, and only these: ISO-8601 date-times; the Date,
@@ -526,29 +546,32 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   hashes, which are derived from artifact content and so SHOULD match when
   behaviour matches; and the artifact checksums themselves.
 observed-statuses:
-  search-through-application=000
+  search-request-declaration=OBSERVED
+  search-through-application=500
   search-engine-direct=000
-  SEARCH: 000
+  SEARCH: 500
   SOLR_PING: 000
   RESULT_COUNT: unavailable
   RESULT_COUNT_STABLE: unavailable
   RESULT_IDS_ORDERED: unavailable
-  REASON: no HTTP response from the application search endpoint
-  search-through-application=SKIPPED
 observations:
-  - SKIPPED: no HTTP response from the application search endpoint, so the search round-trip was never reached
-  - a SKIPPED verdict is not a pass and must not be read as one
-  - application search endpoint observed: 000; the token 000 is this transport's record of no HTTP response at all, not a server status
+  - application search endpoint observed: 500 content-type text/plain;charset=UTF-8
   - search engine direct observed: 000
-  - application search response body bytes observed: 0
-  - match count observed: unavailable - deliberately NOT recorded as zero, because zero would assert that the search answered and matched nothing, which is a behavioural claim no run here produced
-  - ranking observed: unavailable - neither the result set nor its ordering was observed, so neither half of the criterion has anything to compare yet
-  - index readiness could not be established on this run: the query never reached the index, so RESULT_COUNT_STABLE is recorded as unavailable.  That limitation is stated plainly rather than papered over, and an unreached index is deliberately not recorded as a settled empty one
-  - the transport exit status recorded in the .out is an ADDITIONAL observation only; this verdict is derived from the captured status tokens and the captured body, never from a subprocess exit status (R-T7)
-  - the result count and the ordered identifier list are recorded as tokens in their own right in flow-4-solr-search.status, so a later replay that answers 200 with an empty result set cannot be mistaken for a match
-  - no captured payload required a value to be normalised on this run: no body was returned, so nothing was captured that could carry one
-  - nothing was repaired, retried into submission or hidden to make this record read better (R-6)
-  - behaviour is preserved only if the result set AND its ordering match the counterpart capture exactly
+  - application search response body bytes observed: 37
+  - result count observed: unknown
+  - result count settled across two consecutive observations: unavailable (after 0 re-observation(s), limit 12 at 5s)
+  - document identifiers returned, in the order returned: unavailable
+  - requirements unmet: 5
+  - the full result body is captured verbatim; result ordering and result counts are NOT normalised because ranking is the behaviour under observation
+  - the result count is also recorded as a token in the .status file, because a search answering 200 with an empty result set is a success by status and a failure by behaviour
+  - the query-time figure the engine reports is normalised away: it is wall-clock cost rather than behaviour, and it differs on every run
+  - RESULT_COUNT: unknown
+  - hits transcribed in returned order: 0
+  - relevance scores exposed per hit: no
+  - index readiness at capture time: not established: the response exposes no total-match figure, so this capture cannot say whether the index was populated (search engine reached directly: no, observed 000)
+  - the ordered result set is additionally transcribed into the search-result-set section of the .out, unsorted, undeduplicated, unreordered and untruncated, with scores retained; the engine query-time figure is the only value inside the response that is normalised away
+  - RESULT_COUNT above is read back out of flow-4-solr-search.out rather than carried in a variable, so this file and that one cannot disagree about it
+  - behaviour is preserved only if the result set and its ordering match the baseline capture exactly
 pre-existing-condition-in-the-reference-stack: the VirtualViewer service is
   EXPECTED to answer HTTP 503.  That is a documented pre-existing condition at
   the base commit, recorded in TWO places — README.md:L53 and
@@ -639,9 +662,20 @@ that every such exception be documented.  Observed: the production
 launch configuration declares no such argument, so the JDK access
 exceptions register is delivered empty with a positive statement that
 none are required.  That register is referred to here BY TITLE ONLY,
-because its filename embeds the very token the audit forbids.  R-T3
-requires that a dependency failing under strong encapsulation be
-upgraded or replaced rather than accommodated by opening a JDK
+because its filename embeds the very token the audit forbids.
+THE REGISTER IS EARNED EMPTY, NOT MERELY EMPTY, and the difference is
+the whole of R-2: an empty register that was never populated and one
+that came out empty because the requirement was measured and then
+removed read identically, and only the second complies.  The audited
+configuration is the container launch block recorded at the base commit
+in README.md:L111-L127 and duplicated in docs/setup.md, and it declares
+no such argument either before or after the migration.  Every strong
+encapsulation failure encountered anywhere in this migration was inside
+a TEST library, and each was resolved at its source by upgrading or
+removing that library rather than by opening a JDK package to the
+application - which is R-T3's remedy applied, not avoided.  R-T3
+requires exactly that: a dependency failing under strong encapsulation
+is upgraded or replaced rather than accommodated by opening a JDK
 package - fix the library, do not open the module.
 
 R-5, no disabling of failing tests, verbatim: "Failing tests must not

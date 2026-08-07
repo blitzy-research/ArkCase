@@ -1,59 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Archived unit-test report, MIGRATED side of the smoke-evidence pair.
-
-  module           : acm-case-file-plugin
-  reactor path     : acm-plugins/acm-default-plugins/acm-case-file-plugin
-  suite            : com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest
-  base commit      : c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)
-  capture runtime  : Java 17, this tier's runtime of record. The baseline side of the pair
-                     was captured on JDK 8; nothing here was compiled at that release.
-  provenance       : produced by a run. The test runner emitted this report and it was
-                     relocated here unchanged under its native filename. It was neither
-                     composed by hand nor derived from test source.
-  emitted at       : acm-plugins/acm-default-plugins/acm-case-file-plugin/target/surefire-reports/TEST-com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest.xml
-                     quoted as text only, and deliberately not recreated. The repository
-                     ignores build output at any depth, so a report left where the runner
-                     wrote it stays invisible to version control while every local check
-                     still passes. Relocation is what makes this deliverable exist.
-  outcome          : one test method, splitCaseTest, observed passing. There is no failure
-                     element and no error element, so this suite owes zero rows to the
-                     register of baseline test failures. A red test matching no row there
-                     would be a migration regression, not an accepted baseline condition.
-  skip accounting  : skipped is zero and no skipped element is present. The class declares
-                     no ignore annotation, and the reactor's unit-test runner declaration
-                     carries no configuration element, so no exclusion covers this class.
-                     Nothing here presents the test as ignored or as excluded.
-  re-verified      : the archived outcome was re-executed on the same runtime after the run
-                     of record. The re-execution reproduced the same single passing test and
-                     the same captured log sequence, compared on testcase presence, outcome
-                     and captured content rather than on raw bytes, which a capture carrying
-                     timestamped log lines can never support. Only the run of record's own
-                     report is stored here, so two runs are not mixed in this archive.
-  substitution     : one, and it is the only edit applied to the runner's output. The system
-                     property dump was reduced to the runtime and operating system
-                     descriptors retained below; every property removed carried an absolute
-                     filesystem path, namely build output, local artefact repository,
-                     runtime installation, temporary directory and user home, none of which
-                     is admitted here. No outcome, message, stack trace or captured output
-                     was altered and nothing was truncated: the context-startup log the
-                     runner captured is retained in full, because it is the evidence that
-                     the application context initialised on this runtime.
-  access arguments : none. The captured output carries no module-access JVM argument that
-                     opens or exports an otherwise-encapsulated JDK package to the unnamed
-                     module, and none was required to obtain this result. The register
-                     titled JDK Access Exceptions is correspondingly empty.
-  rules provenance : two facts, stated together because either one alone misleads. First,
-                     there is no on-disk user rules document for this project: the rules
-                     facility reports none. That is a disclosure, and not licence to lower
-                     the bar. Second, rules are nonetheless present and binding, because the
-                     requirements embed a numbered block of seven rules together with seven
-                     transformation rules, fourteen constraints governing this file in full.
-                     The R-style identifiers used to cite them are the migration plan's own
-                     navigational labels, not quoted titles. No rule was invented, none was
-                     softened, and none is transcribed here.
--->
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest" time="0.074" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest" time="0.075" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -72,12 +18,12 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="splitCaseTest" classname="com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest" time="0.055">
-    <system-out><![CDATA[2026-08-03 15:30:06,798 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
-2026-08-03 15:30:06,798 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@2f8f20c8, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@313c1449, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@52cfc632, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@540e4f0c, org.springframework.test.context.support.DirtiesContextTestExecutionListener@2d1bc25, org.springframework.test.context.transaction.TransactionalTestExecutionListener@539e6e6a, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@7f4ccc7d, org.springframework.test.context.event.EventPublishingTestExecutionListener@599c9ab7]
-2026-08-03 15:30:06,849 [INFO ] [main] com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest - documentId = 1, ttContainer = AcmContainer{id=null, created=null, creator='null', modified=null, modifier='null', containerObjectType='CASE_FILE', containerObjectId=200, containerObjectTitle='null', folder=com.armedia.acm.plugins.ecm.model.AcmFolder@d021ec9[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false], attachmentFolder=null, calendarFolderId='null', cmisRepositoryId='null'}, ttFolder = com.armedia.acm.plugins.ecm.model.AcmFolder@d021ec9[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false]
-2026-08-03 15:30:06,871 [INFO ] [main] com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest - documentId = 2, ttContainer = AcmContainer{id=null, created=null, creator='null', modified=null, modifier='null', containerObjectType='CASE_FILE', containerObjectId=200, containerObjectTitle='null', folder=com.armedia.acm.plugins.ecm.model.AcmFolder@d021ec9[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false], attachmentFolder=null, calendarFolderId='null', cmisRepositoryId='null'}, ttFolder = com.armedia.acm.plugins.ecm.model.AcmFolder@d021ec9[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false]
-2026-08-03 15:30:06,872 [INFO ] [main] com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest - folder Id = 3, tContainer = AcmContainer{id=null, created=null, creator='null', modified=null, modifier='null', containerObjectType='CASE_FILE', containerObjectId=200, containerObjectTitle='null', folder=com.armedia.acm.plugins.ecm.model.AcmFolder@d021ec9[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false], attachmentFolder=null, calendarFolderId='null', cmisRepositoryId='null'}, tFolder = com.armedia.acm.plugins.ecm.model.AcmFolder@d021ec9[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false]
+  <testcase name="splitCaseTest" classname="com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest" time="0.056">
+    <system-out><![CDATA[2026-08-07 07:28:42,517 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+2026-08-07 07:28:42,518 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@599c9ab7, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@56a32535, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@76eeecb5, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@6fd8e931, org.springframework.test.context.support.DirtiesContextTestExecutionListener@52ac8f5f, org.springframework.test.context.transaction.TransactionalTestExecutionListener@1de982b2, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@1c635efe, org.springframework.test.context.event.EventPublishingTestExecutionListener@345abd22]
+2026-08-07 07:28:42,567 [INFO ] [main] com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest - documentId = 1, ttContainer = AcmContainer{id=null, created=null, creator='null', modified=null, modifier='null', containerObjectType='CASE_FILE', containerObjectId=200, containerObjectTitle='null', folder=com.armedia.acm.plugins.ecm.model.AcmFolder@c8aa393[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false], attachmentFolder=null, calendarFolderId='null', cmisRepositoryId='null'}, ttFolder = com.armedia.acm.plugins.ecm.model.AcmFolder@c8aa393[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false]
+2026-08-07 07:28:42,592 [INFO ] [main] com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest - documentId = 2, ttContainer = AcmContainer{id=null, created=null, creator='null', modified=null, modifier='null', containerObjectType='CASE_FILE', containerObjectId=200, containerObjectTitle='null', folder=com.armedia.acm.plugins.ecm.model.AcmFolder@c8aa393[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false], attachmentFolder=null, calendarFolderId='null', cmisRepositoryId='null'}, ttFolder = com.armedia.acm.plugins.ecm.model.AcmFolder@c8aa393[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false]
+2026-08-07 07:28:42,592 [INFO ] [main] com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest - folder Id = 3, tContainer = AcmContainer{id=null, created=null, creator='null', modified=null, modifier='null', containerObjectType='CASE_FILE', containerObjectId=200, containerObjectTitle='null', folder=com.armedia.acm.plugins.ecm.model.AcmFolder@c8aa393[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false], attachmentFolder=null, calendarFolderId='null', cmisRepositoryId='null'}, tFolder = com.armedia.acm.plugins.ecm.model.AcmFolder@c8aa393[id=200,created=<null>,creator=<null>,modified=<null>,modifier=<null>,name=ROOT,cmisRepositoryId=<null>,cmisFolderId=<null>,parentFolder=<null>,childrenFolders=<null>,status=ACTIVE,objectType=FOLDER,participants=[],restricted=false,link=false]
 ]]></system-out>
   </testcase>
 </testsuite>

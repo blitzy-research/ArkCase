@@ -1,8 +1,8 @@
 application readiness polling
-base-url: https://arkcase-ce.local/arkcase
-attempts-configured: 1
-interval-seconds: 1
-final-observed-status: 000
+base-url: http://localhost:20050/arkcase
+attempts-configured: 60
+interval-seconds: 10
+final-observed-status: 302
 note: the first container startup takes 5 to 10 minutes, so a slow start is
   tolerated rather than treated as a failure.  Readiness does not gate the
   flows: each flow records its own evidence either way, so that an

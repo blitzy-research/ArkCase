@@ -2,12 +2,16 @@ archived unit-test report pairing
 
 contract-file: <REPO-ROOT>/docs/migration/smoke-evidence/expected-suites.txt
 contract-state: read
+archive-carried-into-this-run: yes
+archive-carried-from: docs/migration/smoke-evidence/migrated/surefire
+archive-reports-carried: 284
+archive-carry-verification: verified: every digest in the archive own manifest matches the carried copy, so the archive published with this capture is byte-identical to the installed one
 suites-required-on-both-sides: 278
-suites-present-in-this-capture: 285
+suites-present-in-this-capture: 284
 suites-missing-from-this-capture: 0
 suites-present-but-not-in-the-contract: 0
 suites-lost-baseline-only: 0
-suites-added-migrated-only: 7
+suites-added-migrated-only: 6
 
 A suite archived at baseline with no migrated counterpart proves nothing:
 something that used to run either stopped running or stopped being archived,
@@ -26,6 +30,20 @@ rather than assumed here.  Demanding a counterpart either way would make every
 newly added test an evidence gap.  Additions are listed by name below instead,
 which is what keeps them accountable.
 
+why the four archive-carry lines above exist.  The archive under surefire/ is
+not written by the capture producer at all: install-surefire-evidence.sh
+installs it from a raw test harvest, with its own checksum manifest and its own
+run provenance.  A full capture, however, writes into a fresh staging directory
+and is then moved into place over the destination, which is what makes a
+published capture exactly one run output.  Two things followed from that, both
+observed: the pairing check read an empty staging subtree and recorded every
+required suite as missing, and publication deleted the installed archive.  The
+archive is therefore carried into the staging tree before anything asserts on
+it, and the carried copy is re-verified against the digests the archive ships
+for itself.  A failed or unverifiable carry makes this capture INCOMPLETE,
+because an archive that did not reach the staging tree is one this run is about
+to remove.
+
 suites required by the contract but missing here:
   (none)
 
@@ -41,40 +59,4 @@ suites ADDED — archived on the migrated side only (accounted for, not fatal):
   - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
   - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
   - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
-  - ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest.xml
   - ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml
-
-SANCTIONED SUBSTITUTIONS LOGGED AGAINST THE ARCHIVED REPORTS
-
-Exactly one class of alteration stands between what the test runner emitted and
-what this archive carries, and it is recorded here so that it is disclosed
-rather than inferred from a diff.
-
-  what ...... the runner's system property table, reduced to its runtime
-              identity entries: the runtime and virtual machine name, version,
-              vendor and mode, the class file version, the operating system name,
-              version and architecture, the data model, the file encoding and the
-              debug level.
-  why ....... every entry beyond those either names an absolute filesystem path
-              or enumerates the whole resolved classpath.  This documentation
-              tree carries no absolute path, and an enumerated classpath would
-              additionally publish a library version list, which belongs solely
-              to the dependency change inventory and to nowhere else.
-  scope ..... the properties block only.  The testsuite element keeps the
-              runner's own attributes in the runner's own order, and every
-              testcase, every outcome, every failure or error message with its
-              stack trace and every captured output and error stream is
-              verbatim.  No outcome was altered in either direction: a bare
-              passing testcase and a fabricated failure are equally forbidden.
-  both sides  the same reduction is applied to the baseline capture, which is
-              what keeps a report and its same named twin comparable on the only
-              dimensions that can be compared, namely testcase presence, outcome
-              and failure message content.  Raw byte comparison is not one of
-              them: a web layer context startup emits timestamped log lines, so
-              two runs cannot agree byte for byte even in principle.
-
-No other substitution was applied.  In particular no principal name, request
-header, session identifier or credential of any kind appears in any archived
-report, and no report names a module access JVM argument, that is, an argument
-opening or exporting an otherwise encapsulated JDK package to the unnamed
-module.  Where a report needed to describe such an argument it does so in words.

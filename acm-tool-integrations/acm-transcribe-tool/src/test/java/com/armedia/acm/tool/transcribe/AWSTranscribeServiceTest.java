@@ -29,6 +29,7 @@ package com.armedia.acm.tool.transcribe;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -115,6 +116,15 @@ public class AWSTranscribeServiceTest
      */
     private InputStream mediaStreamOverride;
 
+    /**
+     * The one media file the service under test is permitted to open while {@link #mediaStreamOverride}
+     * is armed. A test assigns this alongside the stub stream, and the override asserts the identity
+     * before handing the stream over. The expectation being replaced named the file explicitly, so the
+     * seam has to enforce the same constraint: without it the stub stream would be returned for any
+     * argument and a regression that opened the wrong file would still pass.
+     */
+    private File expectedMediaFile;
+
     @Before
     public void setUp()
     {
@@ -123,7 +133,17 @@ public class AWSTranscribeServiceTest
             @Override
             protected InputStream openMediaStream(File mediaFile) throws IOException
             {
-                return mediaStreamOverride != null ? mediaStreamOverride : super.openMediaStream(mediaFile);
+                if (mediaStreamOverride == null)
+                {
+                    return super.openMediaStream(mediaFile);
+                }
+
+                // Raised as an AssertionError rather than an exception on purpose: the production caller wraps this
+                // call in a try-with-resources whose handler catches Exception, so an exception here would be
+                // reported as an upload failure and swallow the argument mismatch instead of failing the test.
+                assertSame("the media stream was requested for a file other than the one under test", expectedMediaFile,
+                        mediaFile);
+                return mediaStreamOverride;
             }
         };
         awsTranscribeService.setS3Client(s3Client);
@@ -159,6 +179,7 @@ public class AWSTranscribeServiceTest
         configuration.setProfile("profile");
 
         when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
+        expectedMediaFile = file;
         mediaStreamOverride = fileStream;
         when(s3Client.doesObjectExist((String) configuration.getBucket(),
                 transcribe.getRemoteId() + transcribe.getProperties().get("extension"))).thenReturn(false);
@@ -251,6 +272,7 @@ public class AWSTranscribeServiceTest
         String expectedErrorMessage = "Unable to upload media file to Amazon. REASON=[error (Service: null; Status Code: 0; Error Code: null; Request ID: null)].";
 
         when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
+        expectedMediaFile = file;
         mediaStreamOverride = fileStream;
         when(s3Client.doesObjectExist((String) configuration.getBucket(),
                 transcribe.getRemoteId() + transcribe.getProperties().get("extension"))).thenReturn(false);
@@ -303,6 +325,7 @@ public class AWSTranscribeServiceTest
         String expectedErrorMessage = "Unable to start transcribe job on Amazon. REASON=[error (Service: null; Status Code: 0; Error Code: null; Request ID: null; Proxy: null)]";
 
         when(awsTranscribeConfigurationService.getAWSTranscribeConfig()).thenReturn(configuration);
+        expectedMediaFile = file;
         mediaStreamOverride = fileStream;
         when(s3Client.doesObjectExist((String) configuration.getBucket(),
                 transcribe.getRemoteId() + transcribe.getProperties().get("extension"))).thenReturn(false);

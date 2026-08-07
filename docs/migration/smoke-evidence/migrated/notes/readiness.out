@@ -1,31 +1,45 @@
 ===== attempt-1 =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/
+request-url: http://localhost:20040/arkcase/
 auth-mode: anon
 redirects-followed: 0
-redirect-target-reported: (none)
+redirect-target-reported: http://localhost:20040/arkcase/login
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
+http-version: 1.1
+observed-http-status: 302
 observed-content-type: unknown
-observed-content-length: (none reported)
+observed-content-length: 0
 observed-body-bytes: 0
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 0
 ----- body -----
 (empty)
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-(none)
+HTTP/1.1 302 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Location: http://localhost:20040/arkcase/login
+Content-Length: 0
+Date: <HTTP-DATE>
+
+
 ----- end response-headers -----
 

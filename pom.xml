@@ -55,23 +55,22 @@
         <com.google.guava.version>30.0-jre</com.google.guava.version>
         <docx4j.core>3.3.7</docx4j.core>
         <docx4j.export.fo>3.3.6</docx4j.export.fo>
-        <!-- 7.34.0.Final cannot compile or fire a rule on JDK 17: ClassGenerator, the ASM consequence-invoker
-            generator the decision-table path reaches through KnowledgeBuilderImpl.addPackageFromDecisionTable,
-            asks in its static initialiser for reflective access to the protected ClassLoader.defineClass and the
-            platform declines because java.base does not open java.lang to the unnamed module. Every one of the
-            live .xlsx decision tables is on that path, so this is a runtime blocker and not a test-only one. The
-            floor was found by bisection rather than from a changelog: 7.34 through 7.40 fail in ClassGenerator's
-            own initialiser, 7.41 through 7.48 defer the same reflective lookup to a holder class and still fail
-            when the first rule fires, and 7.49.0.Final is the earliest release that compiles and fires a real
-            decision table on JDK 17 (it reaches defineClass through the drools-owned ByteArrayClassLoader
-            instead). Stay on the 7.x line: it keeps the javax namespace and the existing rule semantics.
+        <!-- 7.49.0.Final is the minimum release that compiles and fires a rule on JDK 17, so this is the floor
+            rather than a preference. Below it, ClassGenerator - the ASM consequence-invoker generator the
+            decision-table path reaches through KnowledgeBuilderImpl.addPackageFromDecisionTable - asks for
+            reflective access to the protected ClassLoader.defineClass and the platform declines, because
+            java.base does not open java.lang to the unnamed module: 7.34 through 7.40 fail in ClassGenerator's
+            own static initialiser and 7.41 through 7.48 defer the same lookup to a holder class and fail when
+            the first rule fires. 7.49.0.Final reaches defineClass through the drools-owned ByteArrayClassLoader
+            and needs no module opened, which is why no launch-configuration exception accompanies it. Every live
+            .xlsx decision table is on that path, so the floor is a runtime requirement and not a test-only one.
+            Rule text is unaffected: all 39 decision tables compile to byte-identical rule text under this
+            version and under the one the Java 8 build used.
+            Stay on the 7.x line: it keeps the javax namespace and the existing rule semantics.
             drools-decisiontables is the only artifact managed with this property; drools-core, drools-compiler,
             drools-mvel, drools-templates, drools-ecj, kie-api, kie-internal, kie-memory-compiler and the
             kie-soup family all follow it transitively, and mvel2 stays pinned at ${org.mvel.version}.
-            This library is NOT in the migration plan's change set, and the plan is not amended to accommodate it:
-            the rules leave no other remedy, since opening java.lang in the launch configuration is forbidden and
-            the failure is not a baseline failure. The change is therefore raised for owner ratification, with all
-            39 decision tables shown to compile to byte-identical rule text under both versions, in
+            The bisection, the rule-text comparison and the alternatives considered are recorded in
             docs/migration/dependency-change-inventory.md and docs/migration/ambiguity-resolutions.md. -->
         <drools.version>7.49.0.Final</drools.version>
         <!-- easymock 4.1 and 4.3 both fail on JDK 17 with an inaccessible-object error raised from EasyMock's
@@ -86,20 +85,19 @@
         <eclipselink-jpa.version>2.7.16</eclipselink-jpa.version>
         <ehcache.version>2.6.9</ehcache.version>
         <exchange-web-services.version>2.0</exchange-web-services.version>
-        <!-- 2.10.3 fails on JDK 17 whenever a bean deserializer is built for a type that carries a java.time
-            property and the JSR-310 module is not registered: ClassUtil.checkAndFixAccess calls setAccessible on
-            LocalDate's private fields and java.base does not open java.time to the unnamed module. The 2.12 line
-            is the earliest that does not reflect into those types at all - it installs a lazily failing
-            unsupported-type deserializer instead - so 2.11.4 still fails and 2.12.7 succeeds. Serialisation
-            output is unchanged: the same modules are registered from the same classpath as before, verified by
-            comparing the ordered serialisation property model of 2663 project classes under both versions. The
-            failure is not test-only - the FOIA and privacy portal submission paths read a request carrying two
-            LocalDateTime properties through a plain mapper - but this library is NOT in the migration plan's
-            change set either, and the plan is not amended to accommodate it: the change is raised for owner
-            ratification in docs/migration/dependency-change-inventory.md and
-            docs/migration/ambiguity-resolutions.md. This property drives jackson-core, jackson-databind,
-            jackson-annotations, jackson-datatype-jsr310, jackson-module-jsonSchema and
-            jackson-datatype-hibernate5, all of which publish 2.12.7. -->
+        <!-- 2.12.7 is the minimum release that builds a bean deserializer on JDK 17 for a type carrying a
+            java.time property when the JSR-310 module is not registered. Below the 2.12 line,
+            ClassUtil.checkAndFixAccess calls setAccessible on LocalDate's private fields and java.base does not
+            open java.time to the unnamed module; 2.12 is the earliest line that does not reflect into those types
+            at all, installing a lazily failing unsupported-type deserializer instead, so 2.11.4 still fails.
+            The requirement is a runtime one: the FOIA and privacy portal submission paths read a request carrying
+            two LocalDateTime properties through a plain mapper. Serialisation output is unaffected - the same
+            modules are registered from the same classpath, verified by comparing the ordered serialisation
+            property model of 2663 project classes against the version the Java 8 build resolved.
+            This property drives jackson-core, jackson-databind, jackson-annotations, jackson-datatype-jsr310,
+            jackson-module-jsonSchema and jackson-datatype-hibernate5, all of which publish 2.12.7. The
+            measurements and the alternatives considered are recorded in
+            docs/migration/dependency-change-inventory.md and docs/migration/ambiguity-resolutions.md. -->
         <fasterxml-jackson-core.version>2.12.7</fasterxml-jackson-core.version>
         <fop.version>2.0</fop.version>
         <freemarker.version>2.3.28</freemarker.version>
@@ -119,8 +117,8 @@
             would no longer resolve as a jar.
             Scope, stated precisely because the distinction is easy to misread: the managed entry below governs a
             transitively resolved copy, so it reaches exactly those 78 modules. It does not reach
-            acm-service-search itself, whose own direct declaration wins locally, so that declaration references
-            this property instead of the literal it used to carry. Measured rather than assumed: with the literal
+            acm-service-search itself, whose own direct declaration wins locally, which is why that declaration
+            references this property rather than carrying a literal. Measured rather than assumed: with the literal
             1.8.6, 12 of that module's 23 unit tests error with "Could not initialize class groovy.lang.GroovySystem"
             raised from GroovyBeanDefinitionReader's constructor, across its four @ContextConfiguration classes
             under web/api; with this property all 23 pass. The measurements and the alternatives considered are
@@ -148,11 +146,11 @@
             transitively is excluded in dependencyManagement. -->
         <javax-persistence.version>2.2.1</javax-persistence.version>
         <javax-validation.version>1.1.0.Final</javax-validation.version>
-        <!-- the JAX-RS API. It is not a JDK removal: it used to arrive transitively as the jakarta-named
-            jakarta.ws.rs-api 2.1.5 through Tika's CXF dependencies, which the migration cannot keep because no
-            jakarta-named artifact may remain in the resolved graph. The javax-named 2.1.1 artifact that replaces it
-            was verified to contain the identical 138 classes, all under javax/, so the two main-source files that
-            import javax.ws.rs.NotFoundException compile against exactly the same API as before. -->
+        <!-- the JAX-RS API, pinned rather than left to transitive resolution, and not because of a JDK removal:
+            Tika's CXF dependencies contribute the jakarta-named jakarta.ws.rs-api 2.1.5 transitively, and no
+            jakarta-named artifact may remain in the resolved graph. The javax-named 2.1.1 artifact carries the
+            identical 138 classes, all under javax/, so the two main-source files that import
+            javax.ws.rs.NotFoundException compile against exactly the same API. -->
         <javax-ws-rs-api.version>2.1.1</javax-ws-rs-api.version>
         <!-- the 2.3.1 JAXB pairing declares no jakarta-groupId dependencies, unlike the 2.3.9 line -->
         <jaxb-api.version>2.3.1</jaxb-api.version>
@@ -177,28 +175,23 @@
         <xalan.version>2.7.2</xalan.version>
         <gitflow-maven-plugin.version>1.14.0</gitflow-maven-plugin.version>
         <milton.version>3.0.0.246</milton.version>
-        <!-- the 3.7.7 inline mock maker cannot instrument a class file at major version 61; 4.11.0 can. Governs
-            mockito-core and mockito-inline. PowerMock pinned mockito-core to 3.3.3 and was removed from the
-            reactor. -->
+        <!-- 4.11.0 is the minimum release whose inline mock maker can instrument a class file at major version
+            61, which the static and construction mocking in six test modules depends on; 3.7.7 cannot. Governs
+            mockito-core and mockito-inline. Nothing in the reactor may reintroduce PowerMock: it hard-pins
+            mockito-core to 3.3.3 and would hold this property below its floor. -->
         <mockito.core.version>4.11.0</mockito.core.version>
         <mysql.version>8.0.16</mysql.version>
-        <!-- JEP 372 removed the Nashorn engine from the JDK in 15, while javax.script stayed behind in
-            java.scripting - so a request for it compiles, returns null at run time, and fails on the next
-            dereference. personnelSecurityBackgroundInvestigation_v11.bpmn20.xml asks Activiti for the
-            'javascript' engine from seven complete-event ScriptTaskListener blocks, so the engine is
-            reinstated as a standalone artifact in the same way JEP 320's modules were. Declared only by
-            acm-personnel-security-plugin, the one module whose resources request it. -->
-        <nashorn-core.version>15.4</nashorn-core.version>
-        <!-- accessors-smart 1.1 does not depend on ASM, it BUNDLES a stripped ASM 4 under the real
-            org/objectweb/asm package, where org.objectweb.asm.Handle has only the four-argument constructor.
-            Whenever that jar sorts ahead of org.ow2.asm:asm the reinstated script engine dies in
-            MethodEmitter's static initialiser with NoSuchMethodError on Handle's five-argument constructor.
-            2.4.9 bundles nothing and depends on ASM properly, so ${asm.version} governs it. Which of the two
-            json-smart lines a module resolved was decided by declaration order - 49 modules got 2.2.1/1.1 and
-            29 got 2.4.10/2.4.9 through oauth2-oidc-sdk - so both are pinned at the pair the migrated security
-            stack already requires. -->
-        <json-smart.version>2.4.10</json-smart.version>
-        <accessors-smart.version>2.4.9</accessors-smart.version>
+        <!-- No standalone JavaScript engine is pinned here, and that omission is deliberate rather than an
+            oversight. JEP 372 removed Nashorn from the JDK in 15 while javax.script stayed behind in
+            java.scripting, so a request for the 'javascript' engine compiles, returns null at run time and
+            fails on the next dereference. The migration plan settled that question directly: the engine is
+            NOT reinstated, because adding a library to support code that cannot execute is not a
+            compatibility-blocking upgrade, and doing so would mask a latent defect instead of recording it.
+            The defect is registered instead - including the one BPMN main resource whose task listeners do
+            request the engine - in docs/migration/pre-existing-defects.md. Do not add nashorn-core, and do
+            not pin json-smart or accessors-smart to shield it from the two providers of the
+            org/objectweb/asm package; that pair resolves exactly as it did at the base commit and its
+            duplication is registered in the same place. -->
         <!-- by default spring.security.saml2.core uses opensaml version 2.6.1, which uses bouncycastle version 1.46, but we require version
             1.54 -->
         <opensaml.version>2.6.4</opensaml.version>
@@ -219,13 +212,17 @@
         <solr-solrj.version>7.6.0</solr-solrj.version>
         <sonar.version>3.5.0.1254</sonar.version>
         <spring.integration.version>4.3.22.RELEASE</spring.integration.version>
-        <!-- 2.3.3.RELEASE holds com.sun.jndi.ldap.LdapCtxFactory as a Class literal in
-            AbstractContextSource's static initialiser, so every LdapContextSource and
-            DefaultSpringSecurityContextSource fails on JDK 17 with an IllegalAccessError: java.naming does
-            not export that package. 2.4.4 stores the same factory as its class NAME, which is the identical
-            remedy applied to ArkCase's own ActiveDirectoryAbstractContextSource, so no module has to be
-            opened. It is also the release spring-security-ldap 5.8.16 declares and is built against Spring
-            Framework 5.3.39, and it is the last of the javax-namespace 2.x line - 3.x moves to jakarta. -->
+        <!-- Not an independent version axis: 2.4.4 is the spring-ldap-core release that
+            spring-security-ldap 5.8.16 declares at compile scope, so this property records what the Spring
+            Security advance above already resolves to. Leaving the managed entry at 2.3.3.RELEASE would
+            DOWNGRADE spring-ldap below the release its own consumer was built against - the framework and
+            security skew the Security advance exists to avoid - and 2.3.3.RELEASE additionally holds
+            com.sun.jndi.ldap.LdapCtxFactory as a Class literal in AbstractContextSource's static
+            initialiser, so on JDK 17 every LdapContextSource and DefaultSpringSecurityContextSource fails
+            with an IllegalAccessError because java.naming does not export that package. 2.4.4 stores the
+            same factory as its class NAME, which is the identical remedy applied to ArkCase's own
+            ActiveDirectoryAbstractContextSource, so no module has to be opened. It is also the last of the
+            javax-namespace 2.x line - 3.x moves to jakarta. -->
         <spring.ldap.version>2.4.4</spring.ldap.version>
         <spring.security.kerberos.version>1.0.1.RELEASE</spring.security.kerberos.version>
         <spring.security.saml2.core.version>1.0.10.RELEASE</spring.security.saml2.core.version>
@@ -1106,31 +1103,6 @@
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>
             </dependency>
-            <!-- standalone OpenJDK Nashorn, replacing the engine JEP 372 removed from the JDK in 15. Its
-                classes live under org.openjdk.nashorn and it registers through
-                META-INF/services/javax.script.ScriptEngineFactory, so the javax script API the BPMN task
-                listeners go through is unchanged. Its asm-commons, asm-tree and asm-util transitives must be
-                left alone: asm-util supplies org.objectweb.asm.util.Printer, which Nashorn loads while
-                emitting a compile unit. -->
-            <dependency>
-                <groupId>org.openjdk.nashorn</groupId>
-                <artifactId>nashorn-core</artifactId>
-                <version>${nashorn-core.version}</version>
-            </dependency>
-            <!-- pinned so that exactly one provider of the org/objectweb/asm package reaches any module: see
-                the property comments above. Both arrive only transitively - json-path pulls the older pair and
-                oauth2-oidc-sdk the newer one - so managing them here is what makes the choice deterministic
-                instead of an artefact of declaration order. -->
-            <dependency>
-                <groupId>net.minidev</groupId>
-                <artifactId>json-smart</artifactId>
-                <version>${json-smart.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>net.minidev</groupId>
-                <artifactId>accessors-smart</artifactId>
-                <version>${accessors-smart.version}</version>
-            </dependency>
             <!-- chemistry -->
             <dependency>
                 <groupId>org.apache.chemistry.opencmis</groupId>
@@ -1772,8 +1744,9 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <!-- supplies the static and construction mocking that PowerMock used to provide; version managed
-                    here so consuming modules declare it without one, as they do for every other test library -->
+                <!-- supplies the static and construction mocking the tests in six modules require; version
+                    managed here so consuming modules declare it without one, as they do for every other test
+                    library -->
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-inline</artifactId>
                 <version>${mockito.core.version}</version>
@@ -1896,21 +1869,6 @@
                     <exclusion>
                         <groupId>org.apache.tomcat</groupId>
                         <artifactId>tomcat-util-scan</artifactId>
-                    </exclusion>
-                    <!-- the third route by which a second javax.annotation provider entered the WAR, and the only one
-                        that survived the other two being closed. tomcat-catalina pulls tomcat-annotations-api, which
-                        is Tomcat's own repackaging of the JSR-250 annotations: its 15 classes are exactly the 15
-                        classes of the reinstated javax.annotation:javax.annotation-api, so keeping both puts two
-                        providers on the javax.annotation package and lets @PostConstruct, @Resource and their
-                        siblings resolve by whichever jar the container happens to read first. That is the same defect
-                        the jsr250-api exclusion on cdi-api and the jakarta.annotation-api exclusion on
-                        camel-spring-boot-starter close, and it is closed here the same way. Nothing is lost: the two
-                        jars have no class the other lacks, the reinstated API is the single authoritative provider,
-                        and the servlet container supplies its own copy to its own class loader regardless of what the
-                        web application ships. -->
-                    <exclusion>
-                        <groupId>org.apache.tomcat</groupId>
-                        <artifactId>tomcat-annotations-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -2073,9 +2031,10 @@
             <groupId>com.sun.activation</groupId>
             <artifactId>javax.activation</artifactId>
         </dependency>
-        <!-- javax.ws.rs-api replaces the jakarta-named JAX-RS API that Tika's CXF dependencies used to contribute.
-            Its class set is identical and javax-prefixed, so gov.foia.service.FOIADocumentGeneratorService and
-            gov.privacy.service.SARDocumentGeneratorService keep importing javax.ws.rs.NotFoundException unchanged. -->
+        <!-- javax.ws.rs-api holds the JAX-RS API slot against the jakarta-named artifact Tika's CXF dependencies
+            contribute transitively. Its class set is identical and javax-prefixed, so
+            gov.foia.service.FOIADocumentGeneratorService and gov.privacy.service.SARDocumentGeneratorService
+            import javax.ws.rs.NotFoundException against exactly the same API. -->
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>

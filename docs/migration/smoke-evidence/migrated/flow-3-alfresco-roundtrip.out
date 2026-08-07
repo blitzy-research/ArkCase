@@ -19,14 +19,16 @@ observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 7
 ----- body -----
 (empty)
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
 
 ----- end transport-diagnostics -----
 ----- response-headers -----
@@ -37,9 +39,9 @@ curl: (6) Could not resolve host: arkcase-ce.local
 leg: store-leg
 leg-purpose: store a document with known, fixed bytes in the content repository and record the identifier, the name and the content type the application resolved for it
 leg-observed: no
-leg-not-observed-because: state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), and a document cannot be stored read-only
+leg-not-observed-because: no fixture object was available to attach a document to, so the store request was not sent; flow 6 must create the fixture first
 request-method: POST
-request-url: https://arkcase-ce.local/arkcase/api/latest/service/ecm/upload
+request-url: http://localhost:20040/arkcase/api/latest/service/ecm/upload
 document-name: arkcase-smoke-probe.txt
 document-content-type-declared-on-send: text/plain
 document-content-sha256-sent: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
@@ -55,9 +57,9 @@ stored-object-mime-type-recorded-by-application: not-observed
 leg: retrieve-leg
 leg-purpose: read the same document back out of the content repository and record the content type it resolves to, the length it declares and the digest of the bytes returned
 leg-observed: no
-leg-not-observed-because: state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), so no document was stored for this leg to read back
+leg-not-observed-because: no document was stored, because there was no fixture object to attach one to, so this leg had nothing to read back
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/ecm/download
+request-url: http://localhost:20040/arkcase/api/latest/plugin/ecm/download
 document-name: arkcase-smoke-probe.txt
 stored-object-identifier: none
 observed-http-status: not-observed
@@ -67,10 +69,11 @@ document-content-sha256-sent: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e
 document-content-sha256-received: not-observed
 retrieved-bytes-match-sent: not-compared
 ----- end retrieve-leg -----
+
 ===== upload-document (SKIPPED) =====
 leg: upload-document
 leg-outcome: SKIPPED
-leg-reason: the store leg was not attempted: ALLOW_SMOKE_MUTATIONS is not set to 1
+leg-reason: the store leg was not attempted: no parent object existed to attach a document to
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
@@ -83,10 +86,50 @@ note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
 
-===== mime-resolution (SKIPPED) =====
+===== mime-declared-on-send (text/plain) =====
+leg: mime-declared-on-send
+leg-outcome: text/plain
+leg-reason: the content type this run declares for the document under test, fixed by FLOW3_DOCUMENT_CONTENT_TYPE so that both captures declare the same thing, recorded verbatim.  Recorded on every path; whether the document was actually sent is stated by the store leg, not by this row
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+
+===== mime-recorded-by-application (not-observed) =====
+leg: mime-recorded-by-application
+leg-outcome: not-observed
+leg-reason: the content type the application persisted FOR THE DOCUMENT, read from the store response body; this is the direct output of the reinstated activation framework MIME mapping and is recorded verbatim, never normalised
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+
+===== mime-resolved-on-download (not-observed) =====
+leg: mime-resolved-on-download
+leg-outcome: not-observed
+leg-reason: the content type the download endpoint declared when serving the same document back; recorded verbatim
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+
+===== store-response-representation-type (not-observed) =====
+leg: store-response-representation-type
+leg-outcome: not-observed
+leg-reason: the content type of the STORE RESPONSE ITSELF — the endpoint representation format, normally JSON.  Recorded because it is genuine evidence about the endpoint, and DELIBERATELY EXCLUDED from the MIME criterion because it describes the response envelope and not the document
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+
+===== mime-identity (not-compared) =====
+leg: mime-identity
+leg-outcome: not-compared
+leg-reason: at least one term of the three-way identity was not observed, so the identity was not tested.  That is deliberately NOT recorded as a failure: an untested criterion and a failed criterion are different findings and a capture that conflated them would be misleading
+note: this leg is named even though it was not observed, so that the
+  status file carries the same token set in both runs and the gap is
+  visible in a directory diff rather than being absent from it (R-5).
+
+===== mime-resolution (not-compared) =====
 leg: mime-resolution
-leg-outcome: SKIPPED
-leg-reason: no content type was resolved on either leg, so the activation framework MIME mapping is unobserved
+leg-outcome: not-compared
+leg-reason: no content type identity was established, because at least one of the three terms was not observed
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
@@ -106,9 +149,10 @@ leg-reason: the round trip as a whole was not performed
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
+
 ===== store-leg (SKIPPED) =====
 SKIPPED
-REASON: the store leg was not executed: ALLOW_SMOKE_MUTATIONS is not set to 1
+REASON: the store leg was not executed: flow 6 produced no object to attach a document to
 leg: store
 leg-purpose: the document is written to the content repository
 request-path: /api/latest/service/ecm/upload
@@ -122,11 +166,11 @@ stored-content-sha256: not-observed
 probe-content-sha256: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
 probe-content-sha256-note: the digest of the fixed bytes this leg sends.  It is computed in every path, including the paths where the leg does not run, because it is what makes the two captures comparable at all: identical input is the precondition for reading anything into identical output
 response-body-recorded-in-section: none: the leg was not executed
-criterion-halves-read-from-this-leg: stored-document identity from the sha256 rows; MIME resolution from the Content-Type and recorded-mime-type rows, both verbatim
+criterion-halves-read-from-this-leg: stored-document identity from the sha256 rows.  The MIME half is read from recorded-mime-type ONLY — the type the application recorded FOR THE DOCUMENT, which is the activation mapping output.  The Content-Type row above it is this store RESPONSE own type, normally JSON; it is recorded as endpoint evidence and is excluded from the MIME criterion, because comparing a response envelope type against a document media type reports a mismatch on a perfectly good round trip.  The criterion itself is asserted by flow_3_record_mime_tokens as a three-way identity and every mismatch is counted
 
 ===== retrieve-leg (SKIPPED) =====
 SKIPPED
-REASON: the retrieve leg was not executed: it has nothing to read back, because the store leg was not executed either (ALLOW_SMOKE_MUTATIONS is not set to 1)
+REASON: the retrieve leg was not executed: nothing was stored, so there was nothing to read back
 leg: retrieve
 leg-purpose: the stored document is read back from the content repository
 request-path: /api/latest/plugin/ecm/download
@@ -138,5 +182,5 @@ expected-content-sha256: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd
 retrieved-bytes-match-stored-bytes: not-compared
 response-body-recorded-in-section: none: the leg was not executed
 response-body-form-note: a body that is not textual is recorded by size and digest and is never embedded, because arbitrary bytes in a text capture produce neither readable evidence nor a usable comparison
-criterion-halves-read-from-this-leg: stored-document identity by comparing the retrieved digest against the expected digest; MIME resolution from the Content-Type row, verbatim
+criterion-halves-read-from-this-leg: stored-document identity by comparing the retrieved digest against the expected digest; the MIME half from the Content-Type row, verbatim, which on THIS leg is the document own served type and so is a genuine term of the identity.  That identity — declared, recorded and served naming one media type — is asserted by flow_3_record_mime_tokens, which counts every mismatch
 

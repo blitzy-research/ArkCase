@@ -1,0 +1,48 @@
+startup-log-region: ldap-context-source.log
+region-describes: directory-service context source and JNDI initial-context construction, the observable side of the one security-adjacent source edit in this migration
+region-mandatory: yes
+region-pattern: ActiveDirectoryAbstractContextSource|AbstractContextSource|LdapContextSource|SpringSecurityLdapTemplate|LdapAuthenticationProvider|AcmLdapAuthenticate|LdapUserService|ldap://|ldaps://|InitialLdapContext|initialContextFactory|LdapCtxFactory|AcmLdapRegistry|ldapDirectoryConfig
+region-pattern-flags: grep -E -i, applied to the extracted window only
+window-source: /tmp/p9-runtime-w004/tomcat/logs/catalina.out
+window-source-sha256: 6ca537628d2fe6aaa3a71a6ed7522063af32ef62242fe8b651198ae81abb340e
+window-boots-present-in-source: 1
+window-sha256: 065aa7803725fceb4a3f247710d1031618daa667b5492324cf982448aada17cb
+window-start-line: 2
+window-end-line: 4934
+window-start-byte-offset: 374
+window-end-byte-offset: 759974
+window-lines: 4933
+matched-lines: 29
+line-cap: 2000
+capture-truncated: no
+----- region -----
+[m[36m<TIMESTAMP>,892 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.AcmLdapGroupSyncConfig] for directory: [arkcase]
+[m[36m<TIMESTAMP>,899 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.AcmLdapUserSyncConfig] for directory [arkcase]
+[m[36m<TIMESTAMP>,900 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.model.ldap.AcmLdapConfig]
+[m[36m<TIMESTAMP>,900 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.model.ldap.AcmLdapSyncConfig]
+[m[36m<TIMESTAMP>,900 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.model.ldap.AcmLdapAuthenticateConfig]
+[m[36m<TIMESTAMP>,904 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class org.springframework.ldap.core.support.LdapContextSource]
+[m[36m<TIMESTAMP>,905 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.LdapAuthenticateService]
+[m[36m<TIMESTAMP>,905 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class org.springframework.security.ldap.search.FilterBasedLdapUserSearch]
+[m[36m<TIMESTAMP>,907 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.AcmLdapAuthenticationProvider]
+[m[36m<TIMESTAMP>,910 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.AcmLdapUserDetailsService]
+[m[36m<TIMESTAMP>,910 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class org.springframework.scheduling.quartz.JobDetailFactoryBean]
+[m[36m<TIMESTAMP>,911 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class org.springframework.scheduling.quartz.JobDetailFactoryBean]
+[m[36m<TIMESTAMP>,911 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.LdapSyncJobDescriptor]
+[m[36m<TIMESTAMP>,911 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.LdapPartialSyncJobDescriptor]
+[m[36m<TIMESTAMP>,234 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.AcmLdapGroupSyncConfig] for directory: [arkcase]
+[m[36m<TIMESTAMP>,235 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.AcmLdapUserSyncConfig] for directory [arkcase]
+[m[36m<TIMESTAMP>,236 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.model.ldap.AcmLdapConfig]
+[m[36m<TIMESTAMP>,237 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.model.ldap.AcmLdapSyncConfig]
+[m[36m<TIMESTAMP>,237 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.model.ldap.AcmLdapAuthenticateConfig]
+[m[36m<TIMESTAMP>,237 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class org.springframework.ldap.core.support.LdapContextSource]
+[m[36m<TIMESTAMP>,238 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.LdapAuthenticateService]
+[m[36m<TIMESTAMP>,238 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class org.springframework.security.ldap.search.FilterBasedLdapUserSearch]
+[m[36m<TIMESTAMP>,238 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.AcmLdapAuthenticationProvider]
+[m[36m<TIMESTAMP>,239 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.AcmLdapUserDetailsService]
+[m[36m<TIMESTAMP>,239 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class org.springframework.scheduling.quartz.JobDetailFactoryBean]
+[m[36m<TIMESTAMP>,240 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class org.springframework.scheduling.quartz.JobDetailFactoryBean]
+[m[36m<TIMESTAMP>,240 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.LdapSyncJobDescriptor]
+[m[36m<TIMESTAMP>,240 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmLdapRegistryServiceImpl - Register bean definition for: [class com.armedia.acm.services.users.service.ldap.LdapPartialSyncJobDescriptor]
+[m[32m<TIMESTAMP>,027 [INFO ] [arkcase-scheduler_Worker-2] com.armedia.acm.services.users.service.ldap.LdapSyncService - Starting partial sync of directory: [arkcase]; ldap URL: [[ldap://127.0.0.1:389]]
+----- end region -----

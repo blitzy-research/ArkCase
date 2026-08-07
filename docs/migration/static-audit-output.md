@@ -211,6 +211,17 @@ The first block must produce three zeros and the second must produce the seven-l
 
 One ordering pitfall is worth naming, because it manufactures a convincing false failure. The scratch directory **must sit outside the repository working tree**, which is why `mktemp -d` is used above and why the extraction is deleted immediately afterwards. Extract the base commit into a subdirectory of the checkout instead and the after-capture will re-discover those very files — the gate recurses from the repository root and its `--include=*.java` filter does not care that they are a historical copy. The result is `7` where `0` is expected, on a tree that is in fact fully migrated. Run the after-capture first, or keep the extraction elsewhere.
 
+### The same figures, from a committed producer
+
+Everything above can be run by hand, and a reviewer is invited to. There is also a committed producer that runs it, so that the archived captures in the evidence tree state a producer that genuinely produces them rather than one that merely owns the directory they sit in:
+
+```bash
+./docs/migration/smoke-evidence/capture-static-audit.sh --side after  --base-commit c8f6226105
+./docs/migration/smoke-evidence/capture-static-audit.sh --side before --base-commit c8f6226105
+```
+
+It emits the machine-measurable part of a capture — the gate commands verbatim, the raw output of each between explicit delimiters, every count, and both exit statuses — and nothing else. It deliberately does not emit the analysis that follows in the archived captures, because reasoning about a capture is not a measurement and a script printing it from a heredoc would invite a reader to believe otherwise. The archived after-capture at `smoke-evidence/migrated/static-audit.txt` carries that producer's output verbatim as its first region, delimited by `END-OF-MACHINE-CAPTURED-REGION`, with its authored analysis labelled as such below the marker. The producer also refuses to run when its scratch directory lands inside the working tree, which turns the ordering pitfall above from a warning into a control.
+
 Two wording gates apply to this page and both are checkable directly:
 
 ```bash

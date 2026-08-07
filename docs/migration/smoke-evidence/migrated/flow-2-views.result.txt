@@ -2,17 +2,18 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 2 - case list, detail and document views render from served assets
-RUNTIME-COMMIT: Java 17 at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+RUNTIME-COMMIT: Java 17, not-declared
+  pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: migrated (post-migration replay)
   runtime-designation-is: a declared label of this capture, not probe
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  frontend-runtime-designation: Node 20 LTS with npm 10
+  frontend-runtime-designation: Node 20.20.2 with npm 10.8.2
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
-  capture-preceded-any-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
+  capture-preceded-any-file-edit: not-declared
     Why it matters on either side: the pre-migration capture is
     irreversible and is therefore the first executable action of the
     migration rather than a validation afterthought, because nothing
@@ -22,42 +23,72 @@ COMPARED ARTEFACTS: flow-2-views.out and flow-2-views.status
   both re-read from disk in this capture directory.  This record
   asserts on the CONTENT of those two files and never on a process
   exit status (R-T7).
-  caller-declared scope: flow-2-views.status and flow-2-views.out, both re-read from disk, together with the five recorded digests under artifacts/, cited one per key below - the three named views themselves did not execute
+  counterparts compared against: flow-2-views.out and flow-2-views.status
+    of the same names in the other capture directory, the sibling of
+    this one.  The verdict of that comparison is recorded on the
+    COMPARISON CRITERION line below.
+  caller-declared scope: flow-2-views.out, flow-2-views.status and the recorded digests under artifacts/
 MIGRATION PATH EXERCISED: frontend artifacts as served by the deployed application; permission evaluation through reflection-based classpath scanning, that library deliberately unchanged after succeeding against a class file at major version 61
 OBSERVATION:
-  verdict: SKIPPED
-  state-mutation-permitted: no
+  verdict: OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
+  state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-2-views.status:
-    app-shell=000
-    case-list=000
-    case-discovery=000
+    app-shell=302
+    case-list=200
+    case-discovery=500
     case-detail=SKIPPED
-    document-discovery=000
+    document-discovery=500
     document-view=SKIPPED
-    case-views=SKIPPED
+    rendered-shell-anonymous=302
+    rendered-shell-authenticated=200
+    rendered-login-page=200
+    served-application.js=200
+    served-application.js-served-equals-recorded=MATCH
+    served-application.min.js=200
+    served-application.min.js-served-equals-recorded=MATCH
+    served-vendors.min.js=200
+    served-vendors.min.js-served-equals-recorded=MATCH
+    served-application.min.css=200
+    served-application.min.css-served-equals-recorded=MATCH
+    served-home.html=200
+    served-home.html-served-equals-recorded=MATCH
   observations, each derived from the two artefacts named above:
-    - skipped: no HTTP response from https://arkcase-ce.local/arkcase/ or the case-list endpoint
-    - a SKIPPED verdict is not a pass and must not be read as one
-    - application shell observed: 000 (anonymous, redirects not followed)
-    - case list view observed: 000 content-type unknown (/api/latest/plugin/casebystatus/ALL)
-    - case list response body bytes observed: 0
-    - case discovery observed: 000 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cname)
+    - application shell observed: 302 (anonymous, redirects not followed)
+    - case list view observed: 200 content-type application/json;charset=UTF-8 (/api/latest/plugin/casebystatus/all)
+    - case list response body bytes observed: 2
+    - case discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cname)
     - case number discovered: not-discovered
-    - case detail view observed: SKIPPED (/api/latest/plugin/casefile/byId)
-    - document discovery observed: 000 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3AFILE&start=0&n=1&fl=object_id_s%2Cname%2Cmime_type_s)
+    - case detail view observed: SKIPPED content-type not-attempted content-length not-attempted (/api/latest/plugin/casefile/byId)
+    - document discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3AFILE&start=0&n=1&fl=object_id_s%2Cname%2Cmime_type_s)
     - document name discovered: not-discovered
     - document MIME type discovered: not-discovered
-    - document view observed: SKIPPED (/plugin/document)
-    - no view rendered on this run, so no permission-dependent rendered element was observed: the case detail and document views carry explicit per-view SKIPPED records with their reasons in flow-2-views.out rather than being omitted from it, and the case list returned no representation at all
+    - document view observed: SKIPPED content-type not-attempted content-length not-attempted (/plugin/document)
     - absent artifact digests: 0
+    - rendered application page: /home.html
+    - rendered page observed credentialed: 200 content-type text/html;charset=UTF-8 body bytes 126072
+    - rendered page required label present when credentialed: yes (label: <title>ArkCase Application</title>)
+    - rendered page observed anonymous: 302 redirect target reported 'http://localhost:20040/arkcase/login'
+    - rendered page required label absent when anonymous: yes
+    - permission-dependent rendering observed: yes
+    - rendered login page observed: 200 content-type text/html;charset=UTF-8, required form controls present yes
+    - built frontend artifacts served by the deployed application with the recorded digest: 5 of 5
+    - per-artifact served-equals-recorded outcome: application.js=MATCH, application.min.js=MATCH, vendors.min.js=MATCH, application.min.css=MATCH, home.html=MATCH
+    - the permission-dependent observation is stated as a DIFFERENCE across one URL rather than as a single status.  The rendered application page requires authentication, so the credentialed caller receives the shell and the anonymous caller does not; asserting only the first half would pass on a page served to everyone, and asserting only the second would pass on a page served to nobody
+    - the served-artifact comparison is the only assertion in this deliverable that links rendering to the byte-identity criterion.  The five digests under artifacts/ are taken from BUILD OUTPUT on disk, and the criterion compares those between two captures; neither step establishes that the deployed application serves those bytes.  A stale copy inside the deployed archive, a rewriting filter or a wrong asset root would leave both looking healthy while the browser received something else
+    - each served artifact is DIGESTED and never archived: the digest is the assertion, and a four-megabyte vendor bundle has no place in a committed capture
+    - every rendered-label assertion is made against the SCOPED body of its own probe.  That matters more here than anywhere else in this flow: the required label strings are configuration values this script also prints into its own records, so a whole-file search would find every one of them with no page having rendered at all
+    - requirements unmet: 2
+    - the case number, the document name and the document MIME type above are recorded verbatim as returned, prefix, separators and padding intact, and the row order of every captured body is the order the server sent it in: ordering is behaviour here, not presentation, so nothing is sorted, de-duplicated or reordered
+    - this record does not stand alone by design: a rendered view proves nothing unless the assets behind it are byte-identical, so the per-artifact digests keyed above are part of the assertion and an ABSENT digest makes the run incomplete rather than merely noting a gap
+    - behaviour is preserved only if every status, every discovered value, every recorded asset reference and every digest above match the baseline capture
     - this record asserts on flow-2-views.status and flow-2-views.out, both re-read from disk, AND on the five digests recorded under artifacts/ and cited one per key above.  No part of it is derived from a process exit status; a transport exit status appears in the capture as an additional observation only
-    - rendered branch corroborated from this capture rather than asserted: non-production - the page whose references were recorded names no distribution bundle at all, which is the branch an unset or development NODE_ENV selects
+    - rendered branch corroborated from this capture rather than asserted: production - the page whose references were recorded names a distribution bundle (9 matching lines in flow-2-views.out)
     - asset references recorded from the rendered page: 889, recorded unnormalised in flow-2-views.out in document order.  Nothing about them is sorted, de-duplicated or reordered, because the order the page carries them in is the order the browser loads them in
     - first three asset references in document order: modules/core/img/brand/favicon.png node_modules/@bower_components/jquery-ui/themes/ui-lightness/jquery-ui.css node_modules/@bower_components/bootstrap/dist/css/bootstrap.css
     - recorded references carrying a cache-busting content hash: 0.  On the non-production branch the page names individual source files, so a zero here is the expected reading and NOT a missing observation: the cache-busting task still ran and still produced hashed copies under the distribution directory, and on that branch the tie between the served page and the five digests is the digest rows themselves together with the identity of home.html, not a hash embedded in a filename
     - why byte comparison carries the behavioural burden for this flow: the frontend tree carries no spec file of its OWN - zero are tracked in version control - even though the base-commit manifest declares Karma at package.json:L26 with its Grunt plugin at :L21 and Jasmine at :L25 and :L27, so artifact identity is the strongest available behavioural evidence for the frontend track.  Stated with that qualifier deliberately, because a bare count misleads in one direction: run the audit against a tree whose dependencies are installed and it returns a non-zero number, every one of them a spec file belonging to a third-party package underneath the install directory the frontend gitignore excludes.  Those are the dependencies own tests, not this application, and they are neither tracked nor run by any task in the pipeline
     - why byte comparison is defensible: cache busting is content-hash based (Gruntfile.js:L79-L86, assets at :L82, src at :L84) with no timestamp, banner or date injection; minification runs with identifier mangling disabled (Gruntfile.js:L51); and the distribution directory is wiped first (Gruntfile.js:L131), so a stale artefact cannot masquerade as a match
-    - honest caveat, recorded rather than glossed: source-map generation is enabled (Gruntfile.js:L52) and a source map embeds file paths, so the comparison build must run from the same relative path.  If it cannot, application.min.js.map differs while the JavaScript bundles do not; the map is then excluded from the byte comparison while the five artifacts above remain in scope.  The map is digested here too so the caveat can be checked rather than trusted, and it is also recorded in notes/determinism-basis.txt and notes/01-artifact-comparison-scope.txt
+    - honest caveat, recorded rather than glossed: source-map generation is enabled (Gruntfile.js:L52) and a source map embeds file paths, so the comparison build must run from the same relative path.  If it cannot, application.min.js.map differs while the JavaScript bundles do not; the map is then excluded from the byte comparison while the five artifacts above remain in scope.  The map is digested here too so the caveat can be checked rather than trusted, and it is also recorded in notes/determinism-basis.txt and notes/frontend-comparison-provenance.txt
     - the case detail view is the permission-dependent element of this flow: its handler is guarded by a permission expression naming the object identifier, the object type and the view permission, at FindCaseByIdAPIController.java:L61 immediately above the byId mapping at :L62, and permission evaluation runs through the reflection-based classpath scanning this migration deliberately left at its existing version after an end-to-end scan of a class file at major version 61 succeeded - a bump without a demonstrated incompatibility would itself be out of scope.  Security and permission-evaluation outcomes are on the preserve list, so a difference in any permission-dependent rendered element is a genuine regression rather than an expected consequence
     - the asset-layout contract is frozen, so every frontend dependency key is immutable: the asset resolver holds literal installed-package paths, measured at the base commit as 87 unique quoted paths over 49 lines, 80 of them under the bower-components namespace and 7 not.  The migration plan quotes 56 over 49; the measured figures are the authoritative ones and the plan figure is noted rather than silently replaced.  Renaming a key, flattening the install topology or deduplicating a package that appears twice would break asset resolution SILENTLY - the build would succeed and the application would load nothing.  One consequence for this flow: the bootbox slot must keep resolving to its direct-dependency version rather than to the later transitive one
     - normalisation applied to this capture: ISO-8601 timestamps, the Date, Last-Modified and Expires response headers, response validator headers, authentication-challenge parameters, generated request and correlation identifiers, and the absolute repository prefix in every recorded path.  Cookie and Set-Cookie lines are replaced wholesale, the configured credential value is replaced by a fixed placeholder before anything is written, and only the EXISTENCE of a session is recorded, never its value
@@ -76,7 +107,7 @@ OBSERVATION:
     - production launch configuration is unaffected by this flow and relies on no module-access JVM argument that opens or exports an otherwise-encapsulated JDK package to the unnamed module.  The register of such exceptions is delivered empty and is referred to here by title only; every accessibility failure encountered in this migration was inside a test library and was resolved by upgrading or removing that library
     - scope fence: this record adds no tooling, no framework and no page.  It records what this flow observed and names where the comparison outcome lives - comparison.txt beside this file for the per-artifact result, notes/frontend-comparison-provenance.txt for how both sides were produced.  Nothing here may be read as a pass mark
 COMPARISON CRITERION: Same rendered content from byte-identical assets. Measured to the standard every flow in this deliverable shares: this record and its counterpart on the other side must differ in nothing but values the normalisation pipeline below already replaces.
-  row-for-row verdict: MATCH on every recorded row - this flow's status file is identical to the other capture's, so the two sides agree row for row, and the captured transcript is identical to it as well
+  row-for-row verdict: MATCH on every recorded row - this flow's status file is identical to the other capture's, so the two sides agree row for row.  The captured transcript differs, which is expected of a transcript rather than of a row set - it carries per-run values the normalisation pipeline replaces and provenance that legitimately varies - which is why the row set, not the transcript, carries the verdict
   a verdict is not a pass mark.  It states what two files on disk do
     and do not agree on.  Whether a stated difference is acceptable is
     settled in the ambiguity-resolutions and pre-existing-defects
@@ -92,19 +123,28 @@ NORMALISATION-REDACTION APPLIED:
     filesystem path is therefore replaced, so the record does not
     depend on where it was taken.
   stripped, credential pass: authorisation and proxy-authorisation
-    headers; request and response cookie headers, session cookie values
-    among them; cross-site-request-forgery and application ticket
-    headers; scheme-prefixed authorisation material; any field whose
+    headers; the request Cookie and the response Set-Cookie headers,
+    session cookie values among them; cross-site-request-forgery and
+    application ticket headers; scheme-prefixed authorisation material;
+    any field whose
     name denotes a password, secret, ticket or key; a user name in a
     transport configuration line; a credential embedded in a URL; the
     servlet session identifier.
-  stripped, volatility pass: date-and-time values; response headers
-    carrying wall-clock time and cache validators; challenge
-    parameters; generated universally-unique identifiers; generated
-    millisecond instants; surrogate database keys assigned by the
-    process engine or the message broker, matched by FIELD NAME so a
-    bare business number can never be caught by them; and the
-    engine-reported query and elapsed durations.
+  stripped, volatility pass: date-and-time values; the response
+    headers carrying wall-clock time and cache validity, that is the
+    Date, Last-Modified and Expires headers and the ETag validator;
+    authentication-challenge parameters; generated
+    universally-unique identifiers; generated
+    request and millisecond instants; surrogate database keys assigned
+    by the process engine or the message broker, matched by FIELD NAME
+    so a bare business number can never be caught by them - namely the
+    PROCESS-INSTANCE identifier, the EXECUTION identifier, the TASK
+    identifier and the DEPLOYMENT identifier, plus the version and
+    sequence components of the VERSION-SUFFIXED PROCESS-DEFINITION
+    identifier, whose leading key is kept precisely because the key is
+    behaviour while the two numeric components are not; the session
+    identifier; absolute filesystem paths; and the engine-reported
+    query and elapsed durations.
   DELIBERATELY PRESERVED, verbatim and untouched by every expression
     above: case and complaint numbers, queue names, task and process
     names, MIME types, result counts and result ordering,
@@ -130,18 +170,14 @@ TLS-READINESS CONTEXT:
     false negative rather than evidence, so the trust mode is recorded
     above beside every observation it produced.
   readiness-wait: the repository records a first startup of five to ten
-    minutes, so readiness is polled up to 1 attempt(s) at 10 second
+    minutes, so readiness is polled up to 60 attempt(s) at 10 second
     intervals before the flows run, and a slow start is tolerated
     rather than treated as a failure.
     Readiness does NOT gate this flow: the flow records its own
     evidence either way, so an unreachable stack produces an explicit,
     comparable capture instead of a truncated one.
-IF NOT EXECUTED: no HTTP response from https://arkcase-ce.local/arkcase/ or the case-list endpoint
-  The paired flow-2-views.status carries the matching SKIPPED marker
-  and flow-2-views.out carries an explicit section recording the same
-  absence, so the gap is visible in a directory diff rather than
-  missing from it.  R-5 forbids a silent omission: an unexecuted
-  flow is reported, never dropped, and this is not a pass mark.
+IF NOT EXECUTED: not applicable - this flow executed and its
+  observations above are captured rather than declared absent.
 SOURCE-EDIT NOTE: none - this flow traverses no rewritten line of
   application source.  The field is present rather than omitted so
   that all sixteen records carry the same field names in the same
@@ -152,16 +188,16 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 2
 slug: 2-views
-verdict: SKIPPED
-capture-side: migrated-post-migration-replay
-runtime-declared: Java 17
+verdict: OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
+capture-side: unlabelled-capture-side-not-derivable
+runtime-declared: not-declared
 runtime-observed: 17.0.19
-runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
-commit-declared: the migrated head, the change set applied on top of base commit c8f6226105
-capture-precedes-every-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
+runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
+commit-declared: not-declared
+capture-precedes-every-file-edit: not-declared
 migration-path-exercised: frontend artifacts as served by the deployed application; permission evaluation through reflection-based classpath scanning, that library deliberately unchanged after succeeding against a class file at major version 61
 comparison-criterion: Same rendered content from byte-identical assets.
-compared-artefacts: flow-2-views.status and flow-2-views.out, both re-read from disk, together with the five recorded digests under artifacts/, cited one per key below - the three named views themselves did not execute
+compared-artefacts: flow-2-views.out, flow-2-views.status and the recorded digests under artifacts/
 transport-trust-mode: verify-default-trust-store
 transport-certificate-context: the deployed application serves a self-signed
   TLS certificate, recorded at the base commit in README.md:L45, so a real run
@@ -175,7 +211,7 @@ readiness-context: readiness was polled rather than assumed, because the first
   evidence either way, so a slow or unreachable stack yields an explicit,
   comparable capture instead of a truncated one.  Observations:
   notes/readiness.txt.
-state-mutation-permitted: no
+state-mutation-permitted: yes
 normalisation-applied: every byte of this record left through the single
   sanitising pipeline this script uses for all output.  The volatility pass
   removes only inter-run noise, and only these: ISO-8601 date-times; the Date,
@@ -201,7 +237,10 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   MIME types; result counts and their returned order; cache-busting content
   hashes, which are derived from artifact content and so SHOULD match when
   behaviour matches; and the artifact checksums themselves.
-runtime-designation: Java 17 (declared label of this capture side, not probe output; the probe output of record is env/toolchain.txt)
+runtime-designation: (not declared for this capture directory) (declared label of this capture side, not probe output; the probe output of record is env/toolchain.txt)
+capture-side-means: (not declared for this capture directory)
+observed-head-of-this-capture: c24e049e28 on blitzy-<UUID>-w-004, working tree dirty: 422 path(s) modified or untracked relative to c24e049e28
+declared-side-against-observed-head: consistent: the capture declares the migrated side and HEAD c24e049e28 is not the base commit
 base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)
 NODE_ENV: (unset)
 NODE_APP_INSTANCE: (unset)
@@ -226,36 +265,62 @@ frontend-pipeline-retained: the nine-task default graph at Gruntfile.js:L376 is 
 frontend-graph-reproducibility: the dependency graph behind these artifacts is governed by a committed lockfile at lockfile version 3, and every source-control dependency in the manifest is pinned to an exact commit rather than to a range.  Measured on the manifest this capture serves: 58 source-control specifications, 58 of them pinned to a full 40-character commit, and 0 expressed as an open range.  The pre-migration manifest carried 76 such specifications and 0 exact pins.  This matters to THIS flow specifically: an open range re-resolves to whichever tag exists on the day the install runs, so two installs of the same manifest can yield different library versions and therefore different bundle bytes - which is precisely how a refactor that promises no behaviour change delivers one
 frontend-asset-layout-contract: every dependency KEY is immutable and the install topology is frozen, because the asset resolver holds literal installed-package paths.  Re-measured on config/env/all.js rather than taken from the plan: 87 unique quoted installed-package paths over 49 lines, 80 of them under the vendored-components namespace and 7 not.  The migration plan quotes 56 over 49; the measured figures are the authoritative ones and the plan figure is recorded as superseded rather than quietly replaced.  Renaming a key, flattening the topology or deduplicating a package that appears twice would break asset resolution SILENTLY - the build would still succeed and the application would load nothing.  One consequence visible in this flow: the dialog library that appears both as a direct dependency and as a later transitive keeps resolving to its DIRECT-dependency version, because the direct dependency owns the top-level installation slot
 observed-statuses:
-  app-shell=000
-  case-list=000
-  case-discovery=000
+  app-shell=302
+  case-list=200
+  case-discovery=500
   case-detail=SKIPPED
-  document-discovery=000
+  document-discovery=500
   document-view=SKIPPED
-  case-views=SKIPPED
+  rendered-shell-anonymous=302
+  rendered-shell-authenticated=200
+  rendered-login-page=200
+  served-application.js=200
+  served-application.js-served-equals-recorded=MATCH
+  served-application.min.js=200
+  served-application.min.js-served-equals-recorded=MATCH
+  served-vendors.min.js=200
+  served-vendors.min.js-served-equals-recorded=MATCH
+  served-application.min.css=200
+  served-application.min.css-served-equals-recorded=MATCH
+  served-home.html=200
+  served-home.html-served-equals-recorded=MATCH
 observations:
-  - skipped: no HTTP response from https://arkcase-ce.local/arkcase/ or the case-list endpoint
-  - a SKIPPED verdict is not a pass and must not be read as one
-  - application shell observed: 000 (anonymous, redirects not followed)
-  - case list view observed: 000 content-type unknown (/api/latest/plugin/casebystatus/ALL)
-  - case list response body bytes observed: 0
-  - case discovery observed: 000 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cname)
+  - application shell observed: 302 (anonymous, redirects not followed)
+  - case list view observed: 200 content-type application/json;charset=UTF-8 (/api/latest/plugin/casebystatus/all)
+  - case list response body bytes observed: 2
+  - case discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cname)
   - case number discovered: not-discovered
-  - case detail view observed: SKIPPED (/api/latest/plugin/casefile/byId)
-  - document discovery observed: 000 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3AFILE&start=0&n=1&fl=object_id_s%2Cname%2Cmime_type_s)
+  - case detail view observed: SKIPPED content-type not-attempted content-length not-attempted (/api/latest/plugin/casefile/byId)
+  - document discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3AFILE&start=0&n=1&fl=object_id_s%2Cname%2Cmime_type_s)
   - document name discovered: not-discovered
   - document MIME type discovered: not-discovered
-  - document view observed: SKIPPED (/plugin/document)
-  - no view rendered on this run, so no permission-dependent rendered element was observed: the case detail and document views carry explicit per-view SKIPPED records with their reasons in flow-2-views.out rather than being omitted from it, and the case list returned no representation at all
+  - document view observed: SKIPPED content-type not-attempted content-length not-attempted (/plugin/document)
   - absent artifact digests: 0
+  - rendered application page: /home.html
+  - rendered page observed credentialed: 200 content-type text/html;charset=UTF-8 body bytes 126072
+  - rendered page required label present when credentialed: yes (label: <title>ArkCase Application</title>)
+  - rendered page observed anonymous: 302 redirect target reported 'http://localhost:20040/arkcase/login'
+  - rendered page required label absent when anonymous: yes
+  - permission-dependent rendering observed: yes
+  - rendered login page observed: 200 content-type text/html;charset=UTF-8, required form controls present yes
+  - built frontend artifacts served by the deployed application with the recorded digest: 5 of 5
+  - per-artifact served-equals-recorded outcome: application.js=MATCH, application.min.js=MATCH, vendors.min.js=MATCH, application.min.css=MATCH, home.html=MATCH
+  - the permission-dependent observation is stated as a DIFFERENCE across one URL rather than as a single status.  The rendered application page requires authentication, so the credentialed caller receives the shell and the anonymous caller does not; asserting only the first half would pass on a page served to everyone, and asserting only the second would pass on a page served to nobody
+  - the served-artifact comparison is the only assertion in this deliverable that links rendering to the byte-identity criterion.  The five digests under artifacts/ are taken from BUILD OUTPUT on disk, and the criterion compares those between two captures; neither step establishes that the deployed application serves those bytes.  A stale copy inside the deployed archive, a rewriting filter or a wrong asset root would leave both looking healthy while the browser received something else
+  - each served artifact is DIGESTED and never archived: the digest is the assertion, and a four-megabyte vendor bundle has no place in a committed capture
+  - every rendered-label assertion is made against the SCOPED body of its own probe.  That matters more here than anywhere else in this flow: the required label strings are configuration values this script also prints into its own records, so a whole-file search would find every one of them with no page having rendered at all
+  - requirements unmet: 2
+  - the case number, the document name and the document MIME type above are recorded verbatim as returned, prefix, separators and padding intact, and the row order of every captured body is the order the server sent it in: ordering is behaviour here, not presentation, so nothing is sorted, de-duplicated or reordered
+  - this record does not stand alone by design: a rendered view proves nothing unless the assets behind it are byte-identical, so the per-artifact digests keyed above are part of the assertion and an ABSENT digest makes the run incomplete rather than merely noting a gap
+  - behaviour is preserved only if every status, every discovered value, every recorded asset reference and every digest above match the baseline capture
   - this record asserts on flow-2-views.status and flow-2-views.out, both re-read from disk, AND on the five digests recorded under artifacts/ and cited one per key above.  No part of it is derived from a process exit status; a transport exit status appears in the capture as an additional observation only
-  - rendered branch corroborated from this capture rather than asserted: non-production - the page whose references were recorded names no distribution bundle at all, which is the branch an unset or development NODE_ENV selects
+  - rendered branch corroborated from this capture rather than asserted: production - the page whose references were recorded names a distribution bundle (9 matching lines in flow-2-views.out)
   - asset references recorded from the rendered page: 889, recorded unnormalised in flow-2-views.out in document order.  Nothing about them is sorted, de-duplicated or reordered, because the order the page carries them in is the order the browser loads them in
   - first three asset references in document order: modules/core/img/brand/favicon.png node_modules/@bower_components/jquery-ui/themes/ui-lightness/jquery-ui.css node_modules/@bower_components/bootstrap/dist/css/bootstrap.css
   - recorded references carrying a cache-busting content hash: 0.  On the non-production branch the page names individual source files, so a zero here is the expected reading and NOT a missing observation: the cache-busting task still ran and still produced hashed copies under the distribution directory, and on that branch the tie between the served page and the five digests is the digest rows themselves together with the identity of home.html, not a hash embedded in a filename
   - why byte comparison carries the behavioural burden for this flow: the frontend tree carries no spec file of its OWN - zero are tracked in version control - even though the base-commit manifest declares Karma at package.json:L26 with its Grunt plugin at :L21 and Jasmine at :L25 and :L27, so artifact identity is the strongest available behavioural evidence for the frontend track.  Stated with that qualifier deliberately, because a bare count misleads in one direction: run the audit against a tree whose dependencies are installed and it returns a non-zero number, every one of them a spec file belonging to a third-party package underneath the install directory the frontend gitignore excludes.  Those are the dependencies own tests, not this application, and they are neither tracked nor run by any task in the pipeline
   - why byte comparison is defensible: cache busting is content-hash based (Gruntfile.js:L79-L86, assets at :L82, src at :L84) with no timestamp, banner or date injection; minification runs with identifier mangling disabled (Gruntfile.js:L51); and the distribution directory is wiped first (Gruntfile.js:L131), so a stale artefact cannot masquerade as a match
-  - honest caveat, recorded rather than glossed: source-map generation is enabled (Gruntfile.js:L52) and a source map embeds file paths, so the comparison build must run from the same relative path.  If it cannot, application.min.js.map differs while the JavaScript bundles do not; the map is then excluded from the byte comparison while the five artifacts above remain in scope.  The map is digested here too so the caveat can be checked rather than trusted, and it is also recorded in notes/determinism-basis.txt and notes/01-artifact-comparison-scope.txt
+  - honest caveat, recorded rather than glossed: source-map generation is enabled (Gruntfile.js:L52) and a source map embeds file paths, so the comparison build must run from the same relative path.  If it cannot, application.min.js.map differs while the JavaScript bundles do not; the map is then excluded from the byte comparison while the five artifacts above remain in scope.  The map is digested here too so the caveat can be checked rather than trusted, and it is also recorded in notes/determinism-basis.txt and notes/frontend-comparison-provenance.txt
   - the case detail view is the permission-dependent element of this flow: its handler is guarded by a permission expression naming the object identifier, the object type and the view permission, at FindCaseByIdAPIController.java:L61 immediately above the byId mapping at :L62, and permission evaluation runs through the reflection-based classpath scanning this migration deliberately left at its existing version after an end-to-end scan of a class file at major version 61 succeeded - a bump without a demonstrated incompatibility would itself be out of scope.  Security and permission-evaluation outcomes are on the preserve list, so a difference in any permission-dependent rendered element is a genuine regression rather than an expected consequence
   - the asset-layout contract is frozen, so every frontend dependency key is immutable: the asset resolver holds literal installed-package paths, measured at the base commit as 87 unique quoted paths over 49 lines, 80 of them under the bower-components namespace and 7 not.  The migration plan quotes 56 over 49; the measured figures are the authoritative ones and the plan figure is noted rather than silently replaced.  Renaming a key, flattening the install topology or deduplicating a package that appears twice would break asset resolution SILENTLY - the build would succeed and the application would load nothing.  One consequence for this flow: the bootbox slot must keep resolving to its direct-dependency version rather than to the later transitive one
   - normalisation applied to this capture: ISO-8601 timestamps, the Date, Last-Modified and Expires response headers, response validator headers, authentication-challenge parameters, generated request and correlation identifiers, and the absolute repository prefix in every recorded path.  Cookie and Set-Cookie lines are replaced wholesale, the configured credential value is replaced by a fixed placeholder before anything is written, and only the EXISTENCE of a session is recorded, never its value
@@ -340,7 +405,7 @@ R-7, BASELINE BEHAVIOUR IS THE TIE-BREAKER - the rule that creates
 this record.  Quoted with its one substitution disclosed rather than
 made silently:
 
-    "The application observed behavior at the base commit on JDK 8 is
+    "The application's observed behavior at the base commit on JDK 8 is
     the tie-breaker for any ambiguity, and each resolution must be
     documented."
 
@@ -363,9 +428,20 @@ that every such exception be documented.  Observed: the production
 launch configuration declares no such argument, so the JDK access
 exceptions register is delivered empty with a positive statement that
 none are required.  That register is referred to here BY TITLE ONLY,
-because its filename embeds the very token the audit forbids.  R-T3
-requires that a dependency failing under strong encapsulation be
-upgraded or replaced rather than accommodated by opening a JDK
+because its filename embeds the very token the audit forbids.
+THE REGISTER IS EARNED EMPTY, NOT MERELY EMPTY, and the difference is
+the whole of R-2: an empty register that was never populated and one
+that came out empty because the requirement was measured and then
+removed read identically, and only the second complies.  The audited
+configuration is the container launch block recorded at the base commit
+in README.md:L111-L127 and duplicated in docs/setup.md, and it declares
+no such argument either before or after the migration.  Every strong
+encapsulation failure encountered anywhere in this migration was inside
+a TEST library, and each was resolved at its source by upgrading or
+removing that library rather than by opening a JDK package to the
+application - which is R-T3's remedy applied, not avoided.  R-T3
+requires exactly that: a dependency failing under strong encapsulation
+is upgraded or replaced rather than accommodated by opening a JDK
 package - fix the library, do not open the module.
 
 R-5, no disabling of failing tests, verbatim: "Failing tests must not

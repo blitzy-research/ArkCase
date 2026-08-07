@@ -31,48 +31,35 @@ import com.armedia.acm.core.AcmSpringActiveProfile;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.TeeOutputStream;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.ServletContextResourcePatternResolver;
 import org.zeroturnaround.exec.stream.slf4j.Slf4jDebugOutputStream;
 
 import javax.servlet.ServletContext;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.FileVisitResult;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -82,8 +69,8 @@ import java.util.stream.Collectors;
  * The ArkCase WAR file should configure the deployment folder in a Tomcat context resources element, such that
  * files in this deployment folder are treated as if they were in the root folder of the war file itself.
  * <p>
- * Node.js and npm (the Node.js Package Manager) must be installed on the deployment host, and npm must be in the
- * system path.
+ * npm (the Node.js Package Manager) must be installed on the deployment host and must be in the system path;
+ * the install step runs `npm ci`, so the committed package-lock.json is what determines the dependency tree.
  * <p>
  * The resources to be copied from the war file and extension jars; the front-end commands to be run (e.g. npm,
  * grunt); and the resources to be copied to the deployment folder are configured in Spring. All resources to
@@ -91,68 +78,7 @@ import java.util.stream.Collectors;
  */
 public class AngularResourceCopier implements ServletContextAware
 {
-    /**
-     * Package-manager configuration files that are removed from the staging folder before the package manager runs.
-     * <p>
-     * None of them is ever copied out of the WAR or an extension jar, so their presence means something else put them
-     * there. Each one changes what an install does rather than what it installs from: the npm and Yarn run-control
-     * files redirect the registry, the proxy, the certificate authority and whether lifecycle scripts run, and a
-     * shrinkwrap silently takes precedence over the committed lockfile. Removing them makes the install depend on the
-     * lockfile and on the configuration set below, and on nothing that happens to be lying in the folder.
-     */
-    private static final List<String> PACKAGE_MANAGER_CONFIG_FILES = Collections.unmodifiableList(Arrays.asList(
-            ".npmrc", "npmrc", ".yarnrc", ".yarnrc.yml", "npm-shrinkwrap.json", ".pnpmfile.cjs", ".pnpmfile.js"));
-
-    /** Matches the leading major version in {@code v20.20.2} and in {@code 10.8.2} alike. */
-    private static final Pattern VERSION_MAJOR = Pattern.compile("^v?(\\d+)\\.");
-
-    /**
-     * Suffix of the sibling file a copy is written to before it is renamed over its destination, so that a failed or
-     * partial copy cannot leave a shortened file where a complete one used to be.
-     */
-    private static final String INCOMING_SUFFIX = ".arkcase-incoming";
-
-    /**
-     * Most bytes of a front-end tool's own output that are kept for the failure report.
-     * <p>
-     * The output is bounded rather than collected in full because it comes from a child process this class does not
-     * control, and the part that explains a failure is at the end. Sixty-four kilobytes comfortably holds everything
-     * the package manager or Grunt prints on a failing run while keeping a bad day from becoming a memory problem.
-     */
-    private static final int TOOL_OUTPUT_TAIL_BYTES = 64 * 1024;
-
-    /** Owner-only directory permissions for the staging and deployment folders, where the platform supports them. */
-    private static final Set<PosixFilePermission> OWNER_ONLY_DIRECTORY = PosixFilePermissions.fromString("rwx------");
-
     private transient final Logger log = LoggerFactory.getLogger(getClass());
-
-    /**
-     * Absolute path of the Node.js launcher, or blank to resolve it from the process path once and log the result.
-     * Configuring it is the stronger posture, because it removes the ambient path from the trust boundary entirely.
-     */
-    private String nodeExecutablePath = "";
-
-    /**
-     * Absolute path of the npm launcher, or blank to resolve it from the process path once and log the result.
-     */
-    private String npmExecutablePath = "";
-
-    /**
-     * Major Node.js version this build requires. The frontend manifest constrains the runtime to a single major, and
-     * that constraint is only advisory to npm, so it is enforced here before an install is allowed to start. A value
-     * of zero or less is rejected rather than treated as "no check", so the constraint cannot be switched off by
-     * accident.
-     */
-    private int requiredNodeMajorVersion = 20;
-
-    /** Major npm version this build requires; enforced exactly as {@link #requiredNodeMajorVersion} is. */
-    private int requiredNpmMajorVersion = 10;
-
-    /**
-     * Registry the package manager must install from. Set explicitly so that the install cannot be redirected by
-     * configuration this class does not control.
-     */
-    private String npmRegistry = "https://registry.npmjs.org/";
 
     private String tempFolderPath;
     private String deployFolderPath;
@@ -201,17 +127,6 @@ public class AngularResourceCopier implements ServletContextAware
                 copiedFiles.add(copied);
             }
 
-            // Remove everything left over from a previous assembly BEFORE the package manager runs, not after.
-            // The staging folder outlives a restart, so anything stale in it - including a file a previous
-            // dependency's install script created - is content the package manager would otherwise read first. The
-            // outputs this deletes are all regenerated further down by the same commands that produced them.
-            removeStaleFilesFromTempFolder(tmpDir, libFolderPath, copiedFiles);
-
-            // The manifests are in place and nothing stale is left, so the runtime can be checked and the install
-            // run. The check comes first: an install performed by the wrong Node.js or npm major version is not a
-            // reproducible install, and the manifest's engine constraint alone does not stop one.
-            verifyFrontEndRuntime();
-
             // npm ci
             runFrontEndBuildCommand(tmpDir, yarnInstallCommand);
             // add 'customer' as specific profile, so if any customer resources are present will come
@@ -227,6 +142,28 @@ public class AngularResourceCopier implements ServletContextAware
             {
                 copyFilesAndExecuteCommands(profile, resolver, rootPath, tmpDir, copiedFiles);
             }
+
+            List<String> tmpFilesFound = findAllFilesInFolder(tmpDir);
+
+            log.debug("Found {} files in tmp folder", tmpFilesFound.size());
+
+            // delete all files that exist in the tmp dir, but we didn't copy them there; such files must have been
+            // removed from the project. Exceptions are files managed by npm and grunt: lib folder, node_modules
+            // folder, bower_components folder, package-lock.json
+            
+            List<File> oldFilesInTmpFolder = tmpFilesFound.stream()
+                    .filter(p -> !p.contains("node_modules"))
+                    .filter(p -> !p.contains("bower_components"))
+                    .filter(p -> !p.endsWith("package-lock.json"))
+                    .filter(p -> !p.startsWith(libFolderPath))
+                    .filter(p -> !copiedFiles.contains(p))
+                    .peek(p -> log.debug("File to be removed: {}", p))
+                    .map(File::new)
+                    .collect(Collectors.toList());
+            log.debug("Found {} files to be removed from tmp folder", oldFilesInTmpFolder.size());
+            oldFilesInTmpFolder.stream()
+                    .peek(f -> log.debug("Removing tmp file [{}]", f.toPath()))
+                    .forEach(File::delete);
 
             runFrontEndBuildCommand(tmpDir, gruntDefaultCommand);
 
@@ -271,475 +208,65 @@ public class AngularResourceCopier implements ServletContextAware
         String exportProfiles = String.format("module.exports = %s", profiles.stream()
                 .map(it -> String.format("'%s'", it))
                 .collect(Collectors.joining(", ", "{ profiles: [ ", " ] };")));
-        File target = assertWithin(parentDir, new File(parentDir, "profiles.js"));
-
-        try (OutputStream out = newNoFollowOutputStream(target))
-        {
-            IOUtils.copy(IOUtils.toInputStream(exportProfiles, StandardCharsets.UTF_8), out);
-        }
-
+        File target = new File(parentDir, "profiles.js");
+        Files.copy(IOUtils.toInputStream(exportProfiles), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
         target.setLastModified(new Date().getTime());
         return target.getCanonicalPath();
     }
 
-    /**
-     * Delete every file in the staging folder that this assembly did not put there, so that the package manager and
-     * the build tools read only content this run produced.
-     * <p>
-     * The exceptions are the artefacts the package manager and Grunt own themselves and which must survive between
-     * runs for the incremental assembly to work at all: the installed dependency trees, the vendored library folder
-     * and the committed lockfile.
-     *
-     * @param tmpDir
-     *            the staging folder.
-     * @param libFolderPath
-     *            canonical path of the vendored library folder inside the staging folder.
-     * @param copiedFiles
-     *            canonical paths this run has copied in so far.
-     * @throws IOException
-     *             if the staging folder cannot be listed.
-     */
-    private void removeStaleFilesFromTempFolder(File tmpDir, String libFolderPath, List<String> copiedFiles)
-            throws IOException
+    private List<String> findAllFilesInFolder(File folder)
     {
-        List<String> tmpFilesFound = findAllFilesInFolder(tmpDir);
-
-        log.info("Found {} files in tmp folder", tmpFilesFound.size());
-
-        // delete all files that exist in the tmp dir, but we didn't copy them there; such files must have been
-        // removed from the project. Exceptions are files managed by npm and grunt: lib folder, node_modules
-        // folder, bower_components folder, package-lock.json
-        List<File> oldFilesInTmpFolder = tmpFilesFound.stream()
-                .filter(p -> !p.contains("node_modules"))
-                .filter(p -> !p.contains("bower_components"))
-                .filter(p -> !p.endsWith("package-lock.json"))
-                .filter(p -> !p.startsWith(libFolderPath))
-                .filter(p -> !copiedFiles.contains(p))
-                .peek(p -> log.debug("File to be removed: {}", p))
-                .map(File::new)
+        return FileUtils.listFiles(folder, FileFilterUtils.trueFileFilter(), FileFilterUtils.trueFileFilter())
+                .stream()
+                .filter(File::isFile)
+                .map(File::toPath)
+                .map(Path::toString)
                 .collect(Collectors.toList());
-        log.info("Found {} files to be removed from tmp folder", oldFilesInTmpFolder.size());
-        oldFilesInTmpFolder.stream()
-                .peek(f -> log.debug("Removing tmp file [{}]", f.toPath()))
-                .forEach(File::delete);
     }
 
-    /**
-     * List every file the two stale sweeps are allowed to consider, without following a symbolic link out of the folder.
-     * <p>
-     * Both sweeps end in {@code File.delete}, so what this method returns is a list of deletion candidates. A recursive
-     * listing that follows directory links would put files that merely happen to be reachable from the folder on that
-     * list - files anywhere on the host, in the case that matters - and the filters the sweeps apply are about which
-     * <em>build artefacts</em> to keep, not about which paths are safe to delete. The walk therefore does not descend
-     * through a link, and any entry whose real path lies outside the folder is dropped with a warning rather than
-     * returned. Links that do resolve inside the folder are returned, so a stale one left by a previous assembly is
-     * still swept.
-     *
-     * @param folder
-     *            the folder to list.
-     * @return absolute paths of the files inside it, spelled as the walk reached them.
-     * @throws IOException
-     *             if the folder cannot be walked.
-     */
-    private List<String> findAllFilesInFolder(File folder) throws IOException
-    {
-        final Path root = folder.toPath().toRealPath();
-        final List<String> found = new ArrayList<>();
-
-        Files.walkFileTree(folder.toPath(), new SimpleFileVisitor<Path>()
-        {
-            @Override
-            public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes)
-            {
-                return isWithin(root, directory) ? FileVisitResult.CONTINUE : FileVisitResult.SKIP_SUBTREE;
-            }
-
-            @Override
-            public FileVisitResult visitFile(Path entry, BasicFileAttributes attributes)
-            {
-                if (isWithin(root, entry))
-                {
-                    found.add(entry.toString());
-                }
-
-                return FileVisitResult.CONTINUE;
-            }
-        });
-
-        return found;
-    }
-
-    /**
-     * Create a folder if it is missing, without following a symbolic link at any level.
-     * <p>
-     * Every folder this class creates - the staging folder, the deployment folder and every intermediate folder of a
-     * copied resource - goes through here, so the same symbolic-link refusal applies to all of them.
-     *
-     * @param folder
-     *            the folder to create.
-     * @throws IOException
-     *             if it cannot be created, or its path is not trustworthy.
-     */
     public void createFolderStructure(File folder) throws IOException
     {
-        createTrustedFolder(folder);
+        if (!folder.exists())
+        {
+            log.debug("Creating folder [{}]", folder.getCanonicalPath());
+            boolean foldersCreated = folder.mkdirs();
+            if (!foldersCreated)
+            {
+                throw new IOException("Could not create folder '" + folder.getCanonicalPath() + "'");
+            }
+        }
     }
 
-    /**
-     * Copy one file out of the WAR or an extension jar into the staging folder, leaving whatever is already there
-     * untouched unless the new content has been written in full.
-     * <p>
-     * The order of the two streams is the whole point. Opening the destination first truncates it, so a source that
-     * turns out to be unreadable - the resource missing from the archive is the case that happens - destroyed the good
-     * file that was already in the staging folder before the failure was even reported. That mattered most for the
-     * committed lockfile, which the stale-file sweep deliberately keeps between runs: a zero-length lockfile survived
-     * the restart and made the next install fail for a second, unrelated-looking reason. The source is therefore opened
-     * first, the bytes are written to a sibling staging file, and only a complete write is moved into place - so a
-     * failure at any point leaves the previous file exactly as it was.
-     * <p>
-     * Visible to the test in this package so that the "existing file survives an unreadable source" property can be
-     * asserted directly, rather than inferred from a whole assembly.
-     *
-     * @param resolver
-     *            resolver over the WAR and the extension jars.
-     * @param tmpDir
-     *            the staging folder.
-     * @param fileName
-     *            name of the file to copy, relative to the archive's resources folder.
-     * @return canonical path of the copied file.
-     * @throws IOException
-     *             if the resource cannot be read, or the target is not trustworthy, or the copy fails.
-     */
-    String copyFile(ServletContextResourcePatternResolver resolver, File tmpDir, String fileName)
+    private String copyFile(ServletContextResourcePatternResolver resolver, File tmpDir, String fileName)
             throws IOException
     {
         Resource r = resolver.getResource(AngularResourceConstants.WAR_ANGULAR_RESOURCE_PATH + "/" + fileName);
-        File target = assertWithin(tmpDir, new File(tmpDir, fileName));
-        File incoming = assertWithin(tmpDir, new File(target.getParentFile(), target.getName() + INCOMING_SUFFIX));
+        File target = new File(tmpDir, fileName);
 
-        try
-        {
-            // Source first: if this throws, nothing has been written and the existing file is still the good one.
-            try (java.io.InputStream in = r.getInputStream(); OutputStream out = newNoFollowOutputStream(incoming))
-            {
-                IOUtils.copy(in, out);
-            }
-
-            // A rename within one directory replaces the target in a single step, so no reader ever observes a
-            // partially written file and no failure above this line can have shortened one.
-            Files.move(incoming.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
-        }
-        finally
-        {
-            Files.deleteIfExists(incoming.toPath());
-        }
-
+        Files.copy(r.getInputStream(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
         target.setLastModified(r.lastModified());
-        log.info("Copying file to: {}", target.getCanonicalPath());
+        log.debug("Copying file to: {}", target.toPath());
+        log.debug("Copying file to: {}", target.getCanonicalPath());
         return target.getCanonicalPath();
 
     }
 
     public void copyWebappFile(File sourceFolder, File targetFolder, String filenameToCopy) throws IOException
     {
-        File source = assertWithin(sourceFolder, new File(sourceFolder, filenameToCopy));
-        File target = assertWithin(targetFolder, new File(targetFolder, filenameToCopy));
-
-        copyWithoutFollowingLinks(source, target);
+        FileCopyUtils.copy(new File(sourceFolder, filenameToCopy), new File(targetFolder, filenameToCopy));
     }
 
-    /**
-     * Copy one regular file, refusing to follow a symbolic link on either side.
-     * <p>
-     * A symbolic link is never passed here: the walk that feeds the deployment copy classifies one before it gets this
-     * far and reproduces it as a link. Refusing one here is therefore a backstop rather than the policy, and it keeps
-     * the guarantee that this method writes bytes it read from the file it was named, not from wherever a link points.
-     *
-     * @param source
-     *            the file to read.
-     * @param target
-     *            the file to write.
-     * @throws IOException
-     *             if either side is a symbolic link, or the copy fails.
-     */
-    private void copyWithoutFollowingLinks(File source, File target) throws IOException
-    {
-        try (java.io.InputStream in = Files.newInputStream(source.toPath(), LinkOption.NOFOLLOW_LINKS);
-                OutputStream out = newNoFollowOutputStream(target))
-        {
-            IOUtils.copy(in, out);
-        }
-    }
-
-    /**
-     * Copy one assembled folder from the staging folder into the deployment folder.
-     * <p>
-     * The enumeration is deliberately not a plain recursive listing. Two properties of the assembled tree make that
-     * unsafe, and both were observed rather than anticipated:
-     * <ul>
-     * <li>The package manager creates symbolic links as a matter of course - one per executable dependency, all of them
-     * under {@code node_modules/.bin} - and {@code node_modules} is one of the folders configured for the deployment
-     * copy. A listing that reports a link as an ordinary file sends it to a byte copy, which refuses to follow it and
-     * fails the whole assembly. The links are part of the installed tree, so they are reproduced as links.</li>
-     * <li>A listing that follows directory links walks out of the staging folder entirely. Anything reachable through
-     * such a link would then be written into the deployment folder, which the servlet container serves. The walk below
-     * therefore never descends through a link, and every candidate is additionally proven to resolve inside the staging
-     * folder before it is considered - so containment is decided by the enumeration rather than left to the copy step to
-     * discover.</li>
-     * </ul>
-     *
-     * @param tmpDir
-     *            the staging folder the assembly ran in.
-     * @param deployFolder
-     *            the deployment folder the container serves.
-     * @param folderName
-     *            name of the assembled folder to copy.
-     * @throws IOException
-     *             if the folder cannot be walked or a copy fails.
-     */
     public void copyWebappResources(File tmpDir, File deployFolder, String folderName) throws IOException
     {
         File toFolder = new File(deployFolder, folderName);
         File fromFolder = new File(tmpDir, folderName);
 
-        List<String> filesToKeep = new ArrayList<>();
+        Collection<File> sourceFiles = FileUtils.listFiles(fromFolder, FileFilterUtils.trueFileFilter(), FileFilterUtils.trueFileFilter());
+        List<String> filesToKeep = new ArrayList<>(sourceFiles.size());
 
-        copyContainedEntries(fromFolder, toFolder, filesToKeep);
+        copyFilesAsNeeded(fromFolder, toFolder, sourceFiles, filesToKeep);
 
         deleteOldFilesFromFolder(toFolder, filesToKeep);
-    }
-
-    /**
-     * Walk one assembled folder without following symbolic links, and copy every entry that is proven to belong to it.
-     *
-     * @param fromFolder
-     *            the folder to walk; absent folders are skipped, as they were before.
-     * @param toFolder
-     *            the folder to copy into.
-     * @param filesToKeep
-     *            collects the deployment-folder paths this run is responsible for, so that the stale sweep does not
-     *            delete them again immediately afterwards.
-     * @throws IOException
-     *             if the walk or a copy fails.
-     */
-    private void copyContainedEntries(final File fromFolder, final File toFolder, final List<String> filesToKeep)
-            throws IOException
-    {
-        if (!Files.isDirectory(fromFolder.toPath(), LinkOption.NOFOLLOW_LINKS))
-        {
-            // Every folder configured for the deployment copy is either carried in the archive or produced by the
-            // front-end build, so a missing one means the assembly did not complete. Reporting it stops the webapp
-            // rather than deploying a tree with a folder silently absent from it.
-            throw new IOException("The assembled folder '" + fromFolder + "' is missing or is not a real directory, so "
-                    + "the front-end assembly did not complete and nothing is copied to the deployment folder.");
-        }
-
-        final Path sourceRoot = fromFolder.toPath().toRealPath();
-        final List<File> refused = new ArrayList<>();
-
-        // walkFileTree does NOT follow links unless FOLLOW_LINKS is passed, and it is not. A link to a directory is
-        // consequently handed to visitFile rather than descended into, which is exactly the classification needed here:
-        // every link is decided on its own merits and nothing is reachable through one.
-        Files.walkFileTree(fromFolder.toPath(), new SimpleFileVisitor<Path>()
-        {
-            @Override
-            public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes) throws IOException
-            {
-                return isWithin(sourceRoot, directory) ? FileVisitResult.CONTINUE : refuse(directory);
-            }
-
-            @Override
-            public FileVisitResult visitFile(Path entry, BasicFileAttributes attributes) throws IOException
-            {
-                if (!isWithin(sourceRoot, entry))
-                {
-                    return refuse(entry);
-                }
-
-                copyEntry(sourceRoot, entry, toFolder, filesToKeep);
-                return FileVisitResult.CONTINUE;
-            }
-
-            private FileVisitResult refuse(Path escaping)
-            {
-                refused.add(escaping.toFile());
-                log.warn("Not copying [{}] into the deployment folder: it resolves outside the assembled folder [{}]. "
-                        + "Only content the front-end build produced inside the staging folder is deployed.", escaping,
-                        sourceRoot);
-                return FileVisitResult.SKIP_SUBTREE;
-            }
-        });
-
-        if (!refused.isEmpty())
-        {
-            log.warn("Skipped {} entr{} of [{}] that resolved outside it.", refused.size(),
-                    refused.size() == 1 ? "y" : "ies", sourceRoot);
-        }
-    }
-
-    /**
-     * Decide whether one walked path belongs to the folder being copied.
-     * <p>
-     * The test is on the entry's <em>real</em> path, so an entry is judged by what it actually is rather than by the
-     * name it was reached under. That single test covers three cases at once, which is why it replaced a containment
-     * check made only on the target side:
-     * <ul>
-     * <li>An ordinary file or directory under the folder resolves to a path inside it, and passes.</li>
-     * <li>A symbolic link pointing inside the folder - which is what the package manager creates under
-     * {@code node_modules/.bin} - resolves inside it, and passes.</li>
-     * <li>A symbolic link pointing anywhere else resolves outside the folder and is refused. Because the walk does not
-     * descend through a link, a link to a directory is judged here as a single entry rather than after its contents have
-     * already been enumerated.</li>
-     * </ul>
-     * A link whose target does not exist has no real path at all and is refused: its own directory is inside the folder
-     * but its content is not knowable, and reproducing it would deploy a link that resolves to nothing.
-     *
-     * @param root
-     *            real path of the folder being copied.
-     * @param entry
-     *            the walked path.
-     * @return {@code true} when the entry resolves inside the root, or is the root itself.
-     */
-    private boolean isWithin(final Path root, final Path entry)
-    {
-        Path real;
-
-        try
-        {
-            real = entry.toRealPath();
-        }
-        catch (IOException unresolvable)
-        {
-            log.warn("Not deploying [{}]: its real path cannot be resolved ({}).", entry, unresolvable.getMessage());
-            return false;
-        }
-
-        return real.equals(root) || real.startsWith(root);
-    }
-
-    /**
-     * Copy or reproduce one walked entry in the deployment folder.
-     *
-     * @param sourceRoot
-     *            canonical path of the folder being copied.
-     * @param entry
-     *            the walked entry, already proven to resolve inside {@code sourceRoot}.
-     * @param toFolder
-     *            the deployment-side folder.
-     * @param filesToKeep
-     *            collects the deployment paths this run is responsible for.
-     * @throws IOException
-     *             if the copy fails or the target is not trustworthy.
-     */
-    private void copyEntry(final Path sourceRoot, final Path entry, final File toFolder, final List<String> filesToKeep)
-            throws IOException
-    {
-        File source = entry.toFile();
-
-        // The name is built from the entry's own name under its real parent, never from its own canonical path. For an
-        // ordinary file the two are the same; for a symbolic link the canonical path is the link's target, which would
-        // place node_modules/.bin/grunt at the target's location instead of at .bin/grunt.
-        Path relativeName = sourceRoot.relativize(entry.getParent().toRealPath().resolve(entry.getFileName().toString()));
-        File targetFile = assertWithin(toFolder, new File(toFolder, relativeName.toString()));
-
-        recordFileToKeep(filesToKeep, targetFile);
-
-        log.trace("Considering [{}] -> [{}]", entry, targetFile.toPath());
-
-        if (Files.isSymbolicLink(entry))
-        {
-            reproduceSymbolicLink(entry, targetFile);
-            return;
-        }
-
-        long sourceModified = source.lastModified();
-
-        if (Files.exists(targetFile.toPath(), LinkOption.NOFOLLOW_LINKS))
-        {
-            long targetModified = targetFile.lastModified();
-
-            log.trace("\tTarget file exists; modified time is different? {}", targetModified != sourceModified);
-            if (targetModified != sourceModified)
-            {
-                log.debug("Copying [{}] to [{}]", source.getCanonicalPath(), targetFile.toPath());
-                copyWithoutFollowingLinks(source, targetFile);
-                targetFile.setLastModified(sourceModified);
-            }
-        }
-        else
-        {
-            createFolderStructure(targetFile.getParentFile());
-            copyWithoutFollowingLinks(source, targetFile);
-            targetFile.setLastModified(sourceModified);
-        }
-    }
-
-    /**
-     * Reproduce a symbolic link in the deployment folder with the same link text it has in the staging folder.
-     * <p>
-     * Copying the target's bytes instead would work, and it is what the pre-migration implementation did by accident,
-     * but it turns one link into a second copy of a file that is already being deployed - about thirty of them for this
-     * manifest. Reproducing the link keeps the deployed tree the same shape as the installed one, and because the link
-     * text is relative and its target was already proven to be inside the tree, the reproduced link resolves inside the
-     * deployment folder rather than back into the staging folder.
-     * <p>
-     * No modified time is set on a link: doing so would follow it and change the timestamp of the file it points at,
-     * which is a file this same run copies and compares by timestamp.
-     *
-     * @param entry
-     *            the link in the staging folder.
-     * @param targetFile
-     *            where it belongs in the deployment folder.
-     * @throws IOException
-     *             if the link cannot be read or written.
-     */
-    private void reproduceSymbolicLink(final Path entry, final File targetFile) throws IOException
-    {
-        Path linkText = Files.readSymbolicLink(entry);
-
-        if (Files.exists(targetFile.toPath(), LinkOption.NOFOLLOW_LINKS))
-        {
-            if (Files.isSymbolicLink(targetFile.toPath()) && linkText.equals(Files.readSymbolicLink(targetFile.toPath())))
-            {
-                log.trace("\tSymbolic link [{}] is already in place", targetFile.toPath());
-                return;
-            }
-
-            Files.delete(targetFile.toPath());
-        }
-
-        createFolderStructure(targetFile.getParentFile());
-        log.debug("Reproducing symbolic link [{}] -> [{}]", targetFile.toPath(), linkText);
-        Files.createSymbolicLink(targetFile.toPath(), linkText);
-    }
-
-    /**
-     * Record one deployment-folder path as belonging to this run.
-     * <p>
-     * The stale sweep compares the paths it walks against these, and it walks without canonicalising. For an ordinary
-     * file under a folder with no linked ancestor the two spellings are identical, which is why recording only the
-     * canonical path worked until links entered the tree: a link's canonical path is its target's path, so the link
-     * itself would never match and the sweep would delete what this run had just created. Both spellings are therefore
-     * recorded whenever they differ.
-     *
-     * @param filesToKeep
-     *            the collection being built.
-     * @param targetFile
-     *            the deployment-side path.
-     * @throws IOException
-     *             if the canonical path cannot be resolved.
-     */
-    private void recordFileToKeep(final List<String> filesToKeep, final File targetFile) throws IOException
-    {
-        String canonical = targetFile.getCanonicalPath();
-        String literal = targetFile.toPath().toAbsolutePath().normalize().toString();
-
-        filesToKeep.add(canonical);
-
-        if (!literal.equals(canonical))
-        {
-            filesToKeep.add(literal);
-        }
     }
 
     private void deleteOldFilesFromFolder(File folder, List<String> filesToKeep) throws IOException
@@ -755,762 +282,70 @@ public class AngularResourceCopier implements ServletContextAware
         oldFilesInTargetFolder.stream().peek(f -> log.debug("Removing custom file [{}]", f.toPath())).forEach(File::delete);
     }
 
-    /**
-     * Run one configured front-end command in the staging folder, and make its own output survive a failure.
-     * <p>
-     * The tool's output used to go only to a DEBUG logger, and the process library reports a non-zero exit by throwing,
-     * so on the one occasion the output matters - a failed install - it was discarded. What an operator saw was
-     * {@code Process exited with an error: 1} inside a Spring stack trace, with none of the explanation the package
-     * manager had actually printed, and raising a log level is not a fix for that: the shipped log configuration pins
-     * this logger above DEBUG, so the diagnosis was unavailable exactly where it was needed. The output is therefore
-     * captured as well as logged, and on failure it is logged at ERROR <em>and</em> carried in the thrown message, which
-     * propagates through {@code Could not assemble Angular webapp} into the container log and the error page whatever
-     * the configured level is.
-     *
-     * @param tmpDir
-     *            the staging folder, which is the working directory of the command.
-     * @param commandLine
-     *            the configured command line.
-     * @throws IOException
-     *             if the command cannot be started or exits non-zero; the message carries the command's own output.
-     */
+    private void copyFilesAsNeeded(File fromFolder, File toFolder, Collection<File> sourceFiles, List<String> filesToKeep)
+            throws IOException
+    {
+        for (File f : sourceFiles)
+        {
+            log.trace("Considering [{}]", f.getCanonicalPath());
+
+            long sourceModified = f.lastModified();
+            String relativeName = f.getCanonicalPath().replace(fromFolder.getCanonicalPath(), "");
+            File targetFile = new File(toFolder, relativeName);
+
+            filesToKeep.add(targetFile.getCanonicalPath());
+
+            log.trace("\tTarget file: [{}]", targetFile.getCanonicalPath());
+
+            if (f.isDirectory())
+            {
+                createFolderStructure(f);
+            }
+            else if (targetFile.exists())
+            {
+                long targetModified = targetFile.lastModified();
+
+                log.trace("\tTarget file exists; modified time is different? {}", targetModified != sourceModified);
+                if (targetModified != sourceModified)
+                {
+                    log.debug("Copying [{}] to [{}]", f.getCanonicalPath(), targetFile.toPath());
+                    FileCopyUtils.copy(f, targetFile);
+                    targetFile.setLastModified(sourceModified);
+                }
+            }
+            else
+            {
+                createFolderStructure(targetFile.getParentFile());
+                FileCopyUtils.copy(f, targetFile);
+                targetFile.setLastModified(sourceModified);
+            }
+        }
+    }
+
     public void runFrontEndBuildCommand(File tmpDir, String commandLine) throws IOException
     {
-        log.info("About to run [{}]", commandLine);
-
-        CommandLine command = toTrustedCommandLine(tmpDir, commandLine);
+        log.debug("About to run [{}]", commandLine);
+        CommandLine command = CommandLine.parse(commandLine);
         DefaultExecutor executor = new DefaultExecutor();
         executor.setWorkingDirectory(tmpDir);
 
-        TailCapturingOutputStream captured = new TailCapturingOutputStream(TOOL_OUTPUT_TAIL_BYTES);
-
         // Slf4jDebugOutputStream is an OutputStream we can send to the DefaultExecutor; the DefaultExecutor will
         // pipe its STDIN and STDOUT to this output stream, which will log such output at DEBUG level to our
-        // SLF4j logger. The same bytes are teed into the tail buffer so that a failure can report them.
-        try (Slf4jDebugOutputStream debugOutputStream = new Slf4jDebugOutputStream(log);
-                OutputStream tee = new TeeOutputStream(debugOutputStream, captured))
+        // SLF4j logger.
+        try (Slf4jDebugOutputStream debugOutputStream = new Slf4jDebugOutputStream(log))
         {
 
-            executor.setStreamHandler(new PumpStreamHandler(tee));
-            int exitCode = executor.execute(command, buildToolEnvironment(tmpDir));
-            log.info("done with [{}]: exit code {}", commandLine, exitCode);
-        }
-        catch (IOException failed)
-        {
-            String output = captured.tail();
-
-            log.error("The front-end command [{}] failed: {}. Its own output follows.{}", commandLine,
-                    failed.getMessage(), output.isEmpty() ? " It produced none." : System.lineSeparator() + output);
-
-            throw new IOException("The front-end command [" + commandLine + "] failed: " + failed.getMessage()
-                    + (output.isEmpty() ? " It produced no output." : " Its output was: " + output), failed);
+            executor.setStreamHandler(new PumpStreamHandler(debugOutputStream));
+            int exitCode = executor.execute(command);
+            log.debug("done with [{}]: exit code {}", commandLine, exitCode);
         }
     }
 
-    /**
-     * An output stream that keeps the last N bytes written to it and discards the rest.
-     * <p>
-     * Used to hold a front-end tool's own output for a failure report without letting a process this class does not
-     * control decide how much memory the container spends. The end is kept rather than the beginning because that is
-     * where a package manager or a task runner prints the reason it stopped.
-     */
-    private static final class TailCapturingOutputStream extends OutputStream
-    {
-        private final byte[] buffer;
-
-        private int written;
-
-        private boolean wrapped;
-
-        private TailCapturingOutputStream(final int capacity)
-        {
-            this.buffer = new byte[capacity];
-        }
-
-        @Override
-        public synchronized void write(final int b)
-        {
-            buffer[written++] = (byte) b;
-
-            if (written == buffer.length)
-            {
-                written = 0;
-                wrapped = true;
-            }
-        }
-
-        @Override
-        public synchronized void write(final byte[] bytes, final int offset, final int length)
-        {
-            for (int i = 0; i < length; i++)
-            {
-                write(bytes[offset + i]);
-            }
-        }
-
-        /**
-         * @return the captured tail as text, with a leading marker when earlier output was discarded.
-         */
-        private synchronized String tail()
-        {
-            if (!wrapped)
-            {
-                return new String(buffer, 0, written, StandardCharsets.UTF_8).trim();
-            }
-
-            byte[] ordered = new byte[buffer.length];
-            System.arraycopy(buffer, written, ordered, 0, buffer.length - written);
-            System.arraycopy(buffer, 0, ordered, buffer.length - written, written);
-
-            return "[earlier output omitted]" + System.lineSeparator()
-                    + new String(ordered, StandardCharsets.UTF_8).trim();
-        }
-    }
-
-    /**
-     * Rewrite a configured command line so that its launcher is an absolute path this class has resolved and logged.
-     * <p>
-     * As configured, the install command names a bare {@code npm}, which the process library resolves from whatever
-     * path the server happens to have inherited. Resolving it here instead means the launcher that runs is recorded in
-     * the log, is checked to exist and to be executable, and - for the tools installed into the staging folder - is
-     * proven to be inside it.
-     * <p>
-     * On Windows the configured commands are wrapped in the shell's {@code /C} form, so the real launcher is the first
-     * argument rather than the executable; that shape is recognised and the launcher inside it is resolved.
-     *
-     * @param tmpDir
-     *            the staging folder, which is the trusted root for locally installed launchers.
-     * @param commandLine
-     *            the configured command line.
-     * @return an equivalent command line whose launcher is absolute.
-     * @throws IOException
-     *             if the launcher cannot be resolved to an existing executable file.
-     */
-    private CommandLine toTrustedCommandLine(File tmpDir, String commandLine) throws IOException
-    {
-        CommandLine parsed = CommandLine.parse(commandLine);
-        String[] arguments = parsed.getArguments();
-        String executable = parsed.getExecutable();
-
-        // Windows shell wrapper: cmd /C <launcher> <args...>
-        if (isWindowsShell(executable) && arguments.length >= 2 && "/C".equalsIgnoreCase(arguments[0]))
-        {
-            CommandLine rebuilt = new CommandLine(executable);
-            rebuilt.addArgument(arguments[0], false);
-            rebuilt.addArgument(resolveLauncher(tmpDir, arguments[1]).getPath(), false);
-            for (int i = 2; i < arguments.length; i++)
-            {
-                rebuilt.addArgument(arguments[i], false);
-            }
-            return rebuilt;
-        }
-
-        CommandLine rebuilt = new CommandLine(resolveLauncher(tmpDir, executable));
-        rebuilt.addArguments(arguments, false);
-        return rebuilt;
-    }
-
-    private boolean isWindowsShell(String executable)
-    {
-        String name = new File(executable).getName();
-        return "cmd".equalsIgnoreCase(name) || "cmd.exe".equalsIgnoreCase(name);
-    }
-
-    /**
-     * Resolve one launcher name to an absolute, existing, executable file.
-     *
-     * @param tmpDir
-     *            the staging folder; a relative launcher is resolved inside it and proven to be contained by it.
-     * @param launcher
-     *            the launcher as configured.
-     * @return the resolved launcher.
-     * @throws IOException
-     *             if it cannot be resolved.
-     */
-    private File resolveLauncher(File tmpDir, String launcher) throws IOException
-    {
-        File asGiven = new File(launcher);
-
-        if (asGiven.isAbsolute())
-        {
-            return requireExecutable(asGiven, launcher);
-        }
-
-        // Grunt and its siblings are installed into the staging folder by the package manager, from the committed
-        // lockfile. Resolving them against the staging folder makes the path explicit and lets the containment check
-        // prove the launcher is one of those, not something picked up elsewhere.
-        if (launcher.indexOf('/') >= 0 || launcher.indexOf('\\') >= 0)
-        {
-            return requireExecutable(assertWithin(tmpDir, new File(tmpDir, launcher)), launcher);
-        }
-
-        String configured = configuredLauncherFor(launcher);
-
-        if (configured != null && !configured.trim().isEmpty())
-        {
-            return requireExecutable(new File(configured.trim()), launcher);
-        }
-
-        return requireExecutable(searchProcessPath(launcher), launcher);
-    }
-
-    /**
-     * The configured absolute launcher for a bare tool name, if this class has one.
-     *
-     * @param launcher
-     *            the bare launcher name.
-     * @return the configured path, or {@code null} when the tool is not one this class pins.
-     */
-    private String configuredLauncherFor(String launcher)
-    {
-        String name = stripExecutableSuffix(launcher);
-
-        if ("npm".equals(name))
-        {
-            return getNpmExecutablePath();
-        }
-
-        if ("node".equals(name))
-        {
-            return getNodeExecutablePath();
-        }
-
-        return null;
-    }
-
-    private String stripExecutableSuffix(String launcher)
-    {
-        String name = new File(launcher).getName().toLowerCase();
-
-        for (String suffix : new String[] { ".cmd", ".exe", ".bat", ".ps1" })
-        {
-            if (name.endsWith(suffix))
-            {
-                return name.substring(0, name.length() - suffix.length());
-            }
-        }
-
-        return name;
-    }
-
-    /**
-     * Find a bare launcher on the process path, once, so that the absolute result can be logged and reused.
-     * <p>
-     * This is the fallback for a deployment that has not configured an absolute launcher. It is still a real
-     * improvement over letting the process library resolve the name on every invocation: the file that will run is
-     * named in the log, and the version check that follows rejects it if it is the wrong major version.
-     *
-     * @param launcher
-     *            the bare launcher name.
-     * @return the first match on the path.
-     * @throws IOException
-     *             if the path contains no such executable.
-     */
-    private File searchProcessPath(String launcher) throws IOException
-    {
-        String path = System.getenv("PATH");
-
-        if (path == null || path.trim().isEmpty())
-        {
-            throw new IOException("Cannot locate '" + launcher + "': the server process has no PATH. Configure an "
-                    + "absolute path for it on the angularResourceCopier bean.");
-        }
-
-        List<String> candidateNames = new ArrayList<>();
-        candidateNames.add(launcher);
-        if (File.separatorChar == '\\')
-        {
-            candidateNames.add(launcher + ".cmd");
-            candidateNames.add(launcher + ".exe");
-            candidateNames.add(launcher + ".bat");
-        }
-
-        for (String entry : path.split(Pattern.quote(File.pathSeparator)))
-        {
-            if (entry.trim().isEmpty())
-            {
-                continue;
-            }
-
-            for (String candidateName : candidateNames)
-            {
-                File candidate = new File(entry, candidateName);
-
-                if (candidate.isFile() && candidate.canExecute())
-                {
-                    log.info("Resolved front-end launcher [{}] to [{}]. Configure it explicitly on the "
-                            + "angularResourceCopier bean to take the process path out of the trust boundary.",
-                            launcher, candidate.getCanonicalPath());
-                    return candidate;
-                }
-            }
-        }
-
-        throw new IOException("Cannot locate '" + launcher + "' on the server process PATH. Install it, or configure "
-                + "an absolute path for it on the angularResourceCopier bean.");
-    }
-
-    private File requireExecutable(File candidate, String launcher) throws IOException
-    {
-        File canonical = candidate.getCanonicalFile();
-
-        if (!canonical.isFile())
-        {
-            throw new IOException("Cannot run '" + launcher + "': '" + canonical + "' is not a file.");
-        }
-
-        if (!canonical.canExecute())
-        {
-            throw new IOException("Cannot run '" + launcher + "': '" + canonical + "' is not executable.");
-        }
-
-        return canonical;
-    }
-
-    /**
-     * The environment the front-end tools run with.
-     * <p>
-     * It starts from the server's own environment, because the tools need a working {@code HOME}, {@code PATH} and
-     * temporary directory, and then overrides exactly the settings that decide where an install reads its
-     * configuration from and which registry it contacts. Pointing the user and global configuration files at a
-     * location inside the staging folder that this class does not create means the package manager finds no
-     * configuration file at all, so neither the server user's own file nor a file left in the folder can redirect the
-     * registry, the proxy or the certificate authority.
-     * <p>
-     * It then pins the interpreter. Resolving the npm and Grunt launchers to absolute files is not by itself enough to
-     * decide which Node.js runs them, because both launchers are Node.js scripts introduced by a
-     * {@code #!/usr/bin/env node} line: the kernel hands the file to {@code env}, which resolves the name
-     * {@code node} against the PATH of the child process. Inheriting the server's PATH unchanged would therefore let
-     * a different, unverified interpreter execute the very install whose runtime this class has just checked, and on a
-     * host with more than one Node.js installed that is the likely outcome rather than a remote one. Placing the
-     * verified launcher's own directory first on the child PATH closes that gap for every process in the tree - the
-     * package manager, Grunt, and anything either of them spawns in turn - without changing a single configured
-     * command.
-     * <p>
-     * Visible to the test in this package so that the pinned PATH can be asserted directly rather than inferred from
-     * the behaviour of a child process.
-     *
-     * @param tmpDir
-     *            the staging folder.
-     * @return the environment to run with.
-     * @throws IOException
-     *             if the server's own environment cannot be read, or the Node.js launcher cannot be resolved.
-     */
-    Map<String, String> buildToolEnvironment(final File tmpDir) throws IOException
-    {
-        Map<String, String> environment = EnvironmentUtils.getProcEnvironment();
-
-        // Two DISTINCT names, both inside the staging folder and neither created by this class, so the package manager
-        // finds no configuration file at either location. They must not be the same path: npm loads its user
-        // configuration first and its global configuration second, and it refuses to load one file twice - a single
-        // shared path aborts every invocation before any configuration is resolved at all, with
-        // 'double-loading config "<path>" as "global", previously loaded as "user"' and exit status 1. That failure is
-        // unconditional and independent of the host, so it stopped the install, and with it the deployment, on every
-        // start. Keep these two values different.
-        environment.put("npm_config_userconfig", new File(tmpDir, ".arkcase-no-npm-userconfig").getPath());
-        environment.put("npm_config_globalconfig", new File(tmpDir, ".arkcase-no-npm-globalconfig").getPath());
-
-        if (getNpmRegistry() != null && !getNpmRegistry().trim().isEmpty())
-        {
-            environment.put("npm_config_registry", getNpmRegistry().trim());
-        }
-
-        // The install is driven entirely by the committed lockfile, so nothing needs to be resolved interactively and
-        // no progress rendering is wanted in a server log.
-        environment.put("npm_config_progress", "false");
-        environment.put("npm_config_fund", "false");
-
-        pinInterpreter(environment, resolveLauncher(tmpDir, "node"));
-
-        return environment;
-    }
-
-    /**
-     * Put the directory of a resolved Node.js launcher first on the PATH of a child process, so that a launcher whose
-     * interpreter line names {@code node} runs on that launcher and not on whatever the ambient path resolves.
-     * <p>
-     * The existing PATH is kept behind it rather than discarded, because the build tools legitimately need the rest of
-     * it - a shell, the platform's own utilities, and on Windows the system directories. Prepending is sufficient:
-     * name resolution takes the first match.
-     *
-     * @param environment
-     *            the environment being prepared; modified in place.
-     * @param nodeLauncher
-     *            the resolved Node.js launcher whose directory is pinned.
-     * @throws IOException
-     *             if the launcher's directory cannot be resolved to a canonical path.
-     */
-    private void pinInterpreter(final Map<String, String> environment, final File nodeLauncher) throws IOException
-    {
-        File nodeDirectory = nodeLauncher.getCanonicalFile().getParentFile();
-
-        if (nodeDirectory == null)
-        {
-            throw new IOException("Cannot pin the Node.js interpreter: '" + nodeLauncher + "' has no parent "
-                    + "directory to place on the PATH of the front-end build.");
-        }
-
-        // Windows spells the variable Path and matches it case-insensitively, so the existing key is reused when there
-        // is one; adding a second key that differs only in case would leave the original in force.
-        String pathKey = "PATH";
-
-        for (String existingKey : environment.keySet())
-        {
-            if ("PATH".equalsIgnoreCase(existingKey))
-            {
-                pathKey = existingKey;
-                break;
-            }
-        }
-
-        String inherited = environment.get(pathKey);
-        String pinnedDirectory = nodeDirectory.getPath();
-
-        if (inherited == null || inherited.trim().isEmpty())
-        {
-            environment.put(pathKey, pinnedDirectory);
-        }
-        else
-        {
-            environment.put(pathKey, pinnedDirectory + File.pathSeparator + inherited);
-        }
-
-        log.info("Front-end tools will run with [{}] first on their path, so a launcher started through its "
-                + "interpreter line resolves 'node' to the runtime this class verified rather than to whatever the "
-                + "server process inherited.", pinnedDirectory);
-    }
-
-    /**
-     * Refuse to install unless the Node.js and npm major versions are the ones this build was locked against.
-     * <p>
-     * The frontend manifest declares its runtime constraint in the {@code engines} field, and npm treats that as
-     * advisory by default, so an install performed by a different major version would succeed quietly and produce a
-     * dependency tree the lockfile does not describe. The check is therefore made here, before the install, and it
-     * fails closed.
-     *
-     * @throws IOException
-     *             if either tool is absent, cannot be interrogated, or reports an unacceptable major version.
-     */
-    public void verifyFrontEndRuntime() throws IOException
-    {
-        requirePositive("requiredNodeMajorVersion", getRequiredNodeMajorVersion());
-        requirePositive("requiredNpmMajorVersion", getRequiredNpmMajorVersion());
-
-        // Node.js is checked first and its launcher is carried into the npm check. The npm launcher is a Node.js
-        // script, so asking it for its version starts an interpreter, and that interpreter has to be the one just
-        // verified - otherwise the check reports the npm version of one installation while the install itself would be
-        // performed by the runtime of another.
-        File nodeLauncher = verifyToolMajorVersion("node", getNodeExecutablePath(), getRequiredNodeMajorVersion(),
-                null);
-
-        verifyToolMajorVersion("npm", getNpmExecutablePath(), getRequiredNpmMajorVersion(), nodeLauncher);
-    }
-
-    private void requirePositive(String propertyName, int value) throws IOException
-    {
-        if (value <= 0)
-        {
-            throw new IOException("The " + propertyName + " property is " + value + ". It must name the major version "
-                    + "the frontend build requires; the check cannot be switched off.");
-        }
-    }
-
-    /**
-     * Check one launcher's own reported major version against the version this build requires.
-     *
-     * @param tool
-     *            the bare tool name, used in messages.
-     * @param configuredPath
-     *            the configured absolute launcher, or blank to resolve the tool from the process path.
-     * @param requiredMajor
-     *            the major version that must be reported.
-     * @param interpreter
-     *            the verified Node.js launcher whose directory is pinned on the probe's path, or {@code null} when the
-     *            launcher being probed is itself a native executable and needs no interpreter.
-     * @return the resolved launcher, so that a verified interpreter can be reused for the launchers that need one.
-     * @throws IOException
-     *             if the launcher is absent, cannot be interrogated, or reports an unacceptable major version.
-     */
-    private File verifyToolMajorVersion(final String tool, final String configuredPath, final int requiredMajor,
-            final File interpreter) throws IOException
-    {
-        File launcher = configuredPath != null && !configuredPath.trim().isEmpty()
-                ? requireExecutable(new File(configuredPath.trim()), tool)
-                : requireExecutable(searchProcessPath(tool), tool);
-
-        String reported = readToolVersion(launcher, interpreter);
-        Matcher matcher = VERSION_MAJOR.matcher(reported);
-
-        if (!matcher.find())
-        {
-            throw new IOException("Could not read a version from '" + launcher + "', which reported '" + reported
-                    + "'. The frontend build requires " + tool + " " + requiredMajor + ".");
-        }
-
-        int major = Integer.parseInt(matcher.group(1));
-
-        if (major != requiredMajor)
-        {
-            throw new IOException("Refusing to run the frontend build: '" + launcher + "' is " + tool + " " + reported
-                    + ", but this build requires " + tool + " " + requiredMajor + ". Install that major version, or "
-                    + "point the angularResourceCopier bean at one, rather than letting the build run on a runtime "
-                    + "the committed lockfile was not produced with.");
-        }
-
-        log.info("Front-end {} launcher [{}] reports {}, which satisfies the required major version {}.", tool,
-                launcher, reported, requiredMajor);
-
-        return launcher;
-    }
-
-    /**
-     * Ask a launcher for its own version, capturing standard output rather than logging it.
-     *
-     * @param launcher
-     *            the resolved launcher.
-     * @param interpreter
-     *            the verified Node.js launcher to pin on the probe's path, or {@code null} to run the probe with the
-     *            server's own environment. It is supplied whenever the launcher being probed is a Node.js script, so
-     *            that the version being read is the version that the verified runtime reports.
-     * @return the trimmed first line the launcher printed.
-     * @throws IOException
-     *             if the launcher cannot be run.
-     */
-    private String readToolVersion(final File launcher, final File interpreter) throws IOException
-    {
-        CommandLine command = new CommandLine(launcher);
-        command.addArgument("--version", false);
-
-        DefaultExecutor executor = new DefaultExecutor();
-        Map<String, String> environment = null;
-
-        if (interpreter != null)
-        {
-            environment = EnvironmentUtils.getProcEnvironment();
-            pinInterpreter(environment, interpreter);
-        }
-
-        try (ByteArrayOutputStream captured = new ByteArrayOutputStream())
-        {
-            executor.setStreamHandler(new PumpStreamHandler(captured, captured));
-            executor.execute(command, environment);
-
-            String output = new String(captured.toByteArray(), StandardCharsets.UTF_8).trim();
-            int newline = output.indexOf('\n');
-
-            return newline < 0 ? output : output.substring(0, newline).trim();
-        }
-    }
-
-    /**
-     * Establish the staging folder as a trusted root for this assembly, and clean the part of it that is not trusted.
-     * <p>
-     * The folder is configured, long lived and shared with whatever else runs as this user, so it is validated rather
-     * than assumed: no component of its path may be a symbolic link, it must be a real directory, and it is created
-     * owner-only where the platform expresses permissions that way. Any package-manager configuration file found in
-     * it is removed, because nothing copies one there and each one changes what an install does.
-     * <p>
-     * The folder is deliberately NOT recreated from scratch on every startup. Its whole purpose is to carry the
-     * installed dependency tree and the modified-time comparisons across restarts; discarding it would turn every
-     * Tomcat start into a full dependency install and a full rebuild. What made a reused folder dangerous was that
-     * its contents were trusted, and that is what is fixed: the path is validated here, every stale file is deleted
-     * before the package manager runs, every file this class writes is written without following a symbolic link and
-     * only after its target has been proven to be inside a trusted root, and the package manager is given a
-     * configuration of this class's choosing.
-     *
-     * @return the validated staging folder.
-     * @throws IOException
-     *             if the folder cannot be created, is not a directory, or its path is not trustworthy.
-     */
     public File cleanAndCreateResourceTempFolder() throws IOException
     {
         File tmpDir = new File(getTempFolderPath());
-
-        createTrustedFolder(tmpDir);
-        removePackageManagerConfiguration(tmpDir);
-
+        createFolderStructure(tmpDir);
         return tmpDir;
-    }
-
-    /**
-     * Create a folder, and every missing parent of it, refusing to follow a symbolic link at any level.
-     * <p>
-     * {@code mkdirs} would happily create the tree through a symbolic link an attacker planted, which would place the
-     * whole assembly outside the folder the operator configured. Each level is therefore created individually and
-     * checked without following links.
-     *
-     * @param folder
-     *            the folder to establish.
-     * @throws IOException
-     *             if any path component is a symbolic link, or the folder cannot be created, or it exists as
-     *             something other than a directory.
-     */
-    private void createTrustedFolder(File folder) throws IOException
-    {
-        Path target = Paths.get(folder.getAbsolutePath()).normalize();
-
-        requireDirectoryNotLink(target);
-
-        if (Files.exists(target, LinkOption.NOFOLLOW_LINKS))
-        {
-            return;
-        }
-
-        log.debug("Creating folder [{}]", target);
-
-        Path existing = firstExistingAncestor(target);
-        boolean posix = Files.getFileStore(existing).supportsFileAttributeView("posix");
-        int firstMissing = existing.getNameCount();
-
-        for (int depth = firstMissing + 1; depth <= target.getNameCount(); depth++)
-        {
-            Path level = target.getRoot() == null ? target.subpath(0, depth) : target.getRoot().resolve(target.subpath(0, depth));
-
-            try
-            {
-                // Created one level at a time, and owner-only where the file system expresses permissions that way, so
-                // that nothing else running on the host can plant content the build would later read. Creating each
-                // level explicitly is what makes this different from mkdirs: a level that has meanwhile appeared as a
-                // symbolic link makes this fail rather than silently place the rest of the tree behind the link.
-                if (posix)
-                {
-                    Files.createDirectory(level, PosixFilePermissions.asFileAttribute(OWNER_ONLY_DIRECTORY));
-                }
-                else
-                {
-                    Files.createDirectory(level);
-                }
-            }
-            catch (FileAlreadyExistsException alreadyThere)
-            {
-                // Benign when it is a real directory - a sibling call created it - and a redirection attempt when it is
-                // not, which requireDirectoryNotLink reports as such.
-                requireDirectoryNotLink(level);
-            }
-            catch (IOException e)
-            {
-                throw new IOException("Could not create folder '" + level + "'", e);
-            }
-        }
-    }
-
-    /**
-     * Require that a path is either absent or a real directory, never a symbolic link and never a file.
-     * <p>
-     * This is applied to every folder this class establishes: the staging folder, the deployment folder and each
-     * intermediate folder of a copied resource. Pre-existing ancestors above them are deliberately NOT checked, because
-     * an operator may legitimately place the ArkCase home on a symbolic link, and refusing that would break a valid
-     * deployment for no gain: containment is proven against canonical paths, which see through such a link, and every
-     * write refuses to follow one.
-     *
-     * @param candidate
-     *            the path to check.
-     * @throws IOException
-     *             if the path exists as a symbolic link or as a non-directory.
-     */
-    private void requireDirectoryNotLink(Path candidate) throws IOException
-    {
-        if (Files.isSymbolicLink(candidate))
-        {
-            throw new IOException("Refusing to use '" + candidate + "': it is a symbolic link where a directory is "
-                    + "required. The assembled application must not be redirected outside the configured folder.");
-        }
-
-        if (Files.exists(candidate, LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(candidate, LinkOption.NOFOLLOW_LINKS))
-        {
-            throw new IOException("Refusing to use '" + candidate + "': it exists but is not a directory.");
-        }
-    }
-
-    /**
-     * The closest ancestor of a path that already exists, used to ask the file system about its capabilities before
-     * the path itself is created.
-     *
-     * @param target
-     *            the path being created.
-     * @return the nearest existing ancestor, or the path itself if it exists.
-     */
-    private Path firstExistingAncestor(Path target)
-    {
-        Path candidate = target;
-
-        while (candidate != null && !Files.exists(candidate))
-        {
-            candidate = candidate.getParent();
-        }
-
-        return candidate == null ? target : candidate;
-    }
-
-    /**
-     * Remove any package-manager configuration file from the staging folder.
-     *
-     * @param tmpDir
-     *            the staging folder.
-     * @throws IOException
-     *             if a file is present and cannot be removed, which must stop the assembly rather than let the
-     *             package manager read it.
-     */
-    private void removePackageManagerConfiguration(File tmpDir) throws IOException
-    {
-        for (String name : PACKAGE_MANAGER_CONFIG_FILES)
-        {
-            Path candidate = tmpDir.toPath().resolve(name);
-
-            if (Files.exists(candidate, LinkOption.NOFOLLOW_LINKS))
-            {
-                log.warn("Removing package-manager configuration [{}] from the staging folder; it is not part of the "
-                        + "application and would change what the install does.", candidate);
-                Files.delete(candidate);
-            }
-        }
-    }
-
-    /**
-     * Assert that a file this class is about to write really sits inside the folder it is supposed to sit inside.
-     * <p>
-     * A resource name that walks upwards, or a target whose parent has been replaced by a symbolic link, would
-     * otherwise let a copy land anywhere the server user can write. The comparison is on canonical paths, so it sees
-     * through both.
-     *
-     * @param root
-     *            the folder the target must be inside.
-     * @param target
-     *            the file about to be written.
-     * @return the target, unchanged, so this can be used inline.
-     * @throws IOException
-     *             if the target resolves outside the root.
-     */
-    private File assertWithin(File root, File target) throws IOException
-    {
-        String rootPath = root.getCanonicalPath();
-        String targetPath = target.getCanonicalPath();
-
-        if (!targetPath.equals(rootPath) && !targetPath.startsWith(rootPath + File.separator))
-        {
-            throw new IOException("Refusing to write '" + targetPath + "': it resolves outside '" + rootPath + "'.");
-        }
-
-        return target;
-    }
-
-    /**
-     * Open a file for writing without following a symbolic link.
-     * <p>
-     * A plain {@code FileOutputStream} follows one, so a link planted in the staging or deployment folder between one
-     * assembly and the next would send the copy to the link's target. Refusing to follow it turns that into a failure
-     * instead of a silent write to somewhere else.
-     *
-     * @param target
-     *            the file to write.
-     * @return an output stream that will not follow a symbolic link.
-     * @throws IOException
-     *             if the file cannot be opened, including because it is a symbolic link.
-     */
-    private OutputStream newNoFollowOutputStream(File target) throws IOException
-    {
-        return Files.newOutputStream(target.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-                StandardOpenOption.TRUNCATE_EXISTING, LinkOption.NOFOLLOW_LINKS);
     }
 
     public List<String> copyResources(
@@ -1574,36 +409,18 @@ public class AngularResourceCopier implements ServletContextAware
                     if (resourceLastModified != targetResourceLastModified)
                     {
                         log.debug("[{}] has been modified - copying it", canonicalPath);
-                        writeResourceWithoutFollowingLinks(r, targetFile);
+                        FileCopyUtils.copy(r.getInputStream(), new FileOutputStream(targetFile));
                         targetFile.setLastModified(resourceLastModified);
                     }
                 }
                 else
                 {
-                    writeResourceWithoutFollowingLinks(r, targetFile);
+                    FileCopyUtils.copy(r.getInputStream(), new FileOutputStream(targetFile));
                     targetFile.setLastModified(resourceLastModified);
                 }
             }
         }
         return filepaths;
-    }
-
-    /**
-     * Write one WAR or extension-jar resource into the staging folder without following a symbolic link.
-     *
-     * @param resource
-     *            the resource to read.
-     * @param targetFile
-     *            the file to write.
-     * @throws IOException
-     *             if the target is a symbolic link, or the copy fails.
-     */
-    private void writeResourceWithoutFollowingLinks(Resource resource, File targetFile) throws IOException
-    {
-        try (java.io.InputStream in = resource.getInputStream(); OutputStream out = newNoFollowOutputStream(targetFile))
-        {
-            IOUtils.copy(in, out);
-        }
     }
 
     public File fileFromResource(String rootPath, File tmpDir, String moduleRoot, String targetRoot, Resource r) throws IOException
@@ -1626,11 +443,7 @@ public class AngularResourceCopier implements ServletContextAware
             targetFile = determineTargetFile(rootPath, tmpDir, r, moduleRoot, targetRoot);
         }
 
-        // The target path is derived from a resource name inside a WAR or an extension jar, so it is external input.
-        // Both branches above build it by appending to the staging folder, which a name containing an upward
-        // traversal would escape. Proving containment here covers every caller in one place, because this is the only
-        // method that turns a resource into a file to write.
-        return targetFile == null ? null : assertWithin(tmpDir, targetFile);
+        return targetFile;
     }
 
     public String logicalPathFromJarPath(URL url)
@@ -1777,89 +590,5 @@ public class AngularResourceCopier implements ServletContextAware
     public void setGruntDefaultCommand(String gruntDefaultCommand)
     {
         this.gruntDefaultCommand = gruntDefaultCommand;
-    }
-
-    public String getNodeExecutablePath()
-    {
-        return nodeExecutablePath;
-    }
-
-    /**
-     * Pin the Node.js launcher to an absolute path.
-     *
-     * @param nodeExecutablePath
-     *            absolute path of the launcher, or blank to resolve it from the server process path once and log the
-     *            result.
-     */
-    public void setNodeExecutablePath(String nodeExecutablePath)
-    {
-        this.nodeExecutablePath = nodeExecutablePath == null ? "" : nodeExecutablePath;
-    }
-
-    public String getNpmExecutablePath()
-    {
-        return npmExecutablePath;
-    }
-
-    /**
-     * Pin the npm launcher to an absolute path.
-     *
-     * @param npmExecutablePath
-     *            absolute path of the launcher, or blank to resolve it from the server process path once and log the
-     *            result.
-     */
-    public void setNpmExecutablePath(String npmExecutablePath)
-    {
-        this.npmExecutablePath = npmExecutablePath == null ? "" : npmExecutablePath;
-    }
-
-    public int getRequiredNodeMajorVersion()
-    {
-        return requiredNodeMajorVersion;
-    }
-
-    /**
-     * Set the Node.js major version the frontend build requires. The check that uses it cannot be switched off: a
-     * value of zero or less is rejected when the build runs.
-     *
-     * @param requiredNodeMajorVersion
-     *            the required major version.
-     */
-    public void setRequiredNodeMajorVersion(int requiredNodeMajorVersion)
-    {
-        this.requiredNodeMajorVersion = requiredNodeMajorVersion;
-    }
-
-    public int getRequiredNpmMajorVersion()
-    {
-        return requiredNpmMajorVersion;
-    }
-
-    /**
-     * Set the npm major version the frontend build requires. The check that uses it cannot be switched off: a value of
-     * zero or less is rejected when the build runs.
-     *
-     * @param requiredNpmMajorVersion
-     *            the required major version.
-     */
-    public void setRequiredNpmMajorVersion(int requiredNpmMajorVersion)
-    {
-        this.requiredNpmMajorVersion = requiredNpmMajorVersion;
-    }
-
-    public String getNpmRegistry()
-    {
-        return npmRegistry;
-    }
-
-    /**
-     * Set the registry the package manager installs from.
-     *
-     * @param npmRegistry
-     *            the registry url.
-     */
-    public void setNpmRegistry(String npmRegistry)
-    {
-        this.npmRegistry = npmRegistry;
     }
 }

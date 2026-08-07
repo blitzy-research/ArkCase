@@ -4,40 +4,56 @@ title: start a workflow
 
 ===== task-list-before =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/task/businessProcessTasks?start=0&n=5
+request-url: http://localhost:20050/arkcase/api/latest/plugin/task/businessProcessTasks?start=0&n=5
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
-observed-content-length: (none reported)
-observed-body-bytes: 0
+http-version: 1.1
+observed-http-status: 500
+observed-content-type: text/plain;charset=UTF-8
+observed-content-length: 63
+observed-body-bytes: 63
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 0
 ----- body -----
-(empty)
+A JSONObject text must begin with '{' at 1 [character 2 line 1]
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-(none)
+HTTP/1.1 500 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 63
+Date: <HTTP-DATE>
+Connection: close
+
+
 ----- end response-headers -----
 
 ===== start-workflow (NOT ATTEMPTED) =====
 request-method: POST
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/complaint/workflow
+request-url: http://localhost:20050/arkcase/api/latest/plugin/complaint/workflow
 observed-http-status: NOT-ATTEMPTED
-not-attempted-because: state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1), and a workflow cannot be started without changing application state
+not-attempted-because: no fixture object was available to start a workflow on, so there was nothing to instantiate a process against
 note: the request above was NOT sent, so there is no response body to
   record.  The section is written rather than omitted because an absent
   section cannot be compared: a reader could not tell an unsent request
@@ -46,7 +62,7 @@ note: the request above was NOT sent, so there is no response body to
 
 ===== task-list-after (NOT ATTEMPTED) =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/task/businessProcessTasks?start=0&n=25
+request-url: http://localhost:20050/arkcase/api/latest/plugin/task/businessProcessTasks?start=0&n=25
 observed-http-status: NOT-ATTEMPTED
 not-attempted-because: the workflow start above was not attempted, so there is no created task to read back
 note: the request above was NOT sent, so there is no response body to
@@ -129,8 +145,8 @@ key-list-ordering: sorted, so that two runs enumerate one corpus
 engine-initialisation-happens-at: deployment, before any request in this
   flow is sent, so its evidence is a startup-log region rather than a
   response body
-engine-initialisation-evidence: startup/process-definitions.log
-engine-initialisation-lines-matched: unavailable
+engine-initialisation-evidence: startup/workflow-engine-init.log
+engine-initialisation-lines-matched: 41
 startup-evidence-directory-note: the region is written under startup/ and
   never under a directory named after a log folder, because that name is
   ignored by the repository at any depth and the evidence would be
@@ -170,6 +186,13 @@ assignee-is-preserved-not-redacted: an assignee is a user identity and it
   is the behaviour under test, because task assignment is half of this
   criterion.  It is not a credential and is never replaced.
 declared-process-definition-key: cmComplaintWorkflow
+declared-process-definition-key-found-in-corpus: yes
+declared-process-definition-key-found-in-corpus-basis: the corpus is
+  the process definitions this repository ships, so this row establishes
+  that the definition this flow is named for EXISTS.  It is deliberately
+  not evidence that the engine ran it — that is what the loaded-definitions
+  count from the startup region is for, and the two are asserted separately
+  because they fail for different reasons.
 declared-process-name: Complaint review and approval process
 declared-task-definition-key: approveComplaint
 declared-task-name-expression: Approve Complaint '${complaintTitle}'
@@ -180,7 +203,7 @@ declared-assignee-element-variable: currentApprover
 declared-task-due-date: P3D
 declared-task-priority: 50
 declared-process-variables-the-definition-references: approvers, currentApprover, and the title the task name interpolates
-declared-read-from: ./acm-plugins/acm-default-plugins/acm-complaint-plugin/src/main/resources/activiti/DefaultComplaintWorkflow_v5.bpmn20.xml
+declared-read-from: <REPO-ROOT>/acm-plugins/acm-default-plugins/acm-complaint-plugin/src/main/resources/activiti/DefaultComplaintWorkflow_v5.bpmn20.xml
 normalisation-applied-to-this-section: the engine-assigned process-instance,
   execution, task and deployment identifiers, and the version and sequence
   components of the version-suffixed process-definition identifier.  Each

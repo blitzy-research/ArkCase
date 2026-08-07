@@ -1,5 +1,62 @@
-com.sun.jndi.ldap.connect.pool=true
-java.naming.factory.initial=com.sun.jndi.ldap.LdapCtxFactory
-java.naming.factory.object=org.springframework.ldap.core.support.DefaultDirObjectFactory
-java.naming.provider.url=ldap://ad_vm:389/dc=opm,dc=gov
-org.springframework.ldap.base.path=dc=opm,dc=gov
+directory-service and JNDI evidence for flow 1
+
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_ldap_jndi_environment
+
+OBSERVED AT RUN TIME by this capture:
+  directory-configuration-endpoint: /api/latest/plugin/admin/ldapconfiguration/directories
+  directory-configuration-status-observed: 200
+  configured-directory-named-in-that-response: yes
+  directory-under-observation: arkcase
+  per-directory-registry-status-observed: 200
+  directory-resolved-by-the-registry: yes
+  context-source-startup-region-matched-lines: 29
+  context-source-startup-region: startup/ldap-context-source.log
+
+READ FROM DELIVERED CONFIGURATION by this capture, which is a weaker claim
+  than the rows above and is separated from them for that reason:
+  properties-file: acm-services/acm-service-login/src/main/resources/spring/ldap-jndi.properties
+  properties-file-state: present
+  properties-file-sha256: 896e23bead64013b9ad7aab6f88794921dfa3e4df0227ad1c1760904db96ea90
+  ldap.jndi.initialContextFactory: com.sun.jndi.ldap.LdapCtxFactory
+  ldap.jndi.connectionPoolFlag: com.sun.jndi.ldap.connect.pool
+
+WHAT THE TWO VALUES ARE, and why they are compared literally.  The naming
+  service matches an initial context factory by EXACT CLASS NAME and a
+  connection-pooling request by EXACT PROPERTY KEY.  It recognises no
+  variation, no abbreviation and no reassembled equivalent, so either value
+  differing by one character changes directory authentication behaviour.
+  Both are byte-identical to the constants they replaced in Java source at
+  the base commit, and this capture asserts them character for character
+  rather than pattern-matching them.
+
+WHY THIS LEDGER EXISTS.  An earlier revision of flow 1 made three
+  credentialed requests and asserted an authenticated 200, a denied
+  anonymous request and a confirmed principal.  All three are necessary and
+  none of them reaches the directory service: the same three observations
+  appear on a deployment configured for a token-based provider, where no
+  directory service participates at all.  The flow was therefore named for
+  a migration edit it never touched.  The rows above close that, in four
+  independent ways — a live directory list, a directory the registry
+  resolved, the context source observed being constructed, and the two
+  externalised values read from the file the migrated class falls back to.
+
+CREDENTIAL HANDLING.  The directory-configuration response carries a bind
+  credential.  It is redacted before any byte is written, by the pipeline
+  whose every rule class is self-tested against a synthetic probe in
+  notes/06-normalisation-and-redaction.txt, and whose redaction of the
+  CONFIGURED credential is proven before the first capture file is opened.
+  No credential value appears in this file or in any capture file, in any
+  form.
+
+ASSERTION SCOPE.  Every one of the run-time rows above was asserted against
+  the SCOPED body of its own probe section in flow-1-login.out,
+  never against the capture file as a whole.  That distinction is not
+  pedantic here: this capture own prose names the directory and both JNDI
+  values, so a whole-file search would have been satisfied by text this
+  script wrote rather than by anything the application returned.
+
+scope fence: this ledger adds no tooling and no dependency.  It records two
+  additional credentialed observations, one additional startup region and
+  one configuration read.  Nothing here may be read as a pass mark; the
+  flow verdict is in flow-1-login.result.txt and the cross-capture outcome
+  in comparison.txt.

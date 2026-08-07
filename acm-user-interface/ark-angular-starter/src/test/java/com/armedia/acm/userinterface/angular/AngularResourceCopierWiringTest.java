@@ -27,7 +27,6 @@ package com.armedia.acm.userinterface.angular;
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -39,10 +38,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 /**
  * Coverage for the production wiring of the startup frontend build.
  * <p>
- * The runtime contract of this library is expressed almost entirely in its Spring context: which package manager runs,
- * which lockfile is carried into the staging folder, and which runtime major versions the build insists on. A typo in
- * any of those is invisible until a deployment starts, and a deployment is the only place that wiring is exercised.
- * These assertions read the real context - imported unchanged by the test context - and pin the values that matter.
+ * The runtime contract of this library is expressed almost entirely in its Spring context: which package manager runs
+ * and which lockfile is carried into the staging folder. A typo in either is invisible until a deployment starts, and a
+ * deployment is the only place that wiring is exercised. These assertions read the real context - imported unchanged by
+ * the test context - and pin the two values the package-manager migration changed, plus the Grunt pipeline it retains.
  */
 public class AngularResourceCopierWiringTest
 {
@@ -64,8 +63,7 @@ public class AngularResourceCopierWiringTest
     }
 
     /**
-     * The context must initialise at all. Every placeholder in it has to resolve, including the two launcher paths,
-     * which resolve to an empty value when no absolute launcher has been configured.
+     * The context must initialise at all, which means every placeholder in it has to resolve.
      */
     @Test
     public void contextInitialisesAndDefinesTheCopier()
@@ -98,32 +96,6 @@ public class AngularResourceCopierWiringTest
                 copier().getFilesToCopyFromArchive().contains("package.json"));
         assertTrue("the superseded lockfile must not be copied any more",
                 !copier().getFilesToCopyFromArchive().contains("yarn.lock"));
-    }
-
-    /**
-     * The runtime versions the build refuses to run without. These are the values that make the Node 20 requirement
-     * real at runtime rather than merely declared in the manifest, so they are pinned here.
-     */
-    @Test
-    public void enforcesTheRuntimeMajorVersions()
-    {
-        assertEquals(20, copier().getRequiredNodeMajorVersion());
-        assertEquals(10, copier().getRequiredNpmMajorVersion());
-    }
-
-    /**
-     * The launcher paths are optional, so they must resolve to a usable empty value rather than to an unresolved
-     * placeholder, which would then be treated as a file name.
-     */
-    @Test
-    public void launcherPathsResolveEvenWhenNotConfigured()
-    {
-        assertNotNull(copier().getNodeExecutablePath());
-        assertNotNull(copier().getNpmExecutablePath());
-        assertTrue("an unconfigured launcher path must not leave a placeholder behind: "
-                + copier().getNodeExecutablePath(), !copier().getNodeExecutablePath().contains("$["));
-        assertTrue("an unconfigured launcher path must not leave a placeholder behind: "
-                + copier().getNpmExecutablePath(), !copier().getNpmExecutablePath().contains("$["));
     }
 
     /**

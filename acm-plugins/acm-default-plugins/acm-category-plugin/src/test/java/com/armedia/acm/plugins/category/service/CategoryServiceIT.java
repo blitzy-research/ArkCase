@@ -41,16 +41,12 @@ import com.armedia.acm.core.exceptions.AcmUpdateObjectFailedException;
 import com.armedia.acm.data.AuditPropertyEntityAdapter;
 import com.armedia.acm.plugins.category.model.Category;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -97,12 +93,6 @@ public class CategoryServiceIT
     private EntityManager entityManager;
     @Autowired
     private AuditPropertyEntityAdapter auditAdapter;
-    /*
-     * Built by a field initialiser rather than by annotation-driven injection, because the Spring runner
-     * this class declares injects no mocks. The initialiser runs at instance construction, so the mock
-     * exists before Spring injection and before @Before.
-     */
-    private final Logger mockedLogger = Mockito.mock(Logger.class);
     private Long parentId;
     private Long childId;
     private Long grandChildId;
@@ -113,14 +103,6 @@ public class CategoryServiceIT
         assertNotNull(categoryService);
         assertNotNull(entityManager);
         assertNotNull(auditAdapter);
-
-        // Registers the logger CategoryServiceImpl is expected to obtain, for the duration of the scope
-        // below. The scope closes immediately so that the fixture built afterwards runs against the real
-        // LogManager rather than against unstubbed static calls returning null.
-        try (MockedStatic<LogManager> logManagerMock = Mockito.mockStatic(LogManager.class))
-        {
-            logManagerMock.when(() -> LogManager.getLogger(CategoryServiceImpl.class)).thenReturn(mockedLogger);
-        }
 
         auditAdapter.setUserId("creator");
 

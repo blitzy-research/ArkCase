@@ -1,0 +1,16 @@
+state this run created and could not remove
+
+An object listed here was created deliberately, to observe a behaviour that
+cannot be observed without creating it, and the application exposes no
+endpoint that removes it.  It is declared rather than quietly left, so that
+the cost of taking this capture is visible and an operator can retire the
+objects through the application own supported path if the deployment needs
+them gone.  This script does not retire them itself: the only supported path
+submits a disposition and starts an approval process, which would leave more
+state behind than it removed.
+
+residue-entries: 0
+
+----- entries -----
+  (none: this run created no object that it could not remove)
+----- end entries -----

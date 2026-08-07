@@ -4,38 +4,103 @@ title: create an object that receives a generated number
 
 ===== numbering-precondition =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&s=create_date_tdt+DESC&start=0&n=1
+request-url: http://localhost:20050/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&s=create_date_tdt+DESC&start=0&n=1
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
-observed-content-length: (none reported)
-observed-body-bytes: 0
+http-version: 1.1
+observed-http-status: 500
+observed-content-type: text/plain;charset=UTF-8
+observed-content-length: 37
+observed-body-bytes: 37
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 0
 ----- body -----
-(empty)
+Unable to process query, server error
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
+HTTP/1.1 500 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 37
+Date: <HTTP-DATE>
+Connection: close
+
+
+----- end response-headers -----
+
+===== create-object =====
+request-method: POST
+request-url: http://localhost:20050/arkcase/api/latest/plugin/complaint
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 400
+observed-content-type: text/plain;charset=UTF-8
+observed-content-length: 305
+observed-body-bytes: 305
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+Could not create complaint.
+Server encountered exception: Could not commit JPA transaction; nested exception is javax.persistence.RollbackException: Transaction "rolled back" because transaction was set to RollbackOnly.
+Exception type was: 'com.armedia.acm.core.exceptions.AcmCreateObjectFailedException'.
+----- end body -----
+----- transport-diagnostics -----
 (none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 400 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 305
+Date: <HTTP-DATE>
+Connection: close
+
+
 ----- end response-headers -----
 
 ===== generated-number (SKIPPED) =====
 SKIPPED
-reason: no object was created, so no number was assigned: ALLOW_SMOKE_MUTATIONS is not set to 1; and no HTTP response was received from https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&s=create_date_tdt+DESC&start=0&n=1, so the application was never reached either
+reason: no generated number was present in the creation response, so the numbering sequence and the numbering format are unobserved (creation status 400)
 note: this flow could not be executed.  The record is deliberate: an
   unexecuted flow is reported rather than omitted, so that the
   eight-flow completion condition stays verifiable and the gap is
@@ -46,8 +111,8 @@ creation-endpoint: /api/latest/plugin/complaint
 generated-number-observed: none
 generated-number-count-observed: 0
 generated-number-sequence-observed: (none)
-creation-response-content-type-observed: unobserved
-creation-response-body-bytes-observed: unobserved
+creation-response-content-type-observed: text/plain;charset=UTF-8
+creation-response-body-bytes-observed: 305
 number-format-observed: unobserved
 number-format-components-unobserved: prefix, separator set, padding width,
   and any year or object-type component.  Every one of them can only be
@@ -70,7 +135,7 @@ redaction-asymmetry: the value used to sign in IS removed from every byte
   two are deliberately treated in opposite ways.
 decision-tables-measured-at-run-time: 39
 textual-rule-files-measured-at-run-time: 0
-expression-language-version-measured: 2.4.15.Final
+expression-language-version-measured: 2.4.7.Final
 why-that-version-decides-this-flow: the rule compiler declares the
   expression language with no version of its own, so the version the
   reactor property declares is the version that actually loads.  One
@@ -89,7 +154,7 @@ finding-that-required-that-advance: the installed release threw a bytecode
 spreadsheet-reader-version-measured: 4.1.2
 spreadsheet-reader-unchanged: yes -- the same version before and after, so
   nothing in this flow reads the decision tables differently (R-1).
-rule-engine-version-measured: 7.49.0.Final
+rule-engine-version-measured: 7.34.0.Final
 rule-engine-unchanged: no.  The migration plan describes the rule engine
   as deliberately unchanged; the reactor does not agree with it, and this
   record reports the reactor.  The engine advanced on its own separately
@@ -113,4 +178,61 @@ rules-provenance: two facts, and both belong together.  First, the project
   The identifiers cited above follow the naming convention of that plan
   rather than quoting rule titles; no rule has been invented and none has
   been softened.
+
+===== numbering-progression =====
+request-method: GET
+request-url: http://localhost:20050/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&s=create_date_tdt+DESC&start=0&n=1
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 500
+observed-content-type: text/plain;charset=UTF-8
+observed-content-length: 37
+observed-body-bytes: 37
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+Unable to process query, server error
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 500 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 37
+Date: <HTTP-DATE>
+Connection: close
+
+
+----- end response-headers -----
+
+===== numbering-progression-observed =====
+OBSERVED
+numbering-format-observed: not-observed
+numbering-format-expected: not-asserted: this capture was taken with the expected-format knob deliberately empty, so the observed shape is recorded without being compared against a declaration.  A declaration that has never been confirmed against a number this host generated would otherwise read as though it had been
+numbering-format-basis: the number with every digit replaced by 9 and every letter by A, separators kept verbatim.  This is the ONLY part of a generated number that two captures can compare, because the number itself advances between runs by construction
+numbering-count-before-creation: unavailable
+numbering-count-after-creation: unavailable
+numbering-progression-basis: the identical query issued before and after the creation, so the advance is observed rather than assumed from the presence of a number
+generated-number-recorded-verbatim-in: the create-object section of this capture; it is NOT reduced or normalised, because it is behaviour-bearing
 

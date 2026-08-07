@@ -5,31 +5,95 @@ other-capture: docs/migration/smoke-evidence/baseline
 Computed by reading both captures back off disk at the end of this run.
 Not authored.  Every row below is a comparison of two files that exist.
 
-REQUIRED comparisons — flow verdicts:
-  match   flow-1-login: this=SKIPPED other=SKIPPED
-  match   flow-2-views: this=SKIPPED other=SKIPPED
-  match   flow-3-alfresco-roundtrip: this=NOT-EXERCISED-MUTATION-NOT-PERMITTED other=NOT-EXERCISED-MUTATION-NOT-PERMITTED
-  match   flow-4-solr-search: this=SKIPPED other=SKIPPED
-  match   flow-5-activemq-event: this=NOT-EXERCISED-NO-EVENT-PRODUCED other=NOT-EXERCISED-NO-EVENT-PRODUCED
-  match   flow-6-generated-number: this=NOT-EXERCISED-MUTATION-NOT-PERMITTED other=NOT-EXERCISED-MUTATION-NOT-PERMITTED
-  match   flow-7-workflow-start: this=NOT-EXERCISED-WORKFLOW-NOT-STARTED other=NOT-EXERCISED-WORKFLOW-NOT-STARTED
-  match   flow-8-queue-transition: this=SKIPPED other=SKIPPED
+REQUIRED comparisons — per flow: the verdict, the FULL .status record
+set, and the canonical projection of the .out record set.  All three,
+because a verdict on its own is one string and two runs can agree on it
+while disagreeing about every observation beneath it.
+
+the .out projection compares these keys, per probe section, and the
+sequence of probe sections itself:
+  request-method auth-mode redirects-followed observed-http-status observed-content-type observed-body-form certificate-verification-result transport-exit-status-observed capture-body-truncated capture-headers-truncated capture-diagnostics-truncated
+and reports these without counting them, each because it legitimately
+differs between two runs of the same suite:
+  request-url observed-content-length observed-body-bytes observed-body-sha256 observed-session-cookie http-version transport-trust-mode redirect-target-reported
+response bodies, transport diagnostics and response headers are not
+projected: a body carries generated identifiers by construction.  What
+makes a body assertable is a NAMED CHECK over it, and every such check
+lands in the .status file, which is compared here in full.
+
+  DIFFER   flow-1-login verdict: this=OBSERVED-AUTHENTICATED-AND-IDENTITY-CONFIRMED other=OBSERVED-INCOMPLETE-1-REQUIREMENTS-UNMET
+  match    flow-1-login.status: 5 record(s) agree
+  match    flow-1-login.out (projected): 60 record(s) agree
+
+  match    flow-2-views verdict: this=OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET other=OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
+  match    flow-2-views.status: 19 record(s) agree
+  match    flow-2-views.out (projected): 153 record(s) agree
+
+  match    flow-3-alfresco-roundtrip verdict: this=NOT-EXERCISED-NO-FIXTURE-OBJECT other=NOT-EXERCISED-NO-FIXTURE-OBJECT
+  match    flow-3-alfresco-roundtrip.status: 14 record(s) agree
+  match    flow-3-alfresco-roundtrip.out (projected): 32 record(s) agree
+
+  match    flow-4-solr-search verdict: this=OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET other=OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET
+  match    flow-4-solr-search.status: 8 record(s) agree
+  match    flow-4-solr-search.out (projected): 26 record(s) agree
+
+  match    flow-5-activemq-event verdict: this=NOT-EXERCISED-NO-EVENT-PRODUCED other=NOT-EXERCISED-NO-EVENT-PRODUCED
+  match    flow-5-activemq-event.status: 19 record(s) agree
+  match    flow-5-activemq-event.out (projected): 28 record(s) agree
+
+  match    flow-6-generated-number verdict: this=OBSERVED-INCOMPLETE-4-REQUIREMENTS-UNMET other=OBSERVED-INCOMPLETE-4-REQUIREMENTS-UNMET
+  match    flow-6-generated-number.status: 4 record(s) agree
+  match    flow-6-generated-number.out (projected): 38 record(s) agree
+
+  match    flow-7-workflow-start verdict: this=NOT-EXERCISED-WORKFLOW-NOT-STARTED other=NOT-EXERCISED-WORKFLOW-NOT-STARTED
+  match    flow-7-workflow-start.status: 18 record(s) agree
+  match    flow-7-workflow-start.out (projected): 20 record(s) agree
+
+  match    flow-8-queue-transition verdict: this=NOT-EXERCISED-NO-CASE-FILE-AVAILABLE other=NOT-EXERCISED-NO-CASE-FILE-AVAILABLE
+  match    flow-8-queue-transition.status: 12 record(s) agree
+  match    flow-8-queue-transition.out (projected): 24 record(s) agree
+
+REQUIRED comparison — reference-stack probe outcomes:
+  match    notes/reference-stack.status: 9 record(s) agree
+
+NOT compared — notes/readiness.status:
+  one record per polling attempt, and the number of attempts a container
+  needs varies between runs of the same build.  The FINAL observed status
+  is what matters and it is recorded in notes/readiness.txt.
+  this-capture final: 302
+  other-capture final: 302
 
 REQUIRED comparisons — the five frontend artifact digests:
-  match   application.js: 3c0aeb4d2b02dc740e733e5ed89c87bf0d229cc19489ee0f023c04af611391b8
-  DIFFER  application.min.js
+  match    application.js: 3c0aeb4d2b02dc740e733e5ed89c87bf0d229cc19489ee0f023c04af611391b8
+  DIFFER   application.min.js
             this  c1a4cb56e4b644c4d6e356698a222f9de2b57dc0114eec86d93323e0a9b41dc2
             other 938ba106e8dc0b1948bd9d5817110b097ecfc4d585eb5eaf2febe09c586fab8c
-  match   vendors.min.js: 70187246b480eebb6f920732ce84356fb719b2db9694c10ed20388ff6f5e3be4
-  DIFFER  application.min.css
+  match    vendors.min.js: 70187246b480eebb6f920732ce84356fb719b2db9694c10ed20388ff6f5e3be4
+  DIFFER   application.min.css
             this  04228704205f51db7eac073b0001c87e54473f372865a031b910b989c8891ea1
             other 17703f8babbccbcb61f9ab8c21817d09757116c307d557f899c850f3552a2751
-  match   home.html: 43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9
+  match    home.html: 43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9
+
+ADVISORY comparison — startup region evidence volumes:
+  Counts, not identity.  Two boots of the same build legitimately emit
+  different numbers of lines, so a difference here is not counted.  What
+  IS actionable is a region that is empty on one side and populated on
+  the other, and that is called out explicitly below.
+  counts   startup/catalina.out.log: this=4933 other=4874
+  counts   startup/spring-context.log: this=4 other=4
+  counts   startup/jpa-init.log: this=81 other=72
+  counts   startup/reflection-scan.log: this=25 other=25
+  counts   startup/workflow-engine-init.log: this=41 other=41
+  counts   startup/messaging-init.log: this=245 other=238
+  counts   startup/ldap-context-source.log: this=29 other=28
+  counts   startup/frontend-build.log: this=31 other=1
+  counts   startup/readiness-poll.log: this=5 other=5
+  counts   startup/errors.log: this=215 other=202
 
 REQUIRED comparison — archived unit-test suites:
-  suites-in-this-capture: 285
+  suites-in-this-capture: 286
   suites-in-other-capture: 278
-  present-here-only: 7
+  present-here-only: 8
   present-there-only: 0
   The per-suite accounting, and which of the two reasons applies to
   each unpaired suite, is in notes/surefire-pairing.txt and in
@@ -44,8 +108,26 @@ ADVISORY differences — reported, never counted:
     evidence, and are not compared
   durations, host names and run instants legitimately vary between two
     runs of the same suite and are not compared
+  the .out keys listed as advisory at the top of this file, each for the
+    stated reason that it differs between two runs of the same build
+  startup region line COUNTS, because two boots of the same build emit
+    different numbers of lines; a region populated on one side only is
+    called out as ONESIDED above, and that one IS actionable
+  the readiness polling record set, for the reason stated beside it
 
-REQUIRED-DIFFERENCES: 2
+WHAT IS NO LONGER ADVISORY, and why it changed.  An earlier revision of
+this comparison read ONE STRING per flow: the final verdict line.  Two
+runs can agree on that string while disagreeing about the role granted at
+login, the MIME type the repository stored, the ranking the index
+returned, the payload the broker carried, the number that was generated,
+the task the engine created and the queue the object moved to — every one
+of which is behaviour this migration promises to preserve.  Flow 6 in the
+previous committed evidence demonstrated it: its two status record sets
+differed by two lines and the comparison reported the flow as a match.
+The .status record sets and the projected .out record sets are therefore
+REQUIRED rows now, and a difference in either is counted.
+
+REQUIRED-DIFFERENCES: 3
 
 How to read that number.  Zero means the two captures agree on every
 required row.  Non-zero does NOT by itself mean a regression: it means

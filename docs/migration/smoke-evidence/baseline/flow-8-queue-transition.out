@@ -4,72 +4,94 @@ title: queue transition on a case or complaint
 
 ===== queue-definitions =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/queues
+request-url: http://localhost:20050/arkcase/api/latest/plugin/queues
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
 observed-content-length: (none reported)
-observed-body-bytes: 0
+observed-body-bytes: 2
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 0
 ----- body -----
-(empty)
+[]
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-(none)
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+
+
 ----- end response-headers -----
 
 ===== case-discovery =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname
+request-url: http://localhost:20050/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
-observed-content-length: (none reported)
-observed-body-bytes: 0
+http-version: 1.1
+observed-http-status: 500
+observed-content-type: text/plain;charset=UTF-8
+observed-content-length: 37
+observed-body-bytes: 37
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 0
 ----- body -----
-(empty)
+Unable to process query, server error
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-(none)
------ end response-headers -----
+HTTP/1.1 500 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 37
+Date: <HTTP-DATE>
+Connection: close
 
-===== queue-definitions (SKIPPED) =====
-SKIPPED
-reason: no HTTP response from either the queue-definition or the case-discovery endpoint
-note: this flow could not be executed.  The record is deliberate: an
-  unexecuted flow is reported rather than omitted, so that the
-  eight-flow completion condition stays verifiable and the gap is
-  visible in a directory diff, in the completeness verdict and in the
-  exit status (R-5).
+
+----- end response-headers -----
 

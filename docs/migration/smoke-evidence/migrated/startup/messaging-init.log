@@ -1,0 +1,264 @@
+startup-log-region: messaging-init.log
+region-describes: messaging broker initialisation, for flows 3 and 5
+region-mandatory: yes
+region-pattern: activemq|jms|broker|BrokerService|TransportConnector|camel
+region-pattern-flags: grep -E -i, applied to the extracted window only
+window-source: /tmp/p9-runtime-w004/tomcat/logs/catalina.out
+window-source-sha256: 6ca537628d2fe6aaa3a71a6ed7522063af32ef62242fe8b651198ae81abb340e
+window-boots-present-in-source: 1
+window-sha256: 065aa7803725fceb4a3f247710d1031618daa667b5492324cf982448aada17cb
+window-start-line: 2
+window-end-line: 4934
+window-start-byte-offset: 374
+window-end-byte-offset: 759974
+window-lines: 4933
+matched-lines: 245
+line-cap: 2000
+capture-truncated: no
+----- region -----
+[m[36m<TIMESTAMP>,936 [DEBUG] [main] com.armedia.acm.files.propertymanager.PropertyFileManager - Properties loaded from [camel-config-opencmis-cmis.properties]
+[m[36m<TIMESTAMP>,962 [DEBUG] [main] com.armedia.acm.files.propertymanager.PropertyFileManager - Properties loaded from [camel-config-alfresco-cmis.properties]
+[m[36m<TIMESTAMP>,963 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Number of repository configurations: [2]
+[m[36m<TIMESTAMP>,964 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Starting Camel context
+[m[32m<TIMESTAMP>,002 [INFO ] [main] org.apache.camel.support.LRUCacheFactory - Detected and using LRUCacheFactory: camel-caffeine-lrucache
+[m[36m<TIMESTAMP>,079 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Number of ArkCase-routes classes retrieved by reflection=15
+[m[36m<TIMESTAMP>,080 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Create routes for [alfresco]
+[m[36m<TIMESTAMP>,083 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.DeleteFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,084 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.DeleteFolderRoute] to camel context
+[m[36m<TIMESTAMP>,129 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.DeleteFolderRoute] to camel context
+[m[36m<TIMESTAMP>,130 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,130 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByIdRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,130 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByIdRoute] to camel context
+[m[36m<TIMESTAMP>,132 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByIdRoute] to camel context
+[m[36m<TIMESTAMP>,132 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,132 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.MoveDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,132 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.MoveDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,133 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.MoveDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,134 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,134 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.CreateFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,134 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.CreateFolderRoute] to camel context
+[m[36m<TIMESTAMP>,135 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.CreateFolderRoute] to camel context
+[m[36m<TIMESTAMP>,135 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,135 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.DeleteDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,135 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.DeleteDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,136 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.DeleteDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,136 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,136 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.GetOrCreateFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,136 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.GetOrCreateFolderRoute] to camel context
+[m[36m<TIMESTAMP>,139 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.GetOrCreateFolderRoute] to camel context
+[m[36m<TIMESTAMP>,139 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,139 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.CreateDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,139 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.CreateDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,140 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.CreateDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,140 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,140 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.MoveFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,140 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.MoveFolderRoute] to camel context
+[m[36m<TIMESTAMP>,141 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.MoveFolderRoute] to camel context
+[m[36m<TIMESTAMP>,141 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,141 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.DownloadDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,141 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.DownloadDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,142 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.DownloadDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,142 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,142 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.UpdateDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,143 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.UpdateDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,152 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.UpdateDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,152 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,152 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByPathRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,152 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByPathRoute] to camel context
+[m[36m<TIMESTAMP>,153 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByPathRoute] to camel context
+[m[36m<TIMESTAMP>,153 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,153 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.GetFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,153 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.GetFolderRoute] to camel context
+[m[36m<TIMESTAMP>,154 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.GetFolderRoute] to camel context
+[m[36m<TIMESTAMP>,154 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,155 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.ListFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,155 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.ListFolderRoute] to camel context
+[m[36m<TIMESTAMP>,155 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.ListFolderRoute] to camel context
+[m[36m<TIMESTAMP>,155 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,161 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.RenameDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,161 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.RenameDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,162 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.RenameDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,162 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,162 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.CopyDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,162 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.CopyDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,163 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.CopyDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,163 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,163 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Create routes for [opencmis]
+[m[36m<TIMESTAMP>,163 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.DeleteFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,163 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.DeleteFolderRoute] to camel context
+[m[36m<TIMESTAMP>,164 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.DeleteFolderRoute] to camel context
+[m[36m<TIMESTAMP>,164 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,164 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByIdRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,164 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByIdRoute] to camel context
+[m[36m<TIMESTAMP>,164 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByIdRoute] to camel context
+[m[36m<TIMESTAMP>,164 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,164 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.MoveDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,164 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.MoveDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,165 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.MoveDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,165 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,165 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.CreateFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,165 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.CreateFolderRoute] to camel context
+[m[36m<TIMESTAMP>,166 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.CreateFolderRoute] to camel context
+[m[36m<TIMESTAMP>,166 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,166 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.DeleteDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,166 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.DeleteDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,166 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.DeleteDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,166 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,166 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.GetOrCreateFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,167 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.GetOrCreateFolderRoute] to camel context
+[m[36m<TIMESTAMP>,167 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.GetOrCreateFolderRoute] to camel context
+[m[36m<TIMESTAMP>,167 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,167 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.CreateDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,167 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.CreateDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,168 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.CreateDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,168 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,168 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.MoveFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,168 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.MoveFolderRoute] to camel context
+[m[36m<TIMESTAMP>,168 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.MoveFolderRoute] to camel context
+[m[36m<TIMESTAMP>,168 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,169 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.DownloadDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,169 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.DownloadDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,169 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.DownloadDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,169 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,170 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.UpdateDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,170 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.UpdateDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,170 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.UpdateDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,170 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,171 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByPathRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,171 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByPathRoute] to camel context
+[m[36m<TIMESTAMP>,171 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.GetObjectByPathRoute] to camel context
+[m[36m<TIMESTAMP>,171 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,171 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.GetFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,171 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.GetFolderRoute] to camel context
+[m[36m<TIMESTAMP>,172 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.GetFolderRoute] to camel context
+[m[36m<TIMESTAMP>,172 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,172 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.ListFolderRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,172 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.ListFolderRoute] to camel context
+[m[36m<TIMESTAMP>,172 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.ListFolderRoute] to camel context
+[m[36m<TIMESTAMP>,172 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,172 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.RenameDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,172 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.RenameDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,172 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.RenameDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,173 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[36m<TIMESTAMP>,173 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current route=[class com.armedia.acm.camelcontext.flow.route.CopyDocumentRoute] instanceOf ArkCaseAbstractRoute = [true]
+[m[36m<TIMESTAMP>,173 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Trying to add route=[class com.armedia.acm.camelcontext.flow.route.CopyDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,173 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Successfully added route=[class com.armedia.acm.camelcontext.flow.route.CopyDocumentRoute] to camel context
+[m[36m<TIMESTAMP>,173 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Current number of routes:[0]
+[m[32m<TIMESTAMP>,296 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-deleteFolderQueue?timeout=150000 is using shared queue: seda://alfresco-deleteFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,395 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-getObjectByIdQueue?timeout=150000 is using shared queue: seda://alfresco-getObjectByIdQueue with size: 1000
+[m[32m<TIMESTAMP>,408 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-moveDocumentQueue?timeout=150000 is using shared queue: seda://alfresco-moveDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,418 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-createFolderQueue?timeout=150000 is using shared queue: seda://alfresco-createFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,426 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-deleteDocumentQueue?timeout=150000 is using shared queue: seda://alfresco-deleteDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,434 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-getOrCreateFolderQueue?timeout=150000 is using shared queue: seda://alfresco-getOrCreateFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,454 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-createDocumentQueue?timeout=150000 is using shared queue: seda://alfresco-createDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,465 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-moveFolderQueue?timeout=150000 is using shared queue: seda://alfresco-moveFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,473 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-downloadDocumentQueue?timeout=150000 is using shared queue: seda://alfresco-downloadDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,480 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-updateDocumentQueue?timeout=150000 is using shared queue: seda://alfresco-updateDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,489 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-getObjectByPathQueue?timeout=150000 is using shared queue: seda://alfresco-getObjectByPathQueue with size: 1000
+[m[32m<TIMESTAMP>,496 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-getFolderQueue?timeout=150000 is using shared queue: seda://alfresco-getFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,503 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-listFolderQueue?timeout=150000 is using shared queue: seda://alfresco-listFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,510 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-renameDocumentQueue?timeout=150000 is using shared queue: seda://alfresco-renameDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,552 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://alfresco-copyDocumentQueue?timeout=150000 is using shared queue: seda://alfresco-copyDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,559 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-deleteFolderQueue?timeout=150000 is using shared queue: seda://opencmis-deleteFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,561 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-getObjectByIdQueue?timeout=150000 is using shared queue: seda://opencmis-getObjectByIdQueue with size: 1000
+[m[32m<TIMESTAMP>,562 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-moveDocumentQueue?timeout=150000 is using shared queue: seda://opencmis-moveDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,563 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-createFolderQueue?timeout=150000 is using shared queue: seda://opencmis-createFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,563 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-deleteDocumentQueue?timeout=150000 is using shared queue: seda://opencmis-deleteDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,564 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-getOrCreateFolderQueue?timeout=150000 is using shared queue: seda://opencmis-getOrCreateFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,565 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-createDocumentQueue?timeout=150000 is using shared queue: seda://opencmis-createDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,566 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-moveFolderQueue?timeout=150000 is using shared queue: seda://opencmis-moveFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,567 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-downloadDocumentQueue?timeout=150000 is using shared queue: seda://opencmis-downloadDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,568 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-updateDocumentQueue?timeout=150000 is using shared queue: seda://opencmis-updateDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,570 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-getObjectByPathQueue?timeout=150000 is using shared queue: seda://opencmis-getObjectByPathQueue with size: 1000
+[m[32m<TIMESTAMP>,570 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-getFolderQueue?timeout=150000 is using shared queue: seda://opencmis-getFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,571 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-listFolderQueue?timeout=150000 is using shared queue: seda://opencmis-listFolderQueue with size: 1000
+[m[32m<TIMESTAMP>,571 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-renameDocumentQueue?timeout=150000 is using shared queue: seda://opencmis-renameDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,572 [INFO ] [main] org.apache.camel.component.seda.SedaEndpoint - Endpoint seda://opencmis-copyDocumentQueue?timeout=150000 is using shared queue: seda://opencmis-copyDocumentQueue with size: 1000
+[m[32m<TIMESTAMP>,574 [INFO ] [main] org.apache.camel.impl.engine.AbstractCamelContext - Apache Camel 3.7.0 (camel-1) is starting
+[m[32m<TIMESTAMP>,575 [INFO ] [main] org.apache.camel.impl.engine.AbstractCamelContext - StreamCaching is not in use. If using streams then it's recommended to enable stream caching. See more details at http://camel.apache.org/stream-caching.html
+[m[32m<TIMESTAMP>,588 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route1 started and consuming from: seda://alfresco-deleteFolderQueue
+[m[32m<TIMESTAMP>,598 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route2 started and consuming from: seda://alfresco-getObjectByIdQueue
+[m[32m<TIMESTAMP>,598 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route3 started and consuming from: seda://alfresco-moveDocumentQueue
+[m[32m<TIMESTAMP>,599 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route4 started and consuming from: seda://alfresco-createFolderQueue
+[m[32m<TIMESTAMP>,599 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route5 started and consuming from: seda://alfresco-deleteDocumentQueue
+[m[32m<TIMESTAMP>,600 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route6 started and consuming from: seda://alfresco-getOrCreateFolderQueue
+[m[32m<TIMESTAMP>,600 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route7 started and consuming from: seda://alfresco-createDocumentQueue
+[m[32m<TIMESTAMP>,601 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route8 started and consuming from: seda://alfresco-moveFolderQueue
+[m[32m<TIMESTAMP>,601 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route9 started and consuming from: seda://alfresco-downloadDocumentQueue
+[m[32m<TIMESTAMP>,602 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route10 started and consuming from: seda://alfresco-updateDocumentQueue
+[m[32m<TIMESTAMP>,602 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route11 started and consuming from: seda://alfresco-getObjectByPathQueue
+[m[32m<TIMESTAMP>,602 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route12 started and consuming from: seda://alfresco-getFolderQueue
+[m[32m<TIMESTAMP>,603 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route13 started and consuming from: seda://alfresco-listFolderQueue
+[m[32m<TIMESTAMP>,603 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route14 started and consuming from: seda://alfresco-renameDocumentQueue
+[m[32m<TIMESTAMP>,603 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route15 started and consuming from: seda://alfresco-copyDocumentQueue
+[m[32m<TIMESTAMP>,604 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route16 started and consuming from: seda://opencmis-deleteFolderQueue
+[m[32m<TIMESTAMP>,604 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route17 started and consuming from: seda://opencmis-getObjectByIdQueue
+[m[32m<TIMESTAMP>,604 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route18 started and consuming from: seda://opencmis-moveDocumentQueue
+[m[32m<TIMESTAMP>,605 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route19 started and consuming from: seda://opencmis-createFolderQueue
+[m[32m<TIMESTAMP>,605 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route20 started and consuming from: seda://opencmis-deleteDocumentQueue
+[m[32m<TIMESTAMP>,606 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route21 started and consuming from: seda://opencmis-getOrCreateFolderQueue
+[m[32m<TIMESTAMP>,606 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route22 started and consuming from: seda://opencmis-createDocumentQueue
+[m[32m<TIMESTAMP>,606 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route23 started and consuming from: seda://opencmis-moveFolderQueue
+[m[32m<TIMESTAMP>,607 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route24 started and consuming from: seda://opencmis-downloadDocumentQueue
+[m[32m<TIMESTAMP>,607 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route25 started and consuming from: seda://opencmis-updateDocumentQueue
+[m[32m<TIMESTAMP>,607 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route26 started and consuming from: seda://opencmis-getObjectByPathQueue
+[m[32m<TIMESTAMP>,608 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route27 started and consuming from: seda://opencmis-getFolderQueue
+[m[32m<TIMESTAMP>,608 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route28 started and consuming from: seda://opencmis-listFolderQueue
+[m[32m<TIMESTAMP>,608 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route29 started and consuming from: seda://opencmis-renameDocumentQueue
+[m[32m<TIMESTAMP>,609 [INFO ] [main] org.apache.camel.impl.engine.InternalRouteStartupManager - Route: route30 started and consuming from: seda://opencmis-copyDocumentQueue
+[m[32m<TIMESTAMP>,609 [INFO ] [main] org.apache.camel.impl.engine.AbstractCamelContext - Total 30 routes, of which 30 are started
+[m[32m<TIMESTAMP>,609 [INFO ] [main] org.apache.camel.impl.engine.AbstractCamelContext - Apache Camel 3.7.0 (camel-1) started in 35ms
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Number of camel routes=30
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route1, description=null, endpointURI=seda://alfresco-deleteFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route2, description=null, endpointURI=seda://alfresco-getObjectByIdQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route3, description=null, endpointURI=seda://alfresco-moveDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route4, description=null, endpointURI=seda://alfresco-createFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route5, description=null, endpointURI=seda://alfresco-deleteDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route6, description=null, endpointURI=seda://alfresco-getOrCreateFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route7, description=null, endpointURI=seda://alfresco-createDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route8, description=null, endpointURI=seda://alfresco-moveFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route9, description=null, endpointURI=seda://alfresco-downloadDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route10, description=null, endpointURI=seda://alfresco-updateDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route11, description=null, endpointURI=seda://alfresco-getObjectByPathQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route12, description=null, endpointURI=seda://alfresco-getFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route13, description=null, endpointURI=seda://alfresco-listFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route14, description=null, endpointURI=seda://alfresco-renameDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route15, description=null, endpointURI=seda://alfresco-copyDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route16, description=null, endpointURI=seda://opencmis-deleteFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route17, description=null, endpointURI=seda://opencmis-getObjectByIdQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route18, description=null, endpointURI=seda://opencmis-moveDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route19, description=null, endpointURI=seda://opencmis-createFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route20, description=null, endpointURI=seda://opencmis-deleteDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,611 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route21, description=null, endpointURI=seda://opencmis-getOrCreateFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route22, description=null, endpointURI=seda://opencmis-createDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route23, description=null, endpointURI=seda://opencmis-moveFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route24, description=null, endpointURI=seda://opencmis-downloadDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route25, description=null, endpointURI=seda://opencmis-updateDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route26, description=null, endpointURI=seda://opencmis-getObjectByPathQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route27, description=null, endpointURI=seda://opencmis-getFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route28, description=null, endpointURI=seda://opencmis-listFolderQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route29, description=null, endpointURI=seda://opencmis-renameDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel route id=route30, description=null, endpointURI=seda://opencmis-copyDocumentQueue?timeout=150000
+[m[36m<TIMESTAMP>,612 [DEBUG] [main] com.armedia.acm.camelcontext.context.CamelContextManager - Camel context successfully started.
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.files.ConfigFileWatcher - file added: file:///tmp/p9-runtime-w004/home/.arkcase/acm/cmis/cmis-config-templates/camel-config-cmis.properties.ftl
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.spring.SpringContextHolder - Event type: [com.armedia.acm.files.ConfigurationFileAddedEvent]. Event base filename: [cmis/cmis-config-templates/camel-config-cmis.properties.ftl]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.files.ConfigFileWatcher - file added: file:///tmp/p9-runtime-w004/home/.arkcase/acm/cmis/camel-config-opencmis-cmis.properties
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.spring.SpringContextHolder - Event type: [com.armedia.acm.files.ConfigurationFileAddedEvent]. Event base filename: [cmis/camel-config-opencmis-cmis.properties]
+[m[36m<TIMESTAMP>,823 [DEBUG] [main] com.armedia.acm.files.ConfigFileWatcher - file added: file:///tmp/p9-runtime-w004/home/.arkcase/acm/cmis/camel-config-alfresco-cmis.properties
+[m[36m<TIMESTAMP>,823 [DEBUG] [main] com.armedia.acm.spring.SpringContextHolder - Event type: [com.armedia.acm.files.ConfigurationFileAddedEvent]. Event base filename: [cmis/camel-config-alfresco-cmis.properties]
+[m[36m<TIMESTAMP>,852 [DEBUG] [main] com.armedia.acm.files.ConfigFileWatcher - file added: file:///tmp/p9-runtime-w004/home/.arkcase/acm/acm-config-server-repo/arkcase-activemq.yaml
+[m[36m<TIMESTAMP>,852 [DEBUG] [main] com.armedia.acm.spring.SpringContextHolder - Event type: [com.armedia.acm.files.ConfigurationFileAddedEvent]. Event base filename: [acm-config-server-repo/arkcase-activemq.yaml]
+[m[36m<TIMESTAMP>,855 [DEBUG] [main] com.armedia.acm.files.ConfigFileWatcher - file added: file:///tmp/p9-runtime-w004/home/.arkcase/acm/acm-config-server-repo/arkcase-activemq.yaml.orig
+[m[36m<TIMESTAMP>,855 [DEBUG] [main] com.armedia.acm.spring.SpringContextHolder - Event type: [com.armedia.acm.files.ConfigurationFileAddedEvent]. Event base filename: [acm-config-server-repo/arkcase-activemq.yaml.orig]
+[m[32m<TIMESTAMP>,040 [INFO ] [main] org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler - Starting...
+[m[32m<TIMESTAMP>,040 [INFO ] [main] org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler - Starting "system" session, StompBrokerRelay[ReactorNettyTcpClient[reactor.netty.tcp.TcpClientConnect@4e0e7a60]]
+[m[32m<TIMESTAMP>,233 [INFO ] [main] org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler - Started.
+[m[1;31m<TIMESTAMP>,609 [ERROR] [channelExecutor-2] org.springframework.integration.handler.LoggingHandler - org.springframework.messaging.MessageHandlingException: nested exception is org.springframework.messaging.MessageDeliveryException: Message broker not active. Consider subscribing to receive BrokerAvailabilityEvent's from an ApplicationListener Spring bean., failedMessage=GenericMessage [payload={jobState=com.armedia.acm.quartz.scheduler.AcmJobState@a3a24cd2}, headers={id=<UUID>, timestamp=<EPOCH-MS>}]
+Caused by: org.springframework.messaging.MessageDeliveryException: Message broker not active. Consider subscribing to receive BrokerAvailabilityEvent's from an ApplicationListener Spring bean.
+	at org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler.handleMessageInternal(StompBrokerRelayMessageHandler.java:494)
+	at org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler.handleMessage(AbstractBrokerMessageHandler.java:281)
+[m[1;31m<TIMESTAMP>,609 [ERROR] [channelExecutor-1] org.springframework.integration.handler.LoggingHandler - org.springframework.messaging.MessageHandlingException: nested exception is org.springframework.messaging.MessageDeliveryException: Message broker not active. Consider subscribing to receive BrokerAvailabilityEvent's from an ApplicationListener Spring bean., failedMessage=GenericMessage [payload={jobState=com.armedia.acm.quartz.scheduler.AcmJobState@a3a24cd2}, headers={id=<UUID>, timestamp=<EPOCH-MS>}]
+Caused by: org.springframework.messaging.MessageDeliveryException: Message broker not active. Consider subscribing to receive BrokerAvailabilityEvent's from an ApplicationListener Spring bean.
+	at org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler.handleMessageInternal(StompBrokerRelayMessageHandler.java:494)
+	at org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler.handleMessage(AbstractBrokerMessageHandler.java:281)
+----- end region -----

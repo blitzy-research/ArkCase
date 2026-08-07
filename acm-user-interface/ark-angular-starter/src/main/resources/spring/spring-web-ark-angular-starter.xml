@@ -14,23 +14,6 @@
                     #{ 'true'.equals(systemProperties['arkcase.external.bower-grunt']) ? ''
                       : systemProperties['os.name'].startsWith('Windows') ? 'node_modules\\.bin\\' : 'node_modules/.bin/' }
                 </prop>
-                <!-- Absolute launcher paths, so that the runtime the startup build uses is stated rather than
-                     inherited from whatever PATH the servlet container happens to have. Left empty by default,
-                     because a default absolute path would be wrong on most hosts; when empty the copier resolves the
-                     launcher from the process path ONCE, logs the absolute file it found, and then verifies its major
-                     version before allowing an install. Set -Darkcase.node.executable and -Darkcase.npm.executable in
-                     the container's launch configuration to remove the process path from the trust boundary.
-                     The npm and grunt commands below name Node.js scripts, which the operating system starts through
-                     the interpreter named on their first line rather than through the launcher path itself. The copier
-                     therefore also places the directory of the VERIFIED Node.js launcher first on the path of every
-                     process it starts, so that interpreter line resolves to the runtime whose major version was
-                     checked - for the package manager, for Grunt, and for anything either of them spawns. -->
-                <prop key="nodeExecutablePath">
-                    #{ systemProperties['arkcase.node.executable'] ?: '' }
-                </prop>
-                <prop key="npmExecutablePath">
-                    #{ systemProperties['arkcase.npm.executable'] ?: '' }
-                </prop>
             </props>
         </property>
     </bean>
@@ -45,26 +28,11 @@
         <property name="mergeConfigFrontendTask">
             <value>$[frontEndCommandPrefix]$[frontEndCommandPath]grunt$[frontEndCommandSuffix] updateModulesConfig --no-color</value>
         </property>
-        <!-- The staging folder is reused between restarts on purpose: it carries the installed dependency tree and the
-             modified-time comparisons that make the startup assembly incremental, and discarding it would turn every
-             container start into a full dependency install and a full rebuild. What made a reused folder a trust
-             problem was that its contents were trusted, and that is what the copier now fixes rather than the folder's
-             location: no component of this path may be a symbolic link, the folder is created owner-only, every
-             package-manager run-control file found in it is deleted, every stale file is deleted BEFORE the package
-             manager runs, and every file written into it or into the deployment folder is proven to resolve inside its
-             folder and is written without following a symbolic link. -->
         <property name="tempFolderPath" value="#{ systemProperties ['user.home'] }/.arkcase/tmp"/>
         <property name="deployFolderPath" value="#{ systemProperties ['user.home'] }/.arkcase/custom"/>
-        <property name="nodeExecutablePath" value="$[nodeExecutablePath]"/>
-        <property name="npmExecutablePath" value="$[npmExecutablePath]"/>
-        <!-- The runtime the committed lockfile was produced with. package.json constrains engines to the same majors
-             and .nvmrc pins the same Node.js line, but npm treats the engines field as advisory by default and neither
-             file is consulted by the process library that launches these commands. The copier therefore asks each
-             launcher for its own version and refuses to install on a different major, which is what makes the Node 20
-             requirement real at runtime instead of merely declared. Raise these together with package.json, .nvmrc and
-             the build image when the platform moves to a later runtime. -->
-        <property name="requiredNodeMajorVersion" value="20"/>
-        <property name="requiredNpmMajorVersion" value="10"/>
+        <!-- The install step: `npm ci` installs strictly from the committed package-lock.json, refuses to run
+             without it and never rewrites it, which is what makes the frontend dependency graph reproducible
+             between two checkouts.  The property name is retained so that no other configuration has to move. -->
         <property name="yarnInstallCommand">
             <value>$[frontEndCommandPrefix]npm ci</value>
         </property>

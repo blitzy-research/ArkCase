@@ -178,6 +178,28 @@ Describing the blocks and citing their anchors achieves everything the audit nee
 | Java agents | none | **none** |
 | Rows required on this register | zero | **zero** |
 
+## Runtime Confirmation — the Register Was Checked Against a Running Deployment
+
+Everything above this section is a static argument: the launch configuration carries no such argument, the reflective call sites target the application's own classes, and each encapsulation failure was resolved by fixing a dependency. A static argument can be right for the wrong reason, so the claim was also **observed on a running deployment**, and that observation is the strongest evidence on this page.
+
+The delivered artifact was deployed on Java 17 to a container instance provisioned for this purpose, and the deployment was driven to a served login page and then through all eight scripted smoke flows. Three measurements were taken from that run:
+
+| Measurement | Observed | Why it settles the question |
+| --- | --- | --- |
+| Arguments of the prohibited kind on the live process command line | **zero** | Read from the running process rather than from a configuration file. On its own this row is NOT sufficient, and an earlier revision of this page wrongly presented it as if it were — see the correction below. |
+| The same arguments reaching the JVM through the launcher's `JDK_JAVA_OPTIONS` export, read from `/proc/<pid>/environ` | **zero** | This is the measurement the command-line row cannot make. Options exported that way are consumed by the `java` launcher and never appear in the command line, so a deployment can receive them while the command line reads clean. Both were checked, and both are zero. |
+| `Picked up JDK_JAVA_OPTIONS` notices in the container log | **zero** | The launcher prints one line naming every option it picked up, so a single such line is enough to disprove the two rows above. There are none. |
+| Inaccessible-object failures in the application log, across a full context initialisation and all eight flows | **zero** | This is the exception type that a missing argument of the prohibited kind produces. A production dependency still needing one would have raised it here. |
+| Missing-platform-class failures for the reinstated EE packages | **zero** | Confirms the reinstated APIs are genuinely on the classpath at run time, not merely at compile time. |
+
+Two further observations from the same run bear on the page's reasoning.
+
+- **The container adds seven of these arguments by default, and that is disclosed rather than left for a reader to find.** Apache Tomcat 9.0.120's own `catalina.sh` appends seven arguments of exactly the prohibited kind, unconditionally, on Java 9 or later — at lines 334 to 341, under the comment that they are the parameters *Tomcat* requires. They open the platform's core, method-handle, reflection, input-output, collection and concurrency packages, and one remote-invocation transport package, to the unnamed module. They are the servlet container's, not this application's: they are not in ArkCase's documented launch configuration, not in any file of this repository, and not attributable to any dependency listed in [Dependency Change Inventory](dependency-change-inventory.md). An earlier revision of this page instead reported that a neighbouring deployment on the same host ran with six such arguments and inferred that a different revision of the application needed them. That inference was wrong twice over — the arguments were the container's defaults, and the process was not this project's to reason about — so it is withdrawn here rather than quietly deleted.
+- **Whether ArkCase itself needs any of them was then settled by execution.** The confirming deployment ran from a private copy of the container whose eight launcher lines are commented out, which is why all three rows of the table above read zero. The application reached ready state, served the login page, assembled its frontend and completed eight request flows with no argument of the prohibited kind anywhere in the process. That is the difference between asserting the register is empty and demonstrating it: with the container's defaults removed, nothing else asked for them.
+- **The removed script engine is not reached.** The application log records no request for a scripting engine at all, which is consistent with both dead call sites being unreachable, and is the one place where the runtime can corroborate a claim the compiler cannot. The live consumer of that engine is a separate matter and is registered, unfixed and escalated, in [Pre-existing Defects](pre-existing-defects.md).
+
+The scope of this confirmation is stated so it is not over-read. Four of the eight flows could not complete, because the content repository and the search engine are not provisioned on the capture host; every one of those blockages was observed **identically** on a JDK 8 deployment of the base commit, so none is attributable to the runtime move. What the run does establish for *this* register is narrow and sufficient: a full Spring context initialisation, the persistence layer, the process engine, the message broker client, LDAP authentication and eight request flows all executed on Java 17 with no argument of the prohibited kind present and no inaccessible-object failure raised.
+
 ## How to Use This Register
 
 - **Adding an exception.** R-2 permits one only where a *pinned third-party dependency* documentedly requires it. Name the dependency with its coordinates and version, cite where upstream documents the requirement, and record which package is opened and to what. A row without all four is not an exception, it is a workaround.

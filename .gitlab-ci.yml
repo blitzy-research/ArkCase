@@ -23,13 +23,170 @@ variables:
   GIT_SSL_NO_VERIFY: "true"
   GIT_STRATEGY: clone
 
-# Build image for the migrated runtime. It must provide JDK 17 - the release the reactor compiles at -
-# together with Maven 3.8 or newer, Node 20 LTS and npm 10, the runtime the committed frontend lockfile
-# was produced with, and it must keep providing the sshpass and sftp clients the snapshot job below uses.
-# The image is built and published outside this repository, so the reference is left unqualified and is
-# resolved by the registry the runner is configured with, exactly as the pre-migration reference was.
-# docs/migration/dependency-change-inventory.md records the contract this image has to satisfy.
-image: arkcase-gitlab-ci:2.0.0
+  # Build image reference, assembled from parts so that it is fully qualified here and can be pinned by
+  # digest without editing this file.
+  #
+  # Why the parts. An unqualified name such as "arkcase-gitlab-ci:2.0.0" is resolved by whatever default
+  # registry the runner happens to be configured with, and a tag is mutable, so two pipelines that read the
+  # same line can run on two different images - and this pipeline's jobs receive $MVN_PASSWORD, $SFTP_USER
+  # and the deployment tokens, so "which image runs" is a question about where those secrets go. Naming the
+  # registry removes the first ambiguity; pinning the digest removes the second.
+  #
+  # Both properties are ENFORCED BY THE VERIFICATION STEP BELOW rather than assembled into the string
+  # here, and that is a deliberate correction of an earlier attempt. Assembling the reference from
+  # "$CI_REGISTRY/..." looks tidier but is not safe: $CI_REGISTRY is populated only where the GitLab
+  # Container Registry is enabled, and when it is empty the assembled value becomes "/arkcase/...", which
+  # Docker rejects as an invalid reference format while creating the container - before any message this
+  # file could print. So the DEFAULT stays the well-formed, always-pullable tag form the base commit used,
+  # which guarantees that a pipeline can always start far enough to reach the check and be told what to do,
+  # and the check then refuses to let any job proceed on it.
+  #
+  # The one operator action, performed once and auditable thereafter. Obtain the digest of the image you
+  # intend to build on and set the WHOLE reference as a PROTECTED, non-maskable project or group CI
+  # variable, so that changing the build image is a recorded event rather than a registry-side edit:
+  #
+  #   docker buildx imagetools inspect <registry>/arkcase/arkcase-gitlab-ci:2.0.0 \
+  #       --format '{{.Manifest.Digest}}'
+  #   ARKCASE_CI_IMAGE = <registry>/arkcase/arkcase-gitlab-ci@sha256:<64 hex characters>
+  #
+  # Until that variable is set the pipeline does not run, and that is the intended posture: this project's
+  # jobs receive deployment credentials, and refusing to run is the correct response to not knowing which
+  # image will receive them. The image must provide JDK 17 - the release the reactor compiles at - together
+  # with Maven 3.8 or newer, Node 20 LTS and npm 10, the runtime the committed frontend lockfile was
+  # produced with, and it must keep providing the sshpass and sftp clients the snapshot job below uses. Its
+  # provenance - a build attestation, an SBOM and a signature over the digest named here - is produced
+  # where the image is built, not here. docs/migration/dependency-change-inventory.md records the contract
+  # in full, including what remains a prerequisite outside this repository.
+  ARKCASE_CI_IMAGE_VERSION: "2.0.0"
+  ARKCASE_CI_IMAGE: "arkcase-gitlab-ci:$ARKCASE_CI_IMAGE_VERSION"
+
+  # Toolchain the build image must provide. These are the majors the reactor compiles at and the majors the
+  # committed frontend lockfile was produced with; they are enforced rather than assumed.
+  ARKCASE_REQUIRED_JAVA_MAJOR: "17"
+  ARKCASE_REQUIRED_NODE_MAJOR: "20"
+  ARKCASE_REQUIRED_NPM_MAJOR: "10"
+  # Maven is a floor rather than an exact major: 3.8 is the line that refuses plain-HTTP artifact
+  # resolution, which is what makes the removal of the two dead HTTP repositories enforceable rather
+  # than merely tidy. Anything newer keeps that behaviour.
+  ARKCASE_REQUIRED_MAVEN_MINIMUM: "3.8"
+
+image: "$ARKCASE_CI_IMAGE"
+
+default:
+  before_script:
+    # Fail closed on the build image before any job does anything else. This runs in every job, in this
+    # file and in the release file it includes, because the image reference above governs all of them and
+    # neither file declares a before_script of its own.
+    - |
+      set -eu
+
+      fail()
+      {
+          printf 'BUILD IMAGE VERIFICATION FAILED: %s\n' "$1" >&2
+          exit 1
+      }
+
+      printf 'Build image reference: %s\n' "$ARKCASE_CI_IMAGE"
+
+      remediation()
+      {
+          printf 'Obtain the digest of the image you intend to build on with:\n' >&2
+          printf '  docker buildx imagetools inspect <registry>/arkcase/arkcase-gitlab-ci:%s \\\n' \
+              "$ARKCASE_CI_IMAGE_VERSION" >&2
+          printf '      --format "{{.Manifest.Digest}}"\n' >&2
+          printf 'then set ARKCASE_CI_IMAGE to\n' >&2
+          printf '  <registry>/arkcase/arkcase-gitlab-ci@sha256:<64 hex characters>\n' >&2
+          printf 'as a PROTECTED, non-maskable CI variable, and publish the attestation, SBOM and\n' >&2
+          printf 'signature for that digest.\n' >&2
+      }
+
+      # (1) DIGEST. A digest is 'sha256:' followed by exactly 64 lower-case hex characters. The length and
+      # the alphabet are both checked, not merely the prefix, so a truncated or hand-typed digest is
+      # refused rather than accepted as pinned.
+      case "$ARKCASE_CI_IMAGE" in
+          *@sha256:*)
+              image_digest_hex="${ARKCASE_CI_IMAGE##*@sha256:}"
+              case "$image_digest_hex" in
+                  *[!0-9a-f]*)
+                      fail "the build image digest contains a character that is not lower-case hex: ${image_digest_hex}"
+                      ;;
+              esac
+              [ "${#image_digest_hex}" -eq 64 ] \
+                  || fail "the build image digest is ${#image_digest_hex} hex characters, not 64: ${image_digest_hex}"
+              printf 'Reference is digest-pinned.\n'
+              ;;
+          *)
+              printf 'The reference above is a TAG, which is mutable, so this repository does not\n' >&2
+              printf 'determine which image the pipeline - and the credentials injected into it - runs on.\n' >&2
+              remediation
+              fail "the build image is not pinned by digest, so the image this pipeline runs on is not determined by this repository"
+              ;;
+      esac
+
+      # (2) REGISTRY. A reference whose first path segment is not a registry host is resolved by whatever
+      # default registry the runner is configured with, so the repository does not determine WHERE the image
+      # came from either. A registry host is recognised the way a container runtime recognises one: the
+      # first segment contains a dot or a colon, or it is exactly 'localhost'.
+      image_first_segment="${ARKCASE_CI_IMAGE%%/*}"
+      case "$ARKCASE_CI_IMAGE" in
+          */*) ;;
+          *) image_first_segment='' ;;
+      esac
+      case "$image_first_segment" in
+          localhost|*.*|*:*)
+              printf 'Reference is registry-qualified: %s\n' "$image_first_segment"
+              ;;
+          *)
+              printf 'The reference above names no registry host, so which registry it is pulled from is\n' >&2
+              printf 'decided by the runner configuration rather than by this repository.\n' >&2
+              remediation
+              fail "the build image reference is not registry-qualified, so the registry this pipeline pulls from is not determined by this repository"
+              ;;
+      esac
+
+      # Toolchain. Each tool is asked for its own version rather than trusted to be the one the image name
+      # implies, because the image name is exactly what a mutable tag can misreport.
+      command -v java >/dev/null 2>&1 || fail "the build image provides no java"
+      command -v mvn >/dev/null 2>&1 || fail "the build image provides no mvn"
+      command -v node >/dev/null 2>&1 || fail "the build image provides no node"
+      command -v npm >/dev/null 2>&1 || fail "the build image provides no npm"
+
+      java_reported="$(java -version 2>&1 | head -1)"
+      java_major="$(printf '%s' "$java_reported" | sed -n 's/.*version "\([0-9][0-9]*\).*/\1/p')"
+      node_reported="$(node --version 2>&1 | head -1)"
+      node_major="$(printf '%s' "$node_reported" | sed -n 's/^v\{0,1\}\([0-9][0-9]*\).*/\1/p')"
+      npm_reported="$(npm --version 2>&1 | head -1)"
+      npm_major="$(printf '%s' "$npm_reported" | sed -n 's/^\([0-9][0-9]*\).*/\1/p')"
+
+      mvn_reported="$(mvn --version 2>&1 | head -1)"
+
+      printf 'java: %s\nnode: %s\nnpm: %s\nmvn: %s\n' \
+          "$java_reported" "$node_reported" "$npm_reported" "$mvn_reported"
+
+      [ "$java_major" = "$ARKCASE_REQUIRED_JAVA_MAJOR" ] \
+          || fail "java major is '$java_major', but the reactor compiles at release $ARKCASE_REQUIRED_JAVA_MAJOR"
+      [ "$node_major" = "$ARKCASE_REQUIRED_NODE_MAJOR" ] \
+          || fail "node major is '$node_major', but the committed frontend lockfile requires $ARKCASE_REQUIRED_NODE_MAJOR"
+      [ "$npm_major" = "$ARKCASE_REQUIRED_NPM_MAJOR" ] \
+          || fail "npm major is '$npm_major', but the committed frontend lockfile requires $ARKCASE_REQUIRED_NPM_MAJOR"
+
+      # Maven is checked as a minimum, not as an exact major, because the property that matters is the
+      # refusal to resolve artifacts over plain HTTP, and every line from 3.8 onward has it. The version is
+      # compared field by field rather than lexically, so 3.10 is correctly read as newer than 3.8.
+      mvn_version="$(printf '%s' "$mvn_reported" | sed -n 's/^Apache Maven \([0-9][0-9.]*\).*/\1/p')"
+      [ -n "$mvn_version" ] || fail "mvn reported a version this check cannot parse: '$mvn_reported'"
+      mvn_major="${mvn_version%%.*}"
+      mvn_rest="${mvn_version#*.}"
+      mvn_minor="${mvn_rest%%.*}"
+      required_major="${ARKCASE_REQUIRED_MAVEN_MINIMUM%%.*}"
+      required_minor="${ARKCASE_REQUIRED_MAVEN_MINIMUM#*.}"
+      if [ "$mvn_major" -lt "$required_major" ] \
+          || { [ "$mvn_major" -eq "$required_major" ] && [ "$mvn_minor" -lt "$required_minor" ]; }
+      then
+          fail "maven is $mvn_version, but plain-HTTP artifact resolution is only refused from $ARKCASE_REQUIRED_MAVEN_MINIMUM onward"
+      fi
+
+      printf 'Build image verification passed.\n'
 
 stages:
   - build

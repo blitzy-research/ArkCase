@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandlerTest" time="0.013" tests="4" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandlerTest" time="0.01" tests="4" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -19,28 +19,28 @@
     <property name="java.class.version" value="61.0"/>
   </properties>
   <testcase name="onEcmFileMoved_ifSourceFolderIsArkcaseFolder_And_TargetFolderIsArkcaseFolder_moveFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandlerTest" time="0.0">
-    <system-out><![CDATA[2026-08-03 15:27:28,831 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - ArkCase has folder with CMIS ID: sourceParentFolderNodeId and folder id: 400
-2026-08-03 15:27:28,831 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - ArkCase has folder with CMIS ID: targetParentFolderNodeId and folder id: 500
-2026-08-03 15:27:28,832 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - ArkCase has file with CMIS ID: documentNodeId and folder id:200
-2026-08-03 15:27:28,832 [INFO ] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandler - Moved file to ArkCase with CMIS ID [documentNodeId] and ArkCase ID [200]
+    <system-out><![CDATA[2026-08-07 07:26:07,337 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: sourceParentFolderNodeId and folder id: 400
+2026-08-07 07:26:07,337 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: targetParentFolderNodeId and folder id: 500
+2026-08-07 07:26:07,338 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has file with CMIS ID: documentNodeId and folder id:200
+2026-08-07 07:26:07,338 [INFO ] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandler - Moved file to ArkCase with CMIS ID [documentNodeId] and ArkCase ID [200]
 ]]></system-out>
   </testcase>
-  <testcase name="onEcmFileMoved_ifSourceFolderIsNotArkcaseFolder_And_TargetFolderIsArkcaseFolder_uploadFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandlerTest" time="0.004">
-    <system-out><![CDATA[2026-08-03 15:27:28,834 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - No such folder in ArkCase: sourceParentFolderNodeId
-2026-08-03 15:27:28,835 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - ArkCase has folder with CMIS ID: targetParentFolderNodeId and folder id: 500
-2026-08-03 15:27:28,835 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - ArkCase has container for folder with id 500
+  <testcase name="onEcmFileMoved_ifSourceFolderIsNotArkcaseFolder_And_TargetFolderIsArkcaseFolder_uploadFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandlerTest" time="0.003">
+    <system-out><![CDATA[2026-08-07 07:26:07,341 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such folder in ArkCase: sourceParentFolderNodeId
+2026-08-07 07:26:07,341 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: targetParentFolderNodeId and folder id: 500
+2026-08-07 07:26:07,341 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has container for folder with id 500
 ]]></system-out>
   </testcase>
-  <testcase name="onEcmFileMoved_ifSourceFolderIsArkcaseFolder_And_TargetFolderIsNotArkcaseFolder_deleteFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandlerTest" time="0.007">
-    <system-out><![CDATA[2026-08-03 15:27:28,841 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - ArkCase has folder with CMIS ID: sourceParentFolderNodeId and folder id: 400
-2026-08-03 15:27:28,841 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - No such folder in ArkCase: targetParentFolderNodeId
-2026-08-03 15:27:28,842 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - ArkCase has file with CMIS ID: documentNodeId and folder id:200
-2026-08-03 15:27:28,842 [INFO ] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandler - Deleted file with CMIS ID [documentNodeId]
+  <testcase name="onEcmFileMoved_ifSourceFolderIsArkcaseFolder_And_TargetFolderIsNotArkcaseFolder_deleteFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandlerTest" time="0.005">
+    <system-out><![CDATA[2026-08-07 07:26:07,345 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: sourceParentFolderNodeId and folder id: 400
+2026-08-07 07:26:07,346 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such folder in ArkCase: targetParentFolderNodeId
+2026-08-07 07:26:07,346 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has file with CMIS ID: documentNodeId and folder id:200
+2026-08-07 07:26:07,346 [INFO ] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandler - Deleted file with CMIS ID [documentNodeId]
 ]]></system-out>
   </testcase>
   <testcase name="onEcmFileMoved_ifSourceFolderIsNotArkcaseFolder_And_TargetFolderIsNotArkcaseFolder_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandlerTest" time="0.002">
-    <system-out><![CDATA[2026-08-03 15:27:28,844 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - No such folder in ArkCase: sourceParentFolderNodeId
-2026-08-03 15:27:28,844 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$QrYrvVIq - No such folder in ArkCase: targetParentFolderNodeId
+    <system-out><![CDATA[2026-08-07 07:26:07,348 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such folder in ArkCase: sourceParentFolderNodeId
+2026-08-07 07:26:07,348 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such folder in ArkCase: targetParentFolderNodeId
 ]]></system-out>
   </testcase>
 </testsuite>

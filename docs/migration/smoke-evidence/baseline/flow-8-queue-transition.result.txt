@@ -2,53 +2,60 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 ======================================================================
 
 FLOW: 8 - queue transition on a case or complaint
-RUNTIME-COMMIT: JDK 8 at base commit c8f6226105
+RUNTIME-COMMIT: JDK 8, not-declared
+  pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   capture-side: baseline (pre-migration)
   runtime-designation-is: a declared label of this capture, not probe
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  capture-preceded-any-file-edit: yes.  This observation was taken
-    before a single file of the change set was edited.  Nothing done
-    later can reconstruct it, which is why the baseline capture is the
-    first executable action of the migration and not a validation
-    afterthought.
+  frontend-runtime-designation: Node 8.17.0 with yarn 1.22.22, the pre-migration frontend runtime
+    The frontend half of this migration is a separate runtime from the
+    Java half, and this flow serves assets the frontend pipeline built,
+    so both designations belong on this record rather than only one.
+  capture-preceded-any-file-edit: not-declared
+    Why it matters on either side: the pre-migration capture is
+    irreversible and is therefore the first executable action of the
+    migration rather than a validation afterthought, because nothing
+    done later can reconstruct it.  The replay is meaningful only
+    against it.
 COMPARED ARTEFACTS: flow-8-queue-transition.out and flow-8-queue-transition.status
   both re-read from disk in this capture directory.  This record
   asserts on the CONTENT of those two files and never on a process
   exit status (R-T7).
-  caller-declared scope: no observation of the named behaviour; the two artefacts below exist and are re-read, and each records the absence explicitly
-MIGRATION PATH EXERCISED: two paths converge here: (1) the decision tables governing queue entry and exit, reached through the expression language advanced from 2.4.7.Final to 2.4.15.Final on a bisected floor - the rule compiler declares that language with no version of its own, so the reactor's own pinned property governs which one loads; and (2) one of the three compiler-visible JDK-internal call sites being rewritten, the string-utility import and emptiness check on the queue correspondence path, replaced with the Apache commons-lang3 equivalent
+  counterparts compared against: flow-8-queue-transition.out and flow-8-queue-transition.status
+    of the same names in the other capture directory, the sibling of
+    this one.  The verdict of that comparison is recorded on the
+    COMPARISON CRITERION line below.
+  caller-declared scope: flow-8-queue-transition.out and flow-8-queue-transition.status, re-read from disk
+MIGRATION PATH EXERCISED: two paths converge here: (1) the decision tables governing queue entry and exit, reached through the same expression language advanced for flow 6 - routing rather than numbering; and (2) one of the three compiler-visible JDK-internal call sites being rewritten, the string-utility import and emptiness check on the queue correspondence path
 OBSERVATION:
-  verdict: SKIPPED
-  state-mutation-permitted: no
+  verdict: NOT-EXERCISED-NO-CASE-FILE-AVAILABLE
+  state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-8-queue-transition.status:
-    queue-definitions=000
-    case-discovery=000
-    TRANSITION: not-observed-no-http-response
-    FROM_QUEUE: not-observed-no-http-response
-    TO_QUEUE: not-observed-no-http-response
+    queue-definitions=200
+    case-discovery=500
+    TRANSITION: not-attempted-no-case-file
+    FROM_QUEUE: none
+    TO_QUEUE: not-observed-no-case-file
+    QUEUE_OBSERVED_AFTER_TRANSITION: not-attempted
+    QUEUE_OBSERVED_AFTER_RESTORE: not-attempted
     NEXT_QUEUES_COUNT: not-observed
     NEXT_QUEUES: not-observed
-    OBJECT_ID: not-observed
-    OBJECT_NUMBER: not-observed
-    REASON: no HTTP response from either the queue-definition or the case-discovery endpoint, so the decision tables governing queue entry and exit were never reached
-    queue-definitions=SKIPPED
+    OBJECT_ID: none
+    OBJECT_NUMBER: none
+    REASON: the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against
   observations, each derived from the two artefacts named above:
-    - skipped: no HTTP response from either the queue-definition or the case-discovery endpoint
-    - a SKIPPED verdict is not a pass and must not be read as one
-    - queue definitions observed: 000 (/api/latest/plugin/queues)
-    - case discovery observed: 000 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname)
-    - case or complaint number of the object routed: not observed - no case file was returned, so no object was routed
-    - source queue the object was found in: not observed - no HTTP response
-    - destination queue the rules computed: not observed - the next-possible-queues evaluation was never reached
-    - onward-route candidate list, in the order the rules emit it: not observed; candidate count: not observed
-    - assignee or candidate group of the routed object: not observed - the routing evaluation was never reached, so no assignment was made or read
-    - rule-derived reason code: not observed
-    - the transport recorded an unresolvable-host diagnostic and an observed HTTP status of 000 on both probes, so the decision tables governing queue entry and exit were never reached and neither migration path was exercised
-    - this is the concrete failure the artefact-based assertion exists to catch: a transition request can answer 200 while the routing rule silently failed, leaving the object in its original queue or dropping it into a default.  ONLY the captured before-and-after queue names distinguish a real transition from a silent no-op, and neither was observed here
-    - the viewer endpoint that the repository prerequisites document, in two separate places, as expected to answer 503 is recorded as observed wherever it is reached; it is never treated as a regression and never repaired (R-6)
+    - queue definitions observed: 200 (/api/latest/plugin/queues)
+    - case discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname)
+    - a routing decision is a function of a real object in a real queue; with no case file to evaluate against, the rules cannot be run, and listing queue definitions instead would be a lookup rather than an evaluation
+    - requirements unmet: 1
 COMPARISON CRITERION: identical routing decision
+  row-for-row verdict: no other capture was named for this invocation, so no row-for-row verdict is computed here; the run-level per-flow outcome is in comparison.txt
+  a verdict is not a pass mark.  It states what two files on disk do
+    and do not agree on.  Whether a stated difference is acceptable is
+    settled in the ambiguity-resolutions and pre-existing-defects
+    registers, never here and never by silence.
 NORMALISATION-REDACTION APPLIED:
   pipeline: a plain stream-editor and pattern-scanner pipeline, in
     three passes - literal substitution, credential patterns, then
@@ -60,19 +67,28 @@ NORMALISATION-REDACTION APPLIED:
     filesystem path is therefore replaced, so the record does not
     depend on where it was taken.
   stripped, credential pass: authorisation and proxy-authorisation
-    headers; request and response cookie headers, session cookie values
-    among them; cross-site-request-forgery and application ticket
-    headers; scheme-prefixed authorisation material; any field whose
+    headers; the request Cookie and the response Set-Cookie headers,
+    session cookie values among them; cross-site-request-forgery and
+    application ticket headers; scheme-prefixed authorisation material;
+    any field whose
     name denotes a password, secret, ticket or key; a user name in a
     transport configuration line; a credential embedded in a URL; the
     servlet session identifier.
-  stripped, volatility pass: date-and-time values; response headers
-    carrying wall-clock time and cache validators; challenge
-    parameters; generated universally-unique identifiers; generated
-    millisecond instants; surrogate database keys assigned by the
-    process engine or the message broker, matched by FIELD NAME so a
-    bare business number can never be caught by them; and the
-    engine-reported query and elapsed durations.
+  stripped, volatility pass: date-and-time values; the response
+    headers carrying wall-clock time and cache validity, that is the
+    Date, Last-Modified and Expires headers and the ETag validator;
+    authentication-challenge parameters; generated
+    universally-unique identifiers; generated
+    request and millisecond instants; surrogate database keys assigned
+    by the process engine or the message broker, matched by FIELD NAME
+    so a bare business number can never be caught by them - namely the
+    PROCESS-INSTANCE identifier, the EXECUTION identifier, the TASK
+    identifier and the DEPLOYMENT identifier, plus the version and
+    sequence components of the VERSION-SUFFIXED PROCESS-DEFINITION
+    identifier, whose leading key is kept precisely because the key is
+    behaviour while the two numeric components are not; the session
+    identifier; absolute filesystem paths; and the engine-reported
+    query and elapsed durations.
   DELIBERATELY PRESERVED, verbatim and untouched by every expression
     above: case and complaint numbers, queue names, task and process
     names, MIME types, result counts and result ordering,
@@ -98,13 +114,13 @@ TLS-READINESS CONTEXT:
     false negative rather than evidence, so the trust mode is recorded
     above beside every observation it produced.
   readiness-wait: the repository records a first startup of five to ten
-    minutes, so readiness is polled up to 1 attempt(s) at 10 second
+    minutes, so readiness is polled up to 60 attempt(s) at 10 second
     intervals before the flows run, and a slow start is tolerated
     rather than treated as a failure.
     Readiness does NOT gate this flow: the flow records its own
     evidence either way, so an unreachable stack produces an explicit,
     comparable capture instead of a truncated one.
-IF NOT EXECUTED: no HTTP response from either the queue-definition or the case-discovery endpoint
+IF NOT EXECUTED: the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against and neither migration path was exercised
   The paired flow-8-queue-transition.status carries the matching SKIPPED marker
   and flow-8-queue-transition.out carries an explicit section recording the same
   absence, so the gap is visible in a directory diff rather than
@@ -201,37 +217,100 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 8
 slug: 8-queue-transition
-verdict: SKIPPED
-migration-path-exercised: two paths converge here: (1) the decision tables governing queue entry and exit, reached through the expression language advanced from 2.4.7.Final to 2.4.15.Final on a bisected floor - the rule compiler declares that language with no version of its own, so the reactor's own pinned property governs which one loads; and (2) one of the three compiler-visible JDK-internal call sites being rewritten, the string-utility import and emptiness check on the queue correspondence path, replaced with the Apache commons-lang3 equivalent
-compared-artefacts: no observation of the named behaviour; the two artefacts below exist and are re-read, and each records the absence explicitly
+verdict: NOT-EXERCISED-NO-CASE-FILE-AVAILABLE
+capture-side: unlabelled-capture-side-not-derivable
+runtime-declared: not-declared
+runtime-observed: 1.8.0_492
+runtime-declared-and-observed-agree: not-determinable — no side could be derived from the capture directory, so there is no declared designation to compare against
+commit-declared: not-declared
+capture-precedes-every-file-edit: not-declared
+migration-path-exercised: two paths converge here: (1) the decision tables governing queue entry and exit, reached through the same expression language advanced for flow 6 - routing rather than numbering; and (2) one of the three compiler-visible JDK-internal call sites being rewritten, the string-utility import and emptiness check on the queue correspondence path
+comparison-criterion: Identical routing decision.
+compared-artefacts: flow-8-queue-transition.out and flow-8-queue-transition.status, re-read from disk
 transport-trust-mode: verify-default-trust-store
-state-mutation-permitted: no
+transport-certificate-context: the deployed application serves a self-signed
+  TLS certificate, recorded at the base commit in README.md:L45, so a real run
+  satisfies certificate verification with a supplied certificate authority
+  bundle or a pinned peer public key rather than by switching verification off.
+  Without that accommodation every flow would fail on certificate verification
+  instead of on behaviour, which is a false negative rather than evidence.
+readiness-context: readiness was polled rather than assumed, because the first
+  container startup takes 5 to 10 minutes, recorded at the base commit in
+  README.md:L141.  Polling does not gate the flows: each one records its own
+  evidence either way, so a slow or unreachable stack yields an explicit,
+  comparable capture instead of a truncated one.  Observations:
+  notes/readiness.txt.
+state-mutation-permitted: yes
+normalisation-applied: every byte of this record left through the single
+  sanitising pipeline this script uses for all output.  The volatility pass
+  removes only inter-run noise, and only these: ISO-8601 date-times; the Date,
+  Last-Modified and Expires response headers; ETag validators;
+  authentication-challenge nonce and opaque parameters; universally-unique
+  identifiers; 13-digit millisecond epochs; broker-assigned message,
+  correlation, enqueue, expiry, redelivery and connection identifiers;
+  process-engine assigned instance, execution, task and deployment
+  identifiers; measured query and elapsed times; and the capture directory,
+  repository root, home directory and scratch paths.
+redaction-applied: the configured credential is replaced by the fixed
+  placeholder <REDACTED-CREDENTIAL> before anything is written, and the
+  redactor is proven against that very credential before the first capture
+  file is opened.  Authorisation and proxy-authorisation header values, cookie
+  and set-cookie header values, cross-site-request-forgery headers and session
+  identifiers are REDACTED rather than normalised, because a live session
+  identifier is credential-equivalent for as long as it lives.  Only the
+  PRESENCE or ABSENCE of a session is recorded; its value never is.
+behaviour-bearing-values-preserved: deliberately NOT normalised, because each
+  one is what a criterion compares — the authorization result and every role,
+  granted authority and privilege name; case, complaint and object numbers;
+  queue names; process and task names, definition keys and assignees; resolved
+  MIME types; result counts and their returned order; cache-busting content
+  hashes, which are derived from artifact content and so SHOULD match when
+  behaviour matches; and the artifact checksums themselves.
 observed-statuses:
-  queue-definitions=000
-  case-discovery=000
-  TRANSITION: not-observed-no-http-response
-  FROM_QUEUE: not-observed-no-http-response
-  TO_QUEUE: not-observed-no-http-response
+  queue-definitions=200
+  case-discovery=500
+  TRANSITION: not-attempted-no-case-file
+  FROM_QUEUE: none
+  TO_QUEUE: not-observed-no-case-file
+  QUEUE_OBSERVED_AFTER_TRANSITION: not-attempted
+  QUEUE_OBSERVED_AFTER_RESTORE: not-attempted
   NEXT_QUEUES_COUNT: not-observed
   NEXT_QUEUES: not-observed
-  OBJECT_ID: not-observed
-  OBJECT_NUMBER: not-observed
-  REASON: no HTTP response from either the queue-definition or the case-discovery endpoint, so the decision tables governing queue entry and exit were never reached
-  queue-definitions=SKIPPED
+  OBJECT_ID: none
+  OBJECT_NUMBER: none
+  REASON: the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against
 observations:
-  - skipped: no HTTP response from either the queue-definition or the case-discovery endpoint
-  - a SKIPPED verdict is not a pass and must not be read as one
-  - queue definitions observed: 000 (/api/latest/plugin/queues)
-  - case discovery observed: 000 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname)
-  - case or complaint number of the object routed: not observed - no case file was returned, so no object was routed
-  - source queue the object was found in: not observed - no HTTP response
-  - destination queue the rules computed: not observed - the next-possible-queues evaluation was never reached
-  - onward-route candidate list, in the order the rules emit it: not observed; candidate count: not observed
-  - assignee or candidate group of the routed object: not observed - the routing evaluation was never reached, so no assignment was made or read
-  - rule-derived reason code: not observed
-  - the transport recorded an unresolvable-host diagnostic and an observed HTTP status of 000 on both probes, so the decision tables governing queue entry and exit were never reached and neither migration path was exercised
-  - this is the concrete failure the artefact-based assertion exists to catch: a transition request can answer 200 while the routing rule silently failed, leaving the object in its original queue or dropping it into a default.  ONLY the captured before-and-after queue names distinguish a real transition from a silent no-op, and neither was observed here
-  - the viewer endpoint that the repository prerequisites document, in two separate places, as expected to answer 503 is recorded as observed wherever it is reached; it is never treated as a regression and never repaired (R-6)
+  - queue definitions observed: 200 (/api/latest/plugin/queues)
+  - case discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname)
+  - a routing decision is a function of a real object in a real queue; with no case file to evaluate against, the rules cannot be run, and listing queue definitions instead would be a lookup rather than an evaluation
+  - requirements unmet: 1
+pre-existing-condition-in-the-reference-stack: the VirtualViewer service is
+  EXPECTED to answer HTTP 503.  That is a documented pre-existing condition at
+  the base commit, recorded in TWO places — README.md:L53 and
+  docs/setup.md:L33 — and it is captured exactly as observed under R-6: not
+  retried into submission, not repaired, not hidden, and never counted as a
+  migration regression.  The change set invokes R-6's escape clause exactly
+  twice and NEITHER invocation is in this folder, so the exception count stays
+  auditable and cannot quietly grow.  Observations: notes/reference-stack.txt.
+rules-provenance: two facts, and they belong together.  First, there is NO
+  on-disk user rules document for this project: the rules facility reports,
+  verbatim, "No user rules provided."  Second, rules are nonetheless present
+  and binding — the migration requirements embed an explicit, numbered block of
+  seven rules that govern this work in full, exactly as an external document
+  would, plus seven transformation rules.  Reporting only the first would imply
+  enterprise best practice is the sole standard here, which is wrong; reporting
+  only the second would misrepresent where the rules came from.  The
+  identifiers R-1 to R-7 and R-T1 to R-T7 are the migration plan's OWN
+  navigational convention, not quoted rule titles.  No rule is invented here
+  and none is softened.
+governing-rule-r-7-quoted: "The application's observed behavior at the base
+  commit on JDK 8 is the tie-breaker for any ambiguity, and each resolution
+  must be documented."  [Editorial note, disclosed here rather than made
+  silently: the rule's own text names the older runtime with a phrase this
+  documentation tree's wording gate forbids; "JDK 8" is substituted, and the
+  substitution changes no meaning.]  This record is that documentation for this
+  flow, and the same unmodified script writes the replay side, so the two can
+  be compared row for row.
 assertion-basis: derived by reading flow-8-queue-transition.status and
   flow-8-queue-transition.out back from disk; no verdict in this script is taken
   from a subprocess exit status (R-T7).
@@ -272,7 +351,7 @@ R-7, BASELINE BEHAVIOUR IS THE TIE-BREAKER - the rule that creates
 this record.  Quoted with its one substitution disclosed rather than
 made silently:
 
-    "The application observed behavior at the base commit on JDK 8 is
+    "The application's observed behavior at the base commit on JDK 8 is
     the tie-breaker for any ambiguity, and each resolution must be
     documented."
 
@@ -295,9 +374,20 @@ that every such exception be documented.  Observed: the production
 launch configuration declares no such argument, so the JDK access
 exceptions register is delivered empty with a positive statement that
 none are required.  That register is referred to here BY TITLE ONLY,
-because its filename embeds the very token the audit forbids.  R-T3
-requires that a dependency failing under strong encapsulation be
-upgraded or replaced rather than accommodated by opening a JDK
+because its filename embeds the very token the audit forbids.
+THE REGISTER IS EARNED EMPTY, NOT MERELY EMPTY, and the difference is
+the whole of R-2: an empty register that was never populated and one
+that came out empty because the requirement was measured and then
+removed read identically, and only the second complies.  The audited
+configuration is the container launch block recorded at the base commit
+in README.md:L111-L127 and duplicated in docs/setup.md, and it declares
+no such argument either before or after the migration.  Every strong
+encapsulation failure encountered anywhere in this migration was inside
+a TEST library, and each was resolved at its source by upgrading or
+removing that library rather than by opening a JDK package to the
+application - which is R-T3's remedy applied, not avoided.  R-T3
+requires exactly that: a dependency failing under strong encapsulation
+is upgraded or replaced rather than accommodated by opening a JDK
 package - fix the library, do not open the module.
 
 R-5, no disabling of failing tests, verbatim: "Failing tests must not

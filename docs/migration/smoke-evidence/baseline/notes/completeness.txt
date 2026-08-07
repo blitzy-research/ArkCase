@@ -3,20 +3,21 @@ completeness verdict for this capture
 completeness: INCOMPLETE
 flows-expected: 8
 flows-with-recorded-result: 8
-flows-skipped: 4
+flows-skipped: 0
 flows-not-exercised: 4
-flows-with-unmet-requirements: 0
+flows-with-unmet-requirements: 4
 absent-frontend-artifact-digests: 0
+capture-manifest-state: COMPLETE-AND-EXACT
 archived-report-contract-state: read
 archived-report-suites-missing: 0
 archived-report-suites-lost: 0
-archived-report-suites-added: 7
+archived-report-suites-added: 8
 archived-report-suites-not-in-contract: 0
 captures-truncated: 0
 transport-trust-mode: verify-default-trust-store
 transport-trust-degraded: no
-state-mutation-permitted: no
-recorded-reasons: 8
+state-mutation-permitted: yes
+recorded-reasons: 18
 
 exit-status-contract:
   0  the capture is COMPLETE and usable as evidence
@@ -33,14 +34,24 @@ capture with eight recorded flows from one with three and five holes, which
 a script that always exits zero cannot.
 
 reasons this capture is not complete:
-  - flow 1-login recorded SKIPPED: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/plugin/admin/businessHours
-  - flow 2-views recorded SKIPPED: no HTTP response from https://arkcase-ce.local/arkcase/ or the case-list endpoint
-  - flow 6: no object was created because state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1); the generated number, and therefore the expression language and the decision tables behind it, are unobserved
-  - flow 3: the document round trip was not performed because state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1); storage, retrieval and MIME resolution are therefore unobserved
-  - flow 4-solr-search recorded SKIPPED: no HTTP response from the application search endpoint
-  - flow 5: no object could be created to observe (ALLOW_SMOKE_MUTATIONS is not set to 1), so the broker transit is unobserved
-  - flow 7: no workflow was started because state mutation is not permitted (ALLOW_SMOKE_MUTATIONS is not set to 1); process instantiation, and therefore the residual risk this flow was assigned, are unobserved
-  - flow 8-queue-transition recorded SKIPPED: no HTTP response from either the queue-definition or the case-discovery endpoint
+  - the static audit gate FAILED: 7 main-source and 0 test-source occurrence(s) of an internal-package prefix remain, and AAP section 0.9.6 requires zero of each (see static-audit.txt)
+  - flow 1: the externalised JNDI values read from acm-services/acm-service-login/src/main/resources/spring/ldap-jndi.properties are not the values the naming service matches on (initial context factory observed 'FILE-ABSENT', pooling key observed 'FILE-ABSENT'); the naming service matches a factory by exact class name and a pooling key by exact property key and recognises no variation
+  - flow 2: the case detail view at /api/latest/plugin/casefile/byId was not observed (status SKIPPED), so neither the detail rendering nor the permission evaluation guarding it was exercised
+  - flow 2: the document view at /plugin/document was not observed (status SKIPPED), so the document name and MIME type it resolves to render were not exercised
+  - flow 6: object creation at /api/latest/plugin/complaint did not return a JSON representation (status 400, content type text/plain;charset=UTF-8)
+  - flow 6: no generated number was present in the creation response, so the numbering behaviour the expression language and decision tables produce is unobserved
+  - flow 6: no numbering format could be derived, because no number was observed; the format is the only part of a generated number two captures can compare, so without it this flow has nothing comparable to offer
+  - flow 6: the numbering sequence could not be observed to advance (count before unavailable, after unavailable), so a number was reported without the sequence being shown to move
+  - flow 3: no fixture object was available to attach a document to, so the round trip could not run; flow 6 must create the fixture first
+  - flow 4: the application search endpoint did not return a JSON result set (status 500, content type text/plain;charset=UTF-8)
+  - flow 4: the captured search body does not contain a result envelope, so the result set and its ordering cannot be compared
+  - flow 4: no result count could be read out of the captured search response, so neither the result set nor its ordering can be compared
+  - flow 4: the result count never settled across two consecutive observations within 12 attempts at 5s, so an empty or partial answer cannot be distinguished from indexing that had not finished
+  - flow 4: the recorded search body exposes no total-match figure, so the result set size cannot be compared against the baseline
+  - flow 5: flow 6 produced no object number, so there is nothing this run caused whose indexing could be observed; a broker transit cannot be asserted from an ambient query
+  - flow 7: no fixture object was available to start a workflow on, so process instantiation is unobserved
+  - flow 7: no fixture object was available to start a workflow on, so process instantiation is unobserved
+  - flow 8: no existing case file could be discovered at /api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname, so the routing rules could not be evaluated against a real object
 
 truncated captures:
   (none)

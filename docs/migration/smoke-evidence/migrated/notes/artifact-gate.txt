@@ -4,8 +4,8 @@ state: PASSED
 digests-required: 5
 digests-produced: 5
 digests-failed: 0
-artifact-directory-probed: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
-home-html-probed: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/home.html
+artifact-directory-probed: ./acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
+home-html-probed: ./acm-standard-applications/arkcase/src/main/webapp/resources/home.html
 
 The two probed paths above are the paths this run actually read, not the
   defaults: a capture may point FRONTEND_RESOURCES_DIR at a staged build
@@ -16,9 +16,12 @@ The two probed paths above are the paths this run actually read, not the
   side of the comparison came from.
 
 gate rule: all five compared artifacts must exist and must each yield a
-  well-formed 64-character lower-case hexadecimal digest.  A missing file,
-  an unavailable digest tool, an empty digest or a malformed digest is a
-  GATE FAILURE and is never recorded as a row of evidence.
+  well-formed 64-character lower-case hexadecimal digest in the exact
+  record schema "<digest><two spaces><artifact key>".  A missing file, an
+  unavailable digest tool, an empty digest, a malformed digest and a
+  record labelled with anything other than its own key are all GATE
+  FAILURES and none is ever recorded as a row of evidence.  The
+  per-record outcome is in notes/artifact-digest-records.txt.
 
 why the gate is a hard failure rather than a note: a capture taken without
   a completed frontend build would otherwise write five rows each reading

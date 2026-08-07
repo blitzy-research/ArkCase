@@ -220,6 +220,14 @@ public class CalendarEntityHandlerTest
      *
      * @throws Exception
      */
+    // The scoped mock below is never referenced inside the block, and that is the
+    // whole point of it: its effect is its SCOPE - while it is open the static (or
+    // constructed) type is neutralised, and the assertions of this test are about
+    // what the code under test does in that state.  javac's try lint reports an
+    // unreferenced resource, so it is suppressed here narrowly, on this method,
+    // rather than by adding a reference that asserts nothing or by widening a
+    // compiler setting.  No assertion in this method is changed.
+    @SuppressWarnings("try")
     @Test
     public void testPurgeCalendars_closed_appointmentInstance() throws Exception
     {
@@ -314,6 +322,14 @@ public class CalendarEntityHandlerTest
      *
      * @throws Exception
      */
+    // The scoped mock below is never referenced inside the block, and that is the
+    // whole point of it: its effect is its SCOPE - while it is open the static (or
+    // constructed) type is neutralised, and the assertions of this test are about
+    // what the code under test does in that state.  javac's try lint reports an
+    // unreferenced resource, so it is suppressed here narrowly, on this method,
+    // rather than by adding a reference that asserts nothing or by widening a
+    // compiler setting.  No assertion in this method is changed.
+    @SuppressWarnings("try")
     @Test
     public void testPurgeCalendars_closedXDays_appointmentInstance() throws Exception
     {

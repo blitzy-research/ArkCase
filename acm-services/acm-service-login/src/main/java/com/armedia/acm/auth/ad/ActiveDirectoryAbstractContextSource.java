@@ -56,11 +56,11 @@ import java.util.Properties;
 public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPathContextSource, InitializingBean
 {
     /**
-     * Classpath location of the login library configuration file that hosts the two LDAP JNDI
-     * values this class used to hardcode. It is the single textual home for both values; the
-     * {@code ldapJndiProperties} bean in {@code spring/spring-library-user-login.xml} loads the
-     * same file, so a bean definition that wires the values explicitly and one that relies on
-     * the defaults below resolve to identical strings.
+     * Classpath location of the login library configuration file that holds the two LDAP JNDI
+     * values. It is the single textual home for both of them; the {@code ldapJndiProperties} bean
+     * in {@code spring/spring-library-user-login.xml} loads the same file, so a bean definition
+     * that wires the values explicitly and one that relies on the defaults below resolve to
+     * identical strings.
      */
     static final String LDAP_JNDI_PROPERTIES_LOCATION = "/spring/ldap-jndi.properties";
 
@@ -81,12 +81,14 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     private static final String JDK_142 = "1.4.2";
 
     /**
-     * The two LDAP JNDI values, read once from {@link #LDAP_JNDI_PROPERTIES_LOCATION}. They are
-     * held here rather than written into Java source because the platform static audit gate is a
-     * literal text search over {@code src/main/java}, and because configuration is where a
-     * deployment-specific JNDI setting belongs. Reading them at class initialization is what keeps
-     * every context source instance behaving exactly as it did on JDK 8, including instances
-     * created by bean definitions that live outside this repository and therefore never set them.
+     * The two LDAP JNDI values, read once from {@link #LDAP_JNDI_PROPERTIES_LOCATION}. A
+     * deployment-specific JNDI setting belongs in configuration, so the file that ships in this
+     * module's jar is the authoritative source of both.
+     * <p>
+     * They are read at class initialization so that every instance of this context source carries
+     * the configured defaults whether or not anything sets them. That matters because bean
+     * definitions for this class also live in the external ArkCase configuration repository, where
+     * they name neither property: such a definition inherits both defaults and needs no edit.
      */
     private static final Properties LDAP_JNDI_DEFAULTS = loadLdapJndiDefaults();
 
@@ -406,11 +408,10 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     /**
      * Set the context factory, as the fully qualified name of the JNDI initial
      * context factory class. JNDI resolves the class by name at run time, so the
-     * value must match the provider class name exactly. The default is read from
-     * the login library configuration file rather than hardcoded in Java source,
-     * and a bean definition that leaves this property unset therefore keeps the
-     * configured default. Setting it to a blank value is rejected when the context
-     * source initializes.
+     * value must match the provider class name exactly. The default comes from the
+     * login library configuration file, so a bean definition that leaves this
+     * property unset keeps the configured default. Setting it to a blank value is
+     * rejected when the context source initializes.
      *
      * @param contextFactory
      *            the class name to place under
@@ -641,10 +642,10 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     /**
      * Set the JNDI environment property key that carries the LDAP connection
      * pooling flag. JNDI matches the key exactly and recognizes no variation of
-     * it. The default is read from the login library configuration file rather
-     * than hardcoded in Java source, and a bean definition that leaves this
-     * property unset therefore keeps the configured default. Setting it to a
-     * blank value is rejected when the context source initializes.
+     * it. The default comes from the login library configuration file, so a bean
+     * definition that leaves this property unset keeps the configured default.
+     * Setting it to a blank value is rejected when the context source
+     * initializes.
      *
      * @param connectionPoolFlag
      *            the JNDI environment property key used to request pooling.

@@ -1,9 +1,19 @@
 trigger=SKIPPED
+broker-status=200
+broker-destination=200
 delivery=SKIPPED
 event-delivery=SKIPPED
 broker-transit=SKIPPED
 delivered=not-observed
-destination=not-observable-without-a-broker-client
 payload-match=not-observed
-SKIPPED
-REASON: no object could be created to observe (ALLOW_SMOKE_MUTATIONS is not set to 1), so the broker transit is unobserved
+search-reported-match-count=not-attempted
+destination-configured=solrAdvancedSearch.in
+broker-management-reported-status=not-probed-no-event-from-this-run
+destination-reported-by-broker=not-probed-no-event-from-this-run
+broker-enqueue-count=not-probed-no-event-from-this-run
+broker-dequeue-count=not-probed-no-event-from-this-run
+broker-dispatch-count=not-probed-no-event-from-this-run
+broker-inflight-count=not-probed-no-event-from-this-run
+broker-consumer-count=not-probed-no-event-from-this-run
+broker-queue-size=not-probed-no-event-from-this-run
+REASON: flow 6 produced no object number, so there is nothing this run caused whose indexing could be observed; a broker transit cannot be asserted from an ambient query

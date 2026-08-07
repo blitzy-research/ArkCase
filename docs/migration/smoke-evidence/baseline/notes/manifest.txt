@@ -1,0 +1,59 @@
+capture manifest accounting
+
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh, validate_manifest
+manifest-state: COMPLETE-AND-EXACT
+staged-then-published: yes
+published-to: docs/migration/smoke-evidence/baseline
+
+required-paths: 51
+produced-paths-excluding-the-archived-report-subtree: 63
+required-but-missing: 0
+produced-but-not-in-the-manifest: 0
+required-and-present-but-empty: 0
+both-startup-tiers-present: no
+
+required but missing:
+  (none)
+
+produced but not named by the manifest:
+  (none)
+
+required, present, and zero bytes:
+  (none)
+
+why this accounting exists.  A previous revision of this producer wrote
+every file directly into the destination and removed nothing, so a file an
+OLDER revision had emitted survived a run of a NEWER one.  The committed
+evidence tree showed it plainly: eight startup regions under names the
+producer had stopped emitting sat beside five under the names it did emit, a
+summary under a superseded name sat beside the current one, and six notes
+had no producer anywhere in the script.  A reader could not tell which files
+the run in front of them had written.
+
+A full run now writes into a fresh sibling staging directory, is checked
+against the manifest above, and is moved into place with the previous
+capture renamed aside first.  The published tree is exactly one run output
+BY CONSTRUCTION: there is no path by which a file from an earlier run can
+survive, because the directory it would have survived in is replaced whole.
+
+the archived unit-test report subtree under surefire/ is excluded from this
+accounting on purpose: its membership is adjudicated by the pairing contract
+in notes/surefire-pairing.txt, and enumerating several hundred report paths
+here would duplicate that check and disagree with it the first time a suite
+is added.
+
+the two startup tiers are mutually exclusive: a run either resolves a
+startup window and writes the region files, or resolves none and writes
+startup/unavailable.log.  Both present means the tree was assembled from two
+different runs.
+
+these paths are written after this accounting is computed, so they are
+counted as produced here and asserted separately once they exist; the
+outcome of that assertion is appended to the end of this file:
+  notes/manifest.txt notes/completeness.txt summary.txt
+
+deferred-entry assertion, run after the three files above were written:
+  OK       notes/manifest.txt
+  OK       notes/completeness.txt
+  OK       summary.txt
+deferred-entries-not-usable: 0

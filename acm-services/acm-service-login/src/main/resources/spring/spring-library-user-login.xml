@@ -114,17 +114,14 @@
         <property name="userDao" ref="userJpaDao"/>
     </bean>
 
-    <!-- LDAP JNDI values, hosted in configuration rather than in Java source.
-         Origin: both values were hardcoded in com.armedia.acm.auth.ad.ActiveDirectoryAbstractContextSource
-         until the Java 17 migration moved them out of src/main/java. The platform static audit gate is a
-         literal text search over src/main/java only, so configuration lies outside its scope and hosting
-         the values here is intentional and correct rather than an oversight.
+    <!-- The two LDAP JNDI values, exposed to bean definitions from the configuration source that owns them.
+         A deployment-specific JNDI setting belongs in configuration, so it is held there and not in Java.
          Single source of truth: the values themselves live in spring/ldap-jndi.properties, loaded below.
-         That same file is read by ActiveDirectoryAbstractContextSource for its own defaults, so the values
+         ActiveDirectoryAbstractContextSource reads that same file for its own defaults, so the values
          cannot drift between the two consumers and each value appears exactly once in the repository.
-         Fidelity: both values are byte-identical to the Java 8 originals and must never be altered,
-         shortened or assembled from fragments. JNDI matches the initial context factory by exact class
-         name and the connection pooling flag by exact property key, and recognises no variation of either.
+         Fidelity: both values must be carried exactly and must never be altered, shortened or assembled
+         from fragments. JNDI matches the initial context factory by exact class name and the connection
+         pooling flag by exact property key, and recognises no variation of either.
          Scope: this bean is declared at the top level of this file, deliberately outside every nested
          beans profile block, so the values resolve under any active Spring profile. The deployed default
          is the ldap profile, declared as spring.profiles.default in the ArkCase web.xml. The bean reads
@@ -133,10 +130,10 @@
          tests that import this file.
          Consumers: an ActiveDirectoryContextSource bean definition, whether declared in this repository
          or in the external .arkcase configuration repository, does NOT have to wire either value - the
-         class defaults both from the same file, so an unedited definition behaves exactly as it did on
-         Java 8. A definition that prefers to be explicit may wire contextFactory and connectionPoolFlag
-         from this bean, and injected values win over the defaults because Spring setter injection runs
-         before afterPropertiesSet(). A blank value is rejected there with a message naming the property. -->
+         class defaults both from the same file, so a definition that names neither property needs no edit.
+         A definition that prefers to be explicit may wire contextFactory and connectionPoolFlag from this
+         bean, and injected values win over the defaults because Spring setter injection runs before
+         afterPropertiesSet(). A blank value is rejected there with a message naming the property. -->
     <bean id="ldapJndiProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
         <property name="location" value="classpath:spring/ldap-jndi.properties"/>
         <property name="ignoreResourceNotFound" value="false"/>

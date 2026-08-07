@@ -1,382 +1,60 @@
-capture: workflow engine initialisation and process-definition deployment
-runtime: JDK 8
-commit: c8f6226105
-source: application log during container startup
-produced-by: docs/migration/smoke-evidence/smoke-checks.sh
-region-status: SKIPPED
-skip-reason: no servlet container and no deployment of this commit on the older
-  runtime exist on this host, and no six-service reference stack stands behind
-  one, so there is no engine-initialisation region to take.  Measured on the
-  capture host rather than assumed, and every figure here is an observation.
-  TOMCAT_HOME, CATALINA_HOME, CATALINA_BASE, CATALINA_LOG and CATALINA_PID are
-  all unset; no container launcher is on PATH and no servlet container is
-  installed under any of the usual prefixes; and the hostname arkcase-ce.local
-  does not resolve, with the sibling reference-stack and readiness captures
-  recording 000 - this tree's token for no HTTP response at all - from every
-  documented service URL.  A process engine initialises only inside a running
-  application, so with no deployment there is nothing to mine.  One web archive
-  does exist in the working tree, and it is deliberately NOT counted as the
-  missing deployment satisfied: it is an untracked build output, ignored by the
-  repository through the bare pattern at .gitignore:6, and a class taken from
-  its own WEB-INF/lib measured class file major version 61, which is the Java 17
-  release.  It is therefore a migrated-side artefact and cannot stand in for a
-  build of this commit on the older runtime, which is what a baseline requires.
-  Two preconditions are deliberately NOT listed among the unmet ones, because
-  they are met here and listing them would misstate the reason.  First, the
-  older runtime itself is present and answers openjdk version "1.8.0_492".
-  Second, a database is reachable on the loopback interface, which matters more
-  for this region than for most of its siblings: the engine is wired to a
-  datasource and cannot initialise without one, and an unreachable database is
-  the very condition under which the engine could not be bootstrapped for
-  testing in the first place.  What is missing is a servlet container, a
-  deployment of this commit on that runtime, and the reference stack behind it -
-  not the JVM and not the database.
-risk-classification: residual unverified risk assigned to this gate; not cleared
-definitions-expected: 36
-definitions-loaded: UNOBSERVED
-normalised: nothing, because no bytes were captured.  The policy is stated in
-  full regardless, so that the migrated counterpart reproduces the same
-  transformation instead of inventing one.  When this region is captured the
-  pipeline is a visible, auditable sed and awk chain that strips timestamps and
-  dates, thread names and thread identifiers, session identifiers, generated
-  process-instance and deployment identifiers, absolute filesystem paths in
-  favour of a stable token, port assignments, and elapsed-time and duration
-  figures.  It preserves, above everything else, the count of process
-  definitions the engine loaded; and alongside that count it preserves
-  process-definition keys and names, deployment names, engine component names,
-  lifecycle transitions, and the full message text of every warning and error
-  line.  The distinction that matters most in this region, because confusing it
-  destroys the only evidence flow 7 has: a GENERATED deployment identifier is
-  volatile and must be stripped, while a process-definition KEY is behaviour and
-  must be kept.  The two look alike in a log line and are not alike at all.
-  Over-normalising here would make the two sides compare equal for a reason
-  unrelated to behaviour, which is the failure mode this whole directory exists
-  to prevent; a stripped count in particular would erase the region's entire
-  purpose.
-redacted: nothing, because no bytes were captured.  When it is captured, every
-  credential-shaped value is replaced with the fixed placeholder <REDACTED>,
-  which is the convention this documentation tree already uses in its own voice
-  at docs/setup.md:78 and applies at docs/setup.md:86, docs/setup.md:87 and
-  docs/setup.md:119.  Engine initialisation touches the database, so the
-  carriers in scope for this region are specific.  A datasource user and
-  password, which an engine that echoes its connection settings would emit, and
-  which are recorded only in redacted form; the scan covers password=, passwd,
-  user=, secret and token=.  A database connection URL, which is stripped of its
-  host, port and database name, because those are environment values rather than
-  behaviour and two deployments of identical code against two hosts would
-  otherwise compare unequal for no behavioural reason.  And the documented
-  administrator credential, which is never transcribed here in any form, not
-  even as an illustration of what redaction removes.
------ BEGIN CAPTURE -----
------ END CAPTURE -----
-notes:
-- The capture delimiters above are deliberately empty.  Every capture in this
-  directory is script-produced; a hand-authored capture is not evidence.
-  Because the preconditions recorded in skip-reason were not available, no log
-  line was invented to fill the gap and no definitions-loaded count was
-  invented either.  A fabricated baseline would make every behaviour-preserved
-  claim in this migration unfalsifiable, which defeats the
-  baseline-as-tie-breaker rule outright.  An explicit, machine-readable skip
-  with a reason is rule-compliant; an invented capture is not, and is strictly
-  worse than an honest absence.
-- Inventing a definitions-loaded count would be the single worst failure
-  available in this folder, because flow 7's entire residual-risk assessment
-  rests on comparing that one number between the two sides.  The two count
-  fields are therefore kept strictly separate and mean different things.
-  definitions-expected is a verified repository fact and may always be stated.
-  definitions-loaded is an OBSERVATION, so it reads UNOBSERVED here; it is not
-  a guess, and it has not been quietly copied from definitions-expected.
-- A SKIPPED region is NOT a pass, and two matching SKIPPED regions across
-  baseline and migrated are NOT evidence of preserved behaviour.  They record an
-  absence in both places.  The sibling notes/flows-not-captured.txt reaches the
-  same verdict for the eight application flows; this region is consistent with
-  that record rather than an exception to it.
-- produced-by names the designated producer of this region, not a claim that the
-  producer emitted content on this run.  It emitted none, which is why the
-  delimiters are empty.  That script refuses to start without an administrator
-  credential supplied through its environment, so no run was possible here even
-  setting the absent container and stack aside, and supplying administrator
-  material would have been neither available nor appropriate.
-- Region-selection rule, stated here so the migrated capture reproduces it
-  without guesswork rather than inferring it from this file's shape.  Archive
-  the engine-initialisation region of the first-startup window and nothing else:
-  the engine configuration being built, schema and table handling, the engine
-  reaching a working state, the deployment of the process definitions, and the
-  definitions-loaded count.  The region opens when the engine configuration
-  begins initialising and closes when the last process definition has been
-  deployed, and the whole span is in scope.  Every warning and error line the
-  engine emits inside that span belongs to the region as observed.  The
-  migrated counterpart must carry the identical filename, the identical field
-  set in the identical order, and this identical region selection, so that a
-  recursive diff of the two capture directories stays mechanical.
-- The filename is workflow-engine-init.log, and it is the name the rest of this
-  directory already uses: the sibling spring-context.log allocates this region
-  to workflow-engine-init.log by that exact name when it lists its own territory
-  boundaries.  The designated producer's current revision writes its
-  engine-initialisation region under a different name, process-definitions.log,
-  and no file of that name exists in this directory.  The two names denote one
-  and the same region, and this deliverable's name is the one the mirror must
-  match.  Recording the overlap here prevents a future capture from concluding
-  that a second, different region was expected and was missing.
-- The engine wiring this region observes, so the capture can be recognised as
-  complete rather than merely non-empty.  It is declared at
-  acm-tool-integrations/acm-activiti-configuration/src/main/resources/spring/
-  spring-library-activiti-configuration.xml.  The engine configuration bean is
-  activitiProcessEngineConfiguration, ordered after the schema migration tool it
-  declares a depends-on relationship with, bound to the application datasource
-  and the shared transaction manager, with schema update enabled and
-  transactions declared externally managed.  Schema and table handling runs
-  through schemaCommandConfig, produced from commandConfigFactory by the
-  transaction-required factory method; the file's own comment at lines 79 to 80
-  records that this is what makes the engine run its schema commands inside a
-  transaction.  The same module ships the two process-definition table
-  descriptors, acm-process-definition-db-tables-1.0.xml and
-  acm-process-definition-db-sql-1.0.xml.  The engine itself is built by
-  activitiProcessEngine, from which the repository, runtime, task, history and
-  management services are obtained.  Process definitions are deployed by
-  activityClassPathBpmnDeployer, which resolves them through
-  activitiPathMatchingResolver against the pattern held in
-  activitiResourceExpression and registers them through
-  processDefinitionManagementService and acmProcessDefinitionDao.  Two
-  pre-parse handlers, acmActivitiProcessHandler and acmActivitiUserTaskHandler,
-  attach the listener set during parsing, and two event bridges,
-  acmActivitiEventListener and acmActivitiEntityEventListener, are registered on
-  the configuration.  All of these names are behaviour-bearing and are preserved
-  by the normalisation policy above.
-- definitions-expected is 36, and that figure was re-derived here rather than
-  adopted.  The authoritative measurement reads the corpus out of version
-  control at the capture commit, because a git tree carries no build output:
-  git ls-tree -r --name-only c8f6226105 | grep -c '\.bpmn'   ->  36
-  A working-tree measurement with build and dependency directories pruned agrees:
-  find . \( -name target -o -name node_modules -o -name .git \) -prune -o \( -name '*.bpmn*' -type f -print \) | wc -l   ->  36
-- The plain working-tree form of that command returns a different figure in this
-  tree, and the difference is recorded rather than smoothed over:
-  find . -name '*.bpmn*' -not -path '*/node_modules/*' | wc -l   ->  72
-  This tree has been built, so that form additionally counts the build copy of
-  every definition beneath a module's output directory.  Both forms return 36 in
-  a tree carrying no build output.  The divergence is a property of the working
-  tree, not of the corpus, which is why the pruned and version-control forms are
-  primary and the plain form is not.  The expected figure is 36, the verified
-  figure is 36, and the corpus is unchanged by this migration.  The sibling
-  notes/corpus-figures.txt records the same 36 from the same pruned form.
-- The verified per-module breakdown of those 36 definitions, so a short load is
-  attributable rather than merely visible: acm-foia 11; acm-privacy 8;
-  acm-activiti-configuration 5, all in test resources; acm-service-ecm 3;
-  acm-complaint-plugin 1, a default complaint workflow; acm-task-plugin 5, of
-  which three are main resources - a buckslip process, a corrective action plan
-  and a corrective task action plan - and two are test resources;
-  acm-personnel-security-plugin 1; acm-service-media-engine 1;
-  acm-service-transcribe 1.  The engine must load all 36.
-- The governing rule on evidence, verbatim: "Validation asserts on produced
-  artifacts and captured output, never on process exit status alone. This is
-  mandatory rather than stylistic because Gruntfile.js sets
-  grunt.option('force', true), which masks task failures and lets a broken build
-  exit zero."  This region is where that rule bites hardest.  A deployment can
-  reach ready state, answer its readiness probe and return a healthy status
-  while the engine has loaded fewer definitions than the corpus contains,
-  because a short load does not necessarily stop the application from starting.
-  The definitions-loaded count is the evidence.  The deployment's exit status is
-  not, a healthy readiness probe is not, and an absence of error lines is not
-  either.  A count below 36 is a finding even when everything else looks well.
-- The timing trap, recorded explicitly because it is the single easiest way to
-  produce a wrong count in this region.  The first startup takes 5 to 10
-  minutes; the repository states this at README.md:141 and repeats it at
-  docs/setup.md:108, both anchored at the capture commit.  The engine deploys
-  its process definitions during that window.  Querying the engine or
-  truncating this capture before the window has completed yields a
-  definitions-loaded figure that is an artefact of timing rather than of
-  behaviour, and it will usually look like a short load.  The capture must
-  therefore span the whole window, and the sibling readiness-poll.log must show
-  readiness reached before any flow was attempted.  A reviewer comparing the
-  baseline and migrated counts needs to know that both captures waited, which is
-  why the constraint is stated here and not left to the producer's discretion.
-- Risk classification, and it is deliberately not softened.  The engine is the
-  oldest load-bearing component in the whole reactor, dating from 2014, and its
-  version is unchanged by this migration.  It could not be bootstrapped for
-  testing without a database, so it was classified honestly as residual
-  unverified risk and assigned to the deployment and smoke gates rather than
-  being resolved during analysis.  Engine initialisation happens at deployment,
-  before any request is made, which means this log region is the only place its
-  behaviour is observed at all.  Because this region is SKIPPED, that
-  observation has not been made, and the risk stands exactly where it was
-  assigned.  Nothing in this file may be read as the engine having been shown to
-  work on the new runtime.
-- Three findings BOUND that concern.  They bound it; they do not remove it, and
-  none of them is a substitute for the observation this region exists to make.
-- Bounding finding 1, and its inference is WITHDRAWN as false rather than
-  quietly dropped.  The two measurements it rests on are literally true and were
-  re-derived over the corpus here: the corpus declares zero script tasks and
-  zero script-format attributes, 0 and 0.  The inference originally drawn from
-  those two zeros - that the engine therefore never requests a scripting engine,
-  so the platform's removal of the bundled one cannot reach it - is FALSE.  The
-  engine also reaches a scripting engine through a TASK LISTENER, and one main
-  resource, personnelSecurityBackgroundInvestigation_v11.bpmn20.xml in
-  acm-personnel-security-plugin, declares seven complete-event script task
-  listeners, each carrying a language field whose value is javascript.  Measured
-  at the capture commit: seven listener declarations and seven javascript
-  language fields in that one file, and it is the only file in the corpus with
-  any.  The reason a census misses them is worth recording, because it is the
-  transferable part: the language is carried in a nested field element with
-  CDATA content, not in an XML attribute, so a pattern-based search over
-  attributes returns zero while the declarations sit there in plain sight.  A
-  pattern-based census over configuration is only as good as its knowledge of
-  every element that can reach the capability.  The bounding effect of the two
-  zeros is therefore much narrower than it first appeared, and stating the
-  withdrawal raises the residual risk rather than lowering it.
-- Bounding finding 2.  The engine's persistence layer reflects over the
-  application's own domain classes through ordinary, unrestricted reflection.
-  It does not reflect across a module boundary into a package that is not
-  exported, which is the pattern that fails under the new runtime's strong
-  encapsulation.  This bounds the encapsulation exposure; it does not
-  demonstrate that the engine initialises.
-- Bounding finding 3.  The engine reads no class bytes and touches no
-  JDK-internal packages.  It is therefore not exposed to the class file version
-  change directly, and it is not exposed to the encapsulation of internal
-  packages.  Again this bounds the concern; it says nothing about whether the
-  process definitions deploy.
-- The script-engine defect, which is registered and NOT fixed, and which is the
-  most dangerous of the three platform removals precisely because it fails
-  silently.  A scripting engine was removed from the platform in a later
-  release.  Two application classes still request it by name: one in the FOIA
-  standard application at line 94, and one in the privacy standard application
-  at line 98, each inside a no-argument constructor immediately preceded by the
-  instantiation of a script-engine manager.  At the capture commit those are the
-  only two occurrences of the engine's name across all Java, XML, properties,
-  shell and YAML files in the repository, which was verified rather than assumed.
-- Both call sites compile cleanly at the new release, because the scripting API
-  remained in the platform while only the engine implementation was removed.
-  The lookup returns null at runtime and the next dereference throws.  No
-  compiler, and no static audit for internal-package references, would surface
-  it.  The contrast with the other two removals is the point: those fail loudly
-  at compile time, one with a missing-package error and one with an
-  unexported-package error, so they cannot be shipped by accident.  This one
-  can.
-- Both call sites are provably unreachable dead code, and the verified finding
-  is stronger than a summary reading of the configuration would suggest.  In the
-  FOIA standard application the XML comment region opens at line 131 and closes
-  at line 141.  Both declarations therefore sit inside the comment: the
-  non-JavaScript predicate at line 131 and the JavaScript-evaluating predicate
-  at line 139 alike.  There is no active declaration of either one anywhere in
-  that file.  The only consumer, a bean reference at line 150, sits inside a
-  commented property block spanning lines 148 to 152.  The privacy standard
-  application has no XML reference to the class whatsoever.  The references that
-  appear to arrive from other modules are bean examples inside documentation
-  comments rather than live configuration.
-- At the capture commit no standalone script-engine dependency is declared, and
-  the reasons that decision was taken are recorded because they are rule-driven
-  rather than incidental.  Declaring one would introduce a library into the
-  production dependency graph solely to support code that cannot execute, which
-  the constraint against unjustified dependency changes forbids.  It would also
-  make dead code functional, which is a behaviour CHANGE relative to the
-  baseline and therefore forbidden by the baseline-as-tie-breaker rule.  And it
-  would mask a latent defect instead of recording it, which the rule on
-  discovered defects forbids.  The defect is registered rather than repaired.
-- The consequence for this capture, stated on baseline reasoning rather than on
-  the withdrawn inference.  At the capture commit the region must show no
-  null-script-engine error, and the reason is simply that on the older runtime
-  the bundled scripting engine is still part of the platform, so the lookup
-  those two constructors perform cannot return null there.  The defect is latent
-  at baseline and becomes reachable only once the removal applies.  It would be
-  wrong to rest this expectation on bounding finding 1, whose inference is
-  withdrawn above; the seven script task listeners mean the engine does have a
-  path to a scripting engine, so the correct baseline statement is that the
-  engine is present on this runtime, not that nothing asks for it.
-- Every engine warning and error line is to be captured exactly as observed,
-  with nothing repaired, nothing retried into submission and nothing hidden.
-  This region carries the engine's own severity lines only.  The consolidated
-  scan across every region is allocated to the sibling error-scan.txt, which
-  reads from this same startup window; that allocation is where a reader goes
-  for all severity lines at once, and naming it here is a statement of
-  territory rather than a claim that the file has been produced on this run.
-  Because this region is SKIPPED there are no engine severity lines to carry.
-- Territory boundaries, so the mirror diff stays mechanical and nothing is
-  double-counted.  This region covers engine initialisation and
-  process-definition deployment only.  Container and application startup belong
-  to catalina.out.log, context initialisation to spring-context.log, annotation
-  scanning to reflection-scan.log, persistence initialisation to jpa-init.log
-  and the startup asset build to frontend-build.log.  Toolchain provenance
-  belongs to env/toolchain.txt, artifact digests to artifacts/ and archived
-  unit-test reports to surefire/.  The flow-7 request and response capture is a
-  separate matter again and lives in flow-7-workflow-start.out,
-  flow-7-workflow-start.status and flow-7-workflow-start.result.txt; this file
-  records engine initialisation, which happens before any request is made, and
-  none of that flow's content is reproduced here.
-- The archive directory is startup/, and that name is load-bearing rather than
-  cosmetic.  The repository's root ignore file uses bare, leading-slash-free
-  patterns, and git matches those at any depth: logs, bin, target,
-  activemq-data and partition-descriptor are all ignored wherever they appear,
-  as is builds/.  The ignored token is always the DIRECTORY name and never the
-  .log file extension, so a .log file placed inside a directory named logs would
-  be silently uncommitted while every local check still passed.  This file
-  therefore sits directly in startup/ and no subdirectory was created beneath
-  it.  The trap is sharpest in this region of all: activemq-data and
-  partition-descriptor are both engine-adjacent names, and grouping engine
-  artefacts under either of them would look tidy and lose the evidence.
-- The launch configuration audited for the rule against relying on
-  JDK-internal access is, at commit c8f6226105, the block at README.md:111-127,
-  duplicated at docs/setup.md:76-96.  It is described here and cited by anchor,
-  and deliberately never reproduced verbatim, for two reasons: it carries
-  credential-shaped values, and it also carries two pre-existing unbalanced
-  quotation marks, at README.md:119 and spanning README.md:123-124.  Importing
-  that block would copy a pre-existing defect into a new file for no benefit,
-  and the rule on discovered defects forbids repairing it, so it is neither
-  repaired nor imported.
-- Verified at the capture commit: that launch configuration contains zero
-  module-access JVM arguments.  If such an argument ever appeared in a captured
-  banner it would be replaced, in this region, by the description "a
-  module-access JVM argument that opens or exports an otherwise-encapsulated JDK
-  package to the unnamed module", and the substitution would be recorded in this
-  notes block.  No such substitution was required here, because nothing was
-  captured and because the audited configuration carries no such argument.  The
-  register of applied exceptions is referred to only by its title, which is
-  JDK Access Exceptions, and never by filename or path, so that this file
-  introduces no occurrence of the very argument names the register accounts for.
-- The governing rule on discovered defects, verbatim: "Pre-existing bugs
-  discovered during the work are documented rather than fixed, unless one blocks
-  a validation item."  Applied to this region that means the script-engine
-  defect above is registered and left alone, the withdrawn inference is recorded
-  rather than deleted, and every engine warning is captured as observed.  The
-  migration's escape clause is invoked exactly twice in the entire change set
-  and neither invocation is in this folder.  Nothing in this file proposes,
-  implies or performs a fix; in particular nothing here suggests declaring a
-  script engine or repairing either of the two call sites.
-- The governing rule on ambiguity, verbatim: "The application's observed
-  behavior at the base commit on JDK 8 is the tie-breaker for any ambiguity, and
-  each resolution must be documented."
-  [Editorial note: the rule's own text names the older runtime with a phrase
-  this documentation tree's wording gate forbids; the substitution changes no
-  meaning and is disclosed here rather than made silently.]
-  That rule is the whole reason this file exists before any migrated counterpart
-  does, and the reason an absence is recorded here instead of a plausible-looking
-  substitute: an uninitialised engine's behaviour is unknowable rather than
-  assumable.  It is also the rule that forced the withdrawal recorded above, in
-  the direction that increases the recorded risk rather than the direction that
-  would have been more comfortable.
-- The governing rule on justified change applies to this region in an unusual
-  way, and it is why the region matters at all.  A dependency change without a
-  specific compatibility reason is out of scope, so the engine's version is
-  deliberately held rather than advanced.  Holding it is a decision that needs
-  evidence, and this capture is the only runtime observation that would supply
-  it.  A SKIPPED region therefore leaves that decision resting on static
-  analysis alone, which is precisely why the risk is recorded as assigned to
-  this gate rather than as resolved.  The same rule keeps the capture pipeline to
-  a POSIX toolset: no JSON processor, no scripting runtime, no test framework
-  and no package installation are used to produce this region.
-- The governing rule against silently skipping anything is what this file's
-  shape implements.  Nothing has been quietly omitted: the region that could not
-  be captured says so in a machine-readable field, names the specific unmet
-  preconditions, and distinguishes them from the preconditions that were met so
-  that the reason cannot be misread.
-- Namespace invariance holds in this file as everywhere else in the change set:
-  no reference to the forbidden target namespace appears anywhere here,
-  including inside the capture delimiters, which are empty.
-- Provenance of the rules quoted above, and both facts belong together because
-  either alone misleads.  First, the project's rules facility reports, verbatim,
-  "No user rules provided" - there is no on-disk user rules document for this
-  project, and that is explicitly not licence to lower the bar.  Second, rules
-  are nonetheless present and binding: the requirements embed an explicit,
-  numbered block of seven rules that governs this work in full exactly as an
-  external rules document would, alongside seven transformation rules.  The
-  identifiers the migration plan uses for them are its own navigational
-  convention rather than quoted titles, which is why the rules are quoted here
-  by their text rather than cited by number alone.
+startup-log-region: workflow-engine-init.log
+region-describes: process-engine initialisation and process-definition loading, the observable side of the flow 7 residual risk
+region-mandatory: yes
+region-pattern: activiti|ProcessEngine|bpmn|process definition|deployment|ProcessEngineConfiguration
+region-pattern-flags: grep -E -i, applied to the extracted window only
+window-source: /tmp/p9-runtime-base8/tomcat/logs/catalina.out
+window-source-sha256: fe2ef01da1badfd8d28205feda8d2d90596cf015970528783cc4e5e356719879
+window-boots-present-in-source: 1
+window-sha256: 8fb65f14fa0f53cce5632ee0b330d1274aa4f2fa455ee42d251b25948434ffc5
+window-start-line: 1
+window-end-line: 4874
+window-start-byte-offset: 0
+window-end-byte-offset: 755371
+window-lines: 4874
+matched-lines: 41
+line-cap: 2000
+capture-truncated: no
+----- region -----
+[36m<TIMESTAMP>,513 [DEBUG] [main] com.armedia.acm.activiti.services.ActivitiTaskScheduler - Application has started - now accepting tasks.
+[m[32m<TIMESTAMP>,705 [INFO ] [main] com.armedia.acm.activiti.services.ActivitiTaskScheduler - Initializing ExecutorService 'activitiTaskScheduler'
+[32m<TIMESTAMP>,089 [INFO ] [main] org.activiti.engine.impl.ProcessEngineImpl - ProcessEngine default created
+[m[32m<TIMESTAMP>,091 [INFO ] [main] org.activiti.engine.impl.jobexecutor.JobExecutor - Starting up the JobExecutor[org.activiti.spring.SpringJobExecutor].
+[m[32m<TIMESTAMP>,092 [INFO ] [Thread-125] org.activiti.engine.impl.jobexecutor.AcquireJobsRunnable - JobExecutor[org.activiti.spring.SpringJobExecutor] starting to acquire jobs
+[m[36m<TIMESTAMP>,582 [DEBUG] [main] com.armedia.acm.data.SpringEntityListenerConfigurer - Entity class: com.armedia.acm.activiti.model.AcmProcessDefinition; has descriptor? true
+[m[32m<TIMESTAMP>,127 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
+[m[32m<TIMESTAMP>,129 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentWorkflow_v5.bpmn20.xml]
+[m[32m<TIMESTAMP>,137 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [b60e02c94c94e73f010e7203254a930351984fe617a6f424e539cf1a978d23df] from Bpmn file
+[m[32m<TIMESTAMP>,143 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentWorkflow] from Bpmn file
+[m[32m<TIMESTAMP>,156 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [acmDocumentWorkflow]
+[m[32m<TIMESTAMP>,157 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentSingleTaskWorkflow_v2.bpmn20.xml]
+[m[32m<TIMESTAMP>,158 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [be61d110d0a35a6c8b50539d581da4dd70eded6c2062c9ca2adbe8b687741ddd] from Bpmn file
+[m[32m<TIMESTAMP>,159 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentSingleTaskWorkflow] from Bpmn file
+[m[32m<TIMESTAMP>,160 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [acmDocumentSingleTaskWorkflow]
+[m[32m<TIMESTAMP>,161 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentTaskWorkflow_v1.bpmn20.xml]
+[m[32m<TIMESTAMP>,161 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [fd3e1892974c8cf208941f0077cd4b811790db85504cfa07e4835fe39d7aef33] from Bpmn file
+[m[32m<TIMESTAMP>,162 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentTaskWorkflow] from Bpmn file
+[m[32m<TIMESTAMP>,164 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [acmDocumentTaskWorkflow]
+[m[32m<TIMESTAMP>,165 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [ArkCase Buckslip Process v4.bpmn20.xml]
+[m[32m<TIMESTAMP>,166 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [57669a5ef8a22bf0c02091dfc6e08d0752f4d055fe43eeb11c84a51ac234ac77] from Bpmn file
+[m[32m<TIMESTAMP>,167 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[ArkCaseBuckslipProcess] from Bpmn file
+[m[32m<TIMESTAMP>,168 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [ArkCaseBuckslipProcess]
+[m[32m<TIMESTAMP>,170 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [DefaultComplaintWorkflow_v5.bpmn20.xml]
+[m[32m<TIMESTAMP>,170 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [8f2ceb667963f9808d94de463a5d5e2287e865eb5625a4c7c9b9a67409309b27] from Bpmn file
+[m[32m<TIMESTAMP>,171 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[cmComplaintWorkflow] from Bpmn file
+[m[32m<TIMESTAMP>,172 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [cmComplaintWorkflow]
+[m[32m<TIMESTAMP>,173 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [Corrective Task Action Plan.bpmn20.xml]
+[m[32m<TIMESTAMP>,173 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [46a85c1db3eda82a8f232aa67df997bbe6f53960fe341ee3f4098553966e6698] from Bpmn file
+[m[32m<TIMESTAMP>,174 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[CorrectiveTaskActionPlan] from Bpmn file
+[m[32m<TIMESTAMP>,176 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [CorrectiveTaskActionPlan]
+[m[32m<TIMESTAMP>,176 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [Corrective Action Plan_v3.bpmn20.xml]
+[m[32m<TIMESTAMP>,176 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [0ad61a22e53fdd9193fb4f8c573685f42fd84084ec936db85598e591e6498b22] from Bpmn file
+[m[32m<TIMESTAMP>,177 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[CorrectiveActionPlan] from Bpmn file
+[m[32m<TIMESTAMP>,178 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [CorrectiveActionPlan]
+[m[32m<TIMESTAMP>,180 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [MediaEngineWorkFlow_v2.bpmn20.xml]
+[m[32m<TIMESTAMP>,180 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [35d000ab286e7e1a5599a61e1de57bf374f9406754a043099df5265dcf90dcdc] from Bpmn file
+[m[32m<TIMESTAMP>,182 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[MediaEngineWorkFlow] from Bpmn file
+[m[32m<TIMESTAMP>,183 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [MediaEngineWorkFlow]
+[m[32m<TIMESTAMP>,183 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Done scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
+[m07-Aug-2026 04:30:57.532 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/tmp/p9-runtime-base8/tomcat/webapps/arkcase.war] has finished in [158,668] ms
+----- end region -----

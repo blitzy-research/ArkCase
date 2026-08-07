@@ -352,6 +352,11 @@
 #                         that is still starting.
 #   SMOKE_READY_INTERVAL  Seconds between readiness attempts.  Default 10.
 #   SMOKE_MAX_BODY_BYTES     Response-body capture cap.  Default 262144.
+#   SMOKE_MAX_WINDOW_LINES   Cap for the one unfiltered startup region, which is
+#                            the extracted startup window verbatim.  Larger than
+#                            SMOKE_MAX_LOG_LINES because a half-window cannot serve
+#                            its purpose of letting a mined region be checked
+#                            against its source.  Default 20000.
 #   SMOKE_MAX_HEADER_BYTES   Response-header capture cap.  Default 16384.
 #   SMOKE_MAX_DIAG_BYTES     Transport-diagnostic capture cap.  Default 8192.
 #   SMOKE_MAX_LOG_LINES      Startup-log region cap, in lines.  Default 2000.
@@ -406,6 +411,35 @@
 #     SMOKE_OUT_DIR=docs/migration/smoke-evidence/baseline ./smoke-checks.sh
 #
 # ---------------------------------------------------------------------------
+# HOW A FULL RUN PUBLISHES, AND WHY IT MATTERS TO AN OPERATOR
+#
+# A FULL run does NOT write into SMOKE_OUT_DIR.  It writes into a fresh sibling
+# staging directory named "<SMOKE_OUT_DIR>.run-<pid>", checks the produced set
+# against a declared manifest, and only then replaces SMOKE_OUT_DIR wholesale by
+# renaming the previous capture aside, renaming the staged tree into place, and
+# removing the set-aside tree.
+#
+# Two consequences an operator should expect:
+#
+#   - Every file in the published directory was written by the run that published
+#     it.  A file left by an earlier run, or by an earlier revision of this
+#     script, cannot survive, because the directory it would have survived in is
+#     replaced rather than written into.  That is a structural guarantee, not a
+#     matter of discipline, and it is the answer to a real defect: the previous
+#     committed capture tree held startup regions under two generations of names,
+#     a summary under a superseded name, and six notes with no producer at all.
+#   - If publication cannot complete — the destination cannot be renamed, say —
+#     NOTHING is deleted.  The staged tree is left in place, its path is printed,
+#     and the previous capture stays published.  A capture is never destroyed to
+#     make room for one that could not be installed.
+#
+# A SUBSET run, meaning SMOKE_FLOWS naming several flows or SMOKE_ONLY_FLOW naming
+# one, writes IN PLACE and does not stage.  That is deliberate: a subset refreshes
+# three files per flow and leaves the whole-run aggregates alone, so staging would
+# either publish a directory holding only those three files or have to copy the
+# rest — and the copy would reintroduce exactly the staleness staging removes.
+#
+# ---------------------------------------------------------------------------
 # ARTEFACT NAMING CONTRACT — fixed, so that baseline/ and migrated/ mirror each
 # other exactly and `diff -r` is mechanically meaningful:
 #
@@ -458,6 +492,40 @@ umask 077
 # then exits 2 — distinct from the non-zero exit that an INCOMPLETE capture
 # produces, so a caller can tell "never ran" from "ran and found holes".
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# pipe_grep_found — a boolean grep that is SAFE ON THE DOWNSTREAM SIDE OF A PIPE.
+#
+# This script runs with `set -o pipefail`, and `grep -q` is unsound in that
+# combination.  grep -q exits the instant it matches; the write end of the pipe
+# then has no reader, the process upstream receives SIGPIPE, it exits with status
+# 141, and pipefail promotes that to the status of the whole pipeline — so a
+# SUCCESSFUL match is reported as a failure.
+#
+# It is not theoretical and it is not rare.  The effect depends on whether the
+# upstream has more to write than the pipe buffer holds, so it is invisible on
+# small inputs and reliable on large ones.  Measured here: a two-line upstream
+# gives status 0, and a two-hundred-thousand-line upstream gives 141.  It was
+# found the hard way — the rendered application page carried its required label
+# four times and the assertion recorded the label as absent, because the page is
+# 126 kilobytes and the pipe buffer is not.
+#
+# grep -c reads its input to the end, so no signal is delivered, and the count is
+# compared explicitly.  Every boolean grep downstream of a pipe in this script
+# goes through this function, and audit_pipeline_grep refuses a new one that does
+# not — because the failure mode is a silently inverted assertion, which is the
+# single worst thing an evidence script can contain.
+# ---------------------------------------------------------------------------
+pipe_grep_found()
+{
+    local n
+
+    n="$(grep -c "$@")" || true
+    case "$n" in
+        '' | *[!0-9]* | 0) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
 fail_startup()
 {
     local line
@@ -465,6 +533,27 @@ fail_startup()
     for line in "$@"; do
         printf '  %s\n' "$line" >&2
     done
+
+    # A refusal that fires after the staging tree was created would otherwise
+    # leave an empty sibling directory behind, and the next run would then refuse
+    # a second time on a stale staging directory it did not make.  Only an EMPTY
+    # one is removed: a staging tree with anything in it holds the only copy of
+    # that run evidence, and destroying it to tidy up would be the worse error.
+    # rmdir rather than rm -rf, so the emptiness is enforced by the tool and not
+    # by this function believing it.
+    if [ -n "${SMOKE_STAGING_DIR:-}" ] && [ -d "$SMOKE_STAGING_DIR" ]; then
+        rmdir -- "${SMOKE_STAGING_DIR}/artifacts" "${SMOKE_STAGING_DIR}/env" \
+            "${SMOKE_STAGING_DIR}/notes" "${SMOKE_STAGING_DIR}/startup" \
+            "${SMOKE_STAGING_DIR}/surefire" 2>/dev/null || true
+        if rmdir -- "$SMOKE_STAGING_DIR" 2>/dev/null; then
+            printf '  The empty staging directory %s was removed.\n' \
+                "$SMOKE_STAGING_DIR" >&2
+        else
+            printf '  The staging directory %s is NOT empty and is left in place.\n' \
+                "$SMOKE_STAGING_DIR" >&2
+        fi
+    fi
+
     exit 2
 }
 
@@ -560,11 +649,67 @@ is_loopback_host()
     esac
 }
 
+# percent_encode — encode one value for use inside a URL query string.
+#
+# Every value this script puts into a query string after the first probe is
+# SERVER-DERIVED: an object number the application generated, a queue name it
+# returned.  Concatenating such a value raw is a query-parameter-pollution
+# primitive - a value containing & or = adds or overrides parameters, and one
+# containing # truncates the query - so the next request is no longer the request
+# this script meant to send, and the capture then records the answer to a
+# different question.  Encoding is applied at the point of use rather than
+# trusted to the source, because the source is the system under test.
+#
+# The unreserved set of RFC 3986 is passed through and everything else is
+# percent-encoded from its bytes, so the result is safe in a query string
+# whatever the value contained.  Written with od and printf rather than a URL
+# library for the reason recorded at json_scalar: no tooling is added to this
+# deliverable without a compatibility justification.
+percent_encode()
+{
+    local value="$1"
+    local index=0
+    local length=${#value}
+    local character
+
+    while [ "$index" -lt "$length" ]; do
+        character="${value:index:1}"
+        case "$character" in
+            [a-zA-Z0-9.~_-])
+                printf '%s' "$character"
+                ;;
+            *)
+                # LC_ALL=C makes the byte loop below iterate over BYTES rather
+                # than characters, so a multi-byte value encodes correctly.
+                printf '%s' "$character" \
+                    | LC_ALL=C od -An -tx1 -v \
+                    | tr -d ' \n' \
+                    | sed -e 's/../%&/g'
+                ;;
+        esac
+        index=$((index + 1))
+    done
+}
+
 # assert_url_acceptable — refuse to start on a URL this script will not send.
+#
+# The third argument declares whether this script will send a CREDENTIAL to the
+# URL.  For a credentialed target, cleartext http is accepted only when the host
+# is a literal loopback address: anywhere else, a credentialed http probe puts
+# an administrator password on the wire in the clear for anyone on the path, and
+# no amount of certificate configuration afterwards recovers it.  A previous
+# revision validated the scheme without regard to whether a credential was
+# going to travel over it, so a remote http URL was accepted and then
+# authenticated against; that is the specific hole this parameter closes.
+#
+# Resolution is deliberately NOT part of the decision.  A name that resolves to
+# a loopback address today is not accepted, because what it resolves to is not a
+# property of the configuration and can change between the check and the probe.
 assert_url_acceptable()
 {
     local name="$1"
     local url="$2"
+    local credentialed="${3:-credentialed}"
     local scheme
 
     require_clean_value "$name" "$url"
@@ -586,6 +731,22 @@ assert_url_acceptable()
                 "  Remediation: set ${name} to an http or https URL."
             ;;
     esac
+
+    if [ "$scheme" = 'http' ] && [ "$credentialed" = 'credentialed' ] \
+        && ! is_loopback_host "$(url_host "$url")"; then
+        fail_startup \
+            "${name} is a cleartext http URL to a non-loopback host, and this script" \
+            '  sends a credential to it.' \
+            "  Offending URL: ${url}" \
+            '  A credentialed probe over http puts the password in the clear on every' \
+            '  hop between here and the host, and the capture this script writes is not' \
+            '  worth that.  On a literal loopback address there is no hop to sit on,' \
+            '  which is why that single case is accepted; anywhere else it is not.' \
+            "  Remediation: use https for ${name}.  If the stack presents a self-signed" \
+            '  certificate, authenticate it with SMOKE_TLS_PINNED_PUBKEY=sha256//BASE64' \
+            '  or SMOKE_CA_BUNDLE=/path/arkcase-ca.crt rather than by falling back to' \
+            '  cleartext.'
+    fi
 
     # A URL with userinfo is refused rather than redacted; see url_host.
     case "${url#*://}" in
@@ -653,6 +814,41 @@ assert_positive_integer()
 # into that refusal instead of past it.
 SMOKE_OUT_DIR="${SMOKE_OUT_DIR-./baseline}"
 
+# ---------------------------------------------------------------------------
+# STAGING AND ATOMIC PUBLICATION — WHY A FULL RUN DOES NOT WRITE IN PLACE.
+#
+# An earlier revision wrote every capture file directly into the destination and
+# never removed anything, so a file an OLDER revision of this script had produced
+# survived a run of a NEWER one.  The committed evidence tree showed exactly that:
+# eight startup regions under names the producer had stopped emitting sat beside
+# five under the names it did emit; a summary file under a superseded name sat
+# beside the current one; and six notes had no producer anywhere in the script.  A
+# reader had no way to tell which files the run in front of them had written, and
+# the answer differed per file.
+#
+# So a FULL run writes into a fresh sibling staging directory, is checked against
+# an explicit manifest, and is then moved into place with the previous capture
+# renamed aside first.  The published tree is therefore exactly one run output, by
+# construction rather than by discipline: there is no code path by which a file
+# from an earlier run can survive, because the directory it would have survived in
+# is replaced wholesale.
+#
+# A SUBSET run — SMOKE_FLOWS naming a set of flows, or SMOKE_ONLY_FLOW naming
+# one — writes IN PLACE and does not stage.  That is not
+# an oversight: a subset deliberately refreshes three files per flow and leaves the
+# aggregate captures of the whole run untouched, so staging would either publish a
+# directory containing only those three files or have to copy the rest, and the
+# copy would reintroduce exactly the staleness this mechanism removes.  A subset
+# run also writes no completeness verdict, for the same reason.
+# ---------------------------------------------------------------------------
+
+# The directory the operator asked for, and the one that ends up committed.
+SMOKE_FINAL_OUT_DIR="$SMOKE_OUT_DIR"
+
+# Whether this invocation stages.  Set below, once flow selection is known.
+SMOKE_STAGED='no'
+SMOKE_STAGING_DIR=''
+
 ARKCASE_BASE_URL="${ARKCASE_BASE_URL:-https://arkcase-ce.local/arkcase}"
 ARKCASE_USER="${ARKCASE_USER:-arkcase-admin@arkcase.org}"
 
@@ -676,7 +872,19 @@ CATALINA_LOG="${CATALINA_LOG:-}"
 
 CURL_CONNECT_TIMEOUT="${CURL_CONNECT_TIMEOUT:-10}"
 CURL_MAX_TIME="${CURL_MAX_TIME:-120}"
-SMOKE_READY_ATTEMPTS="${SMOKE_READY_ATTEMPTS:-1}"
+
+# Readiness polling.  The defaults MUST cover the documented first-startup window
+# or the evidence they produce is worse than none: a single failed probe against a
+# container that is still deploying records an unreachable stack, every flow then
+# records against that same unreachable stack, and the capture is a row of
+# no-response tokens that looks exactly like a broken application.  README.md and
+# docs/setup.md both record that the first Tomcat startup takes 5 to 10 minutes,
+# so 60 attempts at 10 seconds gives a 600-second window that covers it, and a
+# ready application still answers on the FIRST attempt and moves on immediately -
+# the window costs nothing when it is not needed.  An earlier revision defaulted
+# to a single attempt while its own comment described the 5-to-10-minute window,
+# which is the specific contradiction these two lines close.
+SMOKE_READY_ATTEMPTS="${SMOKE_READY_ATTEMPTS:-60}"
 SMOKE_READY_INTERVAL="${SMOKE_READY_INTERVAL:-10}"
 SMOKE_INDEX_ATTEMPTS="${SMOKE_INDEX_ATTEMPTS:-12}"
 SMOKE_INDEX_INTERVAL="${SMOKE_INDEX_INTERVAL:-5}"
@@ -688,9 +896,28 @@ SMOKE_INDEX_INTERVAL="${SMOKE_INDEX_INTERVAL:-5}"
 # return and exist to bound an unexpected response — an HTML error page from a
 # reverse proxy, a stack trace, or a redirect loop's accumulated output.
 SMOKE_MAX_BODY_BYTES="${SMOKE_MAX_BODY_BYTES:-262144}"
+# The transport's own ceiling, always strictly greater than the capture cap so
+# that an oversized body is READ past the cap and can therefore be detected as
+# oversized.  Derived rather than configured, so the invariant cannot be broken by
+# setting one of the two: four times the cap gives ample room for the JSON these
+# endpoints return while still bounding an unbounded response.
+SMOKE_TRANSPORT_MAX_BODY_BYTES=$((SMOKE_MAX_BODY_BYTES * 4))
 SMOKE_MAX_HEADER_BYTES="${SMOKE_MAX_HEADER_BYTES:-16384}"
 SMOKE_MAX_DIAG_BYTES="${SMOKE_MAX_DIAG_BYTES:-8192}"
 SMOKE_MAX_LOG_LINES="${SMOKE_MAX_LOG_LINES:-2000}"
+
+# SMOKE_MAX_WINDOW_LINES — the cap for the ONE unfiltered region, startup/
+# catalina.out.log, which is the extracted startup window verbatim.
+#
+# It has its own, larger cap because its whole purpose is to let a reader check a
+# mined region against its source, and a half-window cannot do that.  Measured on
+# a real container log, a complete boot at the shipped logging level is roughly
+# four thousand lines and at debug level several times that, so the default holds
+# a complete boot in both cases.  It is still a CAP rather than no cap: a log with
+# debug enabled across every package could otherwise put an unbounded amount of
+# runtime output into version control, and exceeding this is marked and announced
+# exactly like every other truncation.
+SMOKE_MAX_WINDOW_LINES="${SMOKE_MAX_WINDOW_LINES:-20000}"
 
 # Transport trust.  No default weakens verification; see the SECURITY POSTURE
 # section above.
@@ -741,6 +968,46 @@ case "$SMOKE_FLOWS" in
         ;;
 esac
 
+# Each TOKEN is then validated against the eight flows that exist, and duplicates
+# are refused.  Syntactic validation alone is not enough and the gap it left was
+# total: SMOKE_FLOWS=9 passed the character check above, selected no flow,
+# skipped every aggregate writer because the variable was non-empty, wrote
+# nothing at all, and returned zero - so a typo produced a silent no-op that an
+# automated caller could not distinguish from a successful subset capture.  A
+# token outside 1..8 now fails at startup, and main() additionally refuses to
+# finish a subset run in which no flow was matched.
+if [ -n "$SMOKE_FLOWS" ]; then
+    SMOKE_FLOWS_SEEN=''
+    for SMOKE_FLOW_TOKEN in $(printf '%s' "$SMOKE_FLOWS" | tr ',' ' '); do
+        case "$SMOKE_FLOW_TOKEN" in
+            1|2|3|4|5|6|7|8) ;;
+            *)
+                fail_startup \
+                    "SMOKE_FLOWS names flow '${SMOKE_FLOW_TOKEN}', and there are only eight flows." \
+                    '  The eight are: 1 login, 2 views, 3 alfresco-roundtrip, 4 solr-search,' \
+                    '  5 activemq-event, 6 generated-number, 7 workflow-start,' \
+                    '  8 queue-transition.' \
+                    '  Refused rather than ignored: a token that matches no flow would select' \
+                    '  nothing, skip every aggregate writer, write no evidence and still exit' \
+                    '  zero, which is indistinguishable from a successful capture.' \
+                    "  Remediation: name flows in 1..8, or leave SMOKE_FLOWS unset."
+                ;;
+        esac
+        case " ${SMOKE_FLOWS_SEEN} " in
+            *" ${SMOKE_FLOW_TOKEN} "*)
+                fail_startup \
+                    "SMOKE_FLOWS names flow '${SMOKE_FLOW_TOKEN}' more than once." \
+                    '  A flow captured twice in one invocation truncates and rewrites its own' \
+                    '  three files on the second pass, so the first pass is lost and the' \
+                    '  duplicate cannot mean what it appears to mean.' \
+                    '  Remediation: name each flow at most once.'
+                ;;
+        esac
+        SMOKE_FLOWS_SEEN="${SMOKE_FLOWS_SEEN} ${SMOKE_FLOW_TOKEN}"
+    done
+    unset SMOKE_FLOW_TOKEN
+fi
+
 # flow_selected — true when a flow should run in this invocation.
 flow_selected()
 {
@@ -760,8 +1027,50 @@ flow_selected()
 # cited again at the flow that uses it.
 FLOW1_PATH="${FLOW1_PATH:-/api/latest/plugin/admin/businessHours}"
 FLOW1_IDENTITY_PATH="${FLOW1_IDENTITY_PATH:-/api/latest/users/info}"
+
+# The two endpoints that make flow 1 an assertion about the DIRECTORY SERVICE
+# rather than only about the security filter chain.
+#
+# Why they are needed.  An authenticated 200 on a protected endpoint proves the
+# filter chain granted the request.  It does not prove which authentication
+# provider granted it, and it certainly does not prove that the class whose one
+# migrated source line this flow exists to observe — the directory-service
+# context source — was constructed and used.  On a deployment configured for a
+# token-based provider the same 200 appears with no directory service involved at
+# all, so the flow would report the migration's one security-adjacent edit as
+# observed while never touching it.
+#
+#   FLOW1_LDAP_DIRECTORIES_PATH  the administration endpoint that returns the
+#       configured directory list.  Served by the LDAP configuration retrieval
+#       controller through the LDAP configuration service, so a 200 naming a
+#       directory establishes that directory configuration is live in the running
+#       application.  Its response carries a bind credential, which the sanitiser
+#       redacts before anything is written; see the redaction ledger.
+#   FLOW1_LDAP_DIRECTORY_NAME    the directory to name in the second probe.
+#   FLOW1_LDAP_DIRECTORY_PROBE_PATH  a per-directory endpoint whose handling goes
+#       through the directory registry, so its answer depends on a directory
+#       actually being registered rather than on the filter chain alone.
+FLOW1_LDAP_DIRECTORIES_PATH="${FLOW1_LDAP_DIRECTORIES_PATH:-/api/latest/plugin/admin/ldapconfiguration/directories}"
+FLOW1_LDAP_DIRECTORY_NAME="${FLOW1_LDAP_DIRECTORY_NAME:-arkcase}"
+FLOW1_LDAP_DIRECTORY_PROBE_PATH="${FLOW1_LDAP_DIRECTORY_PROBE_PATH:-/api/latest/ldap/}"
+
+# The repository file that is now the single textual home for the two externalised
+# JNDI values.  Read — never written — so the capture can state the values the
+# migrated code actually falls back to, instead of describing them.
+FLOW1_LDAP_JNDI_PROPERTIES="${FLOW1_LDAP_JNDI_PROPERTIES:-acm-services/acm-service-login/src/main/resources/spring/ldap-jndi.properties}"
+
+# The two property keys inside that file.  Named here so the reader that extracts
+# them cannot drift from the file it reads.
+FLOW1_LDAP_FACTORY_KEY='ldap.jndi.initialContextFactory'
+FLOW1_LDAP_POOL_KEY='ldap.jndi.connectionPoolFlag'
 FLOW2_SHELL_PATH="${FLOW2_SHELL_PATH:-/}"
-FLOW2_CASELIST_PATH="${FLOW2_CASELIST_PATH:-/api/latest/plugin/casebystatus/ALL}"
+# The controller's own token is lowercase 'all' (CaseByStatusAPIController maps
+# /casebystatus/{status} and compares the value against 'all'); an uppercase
+# spelling happens to reach the same result today only because the comparison
+# falls through to NONE and NONE and 'all' return the same empty list on an
+# unindexed stack.  Using the token the controller actually declares means the
+# probe exercises the branch it is named after rather than coinciding with it.
+FLOW2_CASELIST_PATH="${FLOW2_CASELIST_PATH:-/api/latest/plugin/casebystatus/all}"
 # Flow 2 names three views, so it probes three.  The case detail and the document
 # view both address a single object, so each is preceded by a discovery probe that
 # finds a real one: addressing a hardcoded identifier would record a request
@@ -792,6 +1101,51 @@ FLOW2_CASE_DISCOVERY_PATH="${FLOW2_CASE_DISCOVERY_PATH:-/api/latest/plugin/searc
 FLOW2_CASEDETAIL_PATH="${FLOW2_CASEDETAIL_PATH:-/api/latest/plugin/casefile/byId}"
 FLOW2_DOCUMENT_DISCOVERY_PATH="${FLOW2_DOCUMENT_DISCOVERY_PATH:-/api/latest/plugin/search/advancedSearch?q=object_type_s%3AFILE&start=0&n=1&fl=object_id_s%2Cname%2Cmime_type_s}"
 FLOW2_DOCUMENT_PATH="${FLOW2_DOCUMENT_PATH:-/plugin/document}"
+
+# The RENDERED pages and the SERVED assets, which are what make flow 2 an
+# assertion about rendering rather than about JSON endpoints.
+#
+# Why the JSON probes are not enough.  Every probe an earlier revision of this
+# flow made returned application/json: a status-and-count case list, a case-file
+# representation by identifier, a document representation by identifier.  Those
+# establish that the API layer answers a credentialed caller.  They do not
+# establish that a page RENDERS, that it renders the labels a reader would look
+# for, that it references the assets this migration compares byte for byte, or
+# that any of it is permission-dependent — and the flow is named for three views.
+#
+#   FLOW2_RENDERED_SHELL_PATH  the rendered application page.  Requires
+#       authentication, so it is also the permission-dependent observation: the
+#       same URL answers a redirect to the login page for an anonymous caller and
+#       the application shell for a credentialed one, and BOTH sides are asserted.
+#   FLOW2_LOGIN_PAGE_PATH      the rendered login page, which an anonymous caller
+#       is entitled to and which carries its own required form controls.
+#   FLOW2_SHELL_TITLE / FLOW2_LOGIN_TITLE / FLOW2_LOGIN_ACTION and the two field
+#       names: the required rendered labels, asserted against the SCOPED body of
+#       their own probe.
+FLOW2_RENDERED_SHELL_PATH="${FLOW2_RENDERED_SHELL_PATH:-/home.html}"
+FLOW2_LOGIN_PAGE_PATH="${FLOW2_LOGIN_PAGE_PATH:-/login}"
+FLOW2_SHELL_TITLE="${FLOW2_SHELL_TITLE:-<title>ArkCase Application</title>}"
+FLOW2_LOGIN_TITLE="${FLOW2_LOGIN_TITLE:-<title>ACM | ArkCase | User Interface</title>}"
+FLOW2_LOGIN_ACTION="${FLOW2_LOGIN_ACTION:-login_post}"
+FLOW2_LOGIN_USER_FIELD="${FLOW2_LOGIN_USER_FIELD:-name=\"username\"}"
+FLOW2_LOGIN_PASS_FIELD="${FLOW2_LOGIN_PASS_FIELD:-name=\"password\"}"
+
+# Where the deployed application serves the built frontend artifacts from.  Flow 2
+# fetches each one and asserts that the digest of the SERVED bytes equals the
+# digest recorded under artifacts/ — which is the only assertion that actually
+# links "the application renders" to "these are the artifacts being compared".
+FLOW2_ASSET_BASE="${FLOW2_ASSET_BASE:-/assets/dist}"
+FLOW2_RENDERED_PAGE_ARTIFACT_KEY='home.html'
+
+# SMOKE_MAX_ARTIFACT_BYTES — the ceiling for a SERVED ARTIFACT fetch.
+#
+# Separate from the response-body cap, and much larger, because these fetches are
+# digested rather than archived: the bytes are hashed, the hash and the length are
+# recorded, and the body itself is never written into the capture.  The vendor
+# bundle of this application is around four megabytes, so a cap sized for a JSON
+# response would refuse it outright.  It is still a ceiling: an artifact larger
+# than this is refused rather than read, and the refusal is recorded.
+SMOKE_MAX_ARTIFACT_BYTES="${SMOKE_MAX_ARTIFACT_BYTES:-16777216}"
 FLOW3_UPLOAD_PATH="${FLOW3_UPLOAD_PATH:-/api/latest/service/ecm/upload}"
 FLOW3_DOWNLOAD_PATH="${FLOW3_DOWNLOAD_PATH:-/api/latest/plugin/ecm/download}"
 FLOW3_DELETE_PATH="${FLOW3_DELETE_PATH:-/api/latest/service/ecm/id}"
@@ -807,7 +1161,44 @@ FLOW3_DELETE_PATH="${FLOW3_DELETE_PATH:-/api/latest/service/ecm/id}"
 # and so that the two runs are guaranteed to send the identical name and type.
 FLOW3_DOCUMENT_NAME="${FLOW3_DOCUMENT_NAME:-arkcase-smoke-probe.txt}"
 FLOW3_DOCUMENT_CONTENT_TYPE="${FLOW3_DOCUMENT_CONTENT_TYPE:-text/plain}"
-FLOW4_PATH="${FLOW4_PATH:-/api/latest/plugin/search/advancedSearch?q=*%3A*&start=0&n=5}"
+# Flow 4's search request, assembled from its parts so that each part can be
+# overridden and, more importantly, so that each part is visible as a decision.
+#
+# WHY THE PARTS EXIST AT ALL.  The request used to be one literal ending
+# "?q=*%3A*&start=0&n=5" — a match-everything query, five rows deep, WITH NO SORT.
+# That cannot produce a comparable result set, for two independent reasons:
+#
+#   A MATCH-ALL QUERY SCORES EVERY DOCUMENT EQUALLY, so "the first five" is
+#   whatever the index happens to return, and the flow's own criterion is an
+#   identical result set AND identical ranking.  There is no ranking to compare
+#   when every score is the same, and the five documents that come back are not
+#   the same five between two runs against differently-populated indexes.
+#
+#   WITH NO SORT PARAMETER THE ORDER IS NOT DEFINED.  Even against one index, two
+#   requests may return equally-scored documents in different orders, so a
+#   difference in the recorded ordering would be reported as a behavioural
+#   difference when nothing had changed.  A capture that produces false
+#   differences is as useless as one that misses real ones.
+#
+# So the query is QUALIFIED to one object type and the sort is DECLARED.  The sort
+# field is the one ArkCase's own dashboard queries sort on, so it is a field the
+# index is known to expose and to allow sorting on; the direction is fixed.  A
+# deployment that wants to exercise relevance ranging rather than a stable order
+# can set FLOW4_SORT to an empty value and accept the consequence, which is
+# recorded in the capture either way.
+FLOW4_QUERY="${FLOW4_QUERY:-object_type_s%3ACOMPLAINT}"
+FLOW4_START="${FLOW4_START:-0}"
+FLOW4_ROWS="${FLOW4_ROWS:-5}"
+FLOW4_SORT="${FLOW4_SORT:-create_date_tdt%20asc}"
+# An operator who supplies the whole path keeps it verbatim, so an existing
+# invocation is unaffected by the parts above; only an unset FLOW4_PATH is
+# assembled here.
+if [ -z "${FLOW4_PATH:-}" ]; then
+    FLOW4_PATH="/api/latest/plugin/search/advancedSearch?q=${FLOW4_QUERY}&start=${FLOW4_START}&n=${FLOW4_ROWS}"
+    if [ -n "$FLOW4_SORT" ]; then
+        FLOW4_PATH="${FLOW4_PATH}&s=${FLOW4_SORT}"
+    fi
+fi
 FLOW5_SEARCH_PATH="${FLOW5_SEARCH_PATH:-/api/latest/plugin/search/advancedSearch}"
 # The destination flow 5 observes, and it is a repository value rather than a
 # guess: the consumer declares it as a constant at
@@ -823,8 +1214,193 @@ FLOW5_DESTINATION_NAME="${FLOW5_DESTINATION_NAME:-solrAdvancedSearch.in}"
 # one, setting this adds a captured broker-side view of the destination beside
 # the consumer-side observation, and the script still does not need editing.
 BROKER_STATUS_URL="${BROKER_STATUS_URL:-}"
+
+# BROKER_DESTINATION_URL — a management surface that reports the DESTINATION's own
+# counters, giving flow 5 arrival evidence that does not come from the
+# application's answer at all.
+#
+# WHY THIS IS A SEPARATE KNOB FROM BROKER_STATUS_URL.  That one answers "is the
+# broker up".  This one answers "did anything actually transit this destination,
+# and is anyone consuming it" — which is the question flow 5 is named for, and the
+# only form of it that is independent of the search index.  Consumer-side evidence
+# and broker-side evidence can disagree, and when they do the disagreement is the
+# finding; a capture that carries only one of them cannot show it.
+#
+# Absent by default, because the reference stack does not guarantee a management
+# surface and a probe against a URL that was never exposed produces a connection
+# failure that looks like a behavioural finding.  When it is absent every counter
+# row is still written, carrying the not-configured token, so the absence is
+# visible in a directory diff rather than being missing from it.
+#
+# The URL is supplied whole rather than assembled from a host and a destination
+# name, because management surfaces differ and assembling one would bake a single
+# vendor's URL shape into this script.  On the reference stack's broker the shape
+# that answers is its JMX-over-HTTP bridge, read for the queue MBean whose
+# destinationName is FLOW5_DESTINATION_NAME.
+BROKER_DESTINATION_URL="${BROKER_DESTINATION_URL:-}"
+
+# BROKER_REQUEST_ORIGIN — an Origin header value sent with the two broker probes.
+#
+# Not decoration.  The reference stack's JMX-over-HTTP bridge applies strict
+# origin checking, and this was established by execution rather than from
+# documentation: the identical authenticated request answers with the MBean when
+# an Origin header is present and refuses when it is absent.  Worse for a naive
+# probe, it refuses with HTTP 200 and puts the real 403 INSIDE the response body,
+# so a check that read the transport status alone would record a successful
+# observation of nothing.  That is why capture_broker_destination below asserts on
+# the status the body reports, not on the status the transport reports (R-T7).
+#
+# Empty by default, and sent only when set, so that a management surface which
+# does not want one is not given one.
+BROKER_REQUEST_ORIGIN="${BROKER_REQUEST_ORIGIN:-}"
+
+# The broker gets its OWN credential, or none, and never ArkCase's.
+#
+# A previous revision sent the ArkCase administrator user and password to the
+# broker status surface, because that probe reused the script's one 'basic' auth
+# mode.  Two separate things are wrong with that and neither is theoretical.  The
+# broker is a different security domain with a different administrator: the
+# ArkCase credential means nothing to it, so the probe could only ever have
+# failed to authenticate - while still transmitting the credential to a host that
+# had no business receiving it, and while that host logged the failed attempt
+# with the user name.  Credentials are not fungible across services, and a probe
+# that establishes whether a destination exists needs no ArkCase identity at all.
+#
+# So: BROKER_USER and BROKER_PASSWORD (or BROKER_PASSWORD_FILE) are independent
+# and OPTIONAL.  With neither set the broker probe is anonymous, which is what
+# the reference stack's status surface serves and what this observation actually
+# needs.  With them set they are used for the broker probe and for nothing else.
+BROKER_USER="${BROKER_USER:-}"
+BROKER_PASSWORD_FILE="${BROKER_PASSWORD_FILE:-}"
+BROKER_PASSWORD="${BROKER_PASSWORD:-}"
+BROKER_CREDENTIAL_SOURCE='none: the broker probe is anonymous'
+
+if [ -n "$BROKER_PASSWORD_FILE" ]; then
+    if [ ! -r "$BROKER_PASSWORD_FILE" ]; then
+        fail_startup \
+            "BROKER_PASSWORD_FILE does not name a readable file: ${BROKER_PASSWORD_FILE}" \
+            '  Remediation: point it at a file readable only by its owner, or unset it to' \
+            '  probe the broker anonymously.'
+    fi
+    BROKER_PASSWORD=''
+    IFS= read -r BROKER_PASSWORD < "$BROKER_PASSWORD_FILE" || true
+    BROKER_CREDENTIAL_SOURCE='file'
+elif [ -n "$BROKER_PASSWORD" ]; then
+    BROKER_CREDENTIAL_SOURCE='environment'
+fi
+
+if [ -n "$BROKER_PASSWORD" ] && [ -z "$BROKER_USER" ]; then
+    fail_startup \
+        'A broker password was supplied without a broker user.' \
+        '  Remediation: set BROKER_USER as well, or unset the password to probe the' \
+        '  broker anonymously.'
+fi
+
+if [ -n "$BROKER_USER" ]; then
+    require_clean_value 'BROKER_USER' "$BROKER_USER"
+fi
+if [ -n "$BROKER_PASSWORD" ]; then
+    require_clean_value 'the supplied broker credential' "$BROKER_PASSWORD"
+fi
+
+# Optional configuration-server surface.  EMPTY BY DEFAULT for the same reason as
+# the broker one: the reference stack documents five URLs and this is not among
+# them, so a guessed address would produce a connection failure that read as a
+# behavioural finding.  When an operator exposes one, the reference-stack probe
+# records it beside the other five, which closes the gap that the configuration
+# server - one of the six services whose wire behaviour this migration promises
+# is unchanged - was the only one never observed at all.  Probed anonymously:
+# establishing that it answers needs no credential.
+CONFIG_SERVER_URL="${CONFIG_SERVER_URL:-}"
+
+# The PATH appended to CONFIG_SERVER_URL, and the default is a deliberate refusal
+# rather than a convenience.
+#
+# The obvious probe of a configuration server is a configuration resource -
+# /<application>/<profile> - because it returns 200 and proves the server is
+# serving configuration rather than merely listening.  It was measured before
+# being chosen, and it must NOT be used: against the provisioned server that
+# request returns 214,320 bytes containing 30 credential-shaped property keys,
+# among them a cloud secret access key, the content-repository administrator
+# password and the application database password.  Capturing that into a
+# committed evidence tree would publish the deployment's secrets, and no amount
+# of redaction can be trusted to catch every shape in a 214 KB property dump.
+#
+# The default therefore names a path that the server answers with 200 and an
+# EMPTY property-source list, which establishes the one fact the reachability
+# matrix needs - the service answers on the wire - and carries no configuration
+# value at all.  An operator who wants the stronger observation can set this
+# knob, and the consequence is theirs to accept.
+CONFIG_SERVER_PATH="${CONFIG_SERVER_PATH-/actuator/health}"
+
+# The directory service and the database are TCP services, not HTTP ones, so they
+# cannot appear in the HTTP reachability matrix - which is exactly why they were
+# missing from it.  Both are named in the integration surface this migration
+# promises is unchanged, and both are observable without a credential: a
+# completed TCP connection proves the service is listening, which is the same
+# claim the anonymous HTTP probes make about the other five.  Empty by default,
+# for the same reason as the broker and configuration-server knobs: a guessed
+# address would record a connection failure that read as a behavioural finding.
+DIRECTORY_SERVICE_ENDPOINT="${DIRECTORY_SERVICE_ENDPOINT-}"
+DATABASE_ENDPOINT="${DATABASE_ENDPOINT-}"
+MESSAGE_BROKER_ENDPOINT="${MESSAGE_BROKER_ENDPOINT-}"
+
+# The deployed artefact this capture was taken against, so that the capture can be
+# tied to a specific build rather than to a host and a port.
+#
+# This matters more than it looks.  A capture records a base URL and a container
+# log path, and neither identifies the BUILD that answered: on a host where several
+# checkouts of the same project are deployed side by side, a capture taken against
+# a neighbour's container is indistinguishable from one taken against your own -
+# same port shape, same log lines, same flow outcomes.  Naming the archive and
+# digesting it closes that: the digest is the one value that ties the recorded
+# behaviour to the change set under review.  Empty by default, and the absence is
+# recorded as an absence rather than filled with a guess.
+DEPLOYED_ARTIFACT="${DEPLOYED_ARTIFACT-}"
 FLOW6_PATH="${FLOW6_PATH:-/api/latest/plugin/complaint}"
 FLOW6_PRECONDITION_PATH="${FLOW6_PRECONDITION_PATH:-/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&s=create_date_tdt+DESC&start=0&n=1}"
+
+# FLOW6_EXPECTED_FORMAT - the SHAPE the generated number is expected to have.
+#
+# Expressed with every digit as 9 and every letter as A, separators verbatim, which
+# is the form number_format_signature produces.  A deployment with a different
+# numbering scheme sets its own, and setting it EMPTY records the observed shape
+# without asserting it, which is the right choice for a first capture against an
+# unfamiliar deployment.
+#
+# THE DEFAULT IS A DECLARATION, NOT A MEASUREMENT, AND THAT DISTINCTION IS THE POINT.
+# It states the scheme the complaint numbering decision tables are expected to
+# produce; it has NOT been confirmed against a number this evaluation host generated,
+# because complaint creation cannot complete here at all — the content repository the
+# create path writes through is not provisioned, so the transaction rolls back before
+# a number is ever issued.  An operator on a deployment that CAN create a complaint
+# should read one real number, run it through number_format_signature, and either
+# confirm this value or replace it.  Until then, run with the knob EMPTY: recording
+# the observed shape without asserting it is honest, whereas leaving an unconfirmed
+# value in place would let a first capture appear to have verified the scheme.
+#
+# This is the one comparable property of a generated number: the number itself
+# advances between two runs by construction, so asserting the number would fail
+# always and assert nothing, while asserting the shape fails exactly when the
+# numbering scheme changes - which is the regression this flow exists to catch.
+# The unset-only form, deliberately, and for the same reason SMOKE_OUT_DIR uses it
+# above: the paragraph immediately preceding this line instructs an operator on a
+# deployment that cannot create a complaint to "run with the knob EMPTY", and with
+# the :- form an explicitly empty value was silently replaced by the declaration,
+# so the documented remediation could not actually be carried out.  Caught by
+# reading back a capture that recorded the declaration as though it had been
+# confirmed.  With the - form an empty value stays empty, the assertion below is
+# skipped, and the record says so in words rather than leaving a valueless row.
+FLOW6_EXPECTED_FORMAT="${FLOW6_EXPECTED_FORMAT-99999999_999}"
+
+# The token the record carries when the knob is empty.  An empty value would
+# produce a row with a key and nothing after it, which is the shape the status
+# hygiene audit exists to reject, and a reader cannot tell a deliberately
+# unasserted expectation from a truncated file.
+FLOW6_EXPECTED_FORMAT_RECORD="$FLOW6_EXPECTED_FORMAT"
+if [ -z "$FLOW6_EXPECTED_FORMAT" ]; then
+    FLOW6_EXPECTED_FORMAT_RECORD='not-asserted: this capture was taken with the expected-format knob deliberately empty, so the observed shape is recorded without being compared against a declaration.  A declaration that has never been confirmed against a number this host generated would otherwise read as though it had been'
+fi
 FLOW7_WORKFLOW_PATH="${FLOW7_WORKFLOW_PATH:-/api/latest/plugin/complaint/workflow}"
 FLOW7_TASKS_PATH="${FLOW7_TASKS_PATH:-/api/latest/plugin/task/businessProcessTasks}"
 FLOW7_TASK_DELETE_PATH="${FLOW7_TASK_DELETE_PATH:-/api/latest/plugin/task/deleteTask}"
@@ -855,6 +1431,21 @@ FLOW8_CASE_DISCOVERY_PATH="${FLOW8_CASE_DISCOVERY_PATH:-/api/latest/plugin/searc
 FLOW8_NEXTQUEUES_PATH="${FLOW8_NEXTQUEUES_PATH:-/api/latest/plugin/casefile/nextPossibleQueues}"
 FLOW8_ENQUEUE_PATH="${FLOW8_ENQUEUE_PATH:-/api/latest/plugin/casefile/enqueue}"
 FLOW8_QUEUE_ACTION="${FLOW8_QUEUE_ACTION:-Next}"
+
+# FLOW8_CASE_READ_PATH — where flow 8 reads a case file back to see which queue it
+# is actually in.
+#
+# This exists because a transition request answering 200 is not evidence that the
+# object moved.  The routing decision is what the rules computed; the transition is
+# whether the application applied it; and those are two different observations that
+# an earlier revision collapsed into one status code.  The case file is therefore
+# re-read after the move and again after the move is reversed, and the queue it
+# reports is what the requirements are asserted on.
+#
+# The identifier is appended to this path.  The queue arrives as a nested object on
+# the case file and its name is read out of that object specifically, not from the
+# body at large, because a case file carries several objects that each have a name.
+FLOW8_CASE_READ_PATH="${FLOW8_CASE_READ_PATH:-/api/latest/plugin/casefile/byId}"
 
 # Fixed tokens written into captures in place of volatile or sensitive values.
 REDACTION_TOKEN='<REDACTED-CREDENTIAL>'
@@ -928,6 +1519,80 @@ require_clean_value 'SMOKE_CAPTURE_SIDE' "$SMOKE_CAPTURE_SIDE"
 require_clean_value 'SMOKE_RUNTIME_DESIGNATION' "$SMOKE_RUNTIME_DESIGNATION"
 require_clean_value 'SMOKE_NODE_DESIGNATION' "$SMOKE_NODE_DESIGNATION"
 require_clean_value 'SMOKE_BASE_COMMIT' "$SMOKE_BASE_COMMIT"
+
+# ---------------------------------------------------------------------------
+# OBSERVED PROVENANCE — read from git, not declared, and NOT overridable.
+#
+# Everything above is a declared LABEL, and a label is exactly what cannot be
+# trusted to identify a tree: all four are environment-overridable, all four are
+# derived from the capture directory's own name, and none of them is read from the
+# repository.  A run whose directory is called 'baseline' therefore labelled
+# itself 'JDK 8, base commit' no matter which tree it was actually pointed at, and
+# nothing in the capture contradicted it.
+#
+# The three values below close that.  They are read from git with no defaulting
+# and no environment override, so they say what tree produced the capture whatever
+# the labels claim.  Every record that carries a label carries these beside it,
+# and a run whose labels CONTRADICT them - a side declared baseline while HEAD is
+# not the base commit - records the contradiction and marks the capture
+# incomplete rather than publishing a mislabelled record.
+#
+# A tree that is not a git checkout is a legitimate configuration for a replay off
+# an exported archive, so it records 'not-a-git-checkout' rather than failing.
+SMOKE_OBSERVED_HEAD='not-a-git-checkout'
+SMOKE_OBSERVED_HEAD_SHORT='not-a-git-checkout'
+SMOKE_OBSERVED_TREE_STATE='unknown: not a git checkout'
+SMOKE_OBSERVED_BRANCH='not-a-git-checkout'
+
+if command -v git > /dev/null 2>&1 \
+    && git -C "$REPO_ROOT" rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    SMOKE_OBSERVED_HEAD="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || printf 'unreadable')"
+    SMOKE_OBSERVED_HEAD_SHORT="$(printf '%.10s' "$SMOKE_OBSERVED_HEAD")"
+    SMOKE_OBSERVED_BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null \
+        || printf 'unreadable')"
+
+    if [ -n "$(git -C "$REPO_ROOT" status --porcelain 2>/dev/null)" ]; then
+        SMOKE_OBSERVED_TREE_STATE="dirty: $(git -C "$REPO_ROOT" status --porcelain 2>/dev/null \
+            | wc -l | tr -d '[:space:]') path(s) modified or untracked relative to ${SMOKE_OBSERVED_HEAD_SHORT}"
+    else
+        SMOKE_OBSERVED_TREE_STATE="clean: the working tree matches ${SMOKE_OBSERVED_HEAD_SHORT} exactly"
+    fi
+fi
+
+# The declared side is checked against the observed head, and a contradiction is
+# recorded rather than resolved.  This does not overrule the label: an operator may
+# legitimately replay a baseline capture from a later tree, and saying so is more
+# useful than guessing.  What it does is make the two facts appear together.
+SMOKE_PROVENANCE_CONSISTENCY='consistent with the declared capture side'
+
+case "$SMOKE_CAPTURE_SIDE" in
+    baseline*)
+        case "$SMOKE_OBSERVED_HEAD" in
+            not-a-git-checkout|unreadable)
+                SMOKE_PROVENANCE_CONSISTENCY="unverifiable: the capture declares the pre-migration side, and this tree is not a readable git checkout, so the declaration cannot be checked against a commit"
+                ;;
+            "${SMOKE_BASE_COMMIT}"*)
+                SMOKE_PROVENANCE_CONSISTENCY="consistent: the capture declares the pre-migration side and HEAD is the base commit ${SMOKE_BASE_COMMIT}"
+                ;;
+            *)
+                SMOKE_PROVENANCE_CONSISTENCY="CONTRADICTED: the capture declares the pre-migration side and the base commit ${SMOKE_BASE_COMMIT}, but HEAD is ${SMOKE_OBSERVED_HEAD_SHORT}.  The observed head is the fact; the side label is a declaration.  Read every runtime designation in this capture as the LABEL it is, and read env/toolchain.txt for what the tools actually reported"
+                ;;
+        esac
+        ;;
+    migrated*)
+        case "$SMOKE_OBSERVED_HEAD" in
+            not-a-git-checkout|unreadable)
+                SMOKE_PROVENANCE_CONSISTENCY="unverifiable: the capture declares the migrated side, and this tree is not a readable git checkout"
+                ;;
+            "${SMOKE_BASE_COMMIT}"*)
+                SMOKE_PROVENANCE_CONSISTENCY="CONTRADICTED: the capture declares the migrated side, but HEAD is the base commit ${SMOKE_BASE_COMMIT}, so no part of the change set is present in the tree this capture was taken from"
+                ;;
+            *)
+                SMOKE_PROVENANCE_CONSISTENCY="consistent: the capture declares the migrated side and HEAD ${SMOKE_OBSERVED_HEAD_SHORT} is not the base commit"
+                ;;
+        esac
+        ;;
+esac
 
 # The upper bound on how many search hits the flow-4 transcription lists.
 #
@@ -1019,15 +1684,49 @@ fi
 # ---------------------------------------------------------------------------
 # VALIDATE EVERY CONFIGURED URL AND NUMERIC SETTING BEFORE ANYTHING IS SENT.
 # ---------------------------------------------------------------------------
-assert_url_acceptable 'ARKCASE_BASE_URL' "$ARKCASE_BASE_URL"
-assert_url_acceptable 'SOLR_URL' "$SOLR_URL"
-assert_url_acceptable 'ALFRESCO_SHARE_URL' "$ALFRESCO_SHARE_URL"
-assert_url_acceptable 'PENTAHO_URL' "$PENTAHO_URL"
-assert_url_acceptable 'VIRTUALVIEWER_URL' "$VIRTUALVIEWER_URL"
+# The third argument is which of the two postures this script takes toward the
+# URL, and it is declared per URL rather than assumed, because it decides whether
+# cleartext http to a remote host is refused.  ARKCASE_BASE_URL carries the
+# administrator credential on every flow.  The four reference-stack URLs and the
+# configuration-server URL are probed anonymously - establishing that a service
+# answers needs no credential, and sending one would put administrator material
+# on five more connections for no additional evidence.  BROKER_STATUS_URL is
+# credentialed only when the operator supplied a broker credential of its own.
+assert_url_acceptable 'ARKCASE_BASE_URL' "$ARKCASE_BASE_URL" 'credentialed'
+assert_url_acceptable 'SOLR_URL' "$SOLR_URL" 'anonymous'
+assert_url_acceptable 'ALFRESCO_SHARE_URL' "$ALFRESCO_SHARE_URL" 'anonymous'
+assert_url_acceptable 'PENTAHO_URL' "$PENTAHO_URL" 'anonymous'
+assert_url_acceptable 'VIRTUALVIEWER_URL' "$VIRTUALVIEWER_URL" 'anonymous'
 # Validated only when supplied, because empty is its documented default and
 # means "no broker status surface is exposed" rather than "misconfigured".
+if [ -n "$CONFIG_SERVER_URL" ]; then
+    assert_url_acceptable 'CONFIG_SERVER_URL' "$CONFIG_SERVER_URL" 'anonymous'
+fi
+
 if [ -n "$BROKER_STATUS_URL" ]; then
-    assert_url_acceptable 'BROKER_STATUS_URL' "$BROKER_STATUS_URL"
+    if [ -n "$BROKER_PASSWORD" ]; then
+        assert_url_acceptable 'BROKER_STATUS_URL' "$BROKER_STATUS_URL" 'credentialed'
+    else
+        assert_url_acceptable 'BROKER_STATUS_URL' "$BROKER_STATUS_URL" 'anonymous'
+    fi
+fi
+
+# The destination surface is held to the SAME trust rule as every other URL, and
+# for the same reason: it carries the broker credential when one is supplied, and
+# a credential must not cross a cleartext connection to a host that is not
+# loopback.  Validated only when supplied, because empty is its documented default
+# and means "no management surface is exposed" rather than "misconfigured".
+if [ -n "$BROKER_DESTINATION_URL" ]; then
+    if [ -n "$BROKER_PASSWORD" ]; then
+        assert_url_acceptable 'BROKER_DESTINATION_URL' \
+            "$BROKER_DESTINATION_URL" 'credentialed'
+    else
+        assert_url_acceptable 'BROKER_DESTINATION_URL' \
+            "$BROKER_DESTINATION_URL" 'anonymous'
+    fi
+fi
+if [ -n "$BROKER_REQUEST_ORIGIN" ]; then
+    require_clean_value 'BROKER_REQUEST_ORIGIN' "$BROKER_REQUEST_ORIGIN"
 fi
 
 require_clean_value 'ARKCASE_USER' "$ARKCASE_USER"
@@ -1048,6 +1747,8 @@ assert_positive_integer 'SMOKE_MAX_BODY_BYTES' "$SMOKE_MAX_BODY_BYTES" 'bytes'
 assert_positive_integer 'SMOKE_MAX_HEADER_BYTES' "$SMOKE_MAX_HEADER_BYTES" 'bytes'
 assert_positive_integer 'SMOKE_MAX_DIAG_BYTES' "$SMOKE_MAX_DIAG_BYTES" 'bytes'
 assert_positive_integer 'SMOKE_MAX_LOG_LINES' "$SMOKE_MAX_LOG_LINES" 'lines'
+assert_positive_integer 'SMOKE_MAX_WINDOW_LINES' "$SMOKE_MAX_WINDOW_LINES" 'lines'
+assert_positive_integer 'SMOKE_MAX_ARTIFACT_BYTES' "$SMOKE_MAX_ARTIFACT_BYTES" 'bytes'
 
 # ---------------------------------------------------------------------------
 # CREDENTIAL RESOLUTION.  No default, two supported sources, and a refusal if
@@ -1089,7 +1790,7 @@ if [ -n "$ARKCASE_PASSWORD_FILE" ]; then
     # account controls.
     if find "$ARKCASE_PASSWORD_FILE" \
             \( -perm -0040 -o -perm -0004 -o -perm -0020 -o -perm -0002 \) \
-            -print 2>/dev/null | grep -q .
+            -print 2>/dev/null | pipe_grep_found -e .
     then
         fail_startup \
             "ARKCASE_PASSWORD_FILE is accessible beyond its owner: ${ARKCASE_PASSWORD_FILE}" \
@@ -1149,6 +1850,39 @@ fi
 
 require_clean_value 'the supplied credential' "$ARKCASE_PASSWORD"
 
+# A credential shorter than this is REFUSED, and the reason is not password
+# strength.
+#
+# The first stage of the sanitiser substitutes the credential LITERALLY, wherever
+# it occurs, in every byte this script writes.  That is exactly right for a real
+# credential and catastrophic for a very short one: a one-character credential
+# turns every occurrence of that character, in every capture file, into the
+# redaction token.  Measured rather than supposed — a run with a single-character
+# credential produced "repository-root-e<token>amined:" and
+# "notes/manifest.t<token>t", seventeen substitutions in the completeness verdict
+# alone.  The capture is then unreadable AND still looks well formed, which is the
+# worst combination this deliverable can produce: silently corrupted evidence.
+#
+# The floor is deliberately low.  It is not trying to enforce a password policy —
+# that is the directory service business, not this script's — only to exclude the
+# lengths at which literal substitution destroys the capture.  Anything a real
+# deployment would accept passes it without noticing.
+SMOKE_MIN_CREDENTIAL_LENGTH=6
+if [ "${#ARKCASE_PASSWORD}" -lt "$SMOKE_MIN_CREDENTIAL_LENGTH" ]; then
+    fail_startup \
+        "The supplied credential is ${#ARKCASE_PASSWORD} character(s) long, and this script requires at least ${SMOKE_MIN_CREDENTIAL_LENGTH}." \
+        '  This is NOT a password-strength rule.  The capture sanitiser substitutes the' \
+        '  credential literally wherever it appears, so a very short one is replaced' \
+        '  inside ordinary words too: a one-character credential rewrites every' \
+        '  occurrence of that character in every capture file, and the evidence is then' \
+        '  corrupted while still looking well formed.' \
+        '  The credential value itself is not printed here, and its length is the only' \
+        '  property of it this message discloses.' \
+        '  Remediation: supply the real credential.  If this run is a rehearsal, use a' \
+        '  placeholder of at least that length whose characters do not occur in file' \
+        '  names or record keys.'
+fi
+
 # ---------------------------------------------------------------------------
 # TRANSPORT TRUST RESOLUTION.  Produces CURL_TLS_ARGS as an ARRAY, so that no
 # element can ever be re-split into additional transport options.
@@ -1188,16 +1922,24 @@ if [ -n "$SMOKE_TLS_PINNED_PUBKEY" ]; then
 fi
 
 if [ "$SMOKE_ALLOW_INSECURE_TLS" = '1' ]; then
-    # Accepted only when EVERY configured URL names a loopback host.  The check
-    # is over all five URLs rather than only the application URL, because the
-    # reference-stack probes travel over the same transport settings and a
-    # non-loopback service URL would put an unverified connection on the wire
-    # just as surely as a non-loopback application URL.
+    # Accepted only when EVERY configured URL names a loopback host - every URL,
+    # including the OPTIONAL ones, and that inclusion is the point.  The list is
+    # built from the same variables the probes actually use, so a URL cannot be
+    # added to the script without appearing here.  An earlier revision enumerated
+    # five URLs literally and omitted the optional broker surface, which then
+    # received a credentialed probe over a connection with verification disabled
+    # while the loopback rule reported itself satisfied.  Omitting an optional URL
+    # is worse than omitting a mandatory one, because it is exactly the case
+    # nobody re-reads.
     INSECURE_OFFENDER=''
     for INSECURE_CANDIDATE in \
         "$ARKCASE_BASE_URL" "$SOLR_URL" "$ALFRESCO_SHARE_URL" \
-        "$PENTAHO_URL" "$VIRTUALVIEWER_URL"
+        "$PENTAHO_URL" "$VIRTUALVIEWER_URL" \
+        "$BROKER_STATUS_URL" "$CONFIG_SERVER_URL"
     do
+        # An unset optional URL is never contacted, so it is not a trust decision.
+        [ -n "$INSECURE_CANDIDATE" ] || continue
+
         if ! is_loopback_host "$(url_host "$INSECURE_CANDIDATE")"; then
             INSECURE_OFFENDER="$INSECURE_CANDIDATE"
             break
@@ -1234,6 +1976,13 @@ unset INSECURE_OFFENDER INSECURE_CANDIDATE
 # ---------------------------------------------------------------------------
 MUTATIONS_ENABLED='no'
 MUTATION_REFUSAL_REASON=''
+
+# The number of MIME criterion requirements flow 3 left unmet on the path it
+# took.  Declared here rather than inside the flow because
+# flow_3_record_mime_tokens sets it and its caller reads it, and a value that
+# crosses that boundary is clearer as declared state than as an assumed global.
+# Initialised so that `set -u` holds even on a run where flow 3 does not execute.
+FLOW3_MIME_UNMET=0
 ARKCASE_HOST="$(url_host "$ARKCASE_BASE_URL")"
 
 if [ "$ALLOW_SMOKE_MUTATIONS" = '1' ]; then
@@ -1313,8 +2062,31 @@ guard_output_dir()
     return 0
 }
 
-if ! guard_output_dir "$SMOKE_OUT_DIR"; then
+if ! guard_output_dir "$SMOKE_FINAL_OUT_DIR"; then
     exit 2
+fi
+
+# A full run redirects every write into a sibling staging directory.  The process
+# identifier keeps two concurrent runs against the same destination from writing
+# into one another staging tree; each still publishes atomically, and the last to
+# publish wins, which is the same semantics two concurrent in-place runs would have
+# had except that neither can now leave a half-written tree behind.
+if [ -z "$SMOKE_FLOWS" ] && [ -z "$SMOKE_ONLY_FLOW" ]; then
+    SMOKE_STAGING_DIR="${SMOKE_FINAL_OUT_DIR}.run-$$"
+    if ! guard_output_dir "$SMOKE_STAGING_DIR"; then
+        exit 2
+    fi
+    if [ -e "$SMOKE_STAGING_DIR" ]; then
+        printf 'smoke-checks.sh: the staging directory already exists: %s\n' \
+            "$SMOKE_STAGING_DIR" >&2
+        printf '  It is named after this process, so an existing one means a previous run\n' >&2
+        printf '  with the same process identifier did not publish.  It is left in place\n' >&2
+        printf '  rather than removed, because it may hold the only copy of that run\n' >&2
+        printf '  evidence.  Remediation: inspect it, then move or remove it.\n' >&2
+        exit 2
+    fi
+    SMOKE_OUT_DIR="$SMOKE_STAGING_DIR"
+    SMOKE_STAGED='yes'
 fi
 
 # ---------------------------------------------------------------------------
@@ -1428,6 +2200,81 @@ if [ -z "$CAPTURE_ROOT" ] || [ "$CAPTURE_ROOT" = '/' ]; then
         '  or a scratch location.'
 fi
 
+# ---------------------------------------------------------------------------
+# THE ARCHIVED UNIT-TEST REPORTS ARE CARRIED INTO THE STAGING TREE, AND THE
+# CARRY IS CHECKED.
+#
+# The archive under surefire/ is not written by this script — install-surefire-
+# evidence.sh installs it, from a raw test harvest, with its own checksum
+# manifest and its own run provenance.  But this script ASSERTS on it: the
+# pairing contract check reads ${SMOKE_OUT_DIR}/surefire, and a full run points
+# SMOKE_OUT_DIR at a fresh staging directory that by definition contains no
+# archive.  Two consequences followed, and both were observed rather than
+# theorised:
+#
+#   1. every full capture recorded "suites-present-in-this-capture: 0" and
+#      "suites-missing-from-this-capture: 278", and marked itself INCOMPLETE for
+#      a condition that was not true of the published tree at all.  That is a
+#      false claim in published evidence, which is worse than a missing one.
+#   2. publication replaces the destination WHOLESALE — that is the property
+#      that makes a published capture exactly one run's output — so publishing
+#      DELETED the installed archive.  For the migrated side that is merely
+#      expensive: the raw harvest is still on disk and the installer is
+#      idempotent.  For the baseline side it is unrecoverable: those reports came
+#      from a JDK 8 run of the base commit that cannot be reproduced from the
+#      migrated tree.
+#
+# So the archive is carried INTO the staging tree here, before anything asserts
+# on it, and it is then published with the rest of the capture.  The carry is not
+# taken on trust: the archive ships a sha256 manifest of its own contents, and it
+# is re-verified after the copy.  A failed or unverifiable carry is recorded on
+# its own lines in notes/surefire-pairing.txt and marks the capture incomplete
+# there — this early in the script neither the note writers nor mark_incomplete
+# exist yet, so the outcome is held in these four variables and reported by
+# verify_surefire_pairing, which is also the only place that reads the archive.
+#
+# A subset run does not stage, so SMOKE_OUT_DIR already IS the destination and
+# there is nothing to carry; the source and the target would be the same
+# directory.  The guard below therefore keys on SMOKE_STAGED rather than on the
+# existence of the source, which would have copied the archive onto itself.
+# ---------------------------------------------------------------------------
+SMOKE_SUREFIRE_CARRIED='no'
+SMOKE_SUREFIRE_CARRY_SOURCE='none: this run writes in place, so the archive already sits in the capture directory'
+SMOKE_SUREFIRE_CARRY_COUNT='0'
+SMOKE_SUREFIRE_CARRY_VERIFY='not-applicable: nothing was carried'
+
+if [ "$SMOKE_STAGED" = 'yes' ]; then
+    if [ -d "${SMOKE_FINAL_OUT_DIR}/surefire" ]; then
+        SMOKE_SUREFIRE_CARRY_SOURCE="${SMOKE_FINAL_OUT_DIR}/surefire"
+        if ( cd "${SMOKE_FINAL_OUT_DIR}/surefire" 2>/dev/null \
+                && exec tar -cf - . ) 2>/dev/null \
+            | ( cd "${SMOKE_OUT_DIR}/surefire" 2>/dev/null \
+                && exec tar -xf - ) 2>/dev/null
+        then
+            SMOKE_SUREFIRE_CARRIED='yes'
+            SMOKE_SUREFIRE_CARRY_COUNT="$(find "${SMOKE_OUT_DIR}/surefire" \
+                -type f -name 'TEST-*.xml' 2>/dev/null | wc -l | tr -d '[:space:]')"
+            [ -n "$SMOKE_SUREFIRE_CARRY_COUNT" ] || SMOKE_SUREFIRE_CARRY_COUNT='0'
+            if [ ! -f "${SMOKE_OUT_DIR}/surefire/sha256-manifest.txt" ]; then
+                SMOKE_SUREFIRE_CARRY_VERIFY='UNVERIFIABLE: the archive carries no sha256-manifest.txt, so the carried copy cannot be checked against the installed one'
+            elif ! command -v sha256sum > /dev/null 2>&1; then
+                SMOKE_SUREFIRE_CARRY_VERIFY='UNVERIFIABLE: no sha256sum on this host, so the carried copy cannot be checked against the installed one'
+            elif ( cd "${SMOKE_OUT_DIR}/surefire" 2>/dev/null \
+                    && sha256sum -c sha256-manifest.txt ) > /dev/null 2>&1
+            then
+                SMOKE_SUREFIRE_CARRY_VERIFY='verified: every digest in the archive own manifest matches the carried copy, so the archive published with this capture is byte-identical to the installed one'
+            else
+                SMOKE_SUREFIRE_CARRY_VERIFY='FAILED: the carried copy does not match the digests in the archive own sha256-manifest.txt'
+            fi
+        else
+            SMOKE_SUREFIRE_CARRY_VERIFY='FAILED: the installed archive could not be copied into the staging tree, so publishing this capture would delete it'
+        fi
+    else
+        SMOKE_SUREFIRE_CARRY_SOURCE="absent: ${SMOKE_FINAL_OUT_DIR}/surefire does not exist"
+        SMOKE_SUREFIRE_CARRY_VERIFY='not-applicable: there was no installed archive to carry'
+    fi
+fi
+
 # assert_capture_path — the containment assertion.  Refuses a target whose parent
 # resolves outside the capture root, whose parent is not a real directory, or
 # which exists as anything other than a plain file.
@@ -1511,6 +2358,8 @@ chmod 700 "$SMOKE_TMPDIR" 2>/dev/null || true
 INCOMPLETE_LOG="${SMOKE_TMPDIR}/incomplete"
 TRUNCATION_LOG="${SMOKE_TMPDIR}/truncated"
 CLEANUP_REGISTRY="${SMOKE_TMPDIR}/cleanup"
+# The ledger of state this run created and cannot remove; see register_residue.
+RESIDUE_REGISTRY="${SMOKE_TMPDIR}/residue-registry"
 : > "$INCOMPLETE_LOG"
 : > "$TRUNCATION_LOG"
 : > "$CLEANUP_REGISTRY"
@@ -1992,14 +2841,14 @@ verify_sanitiser()
             '  local text utilities; report the versions of sed and awk on this host.'
     fi
 
-    if ! printf '%s' "$result" | grep -q -F -- "$marker"; then
+    if ! printf '%s' "$result" | pipe_grep_found -F -- "$marker"; then
         fail_startup \
             'The sanitiser did not pass its self-test marker through.' \
             '  The pipeline is transforming input it should leave alone, so no capture it' \
             '  produced could be trusted to be a faithful record.'
     fi
 
-    if printf '%s' "$result" | grep -q -F -- "$ARKCASE_PASSWORD"; then
+    if printf '%s' "$result" | pipe_grep_found -F -- "$ARKCASE_PASSWORD"; then
         fail_startup \
             'The sanitiser did NOT remove the configured credential from its self-test' \
             '  input, so a capture would carry a working credential into version control.' \
@@ -2008,20 +2857,20 @@ verify_sanitiser()
             '  exercised.'
     fi
 
-    if printf '%s' "$result" | grep -q -F -- 'QWxhZGRpbjpvcGVuIHNlc2FtZQ=='; then
+    if printf '%s' "$result" | pipe_grep_found -F -- 'QWxhZGRpbjpvcGVuIHNlc2FtZQ=='; then
         fail_startup \
             'The sanitiser did not remove a basic-authorisation header value from its' \
             '  self-test input.  Header redaction is not working; the run is refused.'
     fi
 
-    if printf '%s' "$result" | grep -q -F -- '0123456789ABCDEF'; then
+    if printf '%s' "$result" | pipe_grep_found -F -- '0123456789ABCDEF'; then
         fail_startup \
             'The sanitiser did not remove a session identifier from its self-test' \
             '  input.  A session identifier is credential-equivalent for as long as it' \
             '  lives; the run is refused.'
     fi
 
-    if printf '%s' "$result" | grep -q -F -- '8f14e45fceea167a5a36dedd4bea2543'; then
+    if printf '%s' "$result" | pipe_grep_found -F -- '8f14e45fceea167a5a36dedd4bea2543'; then
         fail_startup \
             'The sanitiser did not remove a cross-site-request-forgery token from its' \
             '  self-test input.  The run is refused.'
@@ -2043,7 +2892,7 @@ verify_sanitiser()
     # Checked with fixed self-test tokens rather than with values from a live
     # engine, so the check is deterministic and runs before any capture exists.
     # ---------------------------------------------------------------------
-    if printf '%s' "$result" | grep -q -E -- '(processInstanceId|executionId|taskId|deploymentId)"?[[:space:]]*:[[:space:]]*"?250[0-9]'; then
+    if printf '%s' "$result" | pipe_grep_found -E -- '(processInstanceId|executionId|taskId|deploymentId)"?[[:space:]]*:[[:space:]]*"?250[0-9]'; then
         fail_startup \
             'The sanitiser did not remove an engine-assigned identifier from its' \
             '  self-test input.  Process-instance, execution, task and deployment' \
@@ -2053,14 +2902,14 @@ verify_sanitiser()
             '  report noise.'
     fi
 
-    if printf '%s' "$result" | grep -q -F -- 'SELFTESTPROCESSKEY:3:2503'; then
+    if printf '%s' "$result" | pipe_grep_found -F -- 'SELFTESTPROCESSKEY:3:2503'; then
         fail_startup \
             'The sanitiser did not substitute the version-suffixed process-definition' \
             '  identifier from its self-test input.  Its version and sequence' \
             '  components are assigned at deployment time and differ on every run.'
     fi
 
-    if ! printf '%s' "$result" | grep -q -F -- '"processDefinitionKey":"SELFTESTPROCESSKEY"'; then
+    if ! printf '%s' "$result" | pipe_grep_found -F -- '"processDefinitionKey":"SELFTESTPROCESSKEY"'; then
         fail_startup \
             'The sanitiser OVER-NORMALISED: it did not leave the process definition KEY' \
             '  intact.  The key is behaviour, not volatility, and it is the primary value' \
@@ -2068,7 +2917,7 @@ verify_sanitiser()
             '  on placeholders and report a clean comparison that demonstrated nothing.'
     fi
 
-    if ! printf '%s' "$result" | grep -q -F -- 'SELFTESTPROCESSKEY:<PROC-DEF-VERSION>:<ENGINE-ID>'; then
+    if ! printf '%s' "$result" | pipe_grep_found -F -- 'SELFTESTPROCESSKEY:<PROC-DEF-VERSION>:<ENGINE-ID>'; then
         fail_startup \
             'The sanitiser did not preserve the definition KEY inside the substituted' \
             '  definition IDENTIFIER.  That substitution is deliberately conservative:' \
@@ -2076,13 +2925,13 @@ verify_sanitiser()
             '  is what makes the key/identifier distinction visible in the evidence.'
     fi
 
-    if ! printf '%s' "$result" | grep -q -F -- '"taskDefinitionKey":"SELFTESTTASKKEY"'; then
+    if ! printf '%s' "$result" | pipe_grep_found -F -- '"taskDefinitionKey":"SELFTESTTASKKEY"'; then
         fail_startup \
             'The sanitiser OVER-NORMALISED: the task definition key did not survive.' \
             '  Task identity is half of what flow 7 compares.'
     fi
 
-    if ! printf '%s' "$result" | grep -q -F -- '"assignee":"SELFTESTASSIGNEE"'; then
+    if ! printf '%s' "$result" | pipe_grep_found -F -- '"assignee":"SELFTESTASSIGNEE"'; then
         fail_startup \
             'The sanitiser OVER-NORMALISED: the assignee did not survive.  An assignee' \
             '  is a user identity and it is behaviour under test — task assignment is' \
@@ -2090,12 +2939,12 @@ verify_sanitiser()
             '  not be confused with a credential.'
     fi
 
-    if ! printf '%s' "$result" | grep -q -F -- '"state":"ACTIVE"'; then
+    if ! printf '%s' "$result" | pipe_grep_found -F -- '"state":"ACTIVE"'; then
         fail_startup \
             'The sanitiser OVER-NORMALISED: the instance state did not survive.'
     fi
 
-    if ! printf '%s' "$result" | grep -q -F -- 'SELFTESTABSENCE'; then
+    if ! printf '%s' "$result" | pipe_grep_found -F -- 'SELFTESTABSENCE'; then
         fail_startup \
             'The sanitiser rewrote an explicit "not observed" marker as though an' \
             '  identifier had been seen.  That is worse than no normalisation: it turns' \
@@ -2105,6 +2954,269 @@ verify_sanitiser()
 }
 
 verify_sanitiser
+
+# ---------------------------------------------------------------------------
+# THE ONE WAY A .status RECORD IS WRITTEN.
+#
+# Every byte this script puts into a capture file goes through sanitise, and the
+# .out files always did - each one is written by a block piped into it.  The
+# .status files did not: eleven separate sites appended a formatted line straight
+# to "${dest}.status" with no sanitiser between them and the file.  That made the
+# universal-redaction claim in the SECURITY POSTURE section above false as
+# written, and the exposure is real rather than notional because a status token is
+# frequently derived from server output - a status line carries a probe label, and
+# a label carries a flow's own identifiers.
+#
+# So there is now exactly one primitive, and it pipes.  A caller cannot forget,
+# because there is nothing left to forget: the sites do not name the file.
+write_status_line()
+{
+    local dest="$1"
+    shift
+
+    printf '%s\n' "$@" | sanitise >> "${dest}.status"
+}
+
+# write_leg_status_line — record a LEG outcome without overwriting a PROBE's
+# observation of the same name.
+#
+# Several flows name a leg after a probe they also issue.  When the probe got no
+# HTTP response it wrote "<label>=000", and the leg then wrote "<label>=SKIPPED" —
+# two contradicting values for one key in one file, because 000 says the request was
+# made and answered with nothing while SKIPPED says it was never made.  A comparison
+# reading that key would get whichever value it reached first.  Found by the
+# status-hygiene audit across three separate flows, having survived every earlier
+# reading of the code.
+#
+# Both facts are worth keeping, so neither is discarded: the probe keeps its own key
+# and the leg outcome goes under a key that says it is the leg's.  The suffix appears
+# ONLY on a collision, so a leg whose name is its own is written unchanged and no
+# existing key is renamed.
+#
+# This is deliberately NOT folded into write_status_line, which is the funnel every
+# status row passes through INCLUDING a probe's own: a probe must be able to write
+# its key even though it is the first to do so, and giving the funnel this behaviour
+# would rename the second of two probes instead.
+write_leg_status_line()
+{
+    local dest="$1"
+    local label="$2"
+    local value="$3"
+
+    if [ -n "$(read_status "$dest" "$label")" ]; then
+        write_status_line "$dest" "${label}-leg-outcome=${value}"
+    else
+        write_status_line "$dest" "${label}=${value}"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# STATIC WRITER AUDIT — fail closed on a status write that bypasses the primitive.
+#
+# A convention that is merely documented decays.  This reads THIS SCRIPT'S OWN
+# SOURCE and refuses to run if any line appends to a .status file other than the
+# one line inside write_status_line above.  It is the same shape of control as
+# verify_sanitiser: a property the script depends on, checked at startup rather
+# than asserted in a comment, so that a future edit which reintroduces a raw
+# writer fails immediately and visibly instead of quietly publishing unsanitised
+# output.
+#
+# It also catches the reverse mistake - a duplicate function definition, which
+# bash resolves silently by keeping the LAST one, so an edited earlier copy has no
+# effect and no diagnostic.  Four such pairs existed in an earlier revision.
+# audit_call_arity — refuse a call that passes fewer arguments than the callee
+# requires, BEFORE anything runs.
+#
+# WHY THIS EXISTS.  A helper that reads a required positional as "$5" aborts the
+# entire run under set -u the first time it is called with four arguments, and it
+# does so with a message that names a line number and nothing else.  Worse, it
+# only happens on the branch that reaches that call: a five-argument call site and
+# a four-argument one can sit side by side, the run can pass repeatedly, and the
+# defect surfaces only when an operator omits the one environment value that
+# selects the shorter branch.  That is exactly what happened here — the
+# configuration-server probe recorded its unavailability with four arguments where
+# five were required, and the abort appeared only on the first run without a
+# configuration-server URL, halfway through the capture, with two flows already
+# written and the staged tree left unpublished.
+#
+# So the call sites are checked STATICALLY, at startup, against the requirements
+# declared by the callees themselves.  Both halves are read out of this script own
+# source, so neither can drift from the code:
+#
+#   requirement   a function that assigns local x="$N" — exactly that, with no
+#                 default and no braces — is declared to require N arguments
+#   call site     a logical line, continuations joined, whose FIRST token names
+#                 such a function, with its arguments counted through quoted spans
+#                 and stopping at a shell operator
+#
+# Only TOO FEW arguments is reported.  Too few is fatal under set -u; too many is
+# ignored by the shell, and reporting it would depend on this counter modelling
+# every shell construct that can follow a call, which it deliberately does not
+# try to do.  A tight check that is trusted beats a broad one that is not.
+audit_call_arity()
+{
+    local source="$0"
+    local offenders
+
+    [ -r "$source" ] || return 0
+
+    offenders="$(awk '
+        BEGIN { sq = sprintf("%c", 39); dq = sprintf("%c", 34); acc = ""; accnr = 0 }
+
+        # Join backslash continuations into one logical line, remembering the first
+        # physical line number so a report points at the start of the call.
+        {
+            if (acc == "") { accnr = NR }
+            acc = acc $0
+            if (acc ~ /\\$/) { sub(/\\$/, " ", acc); next }
+            logical = acc; acc = ""
+            process(logical, accnr)
+        }
+        END { if (acc != "") process(acc, accnr) }
+
+        function process(line, nr,    stripped, name, rest, need, n)
+        {
+            # Pass 1: a function DEFINITION records the highest required positional.
+            if (line ~ /^[a-zA-Z_][a-zA-Z0-9_]*\(\)[[:space:]]*$/) {
+                current = line; sub(/\(\)[[:space:]]*$/, "", current)
+                return
+            }
+            if (current != "" && line ~ /^[[:space:]]*local[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*=/) {
+                # exactly "$N" with no default and no braces
+                if (match(line, /="\$[1-9]"[[:space:]]*$/)) {
+                    v = substr(line, RSTART + 3, RLENGTH - 4)
+                    sub(/".*/, "", v)
+                    if (v + 0 > required[current]) { required[current] = v + 0 }
+                }
+                return
+            }
+            if (line ~ /^\}[[:space:]]*$/) { current = ""; return }
+
+            # Pass 2: a statement-position CALL.
+            stripped = line; sub(/^[[:space:]]+/, "", stripped)
+            if (!match(stripped, /^[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]/)) { return }
+            name = substr(stripped, 1, RLENGTH - 1)
+            if (!(name in required)) { return }
+            need = required[name]
+            if (need < 2) { return }
+            rest = substr(stripped, RLENGTH + 1)
+            n = countargs(rest)
+            if (n < need) {
+                printf "%d: %s is called with %d argument(s) and requires %d\n", nr, name, n, need
+            }
+        }
+
+        function countargs(rest,    i, L, c, q, n, tok, j)
+        {
+            n = 0; i = 1; L = length(rest)
+            while (i <= L) {
+                c = substr(rest, i, 1)
+                if (c == " " || c == "\t") { i++; continue }
+                if (c == dq || c == sq) {
+                    q = c; i++
+                    while (i <= L && substr(rest, i, 1) != q) { i++ }
+                    i++
+                    n++
+                    continue
+                }
+                # a bare token: read it, then decide whether it ends the argument list
+                j = i
+                while (j <= L && substr(rest, j, 1) != " " && substr(rest, j, 1) != "\t") { j++ }
+                tok = substr(rest, i, j - i)
+                if (tok == "&&" || tok == "||" || tok == ";" || tok == "|" || tok == "}" \
+                    || tok == ")" || substr(tok, 1, 1) == "#" || substr(tok, 1, 1) == ">" \
+                    || substr(tok, 1, 1) == "<") { return n }
+                n++
+                i = j
+            }
+            return n
+        }
+    ' "$source")" || offenders=''
+
+    if [ -n "$offenders" ]; then
+        fail_startup \
+            'A function is called with fewer arguments than it requires.' \
+            '  Under set -u the callee aborts the whole run when it reads the missing' \
+            '  positional, and it does so only on the branch that reaches the call, so' \
+            '  the defect can sit dormant across many passing runs.  Offending call(s),' \
+            '  by line number:' \
+            "$(printf '%s' "$offenders" | sed -e 's|^|    |')" \
+            '  Remediation: pass every argument the callee declares, in its order.'
+    fi
+}
+
+verify_writer_discipline()
+{
+    local source="$0"
+    local raw_writers
+    local duplicate_functions
+
+    # Not a readable file when the script is piped into a shell; the checks below
+    # need the source, so an unreadable one is reported and skipped rather than
+    # silently passed.
+    if [ ! -r "$source" ]; then
+        printf 'smoke-checks.sh: cannot read own source at %s; the writer-discipline and\n' \
+            "$source" >&2
+        printf '  duplicate-definition audits are SKIPPED for this run.\n' >&2
+        return 0
+    fi
+
+    # A status write is acceptable when the same line pipes through the sanitiser -
+    # which is what write_status_line does and what the block-writing sites already
+    # did. Anything else appending to a .status file is the defect.
+    # '[$]' is a bracket expression matching a literal dollar, which is what the
+    # source text contains; written this way so the pattern needs no expansion and
+    # a linter can see that it needs none.
+    raw_writers="$(grep -n '>>[[:space:]]*"[$]{dest}\.status"' "$source" \
+        | grep -v '| sanitise' || true)"
+
+    if [ -n "$raw_writers" ]; then
+        fail_startup \
+            'A status record is written without passing through the sanitiser.' \
+            '  Every capture byte must be sanitised, and the .status files are the ones' \
+            '  where that has been got wrong before.  Offending line(s):' \
+            "$(printf '%s' "$raw_writers" | sed -e 's|^|    |')" \
+            '  Remediation: call write_status_line with the flow destination prefix and' \
+            '  one "<label>=<token>" line, instead of appending to the file directly.'
+    fi
+
+    # A boolean grep on the downstream side of a pipe, written as grep -q, is a
+    # silently inverted assertion under pipefail.  See pipe_grep_found for the
+    # measured mechanism.  The check is textual and deliberately narrow: it looks
+    # for a pipe followed by a grep carrying -q, which is exactly the shape that
+    # is unsound, and it is refused at startup rather than left to be discovered
+    # by an assertion that reports the opposite of what it observed.
+    local pipeline_quiet_greps
+    pipeline_quiet_greps="$(grep -n '|[[:space:]]*grep\([[:space:]]\+-[A-Za-z]*\)*[[:space:]]\+-*[A-Za-z]*q' "$source" || true)"
+
+    if [ -n "$pipeline_quiet_greps" ]; then
+        fail_startup \
+            'A boolean grep sits on the downstream side of a pipe, written with -q.' \
+            '  Under set -o pipefail that is a silently INVERTED assertion: grep -q exits' \
+            '  on its first match, the upstream process receives SIGPIPE and exits 141,' \
+            '  and pipefail promotes 141 to the status of the pipeline - so a successful' \
+            '  match is reported as a failure.  It is invisible on small inputs and' \
+            '  reliable on large ones, which is what makes it dangerous.' \
+            "$(printf '%s' "$pipeline_quiet_greps" | sed -e 's|^|    |')" \
+            '  Remediation: pipe into pipe_grep_found instead, which counts with grep -c' \
+            '  and therefore reads its input to the end.'
+    fi
+
+    duplicate_functions="$(grep -o '^[a-zA-Z_][a-zA-Z0-9_]*()' "$source" \
+        | sort | uniq -d || true)"
+
+    if [ -n "$duplicate_functions" ]; then
+        fail_startup \
+            'A function is defined twice in this script.' \
+            '  Bash keeps the LAST definition and discards the earlier one silently, so' \
+            '  an edit to the earlier copy has no effect and produces no diagnostic.' \
+            "$(printf '%s' "$duplicate_functions" | sed -e 's|^|    |')" \
+            '  Remediation: delete the redundant definition.'
+    fi
+}
+
+verify_writer_discipline
+audit_call_arity
 
 # ---------------------------------------------------------------------------
 # SIZE CAPS.
@@ -2141,21 +3253,50 @@ file_is_textual()
 }
 
 # ---------------------------------------------------------------------------
-# digest — SHA-256 of a file, printed as "<hash>  <basename>".
+# digest — SHA-256 of a file, as ONE record in ONE schema.
 #
-# The basename rather than the full path is printed deliberately: the digest
-# lines must be identical between two checkouts at different absolute paths, or
-# the comparison would fail on the path instead of on the bytes.  Prefers
-# sha256sum and falls back to `shasum -a 256`, so the script runs on both Linux
-# and macOS, which the documented developer setup covers.
+# THE SCHEMA IS EXACT AND IT IS THE POINT.  Every record this function emits is
+# a single line of the form
+#
+#     <token><two spaces><key>
+#
+# where <token> is either 64 lower-case hexadecimal characters or one of the
+# three explicit unavailability words below, and <key> is a STABLE IDENTIFIER
+# for the thing that was digested — by default the file's base name, or the
+# caller's own key when it passes one.
+#
+# Why the schema is pinned rather than left to the caller's formatting.  An
+# earlier revision printed the base name unconditionally, yet three of the
+# twelve committed digest records carried a PATH-QUALIFIED label
+# ("assets/dist/application.min.js") that no code path here can produce.  Those
+# three records were therefore edited by hand after capture, and nothing in the
+# script could tell.  Two captures whose records label the same artefact
+# differently cannot be compared by key at all, and a reader has no way to know
+# whether the label drift came from a different producer, a different artefact
+# or a person with an editor.  So the schema is now fixed at the point of
+# writing AND validated on read-back (see verify_artifact_digest_records), which
+# makes a hand-edited record a detected condition instead of an invisible one.
+#
+# The key is a base name rather than a path deliberately: the records must be
+# identical between two checkouts at different absolute paths, or the comparison
+# would fail on the path instead of on the bytes.  Prefers sha256sum and falls
+# back to `shasum -a 256`, so the script runs on both Linux and macOS, which the
+# documented developer setup covers.
 # ---------------------------------------------------------------------------
+DIGEST_ABSENT_TOKEN='ABSENT'
+DIGEST_NO_TOOL_TOKEN='DIGEST-TOOL-UNAVAILABLE'
+DIGEST_FAILED_TOKEN='DIGEST-FAILED'
+
 digest()
 {
     local target="$1"
+    local key="${2-}"
     local hash=''
 
+    [ -n "$key" ] || key="$(basename -- "$target")"
+
     if [ ! -f "$target" ]; then
-        printf 'ABSENT  %s\n' "$(basename -- "$target")"
+        printf '%s  %s\n' "$DIGEST_ABSENT_TOKEN" "$key"
         return 0
     fi
 
@@ -2164,16 +3305,29 @@ digest()
     elif command -v shasum >/dev/null 2>&1; then
         hash="$(shasum -a 256 -- "$target" | awk '{print $1}')"
     else
-        printf 'DIGEST-TOOL-UNAVAILABLE  %s\n' "$(basename -- "$target")"
+        printf '%s  %s\n' "$DIGEST_NO_TOOL_TOKEN" "$key"
         return 0
     fi
+
+    # A tool that answered with anything other than 64 lower-case hexadecimal
+    # characters did not produce a SHA-256, and recording its output as one would
+    # put a value into the comparison that no reader could distinguish from a
+    # real digest.  It is reported as a failure instead.
+    case "$hash" in
+        *[!0-9a-f]* | '') hash='' ;;
+        *)
+            if [ "${#hash}" -ne 64 ]; then
+                hash=''
+            fi
+            ;;
+    esac
 
     if [ -z "$hash" ]; then
-        printf 'DIGEST-FAILED  %s\n' "$(basename -- "$target")"
+        printf '%s  %s\n' "$DIGEST_FAILED_TOKEN" "$key"
         return 0
     fi
 
-    printf '%s  %s\n' "$hash" "$(basename -- "$target")"
+    printf '%s  %s\n' "$hash" "$key"
 }
 
 digest_value()
@@ -2303,7 +3457,7 @@ http_probe()
             printf '  attempted.  The run is marked incomplete.\n'
             printf '\n'
         } | sanitise >> "${dest}.out"
-        printf '%s=REFUSED\n' "$label" >> "${dest}.status"
+        write_status_line "$dest" "${label}=REFUSED"
         mark_incomplete "probe refused before sending: ${label} (${refusal})"
         return 1
     fi
@@ -2327,7 +3481,20 @@ http_probe()
           '--write-out' 'http_code=%{http_code}\nsize_download=%{size_download}\ncontent_type=%{content_type}\nnum_redirects=%{num_redirects}\nredirect_url=%{redirect_url}\nssl_verify_result=%{ssl_verify_result}\nhttp_version=%{http_version}\n'
           '--connect-timeout' "$CURL_CONNECT_TIMEOUT"
           '--max-time' "$CURL_MAX_TIME"
-          '--max-filesize' "$SMOKE_MAX_BODY_BYTES" )
+          # The transport's own ceiling is deliberately HIGHER than the capture
+          # cap, and the gap between the two numbers is what makes truncation
+          # detectable at all.  With the ceiling set to the cap, curl aborted at
+          # or below the cap, so the file on disk was never larger than the cap
+          # and the '-gt cap' comparison below could not fire: an oversized
+          # response was recorded as complete.  A transport that stops at the cap
+          # and a check that looks for more than the cap cannot both be right.
+          # With headroom, an oversized body is READ past the cap, the comparison
+          # fires, the capture is marked truncated and the run is marked
+          # incomplete - and the ceiling still bounds what an unbounded response
+          # can cost.  Exit status 63 is curl's own report that the ceiling itself
+          # was reached, and that case is handled separately below because a body
+          # curl refused outright is not merely truncated: the file is empty.
+          '--max-filesize' "$SMOKE_TRANSPORT_MAX_BODY_BYTES" )
     cmd+=( "${proto_args[@]}" )
     cmd+=( ${CURL_TLS_ARGS[@]+"${CURL_TLS_ARGS[@]}"} )
     cmd+=( "$@" )
@@ -2344,6 +3511,25 @@ http_probe()
             | "${cmd[@]}" '--basic' '--config' '-' \
                 > "$meta_file" 2> "$err_file"
         rc=$?
+    elif [ "$auth" = 'broker' ]; then
+        # A DIFFERENT security domain, so a different credential or none at all.
+        # The ArkCase administrator credential is never sent here: it means nothing
+        # to a message broker, so it could only ever fail to authenticate - while
+        # still travelling to a host that has no business receiving it and being
+        # logged there against the ArkCase user name.  With no broker credential
+        # configured the probe is anonymous, which is what a status surface serves
+        # and all this observation needs.
+        if [ -n "$BROKER_PASSWORD" ]; then
+            printf 'user = "%s:%s"\n' \
+                "$(curl_config_escape "$BROKER_USER")" \
+                "$(curl_config_escape "$BROKER_PASSWORD")" \
+                | "${cmd[@]}" '--basic' '--config' '-' \
+                    > "$meta_file" 2> "$err_file"
+            rc=$?
+        else
+            "${cmd[@]}" > "$meta_file" 2> "$err_file" < /dev/null
+            rc=$?
+        fi
     else
         "${cmd[@]}" > "$meta_file" 2> "$err_file" < /dev/null
         rc=$?
@@ -2379,6 +3565,7 @@ http_probe()
     # subshell.
     local body_bytes_actual hdr_bytes_actual err_bytes_actual
     local body_truncated='no' hdr_truncated='no' err_truncated='no'
+    local transport_refused_size='no'
     local body_form='text'
     body_bytes_actual="$(file_size_of "$body_file")"
     hdr_bytes_actual="$(file_size_of "$hdr_file")"
@@ -2387,6 +3574,22 @@ http_probe()
     if [ "$body_bytes_actual" -gt "$SMOKE_MAX_BODY_BYTES" ]; then
         body_truncated='yes'
     fi
+
+    # The transport's own refusal, reported separately from the capture cap and
+    # for a different reason.  Exit status 63 means curl stopped because the
+    # response exceeded --max-filesize, so what is on disk is whatever it had
+    # read at that instant - possibly nothing at all.  Recording that as a
+    # complete zero-byte body would be the worst outcome available: a comparison
+    # would then read two zero-byte bodies as agreeing.
+    if [ "$rc" = '63' ]; then
+        body_truncated='yes'
+        transport_refused_size='yes'
+    fi
+
+    # A third disagreement worth capturing: the server SAID the body was larger
+    # than what was read.  That is legitimate for a not-modified response and for
+    # a chunked one, so it is not by itself truncation - but combined with a
+    # transport that stopped early it is the evidence that says why.
     if [ "$hdr_bytes_actual" -gt "$SMOKE_MAX_HEADER_BYTES" ]; then
         hdr_truncated='yes'
     fi
@@ -2447,6 +3650,8 @@ http_probe()
         printf 'observed-body-sha256: %s\n' "$body_hash"
         printf 'observed-session-cookie: %s\n' "$session"
         printf 'capture-body-truncated: %s\n' "$body_truncated"
+        printf 'transport-refused-oversized-body: %s\n' "$transport_refused_size"
+        printf 'transport-body-ceiling-bytes: %s\n' "$SMOKE_TRANSPORT_MAX_BODY_BYTES"
         printf 'capture-headers-truncated: %s\n' "$hdr_truncated"
         printf 'capture-diagnostics-truncated: %s\n' "$err_truncated"
         # Recorded as an ADDITIONAL observation only.  No verdict anywhere in
@@ -2492,11 +3697,13 @@ http_probe()
         printf '\n'
     } | sanitise >> "${dest}.out"
 
-    printf '%s=%s\n' "$label" "$status" >> "${dest}.status"
+    write_status_line "$dest" "${label}=${status}"
 
     # Truncation is recorded OUTSIDE the pipeline above, for the subshell reason
     # documented at the counters.
-    if [ "$body_truncated" = 'yes' ]; then
+    if [ "$transport_refused_size" = 'yes' ]; then
+        mark_truncated "${label}: the transport REFUSED the response because it exceeded SMOKE_TRANSPORT_MAX_BODY_BYTES=${SMOKE_TRANSPORT_MAX_BODY_BYTES} (curl exit 63), so the ${body_bytes_actual} bytes captured are whatever had been read at that instant and may be none of the body at all"
+    elif [ "$body_truncated" = 'yes' ]; then
         mark_truncated "${label}: response body ${body_bytes_actual} bytes exceeds SMOKE_MAX_BODY_BYTES=${SMOKE_MAX_BODY_BYTES}"
     fi
     if [ "$hdr_truncated" = 'yes' ]; then
@@ -2641,6 +3848,88 @@ captured_contains()
     grep -q -F -- "$needle" "${dest}.out" 2>/dev/null
 }
 
+# ---------------------------------------------------------------------------
+# SCOPED BODY ASSERTIONS — THE ONLY SOUND WAY TO ASSERT ON A RESPONSE.
+#
+# captured_contains above searches the WHOLE capture file, and that is unsound
+# for anything that has to be found in a particular response.  A capture file
+# holds every probe of the flow, its own header records, its own prose, and —
+# decisively — values this script itself wrote earlier in the same run.  So a
+# needle can be "found" in a file that the response never contained:
+#
+#   - flow 5 recorded the generated object number into the capture and then
+#     searched the whole file for that number.  It was already there, in a record
+#     this script had written moments before, so ANY successful poll counted as a
+#     delivery with a matching payload even when the response body was empty.
+#   - flow 1 searched the whole file for the principal's user name, which the
+#     flow's own context prose also contains, so the identity assertion could
+#     pass on the prose rather than on the identity endpoint's answer.
+#
+# section_body_contains restricts the search to the BODY of one named probe
+# section.  Nothing this script wrote can satisfy it, because the body region is
+# transcribed from the response and nothing else is written inside it.  Every
+# assertion that means "the response said X" uses this; captured_contains is left
+# in place only for assertions that genuinely mean "somewhere in this capture".
+# ---------------------------------------------------------------------------
+#
+# grep -c AND NOT grep -q, AND THAT IS NOT A STYLE CHOICE.  This script runs with
+# `set -o pipefail`.  `grep -q` exits the moment it matches, which closes the pipe
+# and delivers SIGPIPE to the awk upstream of it; awk then exits non-zero, and
+# pipefail makes the PIPELINE non-zero even though the match succeeded.  The
+# assertion therefore reported "not found" on exactly the inputs where it WAS
+# found — measured, not theorised: the rendered application page carried its
+# required label four times and the check recorded its absence.  grep -c reads its
+# input to the end, so no signal is delivered, and the count is then compared
+# explicitly.
+section_body_contains()
+{
+    local dest="$1"
+    local label="$2"
+    local needle="$3"
+    local n
+
+    n="$(captured_body_region "$dest" "$label" | grep -c -F -- "$needle")" || true
+    case "$n" in
+        '' | *[!0-9]* | 0) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
+# section_body_matches — the same scoping, with an extended regular expression.
+# Used where the assertion is about the SHAPE of a value rather than a literal,
+# for instance a JSON member whose separator may or may not carry a space.
+section_body_matches()
+{
+    local dest="$1"
+    local label="$2"
+    local pattern="$3"
+    local n
+
+    # grep -c rather than grep -q, for the pipefail reason recorded above.
+    n="$(captured_body_region "$dest" "$label" | grep -c -E -e "$pattern")" || true
+    case "$n" in
+        '' | *[!0-9]* | 0) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
+# section_body_count — how many lines of one probe body match a pattern.  A count
+# is often the assertion itself: "the response named the created object exactly
+# once" is checkable, whereas "the response mentioned it" is not.
+section_body_count()
+{
+    local dest="$1"
+    local label="$2"
+    local pattern="$3"
+    local n
+
+    n="$(captured_body_region "$dest" "$label" | grep -c -E -e "$pattern")" || true
+    case "$n" in
+        '' | *[!0-9]*) printf '0' ;;
+        *) printf '%s' "$n" ;;
+    esac
+}
+
 # status_is_http_response — true when a real HTTP status was observed.  A
 # transport failure yields the no-response token, which is the only condition
 # that legitimately produces a SKIPPED record.  Any real status, INCLUDING 401,
@@ -2658,6 +3947,21 @@ status_is_http_response()
 # content_type_is_json — used by the authorisation assertions.  A protected
 # endpoint answering with HTML is answering with a login page, whatever its
 # status line says.
+# content_type_is_html — true when the recorded content type names HTML.
+#
+# Needed because a rendered VIEW and a JSON representation are the two things flow
+# 2 has to keep apart, and an earlier revision could only recognise the second.
+# Matched on the media type alone, with any parameters ignored: the charset a
+# container appends is a transport detail and varies between deployments, whereas
+# the media type is the assertion.
+content_type_is_html()
+{
+    case "$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" in
+        text/html*|application/xhtml+xml*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 content_type_is_json()
 {
     case "$1" in
@@ -2746,6 +4050,61 @@ json_repeated_field()
         | sed -E -e 's/^"[^"]*"[[:space:]]*:[[:space:]]*//' -e 's/^"//' -e 's/"$//'
 }
 
+# mime_essence — the media type of a Content-Type value, for COMPARISON ONLY.
+#
+# Returns the type/subtype with any parameters removed, lower-cased, and with
+# surrounding whitespace trimmed.  "text/plain; charset=UTF-8" becomes
+# "text/plain"; "TEXT/Plain" becomes "text/plain".
+#
+# WHY A COMPARISON FORM EXISTS AT ALL, given that this deliverable records MIME
+# types verbatim and never normalises them.  Both statements are true and they
+# are not in tension, because they are about different things:
+#
+#   - EVERY RECORD KEEPS THE VERBATIM VALUE.  A MIME type is behaviour-bearing
+#     here: it is the observable output of the reinstated activation framework's
+#     mapping, and the reference implementation was chosen over the API-only jar
+#     precisely because the API-only jar lacks the default MIME and mailcap
+#     resources.  Rewriting the recorded value would erase the one signal the
+#     artifact choice was made to protect, so no record is ever normalised and
+#     no normalise expression touches one.
+#
+#   - THE COMPARISON IS MADE ON THE MEDIA TYPE.  "text/plain" and
+#     "text/plain;charset=UTF-8" name the same media type; a charset parameter
+#     added by a servlet container is not a MIME resolution difference, and
+#     treating it as one would report a regression that did not happen.  RFC 2045
+#     makes the type and subtype case-insensitive, so case is folded for the same
+#     reason.
+#
+# The two are kept visibly separate in the evidence: each MIME row prints the
+# verbatim value, and the row that states the comparison prints the essence it
+# compared and says that is what it did.  A reader can therefore see both the
+# value the application produced and the basis on which it was judged, and can
+# disagree with the judgement without having lost the value.
+#
+# A token that is not a Content-Type at all — the not-observed and not-attempted
+# tokens this script writes, or an empty value — is returned unchanged, so that
+# an unobserved leg stays visibly unobserved instead of being folded into a
+# lower-cased near-miss of a real media type.
+mime_essence()
+{
+    local value="$1"
+
+    case "$value" in
+        ''|'not-observed'|'not-attempted'|'not-compared'|'SKIPPED'|\
+        'absent-from-response-body')
+            printf '%s' "$value"
+            return 0
+            ;;
+    esac
+
+    # Parameters first, then case, then the surrounding whitespace that stripping
+    # a parameter can leave behind.
+    printf '%s' "$value" \
+        | LC_ALL=C sed -e 's/;.*$//' \
+        | LC_ALL=C tr '[:upper:]' '[:lower:]' \
+        | LC_ALL=C sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+}
+
 # json_scalar_list — every string value recorded for a repeated key, in the order
 # the response listed them, one per line.
 #
@@ -2822,6 +4181,31 @@ register_cleanup()
     printf '%s\t%s\t%s\n' "$method" "$url" "$description" >> "$CLEANUP_REGISTRY"
 }
 
+# register_residue - declare state this run created and CANNOT remove.
+#
+# Distinct from register_cleanup, and the distinction is the point.  register_cleanup
+# holds requests that are EXECUTED at the end of the run to undo what the run did.
+# This holds objects for which the application exposes no removal request at all, so
+# there is nothing to execute and pretending otherwise would produce a cleanup entry
+# that silently fails.  Recording the object is the honest alternative: an
+# unremovable object that is declared is a known cost, while one that is not
+# declared is a leak that the next reader discovers as a surprise.
+#
+# The ledger is published as its own note, so the residue is visible in the capture
+# rather than only in a comment in this file.
+register_residue()
+{
+    local object_type="$1"
+    local object_id="$2"
+    local reason="$3"
+
+    if has_control_char "$object_type" || has_control_char "$object_id"; then
+        mark_incomplete "refused to register a residue entry containing a control character: ${object_type} ${object_id}"
+        return 1
+    fi
+    printf '%s\t%s\t%s\n' "$object_type" "$object_id" "$reason" >> "$RESIDUE_REGISTRY"
+}
+
 CLEANUP_DONE='no'
 
 run_cleanup()
@@ -2887,6 +4271,74 @@ run_cleanup()
     fi
 }
 
+# report_residue - publish the ledger of state this run created and cannot remove.
+#
+# Written unconditionally, including when the ledger is empty, because "this run left
+# nothing behind" and "nobody checked" are different statements and a reader must be
+# able to tell them apart.  An empty ledger says the former.
+#
+# This does NOT mark the run incomplete.  Residue is a known, declared consequence of
+# observing a numbering sequence in an application that exposes no way to remove what
+# it numbers; treating it as an incompleteness would report a defect in the capture
+# where the fact belongs to the application's API surface.  What WOULD be a defect is
+# leaving it undeclared, which is what this closes.
+report_residue()
+{
+    local entries=0
+    local line
+
+    # THE CAPTURE DIRECTORY MAY ALREADY BE GONE, AND THAT IS A NORMAL PATH.
+    #
+    # This is called from main before publication AND from the EXIT trap, which fires
+    # after publication has moved the staged tree into its destination.  Writing into
+    # the vanished staging directory printed a redirection error onto this script's
+    # own stderr, which is itself evidence a reader may quote, so it is not merely
+    # untidy.  The second call has nothing to add in any case: publication is the last
+    # action, so the ledger it would write is the ledger already published.
+    #
+    # It is a silent no-op rather than a warning ONLY because the pre-publication call
+    # is unconditional, so the published capture always carries the file. If that ever
+    # stops being true the missing file is caught by the manifest, which lists
+    # notes/residue.txt as required.
+    if [ ! -d "${SMOKE_OUT_DIR}/notes" ]; then
+        return 0
+    fi
+
+    if [ -f "$RESIDUE_REGISTRY" ]; then
+        entries="$(count_lines_in "$RESIDUE_REGISTRY")"
+    fi
+
+    {
+        printf 'state this run created and could not remove\n'
+        printf '\n'
+        printf 'An object listed here was created deliberately, to observe a behaviour that\n'
+        printf 'cannot be observed without creating it, and the application exposes no\n'
+        printf 'endpoint that removes it.  It is declared rather than quietly left, so that\n'
+        printf 'the cost of taking this capture is visible and an operator can retire the\n'
+        printf 'objects through the application own supported path if the deployment needs\n'
+        printf 'them gone.  This script does not retire them itself: the only supported path\n'
+        printf 'submits a disposition and starts an approval process, which would leave more\n'
+        printf 'state behind than it removed.\n'
+        printf '\n'
+        printf 'residue-entries: %s\n' "$entries"
+        printf '\n'
+        printf '%s\n' '----- entries -----'
+        if [ -f "$RESIDUE_REGISTRY" ] && [ -s "$RESIDUE_REGISTRY" ]; then
+            while IFS="$(printf '\t')" read -r otype oid oreason; do
+                [ -n "$otype" ] || continue
+                printf '  %s %s\n' "$otype" "$oid"
+                printf '    %s\n' "$oreason"
+            done < "$RESIDUE_REGISTRY"
+        else
+            printf '%s\n' '  (none: this run created no object that it could not remove)'
+        fi
+        printf '%s\n' '----- end entries -----'
+    } > "${SMOKE_OUT_DIR}/notes/residue.txt.tmp"
+
+    mv -f -- "${SMOKE_OUT_DIR}/notes/residue.txt.tmp" \
+        "${SMOKE_OUT_DIR}/notes/residue.txt" 2>/dev/null || true
+}
+
 # The scratch directory is removed on exit, and cleanup runs first so that it can
 # still use it.  Cleanup is idempotent, so the normal path (called from main,
 # before the summary, so its outcome is part of the verdict) and the abnormal path
@@ -2894,6 +4346,8 @@ run_cleanup()
 on_exit()
 {
     run_cleanup
+    # Published beside the cleanup note, always, even when empty: see report_residue.
+    report_residue
     if [ -n "${SMOKE_TMPDIR:-}" ] && [ -d "$SMOKE_TMPDIR" ]; then
         rm -rf -- "$SMOKE_TMPDIR"
     fi
@@ -3743,53 +5197,6 @@ record_result()
     } | sanitise >> "${dest}.result.txt"
 }
 
-# record_skip_capture — write the SKIPPED record into a flow's CAPTURE files.
-#
-# Split out of record_skip below, and the split is the whole point.  R-5 requires
-# the SKIPPED token and its reason to appear in the capture itself, not merely in
-# the flow's result record: a .out that shows a read-only query and then simply
-# stops is indistinguishable, on a directory diff, from one that had nothing more
-# to say.  Most flows want that record AND a SKIPPED flow-level verdict, and they
-# get both from record_skip.  A flow that has a MORE SPECIFIC verdict to report —
-# flow 6 reports NOT-EXERCISED-MUTATION-NOT-PERMITTED, which the completeness
-# figures count separately from a skip — needs the capture record WITHOUT having
-# its verdict flattened, and calls this half directly.
-#
-# Trailing arguments, if any, are emitted verbatim as further lines of the same
-# record.  They exist so that a flow can state, inside the capture, exactly which
-# of its observations are missing and why; a caller that passes none gets byte-for
-# -byte what this function produced before the split.  Every line still leaves
-# through sanitise, so a detail line that interpolates a server-supplied value is
-# no more dangerous than a raw body.
-record_skip_capture()
-{
-    local n="$1"
-    local slug="$2"
-    local label="$3"
-    local reason="$4"
-    shift 4
-    local line
-    local dest
-    dest="$(flow_prefix "$n" "$slug")"
-
-    {
-        printf '===== %s (SKIPPED) =====\n' "$label"
-        printf 'SKIPPED\n'
-        printf 'reason: %s\n' "$reason"
-        printf 'note: this flow could not be executed.  The record is deliberate: an\n'
-        printf '  unexecuted flow is reported rather than omitted, so that the\n'
-        printf '  eight-flow completion condition stays verifiable and the gap is\n'
-        printf '  visible in a directory diff, in the completeness verdict and in the\n'
-        printf '  exit status (R-5).\n'
-        for line in "$@"; do
-            printf '%s\n' "$line"
-        done
-        printf '\n'
-    } | sanitise >> "${dest}.out"
-
-    printf '%s=SKIPPED\n' "$label" >> "${dest}.status"
-}
-
 # record_skip — the explicit, machine-readable SKIPPED record required by R-5.
 #
 # Split out of record_skip below, and the split is the whole point.  R-5 requires
@@ -3834,7 +5241,10 @@ record_skip_capture()
         printf '\n'
     } | sanitise >> "${dest}.out"
 
-    printf '%s=SKIPPED\n' "$label" >> "${dest}.status"
+    # Through the collision-safe writer: this label is frequently the name of a
+    # probe the flow also issued, and that probe own observation must not be
+    # overwritten by this one.  See write_leg_status_line.
+    write_leg_status_line "$dest" "$label" 'SKIPPED'
 }
 
 # record_skip — the explicit, machine-readable SKIPPED record required by R-5.
@@ -3929,7 +5339,10 @@ record_unattempted_view()
         printf '\n'
     } | sanitise >> "${dest}.out"
 
-    printf '%s=SKIPPED\n' "$label" >> "${dest}.status"
+    # Through the collision-safe writer: this label is frequently the name of a
+    # probe the flow also issued, and that probe own observation must not be
+    # overwritten by this one.  See write_leg_status_line.
+    write_leg_status_line "$dest" "$label" 'SKIPPED'
 }
 
 # record_referenced_assets — the asset filenames the rendered page references.
@@ -4079,7 +5492,21 @@ record_leg()
         printf '\n'
     } | sanitise >> "${dest}.out"
 
-    printf '%s=%s\n' "$label" "$value" >> "${dest}.status"
+    # A LEG MUST NOT OVERWRITE A PROBE'S OBSERVATION UNDER THE SAME KEY.
+    #
+    # Several flows name a leg after a probe they also issue.  When the probe got no
+    # HTTP response it wrote "<label>=000", and the leg then wrote
+    # "<label>=SKIPPED" — two contradicting values for one key in one file, because
+    # 000 says the request was made and answered with nothing while SKIPPED says it
+    # was never made.  A comparison reading that key would get whichever value it
+    # happened to reach first.  Found by the status-hygiene audit across three
+    # separate flows, having been invisible in every earlier reading of the code.
+    #
+    # Both facts are worth keeping, so neither is discarded: the probe keeps its own
+    # key and the leg outcome is recorded under a key that says it is the leg's.
+    # The suffix appears only on the collision, so a flow whose leg name is its own
+    # is unaffected and no existing key is renamed.
+    write_leg_status_line "$dest" "$label" "$value"
 }
 
 # record_reason — write the single terse REASON line that accompanies an
@@ -4094,7 +5521,7 @@ record_reason()
     local dest="$1"
     local reason="$2"
 
-    printf 'REASON: %s\n' "$reason" >> "${dest}.status"
+    write_status_line "$dest" "REASON: ${reason}"
 }
 
 # record_probe_not_attempted — record a request this run did NOT send.
@@ -4138,7 +5565,7 @@ record_probe_not_attempted()
         printf '\n'
     } | sanitise >> "${dest}.out"
 
-    printf '%s=NOT-ATTEMPTED\n' "$label" >> "${dest}.status"
+    write_status_line "$dest" "${label}=NOT-ATTEMPTED"
 }
 
 # record_status_token — append one machine-readable outcome token to a flow's
@@ -4240,7 +5667,7 @@ record_observed_half()
         printf '\n'
     } | sanitise >> "${dest}.out"
 
-    printf '%s=%s\n' "$label" "$token" >> "${dest}.status"
+    write_status_line "$dest" "${label}=${token}"
 }
 
 # record_outcome — append a flow's BEHAVIOUR-BEARING OUTCOME TOKENS to its
@@ -4390,14 +5817,21 @@ record_flow_leg()
             printf '===== %s =====\n' "$label"
             printf 'OBSERVED\n'
         fi
-        printf 'REASON: %s\n' "$reason"
+        # An EMPTY reason prints no row at all rather than a key with nothing after
+        # it.  A row whose value is blank reads as "nothing here" where the truthful
+        # reading is "this row does not apply", and the two are different statements
+        # that a comparison must not conflate.  A leg that HAS a reason still prints
+        # it, on both the observed and the skipped path.
+        if [ -n "$reason" ]; then
+            printf 'REASON: %s\n' "$reason"
+        fi
         for line in "$@"; do
             printf '%s\n' "$line"
         done
         printf '\n'
     } | sanitise >> "${dest}.out"
 
-    printf '%s=%s\n' "$label" "$state" >> "${dest}.status"
+    write_status_line "$dest" "${label}=${state}"
 }
 
 # record_note — write a plain-text note into notes/.  Sanitised like every other
@@ -4768,13 +6202,491 @@ capture_corpus_figures()
 }
 
 # ---------------------------------------------------------------------------
-# STARTUP LOG REGIONS
+# THE REDACTION AND NORMALISATION LEDGER — A REAL PRODUCER, AND A SELF-TEST.
+#
+# Every byte this script writes passes through sanitise, which is three stages:
+# literal substitution of configured values, pattern redaction of
+# credential-shaped values, and normalisation of values that legitimately vary
+# between two runs.  A capture tree that commits administrator-session material
+# needs a ledger of that pipeline, and the previous revision carried one — as a
+# hand-authored essay with no producer, which means it could describe rules the
+# script no longer had.
+#
+# This producer replaces it with two things a person cannot type wrong.  The rule
+# INVENTORY is counted out of the script's own source, so it cannot go stale
+# against the code.  And the rules are SELF-TESTED: synthetic probe values, none
+# of them real, are pushed through the live pipeline and the result is recorded,
+# so the ledger states what the pipeline DID rather than what it is supposed to do.
+#
+# One test is different from the others and deliberately asymmetric.  The
+# configured password is pushed through the pipeline and only the OUTCOME is
+# recorded — never the input, never the output, only whether the value survived.
+# Recording the pair for that one rule would put the credential in the capture in
+# order to prove the capture holds no credential.
+# ---------------------------------------------------------------------------
+redaction_selftest_row()
+{
+    local label="$1"
+    local probe="$2"
+    local expect_token="$3"
+    local got
+
+    got="$(printf '%s\n' "$probe" | sanitise)"
+    if printf '%s' "$got" | pipe_grep_found -F -- "$expect_token"; then
+        printf '  FIRED     %-34s expected %s\n' "$label" "$expect_token"
+        printf '            in:  %s\n' "$probe"
+        printf '            out: %s\n' "$got"
+        return 0
+    fi
+    printf '  NOT-FIRED %-34s expected %s and it is absent\n' "$label" "$expect_token"
+    printf '            in:  %s\n' "$probe"
+    printf '            out: %s\n' "$got"
+    return 1
+}
+
+capture_redaction_ledger()
+{
+    local out="${SMOKE_OUT_DIR}/notes/06-normalisation-and-redaction.txt"
+    local source="$0"
+    local literal_pairs='unmeasured'
+    local pattern_rules='unmeasured'
+    local normalise_rules='unmeasured'
+    local rows="${SMOKE_TMPDIR}/redaction-rows"
+    local failures=0
+    local password_survived='not-tested'
+    local probe_out
+
+    if [ -r "$source" ]; then
+        literal_pairs="$(sed -n 's|^[[:space:]]*SMOKE_SUBST_COUNT=\([0-9]*\).*|\1|p' \
+            "$source" | head -1)"
+        [ -n "$literal_pairs" ] || literal_pairs='unmeasured'
+        pattern_rules="$(awk '/^redact_patterns\(\)/ { inb = 1 } inb && /^}/ { exit } inb && /^[[:space:]]*-e / { n++ } END { print n + 0 }' \
+            "$source")"
+        normalise_rules="$(awk '/^normalise\(\)/ { inb = 1 } inb && /^}/ { exit } inb && /^[[:space:]]*-e / { n++ } END { print n + 0 }' \
+            "$source")"
+    fi
+
+    # The one asymmetric test: outcome only, never the value.  A configured
+    # password that survives the pipeline is a capture-incompleting defect, and
+    # printing it here to prove the point would be the defect itself.
+    if [ -n "${ARKCASE_PASSWORD:-}" ]; then
+        probe_out="$(printf 'password=%s\n' "$ARKCASE_PASSWORD" | sanitise)"
+        if printf '%s' "$probe_out" | pipe_grep_found -F -- "$ARKCASE_PASSWORD"; then
+            password_survived='YES — THE CONFIGURED PASSWORD SURVIVED THE PIPELINE'
+            failures=$((failures + 1))
+            mark_incomplete 'the configured administrator password survived the redaction pipeline in a live self-test, so no capture from this run may be treated as safe to commit'
+        else
+            password_survived="no — replaced by ${REDACTION_TOKEN}"
+        fi
+    else
+        password_survived='not-tested: no password is configured for this run'
+    fi
+
+    : > "$rows"
+    {
+        redaction_selftest_row 'authorization header' \
+            'authorization: Basic YWRtaW46c3VwZXJzZWNyZXQ=' "$REDACTION_TOKEN" || failures=$((failures + 1))
+        redaction_selftest_row 'set-cookie header' \
+            'set-cookie: JSESSIONID=0123456789ABCDEF; Path=/arkcase' "$REDACTION_TOKEN" || failures=$((failures + 1))
+        redaction_selftest_row 'bearer token in a body' \
+            '{"authorization":"Bearer eyJhbGciOiJIUzI1NiJ9.payload.signature"}' "$REDACTION_TOKEN" || failures=$((failures + 1))
+        redaction_selftest_row 'key=value secret' \
+            'client_secret=nOtaREalsECReTvALue123' "$REDACTION_TOKEN" || failures=$((failures + 1))
+        redaction_selftest_row 'credential in a URL authority' \
+            'request-url: https://someuser:somepass@example.invalid/arkcase' "$REDACTION_TOKEN" || failures=$((failures + 1))
+        redaction_selftest_row 'ISO-8601 timestamp' \
+            'created: 2026-01-02T03:04:05.678Z' '<TIMESTAMP>' || failures=$((failures + 1))
+        redaction_selftest_row 'UUID' \
+            'identifier: 4f8c1b2e-9a7d-4c3b-8e15-0a1b2c3d4e5f' '<UUID>' || failures=$((failures + 1))
+        redaction_selftest_row 'broker message identifier' \
+            'jms-message-id: ID:host-12-1700000000000-1:1:2:3:4' '<BROKER-MESSAGE-ID>' || failures=$((failures + 1))
+        redaction_selftest_row 'index query time' \
+            '{"QTime":37,"status":0}' '<QUERY-TIME' || failures=$((failures + 1))
+        redaction_selftest_row 'capture directory path' \
+            "capture-dir: ${SMOKE_OUT_DIR}" '<CAPTURE-DIR>' || failures=$((failures + 1))
+    } > "$rows" 2>/dev/null
+
+    begin_capture_file "$out"
+    {
+        printf 'normalisation and redaction — the live substitution ledger for this capture\n'
+        printf '\n'
+        printf 'produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_redaction_ledger\n'
+        printf 'pipeline: sanitise = redact_literal | redact_patterns | normalise\n'
+        printf '\n'
+        printf 'rule inventory, counted from this script own source rather than stated:\n'
+        printf '  literal-substitution-pairs: %s\n' "$literal_pairs"
+        printf '  pattern-redaction-expressions: %s\n' "$pattern_rules"
+        printf '  normalisation-expressions: %s\n' "$normalise_rules"
+        printf '  redaction-token: %s\n' "$REDACTION_TOKEN"
+        printf '\n'
+        printf 'what the literal stage substitutes, BY NAME and never by value:\n'
+        printf '  the configured administrator password  -> the redaction token\n'
+        printf '  the resolved capture root              -> <CAPTURE-DIR>\n'
+        printf '  the capture output directory           -> <CAPTURE-DIR>\n'
+        printf '  the absolute repository root           -> <REPO-ROOT>\n'
+        printf '  the running account home directory     -> <HOME>\n'
+        printf '  the scratch directory for this run     -> <TMPDIR>\n'
+        printf '  The four path substitutions are boundary-aware: a longer name that\n'
+        printf '  merely begins with one of these paths is left verbatim, so a file called\n'
+        printf '  <root>-backup is not rewritten as if it were inside <root>.\n'
+        printf '\n'
+        printf 'live self-test of the pipeline.  Every probe below is SYNTHETIC — no probe\n'
+        printf 'value here is a real credential, a real identifier or a real response.\n'
+        printf 'Each is pushed through the live pipeline and both sides are recorded, so\n'
+        printf 'this ledger states what the pipeline DID rather than what it should do.\n'
+        printf '\n'
+        printf 'read the in: column knowing that it is DOUBLE-SANITISED.  The assertion\n'
+        printf 'itself runs on the raw probe value, which is how a rule can be observed to\n'
+        printf 'fire at all; but this whole block is then written through the same pipeline\n'
+        printf 'as every other capture byte, so a credential-shaped probe appears redacted\n'
+        printf 'in its own input column too.  That is deliberate defence in depth rather\n'
+        printf 'than a display fault: the file is a committed artefact, and no code path\n'
+        printf 'that writes into it gets to opt out of the sanitiser — not even the one\n'
+        printf 'testing the sanitiser.  The rule is still demonstrably firing, because the\n'
+        printf 'out: column shows the whole matched span replaced rather than just the\n'
+        printf 'probe value substituted.\n'
+        printf '\n'
+        cat "$rows"
+        printf '\n'
+        printf 'the one test recorded as an OUTCOME ONLY:\n'
+        printf '  configured-password-survived-the-pipeline: %s\n' "$password_survived"
+        printf '  Its probe and its output are deliberately not printed.  Recording them\n'
+        printf '  would place the credential in the capture in order to demonstrate that\n'
+        printf '  the capture holds no credential.\n'
+        printf '\n'
+        printf 'self-test-rules-that-did-not-fire: %s\n' "$failures"
+        printf '\n'
+        printf 'what must survive VERBATIM, because it is the behaviour under observation:\n'
+        printf '  HTTP status codes, content types and body forms\n'
+        printf '  the generated object number FORM (its shape, not its value)\n'
+        printf '  the process definition KEY, the task key, name and assignee\n'
+        printf '  queue names before and after a transition\n'
+        printf '  the five frontend artifact digests\n'
+        printf '  every archived unit-test suite name and its counts\n'
+        printf 'A normalisation that reached any of these would erase the comparison it\n'
+        printf 'exists to make possible, which is why the normalisation expressions are\n'
+        printf 'anchored to named keys and structural shapes rather than applied broadly.\n'
+        printf '\n'
+        printf 'NOT IN SCOPE HERE: any verdict.  The cross-capture outcome is in\n'
+        printf 'comparison.txt, the per-flow observations in the eight flow-*.result.txt\n'
+        printf 'records, and the capture completeness verdict in notes/completeness.txt.\n'
+    } | sanitise >> "$out"
+
+    if [ "$failures" -gt 0 ]; then
+        mark_incomplete "${failures} redaction or normalisation rule(s) did not fire against their synthetic probe in the live self-test, so the sanitiser cannot be relied on for this capture (see notes/06-normalisation-and-redaction.txt)"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# THE STATIC AUDIT GATE — A REAL PRODUCER FOR static-audit.txt.
+#
+# WHY THIS FUNCTION EXISTS.  The two static-audit capture files committed
+# alongside this script both named THIS SCRIPT as their producer, and this script
+# contained no audit function of any kind.  One of them went further and admitted,
+# in prose, that "the harness writes no file of this name" — so the attribution
+# contradicted itself within the same file.  The content was correct and the
+# counts were right, but a capture whose stated provenance is false is not
+# reproducible, and an evidence tree that carries a false attribution in one place
+# invites a reader to discount every attribution in it.  Either the claim had to
+# go or the producer had to exist.  The producer now exists.
+#
+# WHAT THE GATE IS.  AAP section 0.9.6: a recursive text search over Java sources
+# for two internal-package prefixes, which must return zero hits on main source
+# after the migration and which returned exactly seven before it.  It is a TEXTUAL
+# gate, not a semantic one, so a comment and a string literal disqualify exactly
+# as much as an import does.
+#
+# GREP EXIT SEMANTICS ARE THE TRAP, AND THEY ARE INVERTED HERE.  grep exits 0 when
+# it FINDS something and 1 when it finds nothing.  For this gate, finding nothing
+# is the passing outcome, so a naive "if grep ...; then pass" tests exactly
+# backwards, and under `set -o pipefail` an unguarded grep in a pipeline
+# propagates its no-match status as a pipeline failure.  Every search below is
+# therefore run with its status absorbed, the output is written to a file, and the
+# COUNT IS READ BACK FROM THAT FILE — never inferred from an exit status.  That is
+# R-T7 applied to the one tool whose exit status means the opposite of what a
+# reader expects.
+# ---------------------------------------------------------------------------
+SMOKE_STATIC_AUDIT_PATTERN='sun.misc\|com.sun.'
+
+capture_static_audit()
+{
+    local out="${SMOKE_OUT_DIR}/static-audit.txt"
+    local raw="${SMOKE_TMPDIR}/audit-raw"
+    local main_hits="${SMOKE_TMPDIR}/audit-main"
+    local test_hits="${SMOKE_TMPDIR}/audit-test"
+    local main_count
+    local test_count
+    local whole_count
+    local java_files
+    local gate_state
+    local grep_version
+
+    : > "$raw"
+    : > "$main_hits"
+    : > "$test_hits"
+
+    # The search itself.  The scratch and build directories are pruned so that a
+    # historical copy of the tree, or a generated source under target/, cannot be
+    # counted as a source-tree hit — a trap documented in the migrated capture,
+    # where extracting the base commit into a subdirectory of the checkout made the
+    # after-side gate rediscover the before-side hits.
+    #
+    # The scratch pattern is a GLOB rather than one literal directory name, and the
+    # difference is not cosmetic: the trap above was closed by excluding a single
+    # name, and the very next base-commit extraction landed in a differently-named
+    # scratch tree, so the audit would have reported the seven pre-migration hits
+    # against the migrated tree and failed its own gate on a working change set.
+    # count_matching_files, which produces the java-files-searched figure printed
+    # beside these counts, has always pruned the whole family; the two are now
+    # measuring the same tree.
+    #
+    # The status is absorbed on purpose.  See the note above: no match is the
+    # PASSING outcome and it exits 1.
+    grep -rn -e "$SMOKE_STATIC_AUDIT_PATTERN" --include='*.java' \
+            --exclude-dir='target' --exclude-dir='node_modules' \
+            --exclude-dir='.git' --exclude-dir='blitzy_adhoc_test_*' \
+            -- "$REPO_ROOT" \
+        > "$raw" 2>/dev/null || true
+
+    grep -F '/src/main/java/' -- "$raw" | LC_ALL=C sort > "$main_hits" 2>/dev/null || true
+    grep -F '/src/test/java/' -- "$raw" | LC_ALL=C sort > "$test_hits" 2>/dev/null || true
+
+    whole_count="$(count_lines_in "$raw")"
+    main_count="$(count_lines_in "$main_hits")"
+    test_count="$(count_lines_in "$test_hits")"
+    java_files="$(count_matching_files "$REPO_ROOT" '*.java')"
+    grep_version="$(grep --version 2>/dev/null | head -1)"
+    [ -n "$grep_version" ] || grep_version='grep version not reported'
+
+    # The gate passes only when BOTH counts are zero.  Main source is the gate
+    # proper; test source carried zero at the base commit, so any hit there was
+    # introduced while rewriting the mocking-framework test classes and is a new
+    # violation rather than an inherited one.
+    if [ "$main_count" -eq 0 ] && [ "$test_count" -eq 0 ]; then
+        gate_state='PASSED'
+    else
+        gate_state='FAILED'
+    fi
+
+    begin_capture_file "$out"
+    {
+        printf 'static audit gate — captured output\n'
+        printf '\n'
+        printf 'produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_static_audit\n'
+        printf 'authoritative-presentation: docs/migration/static-audit-output.md\n'
+        printf 'gate-state: %s\n' "$gate_state"
+        printf '\n'
+        printf 'search-root: %s\n' "$REPO_ROOT"
+        printf 'search-pattern: %s\n' "$SMOKE_STATIC_AUDIT_PATTERN"
+        printf 'search-include: *.java\n'
+        printf 'search-pruned-directories: target, node_modules, .git, blitzy_adhoc_test_*\n'
+        printf 'tool: %s\n' "$grep_version"
+        printf 'java-files-searched: %s\n' "$java_files"
+        printf '\n'
+        printf 'command, reproducible verbatim from the repository root:\n'
+        printf '  grep -rn -e %s --include=%s --exclude-dir=target \\\n' \
+            "'${SMOKE_STATIC_AUDIT_PATTERN}'" "'*.java'"
+        printf '      --exclude-dir=node_modules --exclude-dir=.git . \\\n'
+        printf '%s\n' "      | grep -F '/src/main/java/' | LC_ALL=C sort"
+        printf '  and the same with /src/test/java/ for the test-source count.\n'
+        printf '\n'
+        printf 'hits-whole-tree: %s\n' "$whole_count"
+        printf 'hits-main-source: %s\n' "$main_count"
+        printf 'hits-test-source: %s\n' "$test_count"
+        printf '\n'
+        printf 'grep exit-status semantics, stated because they are inverted for this\n'
+        printf 'gate: grep exits 0 when it MATCHES and 1 when it does not, so for a gate\n'
+        printf 'that must find nothing, exit 1 is the passing outcome and exit 0 the\n'
+        printf 'failing one.  Every count above was read back from the captured output\n'
+        printf 'file rather than inferred from any exit status, which is the only way an\n'
+        printf 'empty result and a failed search can be told apart.\n'
+        printf '\n'
+        printf '%s\n' '----- main-source hits, sorted -----'
+        if [ "$main_count" -eq 0 ]; then
+            printf '(no output: the search emitted no main-source line, and that emptiness\n'
+            printf 'between these markers is the evidence)\n'
+        else
+            head -n "$SMOKE_MAX_LOG_LINES" "$main_hits"
+        fi
+        printf '%s\n' '----- end main-source hits -----'
+        printf '\n'
+        printf '%s\n' '----- test-source hits, sorted -----'
+        if [ "$test_count" -eq 0 ]; then
+            printf '(no output: test source carried zero hits at the base commit and carries\n'
+            printf 'zero here, so nothing was introduced while rewriting the mocking-framework\n'
+            printf 'test classes)\n'
+        else
+            head -n "$SMOKE_MAX_LOG_LINES" "$test_hits"
+        fi
+        printf '%s\n' '----- end test-source hits -----'
+        printf '\n'
+        printf 'per-file tally, main source:\n'
+        if [ "$main_count" -eq 0 ]; then
+            printf '  (none)\n'
+        else
+            cut -d: -f1 "$main_hits" | LC_ALL=C sort | uniq -c | sed -e 's|^|  |'
+        fi
+    } | sanitise >> "$out"
+
+    if [ "$gate_state" != 'PASSED' ]; then
+        mark_incomplete "the static audit gate FAILED: ${main_count} main-source and ${test_count} test-source occurrence(s) of an internal-package prefix remain, and AAP section 0.9.6 requires zero of each (see static-audit.txt)"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# COVERAGE INSTRUMENTATION LIVENESS — A REAL PRODUCER FOR jacoco-liveness.txt.
+#
+# Same defect, same remedy as the static audit above: the committed capture tree
+# carried a jacoco-liveness.txt on one side with no code path anywhere that could
+# have written it.
+#
+# What it measures matters more than that it exists.  AAP section 0.9.2 makes
+# instrumentation LIVENESS a pass condition of the backend gate, for a specific
+# reason: the coverage plugin publishes its agent configuration through the
+# default argLine property, so a test-runner declaration that sets a literal
+# argLine severs instrumentation silently, and the configured check goal then
+# evaluates an EMPTY data set against its minimum ratio and reports a pass.  A
+# false green.  The only way to tell that apart from a real pass is to look at the
+# execution data files themselves and see that they are non-empty — which is what
+# this function does, per module, reading sizes off disk.
+# ---------------------------------------------------------------------------
+capture_jacoco_liveness()
+{
+    local out="${SMOKE_OUT_DIR}/jacoco-liveness.txt"
+    local listing="${SMOKE_TMPDIR}/jacoco-exec"
+    local files=0
+    local nonempty=0
+    local empty=0
+    local total_bytes=0
+    local line
+    local size
+
+    : > "$listing"
+    if [ -d "$REPO_ROOT" ]; then
+        find "$REPO_ROOT" -type f -name 'jacoco.exec' 2>/dev/null \
+            | LC_ALL=C sort > "$listing" || : > "$listing"
+    fi
+
+    files="$(count_lines_in "$listing")"
+
+    begin_capture_file "$out"
+    {
+        printf 'coverage instrumentation liveness\n'
+        printf '\n'
+        printf 'produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_jacoco_liveness\n'
+        printf 'search-root: %s\n' "$REPO_ROOT"
+        printf 'searched-for: files named jacoco.exec\n'
+        printf '\n'
+        printf 'why liveness is measured rather than assumed.  The coverage plugin\n'
+        printf 'publishes its agent configuration through the default argLine property.  A\n'
+        printf 'test-runner declaration that sets a literal argLine overrides it and\n'
+        printf 'severs instrumentation with no diagnostic at all; the configured check\n'
+        printf 'goal then evaluates an EMPTY execution data set against its minimum ratio\n'
+        printf 'and reports a pass.  A capture that recorded only that the goal passed\n'
+        printf 'could not tell that apart from a real pass.  Non-empty execution data,\n'
+        printf 'measured per module off disk, can.\n'
+        printf '\n'
+        printf 'execution-data-files-found: %s\n' "$files"
+    } | sanitise >> "$out"
+
+    if [ "$files" -eq 0 ]; then
+        {
+            printf '\n'
+            printf 'state: NOT-MEASURED\n'
+            printf 'reason: no execution data file exists anywhere under the search root at\n'
+            printf '  the moment this capture was taken.  That is the expected state when\n'
+            printf '  the reactor was last built with tests skipped, and it is NOT evidence\n'
+            printf '  that instrumentation is severed.  To measure liveness, run the unit\n'
+            printf '  test suite and capture again.\n'
+        } | sanitise >> "$out"
+        return 0
+    fi
+
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        size="$(wc -c < "$line" 2>/dev/null | tr -d '[:space:]')"
+        [ -n "$size" ] || size=0
+        total_bytes=$((total_bytes + size))
+        if [ "$size" -gt 0 ]; then
+            nonempty=$((nonempty + 1))
+        else
+            empty=$((empty + 1))
+        fi
+    done < "$listing"
+
+    {
+        printf 'execution-data-files-non-empty: %s\n' "$nonempty"
+        printf 'execution-data-files-empty: %s\n' "$empty"
+        printf 'execution-data-total-bytes: %s\n' "$total_bytes"
+        if [ "$nonempty" -gt 0 ] && [ "$empty" -eq 0 ]; then
+            printf 'state: LIVE\n'
+        elif [ "$nonempty" -gt 0 ]; then
+            printf 'state: PARTIAL — some modules produced execution data and some produced an empty file\n'
+        else
+            printf 'state: SEVERED — every execution data file is empty, which is the false-green condition described above\n'
+        fi
+        printf '\n'
+        printf '%s\n' '----- per-module execution data, path and bytes -----'
+        while IFS= read -r line; do
+            [ -n "$line" ] || continue
+            printf '%s  %s\n' "$(wc -c < "$line" 2>/dev/null | tr -d '[:space:]')" "$line"
+        done < "$listing"
+        printf '%s\n' '----- end per-module execution data -----'
+    } | sanitise >> "$out"
+
+    if [ "$nonempty" -eq 0 ]; then
+        mark_incomplete "every coverage execution data file found is empty, so instrumentation is severed and the coverage check goal would evaluate an empty data set (see jacoco-liveness.txt)"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# STARTUP LOG REGIONS — ONE BOUNDED WINDOW, MINED REPEATEDLY
 #
 # Mined from the container log when one is supplied.  The output directory is
 # startup/, deliberately NOT a directory named after a log folder, because that
 # name is ignored by the repository at any depth and the evidence would be
 # silently dropped.  Reading FROM a Tomcat log directory is fine; writing INTO
 # one is the trap.
+#
+# THE WINDOW IS THE FIX, AND IT IS WORTH SPELLING OUT WHY.
+#
+# An earlier revision greppped the WHOLE container log once per region.  A
+# catalina log accumulates every boot the container has ever performed, so each
+# region was a union over an unknown number of unrelated startups.  Three
+# consequences followed, and none of them is cosmetic:
+#
+#   - The regions did not describe one event.  A context line from a boot three
+#     weeks ago and a persistence line from this morning landed in two files that
+#     a reader would naturally read as two views of the same startup.
+#   - Nothing tied a region to its source.  No path, no digest, no offsets, so a
+#     region could not be re-derived and two captures could not be shown to have
+#     been mined from comparable material.
+#   - The comparison had no denominator.  "Both sides matched 40 lines" says
+#     nothing when the two sides read logs of different lengths covering
+#     different numbers of boots.
+#
+# So the window is resolved ONCE, before any region is mined:  the LAST boot
+# marker in the log opens it and the first startup-completed line at or after
+# that marker closes it, or end-of-file when the boot never completed.  The
+# source path, its size, its SHA-256, the marker that opened the window, both
+# line numbers, both BYTE OFFSETS, the window's line count and the window's own
+# SHA-256 are all recorded.  Every region is then mined from the extracted window
+# rather than from the log, so every region describes the same event and cites the
+# same provenance.
+#
+# ERROR SIGNATURES ARE THE FULL SET, NOT ERROR|SEVERE.  A Java 17 migration fails
+# in shapes that the two severity words never carry: a NoClassDefFoundError from a
+# module the JDK removed, an IllegalAccessError from strong encapsulation, a
+# NoSuchMethodError from a library that moved, and the "Caused by" tail that
+# actually names the cause.  Scanning only for the severity words would let every
+# one of those pass a capture that then read as healthy.
+#
+# MANDATORY REGIONS MUST PRODUCE EVIDENCE.  A region that matched nothing is
+# indistinguishable, in a file, from a region whose subject behaved perfectly —
+# both are empty.  For the regions that describe something a successful startup
+# MUST do, zero matched lines therefore marks the capture incomplete and names the
+# region and its pattern.  The error region is the deliberate exception: there,
+# zero is the good outcome.
 #
 # Each region records how many lines MATCHED and how many were written, and hits
 # the same line cap as every other capture.  A container log can be hundreds of
@@ -4783,37 +6695,201 @@ capture_corpus_figures()
 # to its counterpart for a reason unrelated to behaviour.  So the cap is applied
 # and announced, and exceeding it marks the run incomplete.
 # ---------------------------------------------------------------------------
+
+# The extracted window, and the facts about it.  Set by resolve_startup_window and
+# read by every region.
+STARTUP_WINDOW_FILE=''
+STARTUP_WINDOW_SOURCE=''
+STARTUP_WINDOW_SOURCE_BYTES='0'
+STARTUP_WINDOW_SOURCE_LINES='0'
+STARTUP_WINDOW_SOURCE_DIGEST='not-computed'
+STARTUP_WINDOW_DIGEST='not-computed'
+STARTUP_WINDOW_START_LINE='0'
+STARTUP_WINDOW_END_LINE='0'
+STARTUP_WINDOW_START_OFFSET='0'
+STARTUP_WINDOW_END_OFFSET='0'
+STARTUP_WINDOW_LINES='0'
+STARTUP_WINDOW_BASIS='not-resolved'
+STARTUP_WINDOW_OPENED_BY='not-resolved'
+STARTUP_WINDOW_CLOSED_BY='not-resolved'
+STARTUP_WINDOW_MARKER_PATTERN='not-resolved'
+STARTUP_WINDOW_BOOTS_IN_SOURCE='0'
+
+# The boot markers, as an ORDERED PREFERENCE LIST rather than one alternation.
+#
+# The order matters and getting it wrong narrows the window silently.  Several
+# distinct lines are emitted while one boot starts, so an alternation matching all
+# of them and taking its last match lands part-way INTO the newest boot and drops
+# everything before that point — on a real Tomcat log that discards the version
+# banner, the protocol initialisation and the service start, which are precisely
+# the lines the readiness region needs.
+#
+# Each pattern below fires AT MOST ONCE PER BOOT, and they are listed earliest
+# first.  The first pattern that matches anywhere in the log decides the window,
+# and its LAST match is the window start, because the newest boot is the one this
+# capture describes.  A log written by a container image with a reduced logging
+# configuration may carry only a later one of these, which is why there are four.
+STARTUP_BOOT_MARKER_CANDIDATES='VersionLoggerListener\.log[[:space:]]+Server[[:space:]]version[[:space:]]name:
+Catalina\.load[[:space:]]+Server[[:space:]]initialization[[:space:]]in
+StandardService\.startInternal[[:space:]]+Starting[[:space:]]service[[:space:]]\[
+StandardEngine\.startInternal[[:space:]]+Starting[[:space:]]Servlet[[:space:]]engine'
+
+# The startup-completed marker.  Tomcat prints exactly this once per boot.
+STARTUP_DONE_MARKER_PATTERN='Server startup in'
+
+# byte_offset_of_line — the byte offset of the FIRST byte of line n, and of the
+# byte just past line n when n is given as an end bound.  Computed by measuring
+# the prefix rather than by assuming a line length, so a log with mixed line
+# lengths or non-ASCII content still yields a true offset a reader can seek to.
+byte_offset_of_line()
+{
+    local file="$1"
+    local n="$2"
+
+    if [ "$n" -le 0 ]; then
+        printf '0'
+        return 0
+    fi
+    head -n "$n" -- "$file" 2>/dev/null | wc -c | tr -d '[:space:]'
+}
+
+resolve_startup_window()
+{
+    local log="$1"
+    local start=1
+    local end=0
+    local marker_line=''
+    local done_line=''
+
+    local candidate
+    local boots_in_log='0'
+
+    STARTUP_WINDOW_SOURCE="$log"
+    STARTUP_WINDOW_SOURCE_BYTES="$(wc -c < "$log" 2>/dev/null | tr -d '[:space:]')"
+    [ -n "$STARTUP_WINDOW_SOURCE_BYTES" ] || STARTUP_WINDOW_SOURCE_BYTES='0'
+    STARTUP_WINDOW_SOURCE_LINES="$(count_lines_in "$log")"
+    STARTUP_WINDOW_SOURCE_DIGEST="$(digest_value "$log")"
+
+    # The first candidate pattern that matches anywhere decides the window; its
+    # LAST match is the start.  See STARTUP_BOOT_MARKER_CANDIDATES for why this is
+    # an ordered preference list and not one alternation.
+    STARTUP_WINDOW_MARKER_PATTERN='none-matched'
+    for candidate in $STARTUP_BOOT_MARKER_CANDIDATES; do
+        marker_line="$(grep -n -E -e "$candidate" -- "$log" 2>/dev/null \
+            | tail -1 | cut -d: -f1)" || marker_line=''
+        if [ -n "$marker_line" ]; then
+            STARTUP_WINDOW_MARKER_PATTERN="$candidate"
+            boots_in_log="$(grep -c -E -e "$candidate" -- "$log" 2>/dev/null)" \
+                || boots_in_log='0'
+            break
+        fi
+    done
+    [ -n "$boots_in_log" ] || boots_in_log='0'
+    STARTUP_WINDOW_BOOTS_IN_SOURCE="$boots_in_log"
+
+    if [ -n "$marker_line" ]; then
+        start="$marker_line"
+        STARTUP_WINDOW_BASIS='last-boot-marker-to-startup-completed'
+        STARTUP_WINDOW_OPENED_BY="line ${start}: $(sed -n "${start}p" -- "$log" 2>/dev/null | cut -c1-200)"
+    else
+        start=1
+        STARTUP_WINDOW_BASIS='whole-file: no boot marker matched, so the window could not be narrowed and the entire log is used'
+        STARTUP_WINDOW_OPENED_BY='no boot marker matched'
+    fi
+
+    # The first startup-completed line at or after the window start.
+    # Redirection rather than a file operand: not every awk implementation treats
+    # "--" as an end-of-options marker, and one that does not would read it as a
+    # file name and produce nothing.
+    done_line="$(awk -v from="$start" -v pat="$STARTUP_DONE_MARKER_PATTERN" \
+        'NR >= from && $0 ~ pat { print NR; exit }' < "$log" 2>/dev/null)" || done_line=''
+
+    if [ -n "$done_line" ]; then
+        end="$done_line"
+        STARTUP_WINDOW_CLOSED_BY="line ${end}: $(sed -n "${end}p" -- "$log" 2>/dev/null | cut -c1-200)"
+    else
+        end="$STARTUP_WINDOW_SOURCE_LINES"
+        STARTUP_WINDOW_CLOSED_BY='no startup-completed line at or after the window start; the window runs to end of file and the boot did not complete within this log'
+    fi
+
+    [ "$end" -ge "$start" ] || end="$STARTUP_WINDOW_SOURCE_LINES"
+
+    STARTUP_WINDOW_START_LINE="$start"
+    STARTUP_WINDOW_END_LINE="$end"
+    STARTUP_WINDOW_START_OFFSET="$(byte_offset_of_line "$log" $((start - 1)))"
+    STARTUP_WINDOW_END_OFFSET="$(byte_offset_of_line "$log" "$end")"
+
+    STARTUP_WINDOW_FILE="${SMOKE_TMPDIR}/startup-window"
+    sed -n "${start},${end}p" -- "$log" > "$STARTUP_WINDOW_FILE" 2>/dev/null \
+        || : > "$STARTUP_WINDOW_FILE"
+    STARTUP_WINDOW_LINES="$(count_lines_in "$STARTUP_WINDOW_FILE")"
+    STARTUP_WINDOW_DIGEST="$(digest_value "$STARTUP_WINDOW_FILE")"
+}
+
 capture_log_region()
 {
     local name="$1"
-    local description="$2"
-    local pattern="$3"
+    local mandatory="$2"
+    local description="$3"
+    local pattern="$4"
     local target="${SMOKE_OUT_DIR}/startup/${name}"
     local scratch="${SMOKE_TMPDIR}/log-region"
     local matched
+    local cap="$SMOKE_MAX_LOG_LINES"
 
     : > "$scratch"
-    grep -E -i -e "$pattern" "$CATALINA_LOG" > "$scratch" 2>/dev/null || true
+    if [ -n "$pattern" ]; then
+        grep -E -i -e "$pattern" -- "$STARTUP_WINDOW_FILE" > "$scratch" 2>/dev/null || true
+    else
+        # An empty pattern means the region IS the window: the container's own
+        # uninterpreted boot record, mined by nothing and filtered by nothing.
+        cat -- "$STARTUP_WINDOW_FILE" > "$scratch" 2>/dev/null || true
+        cap="$SMOKE_MAX_WINDOW_LINES"
+    fi
     matched="$(count_lines_in "$scratch")"
 
     begin_capture_file "$target"
     {
         printf 'startup-log-region: %s\n' "$name"
         printf 'region-describes: %s\n' "$description"
+        printf 'region-mandatory: %s\n' "$mandatory"
+        if [ -n "$pattern" ]; then
+            printf 'region-pattern: %s\n' "$pattern"
+            printf 'region-pattern-flags: grep -E -i, applied to the extracted window only\n'
+        else
+            printf 'region-pattern: (none — this region is the extracted window verbatim)\n'
+            printf 'region-pattern-flags: (not applicable)\n'
+        fi
+        printf 'window-source: %s\n' "$STARTUP_WINDOW_SOURCE"
+        printf 'window-source-sha256: %s\n' "$STARTUP_WINDOW_SOURCE_DIGEST"
+        printf 'window-boots-present-in-source: %s\n' "$STARTUP_WINDOW_BOOTS_IN_SOURCE"
+        printf 'window-sha256: %s\n' "$STARTUP_WINDOW_DIGEST"
+        printf 'window-start-line: %s\n' "$STARTUP_WINDOW_START_LINE"
+        printf 'window-end-line: %s\n' "$STARTUP_WINDOW_END_LINE"
+        printf 'window-start-byte-offset: %s\n' "$STARTUP_WINDOW_START_OFFSET"
+        printf 'window-end-byte-offset: %s\n' "$STARTUP_WINDOW_END_OFFSET"
+        printf 'window-lines: %s\n' "$STARTUP_WINDOW_LINES"
         printf 'matched-lines: %s\n' "$matched"
-        printf 'line-cap: %s\n' "$SMOKE_MAX_LOG_LINES"
-        if [ "$matched" -gt "$SMOKE_MAX_LOG_LINES" ]; then
+        printf 'line-cap: %s\n' "$cap"
+        if [ "$matched" -gt "$cap" ]; then
             printf 'capture-truncated: yes\n'
         else
             printf 'capture-truncated: no\n'
         fi
         printf '%s\n' '----- region -----'
-        head -n "$SMOKE_MAX_LOG_LINES" "$scratch"
+        head -n "$cap" "$scratch"
         printf '%s\n' '----- end region -----'
     } | sanitise >> "$target"
 
-    if [ "$matched" -gt "$SMOKE_MAX_LOG_LINES" ]; then
-        mark_truncated "startup/${name}: ${matched} matched lines exceeds SMOKE_MAX_LOG_LINES=${SMOKE_MAX_LOG_LINES}"
+    if [ "$matched" -gt "$cap" ]; then
+        mark_truncated "startup/${name}: ${matched} matched lines exceeds the ${cap}-line cap for this region"
+    fi
+
+    # A mandatory region that matched nothing is the condition this check exists
+    # for.  In the file it is indistinguishable from a region whose subject worked
+    # perfectly, so it is named here rather than left to be read as health.
+    if [ "$mandatory" = 'yes' ] && [ "$matched" -eq 0 ]; then
+        mark_incomplete "startup/${name} matched 0 lines in the ${STARTUP_WINDOW_LINES}-line startup window, and this region is mandatory: a successful startup must produce evidence for it, so an empty region is a hole in the capture rather than a clean result (pattern: ${pattern:-<the window itself>})"
     fi
 }
 
@@ -4828,6 +6904,24 @@ log_region_matched()
     sed -n 's|^matched-lines: ||p' "$target" | tail -1
 }
 
+# The complete error signature set.  Declared once, at file scope, so the pattern
+# the error region scans for is the pattern the window note publishes and the
+# pattern a reviewer re-derives — not three independently maintained copies.
+#
+# Each alternative earns its place from a specific migration failure shape:
+#   ERROR, SEVERE          the two severity words, which an earlier revision
+#                          scanned for exclusively
+#   Exception              a stack trace header that carries no severity word when
+#                          a library logs it at warn or prints it to stdout
+#   Caused by              the tail that actually names the root cause, and which
+#                          sits several lines below the header
+#   NoClassDefFoundError   a class the JDK removed under JEP 320, arriving at run
+#                          time rather than at compile time
+#   IllegalAccessError     strong encapsulation refusing a cross-module access
+#   NoSuchMethodError      a library whose method moved between the version
+#                          compiled against and the version on the classpath
+STARTUP_ERROR_SIGNATURE_PATTERN='ERROR|SEVERE|Exception|Caused by|NoClassDefFoundError|IllegalAccessError|NoSuchMethodError'
+
 capture_startup_regions()
 {
     local target="${SMOKE_OUT_DIR}/startup/unavailable.log"
@@ -4841,38 +6935,256 @@ capture_startup_regions()
             printf 'effect: the startup-derived observations in flows 5 and 7 record this\n'
             printf '  unavailability explicitly instead of asserting anything about a log\n'
             printf '  that was never read.\n'
+            printf '\n'
+            printf 'This file and the eight region files are MUTUALLY EXCLUSIVE by\n'
+            printf 'construction: a run either resolves a startup window and writes the\n'
+            printf 'regions, or resolves none and writes this file.  A capture holding both\n'
+            printf 'was assembled from two different runs, and the manifest check names that\n'
+            printf 'condition explicitly (see notes/manifest.txt).\n'
         } | sanitise >> "$target"
+        mark_incomplete "no container log was supplied (CATALINA_LOG=${CATALINA_LOG:-<unset>}), so the startup window and all eight startup regions are absent from this capture"
         return 0
     fi
 
-    capture_log_region 'context-init.log' \
-        'Spring context initialisation and container startup' \
-        'ContextLoader|Root WebApplicationContext|Initializing Spring|Starting ProtocolHandler|Server startup in'
+    resolve_startup_window "$CATALINA_LOG"
 
-    capture_log_region 'process-definitions.log' \
-        'process-engine deployment, the observable side of flow 7 residual risk' \
-        'activiti|ProcessEngine|bpmn|process definition|deployment'
+    # ---- the window record, cited by every region -------------------------
+    record_note 'startup-window.txt' \
+        'the single bounded startup window every region is mined from' \
+        '' \
+        "deployed-artifact: ${DEPLOYED_ARTIFACT:-(not supplied)}" \
+        "deployed-artifact-bytes: $(if [ -n "$DEPLOYED_ARTIFACT" ] && [ -f "$DEPLOYED_ARTIFACT" ]; then wc -c < "$DEPLOYED_ARTIFACT" | tr -d '[:space:]'; else printf 'unmeasured'; fi)" \
+        "deployed-artifact-sha256: $(if [ -n "$DEPLOYED_ARTIFACT" ]; then digest "$DEPLOYED_ARTIFACT" 'deployed-artifact' | awk '{print $1}'; else printf 'unmeasured'; fi)" \
+        'deployed-artifact-why-digested: a base URL and a container log identify a' \
+        '  host and a port, not a build.  Where several checkouts of this project are' \
+        '  deployed side by side, a capture taken against a neighbour container looks' \
+        '  exactly like one taken against your own.  This digest is the value that' \
+        '  ties the behaviour recorded below to a specific archive; unmeasured means' \
+        '  no archive was named for this run, and the tie is then not established.' \
+        '' \
+        "source: ${STARTUP_WINDOW_SOURCE}" \
+        "source-bytes: ${STARTUP_WINDOW_SOURCE_BYTES}" \
+        "source-lines: ${STARTUP_WINDOW_SOURCE_LINES}" \
+        "source-sha256: ${STARTUP_WINDOW_SOURCE_DIGEST}" \
+        '' \
+        "window-basis: ${STARTUP_WINDOW_BASIS}" \
+        "window-opened-by: ${STARTUP_WINDOW_OPENED_BY}" \
+        "window-closed-by: ${STARTUP_WINDOW_CLOSED_BY}" \
+        "window-start-line: ${STARTUP_WINDOW_START_LINE}" \
+        "window-end-line: ${STARTUP_WINDOW_END_LINE}" \
+        "window-start-byte-offset: ${STARTUP_WINDOW_START_OFFSET}" \
+        "window-end-byte-offset: ${STARTUP_WINDOW_END_OFFSET}" \
+        "window-lines: ${STARTUP_WINDOW_LINES}" \
+        "window-sha256: ${STARTUP_WINDOW_DIGEST}" \
+        '' \
+        "boot-marker-pattern-used: ${STARTUP_WINDOW_MARKER_PATTERN}" \
+        "boot-marker-candidates-in-preference-order:" \
+        "$(printf '%s' "$STARTUP_BOOT_MARKER_CANDIDATES" | sed -e 's|^|  |' | tr '\n' '~' | sed -e 's|~|; |g')" \
+        "boots-present-in-source: ${STARTUP_WINDOW_BOOTS_IN_SOURCE}" \
+        "startup-completed-marker-pattern: ${STARTUP_DONE_MARKER_PATTERN}" \
+        "error-signature-pattern: ${STARTUP_ERROR_SIGNATURE_PATTERN}" \
+        '' \
+        'how to re-derive the window from the source, byte for byte:' \
+        "  sed -n '${STARTUP_WINDOW_START_LINE},${STARTUP_WINDOW_END_LINE}p' <source> | sha256sum" \
+        "  must print ${STARTUP_WINDOW_DIGEST}" \
+        '' \
+        'why one window rather than one grep per region.  A container log' \
+        '  accumulates every boot the container has ever performed.  Mining each' \
+        '  region from the whole file makes each region a union over an unknown' \
+        '  number of unrelated startups, so the region files stop describing one' \
+        '  event while still reading as though they do, and the two capture sides' \
+        '  have no common denominator to compare.  The window is therefore resolved' \
+        '  once, from the LAST boot marker to the first startup-completed line at or' \
+        '  after it, and every region is mined from the extracted window.' \
+        '' \
+        'if window-basis reads whole-file, the log carried no recognisable boot' \
+        '  marker.  The regions are then mined from the entire log and the fact is' \
+        '  stated here rather than hidden: a narrowed window that silently was not' \
+        '  narrowed would be the worst of both.'
 
-    capture_log_region 'frontend-build.log' \
+    # ---- the eight regions ------------------------------------------------
+    # The container's own boot record, unfiltered.  This is the region a reader
+    # goes to when a mined region raises a question, so it carries no pattern at
+    # all: it is the window verbatim.
+    capture_log_region 'catalina.out.log' 'yes' \
+        'the extracted startup window itself, unfiltered, so every mined region can be checked against its source' \
+        ''
+
+    capture_log_region 'spring-context.log' 'yes' \
+        'Spring context initialisation, including the aspect auto-proxying that AAP 0.9.4 requires to be observed' \
+        'ContextLoader|Root WebApplicationContext|Initializing Spring|Refreshing .*ApplicationContext|AnnotationAwareAspectJAutoProxy|aspectj|DispatcherServlet|Initializing Servlet'
+
+    capture_log_region 'jpa-init.log' 'yes' \
+        'persistence provider initialisation against the existing schema, with no DDL modification, for AAP 0.9.4' \
+        'eclipselink|persistence unit|persistenceunit|EntityManagerFactory|LocalContainerEntityManagerFactoryBean|jpa|liquibase|weaving'
+
+    capture_log_region 'reflection-scan.log' 'yes' \
+        'reflection-based classpath scanning, the observable side of leaving the reflection library unchanged' \
+        'reflections|classpath scan|ClassPathScanning|component scan|scanning for|AcmObjectUtils|PermissionEvaluator|ArkPermission'
+
+    capture_log_region 'workflow-engine-init.log' 'yes' \
+        'process-engine initialisation and process-definition loading, the observable side of the flow 7 residual risk' \
+        'activiti|ProcessEngine|bpmn|process definition|deployment|ProcessEngineConfiguration'
+
+    # The directory-service region.  MANDATORY, and the reason is specific to this
+    # migration rather than general: the one security-adjacent source edit in the
+    # whole backend track is the directory-service context factory, and a capture
+    # that cannot observe the context source being constructed cannot evidence
+    # that edit.  A deployment configured for a token-based provider will match
+    # nothing here and the capture will read INCOMPLETE — correctly, because such
+    # a capture genuinely does not discharge the obligation, and saying so is
+    # better than letting an authenticated 200 stand in for it.
+    capture_log_region 'ldap-context-source.log' 'yes' \
+        'directory-service context source and JNDI initial-context construction, the observable side of the one security-adjacent source edit in this migration' \
+        'ActiveDirectoryAbstractContextSource|AbstractContextSource|LdapContextSource|SpringSecurityLdapTemplate|LdapAuthenticationProvider|AcmLdapAuthenticate|LdapUserService|ldap://|ldaps://|InitialLdapContext|initialContextFactory|LdapCtxFactory|AcmLdapRegistry|ldapDirectoryConfig'
+
+    capture_log_region 'messaging-init.log' 'yes' \
+        'messaging broker initialisation, for flows 3 and 5' \
+        'activemq|jms|broker|BrokerService|TransportConnector|camel'
+
+    # The pattern here is deliberately NARROW, and it was narrowed after being
+    # measured.  A first attempt included the bare tokens "npm", "node " and
+    # "node_modules", and on a real container log those matched
+    # "com.hazelcast.instance.Node -" and a Spring Security filter-chain entry for
+    # "/node_modules/**" in a boot where the frontend build had not run at all.
+    # Two false positives are enough to make a MANDATORY region pass with no
+    # frontend evidence in it whatsoever, which is precisely the hollow-evidence
+    # condition this whole revision exists to remove.  Every alternative below is
+    # a string the copier or its child process actually emits.
+    capture_log_region 'frontend-build.log' 'yes' \
         'the startup frontend build, the only place the runtime package-manager wiring is exercised' \
-        'AngularResourceCopier|grunt|node_modules|package-lock'
+        'AngularResourceCopier|About to run \[|Front-end |\bgrunt\b|npm ci|npm run|npm install|package-lock\.json|Copying file to:'
 
-    capture_log_region 'messaging-and-persistence.log' \
-        'messaging broker and persistence provider initialisation, for flows 3 and 5' \
-        'activemq|jms|broker|eclipselink|persistence unit'
+    capture_log_region 'readiness-poll.log' 'yes' \
+        'container readiness: deployment completion and the startup-completed line the window closes on' \
+        'Server startup in|Deployment of web application|has finished in|Deploying web application|Starting ProtocolHandler|Initializing ProtocolHandler'
 
-    capture_log_region 'errors.log' \
-        'every error-severity line, so a regression cannot hide behind a healthy readiness probe' \
-        'ERROR|SEVERE'
+    # The error region is the ONE region that is not mandatory, and the reason is
+    # the opposite of the reason the others are: here, zero matched lines is the
+    # good outcome.  Requiring evidence would require the startup to have failed.
+    capture_log_region 'errors.log' 'no' \
+        'every line carrying an error signature, so a migration failure cannot hide behind a healthy readiness probe' \
+        "$STARTUP_ERROR_SIGNATURE_PATTERN"
+}
+
+# ---------------------------------------------------------------------------
+# tcp_probe — reachability of a service that speaks no HTTP.
+#
+# Two of the services whose wire behaviour this migration preserves are not HTTP
+# services at all: the directory service and the application database.  Both were
+# absent from the reachability matrix for that reason, which left the matrix
+# describing five of seven surfaces while reading as though it described the
+# stack.  A completed TCP connection is a weaker observation than an HTTP status
+# and it is recorded as exactly that - it proves the port accepts connections and
+# nothing more - but it is the same claim the anonymous HTTP probes make, and it
+# needs no credential and sends no bytes.
+#
+# The connection is opened with bash's own /dev/tcp redirection under an external
+# timeout, so no additional tool is required, and the descriptor is closed
+# immediately: a probe that left a connection open against a shared service would
+# be a side effect rather than an observation.  The recorded token is CONNECTED,
+# UNREACHABLE or NOT-ATTEMPTED, never a number, so it can never be mistaken for
+# an HTTP status in a diff of two status files.
+# ---------------------------------------------------------------------------
+tcp_probe()
+{
+    local dest="$1"
+    local label="$2"
+    local endpoint="$3"
+    local purpose="$4"
+    local host
+    local port
+    local outcome='UNREACHABLE'
+    local refusal=''
+
+    if [ -z "$endpoint" ]; then
+        {
+            printf '===== %s (NOT ATTEMPTED) =====\n' "$label"
+            printf 'probe-kind: tcp-connect\n'
+            printf 'endpoint: (none supplied)\n'
+            printf 'purpose: %s\n' "$purpose"
+            printf 'observed-outcome: NOT-ATTEMPTED\n'
+            printf 'not-attempted-because: no endpoint was supplied for this run, so no\n'
+            printf '  address was guessed.  A guessed address would record a connection\n'
+            printf '  failure that reads as a behavioural finding about a service that was\n'
+            printf '  never addressed.\n'
+            printf '\n'
+        } | sanitise >> "${dest}.out"
+        record_status_token "$dest" "$label" 'NOT-ATTEMPTED'
+        return 0
+    fi
+
+    refusal="$(probe_value_acceptable "the ${label} endpoint" "$endpoint")" || true
+    case "$endpoint" in
+        *:*) host="${endpoint%%:*}"; port="${endpoint##*:}" ;;
+        *)   host="$endpoint"; port='' ;;
+    esac
+    if [ -z "$refusal" ]; then
+        case "$port" in
+            '' | *[!0-9]*) refusal="refused: the endpoint does not carry a numeric port" ;;
+        esac
+    fi
+    if [ -n "$refusal" ]; then
+        {
+            printf '===== %s (REFUSED) =====\n' "$label"
+            printf 'probe-kind: tcp-connect\n'
+            printf 'endpoint: %s\n' "$endpoint"
+            printf 'purpose: %s\n' "$purpose"
+            printf 'observed-outcome: REFUSED-BY-THIS-SCRIPT\n'
+            printf 'refused-because: %s\n' "$refusal"
+            printf '\n'
+        } | sanitise >> "${dest}.out"
+        record_status_token "$dest" "$label" 'REFUSED-BY-THIS-SCRIPT'
+        mark_incomplete "the ${label} endpoint was refused before any connection was attempted (${refusal})"
+        return 0
+    fi
+
+    if timeout "$CURL_CONNECT_TIMEOUT" bash -c \
+        "exec 3<>/dev/tcp/${host}/${port} && exec 3<&- && exec 3>&-" 2>/dev/null
+    then
+        outcome='CONNECTED'
+    fi
+
+    {
+        printf '===== %s =====\n' "$label"
+        printf 'probe-kind: tcp-connect\n'
+        printf 'endpoint: %s\n' "$endpoint"
+        printf 'purpose: %s\n' "$purpose"
+        printf 'connect-timeout-seconds: %s\n' "$CURL_CONNECT_TIMEOUT"
+        printf 'bytes-sent: 0\n'
+        printf 'credential-sent: none\n'
+        printf 'observed-outcome: %s\n' "$outcome"
+        printf 'what-this-does-and-does-not-establish: a completed connection proves the\n'
+        printf '  port accepts connections.  It does NOT establish that the service behind\n'
+        printf '  it is healthy, that it speaks the protocol expected of it, or that this\n'
+        printf '  application can authenticate to it.  Those are observed, where they are\n'
+        printf '  observed at all, by the flows that use the service.\n'
+        printf '\n'
+    } | sanitise >> "${dest}.out"
+    record_status_token "$dest" "$label" "$outcome"
 }
 
 # ---------------------------------------------------------------------------
 # REFERENCE-STACK REACHABILITY
 #
-# Four of the six reference services answer on the same host.  Each observed
-# status is captured; no status is judged good or bad here, because the only
-# meaningful assertion is that the migrated observation matches the baseline
-# observation.
+# NINE surfaces, not four, and the count is the point of this revision.  An
+# earlier version probed four HTTP services and read as though it described the
+# integration surface; it did not.  The configuration server was never observed at
+# all, the message broker appeared only inside flow 5 behind a credential, and the
+# directory service and the database could not appear because the matrix could
+# only express an HTTP status.  A reachability matrix that silently omits three of
+# the services whose wire behaviour the migration promises is unchanged is worse
+# than one that records them as unavailable, because the omission is invisible.
+#
+# The nine rows are: the search index, the content-repository share, the
+# reporting server, the document viewer, the configuration server, the broker
+# management surface, the broker transport, the directory service and the
+# database - plus a tenth row for the two cloud tools, which records that no wire
+# observation of them is possible here and why.
+#
+# Each observed status is captured; no status is judged good or bad here, because
+# the only meaningful assertion is that the migrated observation matches the
+# baseline observation.
 #
 # The VirtualViewer service is EXPECTED to answer 503.  That is a pre-existing
 # condition documented at the base commit in README.md and again in
@@ -4884,6 +7196,9 @@ capture_reference_stack()
 {
     local dest="${SMOKE_OUT_DIR}/notes/reference-stack"
     local vv_status
+    local broker_mgmt_status
+    local aws_suites
+    local config_status='NOT-ATTEMPTED: no CONFIG_SERVER_URL was supplied'
 
     begin_capture_file "${dest}.out"
     begin_capture_file "${dest}.status"
@@ -4892,6 +7207,68 @@ capture_reference_stack()
     http_probe "$dest" 'alfresco-share' 'anon' 'GET' "$ALFRESCO_SHARE_URL" || true
     http_probe "$dest" 'pentaho' 'anon' 'GET' "$PENTAHO_URL" || true
     http_probe "$dest" 'virtualviewer' 'anon' 'GET' "$VIRTUALVIEWER_URL" || true
+
+    # The configuration server, the sixth of the six services whose wire behaviour
+    # this migration promises is unchanged, and the only one that had never been
+    # probed at all.  Optional because the reference stack documents no URL for it
+    # and a guessed address would produce a connection failure that read as a
+    # behavioural finding; when an operator supplies one it is captured beside the
+    # other four, and when they do not, that absence is recorded as an absence
+    # rather than left as a silent gap in the matrix.
+    if [ -n "$CONFIG_SERVER_URL" ]; then
+        http_probe "$dest" 'config-server' 'anon' 'GET' \
+            "${CONFIG_SERVER_URL}${CONFIG_SERVER_PATH}" || true
+        config_status="$(read_status "$dest" 'config-server')"
+    else
+        # Five arguments, in the order record_probe_not_attempted declares them:
+        # destination, label, method, URL, reason.  An earlier revision of this
+        # call passed four and, under set -u, aborted the whole run on an unbound
+        # fifth argument the first time CONFIG_SERVER_URL happened to be unset —
+        # which is the only branch that reaches this line.
+        record_probe_not_attempted "$dest" 'config-server' 'GET' \
+            '(no URL: CONFIG_SERVER_URL was unset for this run)' \
+            'CONFIG_SERVER_URL is unset, so no configuration-server address was supplied for this run.  The configuration server is one of the six services whose wire behaviour this migration preserves, and this probe is the only observation of it available to this script; supplying CONFIG_SERVER_URL closes the gap'
+    fi
+
+    # The message broker's management surface, probed ANONYMOUSLY and on purpose.
+    # Flow 5 probes the same surface with a credential to read destination
+    # counters; this row asks a different and smaller question - does the surface
+    # answer at all - and answering it without a credential means the reachability
+    # matrix does not depend on a broker credential being supplied.  An
+    # authentication challenge is a positive observation here: it proves the
+    # service is listening and responding, which is precisely what the row claims.
+    if [ -n "$BROKER_STATUS_URL" ]; then
+        http_probe "$dest" 'message-broker-management' 'anon' 'GET' \
+            "$BROKER_STATUS_URL" || true
+        broker_mgmt_status="$(read_status "$dest" 'message-broker-management')"
+    else
+        record_probe_not_attempted "$dest" 'message-broker-management' 'GET' \
+            '(no URL: BROKER_STATUS_URL was unset for this run)' \
+            'BROKER_STATUS_URL is unset, so no broker management address was supplied for this run.  The broker is one of the services whose wire behaviour this migration preserves; supplying the URL adds it to this matrix, and flow 5 uses the same value for its credentialed destination read'
+        broker_mgmt_status='NOT-ATTEMPTED'
+    fi
+
+    # The three non-HTTP surfaces.  Each is named in the integration list this
+    # migration promises is unchanged, and each was previously absent from the
+    # matrix purely because the matrix could only express an HTTP status.
+    tcp_probe "$dest" 'message-broker-transport' "$MESSAGE_BROKER_ENDPOINT" \
+        'the wire the application publishes and consumes messages on, as opposed to the management surface above'
+    tcp_probe "$dest" 'directory-service' "$DIRECTORY_SERVICE_ENDPOINT" \
+        'the directory the login flow authenticates against and the synchronisation jobs read'
+    tcp_probe "$dest" 'database' "$DATABASE_ENDPOINT" \
+        'the relational store the persistence layer maps onto, whose schema this migration leaves unchanged'
+
+    # The cloud transcription and medical-comprehension tools, recorded as a row
+    # rather than omitted.  They are the two integrations for which this capture
+    # can make no wire observation at all: no endpoint and no credential is
+    # supplied to it, and probing a live cloud endpoint from an evidence run would
+    # incur third-party charges and require a secret this deliverable must never
+    # hold.  What IS measurable is whether their code paths were exercised
+    # anywhere, so the archived unit-test suites for the two tool modules are
+    # counted from this capture's own archive instead of asserted.
+    aws_suites="$(find "${SMOKE_OUT_DIR}/surefire" -type f -name 'TEST-*AWS*.xml' \
+        2>/dev/null | wc -l | tr -d '[:space:]')"
+    [ -n "$aws_suites" ] || aws_suites=0
 
     vv_status="$(read_status "$dest" 'virtualviewer')"
 
@@ -4907,6 +7284,38 @@ capture_reference_stack()
         "pentaho-observed: $(read_status "$dest" 'pentaho')" \
         "virtualviewer-url: ${VIRTUALVIEWER_URL}" \
         "virtualviewer-observed: ${vv_status}" \
+        "config-server-url: ${CONFIG_SERVER_URL:-(not supplied)}${CONFIG_SERVER_PATH}" \
+        "config-server-observed: ${config_status}" \
+        'config-server-path-choice: the probed path deliberately does NOT name a' \
+        '  configuration resource.  Measured against the provisioned server, a' \
+        '  /<application>/<profile> request returns 214,320 bytes carrying 30' \
+        '  credential-shaped property keys, including a cloud secret access key and' \
+        '  two service passwords.  This capture answers the smaller question - does' \
+        '  the server answer on the wire - with a path whose response carries no' \
+        '  configuration value, because publishing a deployment secret into a' \
+        '  committed evidence tree is not a trade this deliverable may make.' \
+        "message-broker-management-url: ${BROKER_STATUS_URL:-(not supplied)}" \
+        "message-broker-management-observed: ${broker_mgmt_status}" \
+        'message-broker-management-reading: this row is probed ANONYMOUSLY, so an' \
+        '  authentication challenge is a POSITIVE observation: it proves the surface' \
+        '  is listening and responding.  Flow 5 probes the same surface WITH a' \
+        '  credential, for destination counters, and that is a different question.' \
+        "message-broker-transport-endpoint: ${MESSAGE_BROKER_ENDPOINT:-(not supplied)}" \
+        "message-broker-transport-observed: $(read_status "$dest" 'message-broker-transport')" \
+        "directory-service-endpoint: ${DIRECTORY_SERVICE_ENDPOINT:-(not supplied)}" \
+        "directory-service-observed: $(read_status "$dest" 'directory-service')" \
+        "database-endpoint: ${DATABASE_ENDPOINT:-(not supplied)}" \
+        "database-observed: $(read_status "$dest" 'database')" \
+        'non-http-row-reading: CONNECTED means the port accepted a connection and' \
+        '  nothing more.  It does not establish protocol health or that this' \
+        '  application can authenticate; the flows that use the service are where' \
+        '  that is observed, and flow 1 is the one that observes the directory.' \
+        'cloud-tool-endpoints-observed: none, and this row exists so that absence is' \
+        '  a recorded fact rather than a gap.  No endpoint and no credential for the' \
+        '  transcription or medical-comprehension tools is supplied to this capture:' \
+        '  probing a live cloud endpoint would incur third-party charges and would' \
+        '  require a secret this deliverable must never hold.' \
+        "cloud-tool-archived-unit-test-suites-in-this-capture: ${aws_suites}" \
         'virtualviewer-expectation: HTTP 503.  Documented pre-existing condition in' \
         '  README.md and docs/setup.md at the base commit.  Captured as observed under' \
         '  R-6: not repaired, not retried into submission, not hidden, and not a' \
@@ -5046,6 +7455,153 @@ FLOW1_CONTEXT_TARGET="target under observation: https://arkcase-ce.local/arkcase
 # supplied out of band and is named only by its variable.
 FLOW1_CONTEXT_PRINCIPAL="configured principal the credentialed requests were made as: ${ARKCASE_USER}, preserved verbatim rather than redacted because an authenticated identity is behaviour and not a secret.  Its credential is never written here: it is supplied out of band through the ARKCASE_PASSWORD or ARKCASE_PASSWORD_FILE variable and replaced by a fixed placeholder wherever a command line, a request body, a header or an error message would otherwise have carried it.  The authorization result belonging to this principal - every role, granted authority and privilege name, in the order the application returns them - is the value this flow compares"
 
+# ---------------------------------------------------------------------------
+# DIRECTORY-SERVICE EVIDENCE — THE TWO HELPERS FLOW 1 USES.
+#
+# ldap_jndi_property reads one of the two externalised JNDI values out of the
+# repository file the migrated context source falls back to.  It is a READ of
+# delivered configuration, and it is labelled as such wherever it surfaces: it
+# establishes what the migrated code will use, which is a different and weaker
+# claim than observing the naming service use it.  The startup region and the two
+# credentialed probes carry that stronger claim; this carries the exact values,
+# which no log line prints.
+#
+# The reader is deliberately strict about the file format.  A properties file
+# tolerates leading whitespace, a colon separator and comment lines, and a reader
+# that quietly accepted a commented-out key would report the base-commit value
+# from a file that no longer sets it.
+# ---------------------------------------------------------------------------
+ldap_jndi_property()
+{
+    local key="$1"
+    local file="${REPO_ROOT}/${FLOW1_LDAP_JNDI_PROPERTIES}"
+    local value
+
+    if [ ! -f "$file" ]; then
+        printf 'FILE-ABSENT'
+        return 0
+    fi
+
+    # Anchored at the start of the line so a commented-out key cannot match, and
+    # accepting either separator the properties format allows.  The last
+    # assignment wins, which is what a properties loader does.
+    value="$(awk -v key="$key" '
+        BEGIN { found = 0 }
+        /^[[:space:]]*[#!]/ { next }
+        {
+            line = $0
+            sub(/^[[:space:]]+/, "", line)
+            if (index(line, key) != 1) { next }
+            rest = substr(line, length(key) + 1)
+            sub(/^[[:space:]]+/, "", rest)
+            if (substr(rest, 1, 1) != "=" && substr(rest, 1, 1) != ":") { next }
+            rest = substr(rest, 2)
+            sub(/^[[:space:]]+/, "", rest)
+            sub(/[[:space:]]+$/, "", rest)
+            answer = rest
+            found = 1
+        }
+        END { if (found) { print answer } }
+    ' "$file")" || value=''
+
+    if [ -z "$value" ]; then
+        printf 'KEY-UNSET'
+        return 0
+    fi
+    printf '%s' "$value"
+}
+
+# capture_ldap_jndi_environment — the directory-service evidence ledger.
+#
+# Every value here was observed by this run: two probe statuses, two scoped-body
+# assertions, one startup-region line count, and the two values read from the
+# delivered properties file together with that file's digest.  Nothing is
+# asserted about the naming service that was not observed, and the boundary
+# between "read from configuration" and "observed at run time" is stated on every
+# row rather than left for a reader to infer.
+capture_ldap_jndi_environment()
+{
+    local dest="$1"
+    local dirs_status="$2"
+    local dir_reg_status="$3"
+    local directory_named="$4"
+    local directory_registered="$5"
+    local startup_lines="$6"
+    local factory="$7"
+    local pool_flag="$8"
+
+    local props="${REPO_ROOT}/${FLOW1_LDAP_JNDI_PROPERTIES}"
+    local props_digest
+    local props_state='present'
+
+    props_digest="$(digest_value "$props")"
+    [ -f "$props" ] || props_state='ABSENT'
+
+    record_note 'ldap-jndi-environment.txt' \
+        'directory-service and JNDI evidence for flow 1' \
+        '' \
+        'produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_ldap_jndi_environment' \
+        '' \
+        'OBSERVED AT RUN TIME by this capture:' \
+        "  directory-configuration-endpoint: ${FLOW1_LDAP_DIRECTORIES_PATH}" \
+        "  directory-configuration-status-observed: ${dirs_status}" \
+        "  configured-directory-named-in-that-response: ${directory_named}" \
+        "  directory-under-observation: ${FLOW1_LDAP_DIRECTORY_NAME}" \
+        "  per-directory-registry-status-observed: ${dir_reg_status}" \
+        "  directory-resolved-by-the-registry: ${directory_registered}" \
+        "  context-source-startup-region-matched-lines: ${startup_lines}" \
+        '  context-source-startup-region: startup/ldap-context-source.log' \
+        '' \
+        'READ FROM DELIVERED CONFIGURATION by this capture, which is a weaker claim' \
+        '  than the rows above and is separated from them for that reason:' \
+        "  properties-file: ${FLOW1_LDAP_JNDI_PROPERTIES}" \
+        "  properties-file-state: ${props_state}" \
+        "  properties-file-sha256: ${props_digest}" \
+        "  ${FLOW1_LDAP_FACTORY_KEY}: ${factory}" \
+        "  ${FLOW1_LDAP_POOL_KEY}: ${pool_flag}" \
+        '' \
+        'WHAT THE TWO VALUES ARE, and why they are compared literally.  The naming' \
+        '  service matches an initial context factory by EXACT CLASS NAME and a' \
+        '  connection-pooling request by EXACT PROPERTY KEY.  It recognises no' \
+        '  variation, no abbreviation and no reassembled equivalent, so either value' \
+        '  differing by one character changes directory authentication behaviour.' \
+        '  Both are byte-identical to the constants they replaced in Java source at' \
+        '  the base commit, and this capture asserts them character for character' \
+        '  rather than pattern-matching them.' \
+        '' \
+        'WHY THIS LEDGER EXISTS.  An earlier revision of flow 1 made three' \
+        '  credentialed requests and asserted an authenticated 200, a denied' \
+        '  anonymous request and a confirmed principal.  All three are necessary and' \
+        '  none of them reaches the directory service: the same three observations' \
+        '  appear on a deployment configured for a token-based provider, where no' \
+        '  directory service participates at all.  The flow was therefore named for' \
+        '  a migration edit it never touched.  The rows above close that, in four' \
+        '  independent ways — a live directory list, a directory the registry' \
+        '  resolved, the context source observed being constructed, and the two' \
+        '  externalised values read from the file the migrated class falls back to.' \
+        '' \
+        'CREDENTIAL HANDLING.  The directory-configuration response carries a bind' \
+        '  credential.  It is redacted before any byte is written, by the pipeline' \
+        '  whose every rule class is self-tested against a synthetic probe in' \
+        '  notes/06-normalisation-and-redaction.txt, and whose redaction of the' \
+        '  CONFIGURED credential is proven before the first capture file is opened.' \
+        '  No credential value appears in this file or in any capture file, in any' \
+        '  form.' \
+        '' \
+        'ASSERTION SCOPE.  Every one of the run-time rows above was asserted against' \
+        "  the SCOPED body of its own probe section in $(basename -- "${dest}").out," \
+        '  never against the capture file as a whole.  That distinction is not' \
+        '  pedantic here: this capture own prose names the directory and both JNDI' \
+        '  values, so a whole-file search would have been satisfied by text this' \
+        '  script wrote rather than by anything the application returned.' \
+        '' \
+        'scope fence: this ledger adds no tooling and no dependency.  It records two' \
+        '  additional credentialed observations, one additional startup region and' \
+        '  one configuration read.  Nothing here may be read as a pass mark; the' \
+        '  flow verdict is in flow-1-login.result.txt and the cross-capture outcome' \
+        '  in comparison.txt.'
+}
+
 flow_1_login()
 {
     local dest
@@ -5126,12 +7682,38 @@ flow_1_login()
         "${ARKCASE_BASE_URL}${FLOW1_IDENTITY_PATH}" \
         --header 'Accept: application/json' || true
 
+    # ---- the two directory-service probes --------------------------------
+    # These are what make this flow an assertion about the DIRECTORY SERVICE and
+    # not only about the security filter chain.  See the note beside
+    # FLOW1_LDAP_DIRECTORIES_PATH for why the three probes above cannot do it.
+    http_probe "$dest" 'ldap-directories' 'basic' 'GET' \
+        "${ARKCASE_BASE_URL}${FLOW1_LDAP_DIRECTORIES_PATH}" \
+        --header 'Accept: application/json' || true
+
+    local directory_probe_url
+    directory_probe_url="${ARKCASE_BASE_URL}${FLOW1_LDAP_DIRECTORY_PROBE_PATH}$(percent_encode "$FLOW1_LDAP_DIRECTORY_NAME")/editingEnabled"
+    http_probe "$dest" 'ldap-directory-registered' 'basic' 'GET' \
+        "$directory_probe_url" \
+        --header 'Accept: application/json' || true
+
     local anon_status auth_status auth_ctype auth_bytes anon_redirect
     local ident_status ident_ctype verdict
     local unmet=0
     local anon_denied='no'
     local identity_asserted='no'
     local authorities_present='no'
+    local dirs_status dirs_ctype dir_reg_status
+    local directory_named='no'
+    local directory_registered='no'
+    local ldap_startup_lines
+    local observed_factory observed_pool_flag
+
+    dirs_status="$(read_status "$dest" 'ldap-directories')"
+    dirs_ctype="$(captured_field "$dest" 'ldap-directories' 'observed-content-type')"
+    dir_reg_status="$(read_status "$dest" 'ldap-directory-registered')"
+    ldap_startup_lines="$(log_region_matched 'ldap-context-source.log')"
+    observed_factory="$(ldap_jndi_property "$FLOW1_LDAP_FACTORY_KEY")"
+    observed_pool_flag="$(ldap_jndi_property "$FLOW1_LDAP_POOL_KEY")"
 
     anon_status="$(read_status "$dest" 'anonymous')"
     anon_redirect="$(captured_field "$dest" 'anonymous' 'redirect-target-reported')"
@@ -5149,11 +7731,21 @@ flow_1_login()
             'authentication outcome observed: NOT AUTHENTICATED.  The credentialed request returned no HTTP response at all, so no exchange took place, no session was established and the security filter chain was never reached' \
             'authorization result observed: NONE.  The identity endpoint returned no representation, so no principal, no granted authority and no privilege name was returned and none is recorded here.  An unobserved authorization result is recorded as unobserved; it is never inferred from a reachability failure, and this record is therefore not a pass' \
             'anonymous-denial observed: not determinable.  The anonymous probe returned no HTTP response either, so the denial half of this criterion is unobserved as well and both halves are reported missing rather than one of them being quietly assumed' \
+            "directory-service observed: NOT ACTIVE AS FAR AS THIS RUN CAN TELL.  The directory-configuration endpoint answered ${dirs_status} and the per-directory registry endpoint answered ${dir_reg_status}, so neither the configured directory nor its registration was observed, and the directory-service path this flow exists to observe was not exercised.  It is recorded as unobserved rather than inferred from the reachability failure" \
+            "directory-service startup region matched lines: ${ldap_startup_lines}.  The container log is the only place the context source itself can be observed being constructed; the probes reach the service that uses it" \
+            "externalised JNDI values read from delivered configuration: initial context factory '${observed_factory}', connection pooling key '${observed_pool_flag}'.  These are a READ of what the migrated code would use, which is a weaker claim than observing the naming service use it, and they are recorded separately for that reason" \
             "$FLOW1_CONTEXT_PRINCIPAL" \
             "$FLOW1_CONTEXT_SUBSTITUTION" \
             "$FLOW1_CONTEXT_ASYMMETRY" \
             "$FLOW1_CONTEXT_PRESERVE" \
             "$FLOW1_CONTEXT_TARGET"
+        # The ledger is written on the skip path too.  A capture whose flow 1 could
+        # not run must still carry the same file with the same keys, or the two
+        # captures stop mirroring each other and the recursive diff that compares
+        # them reports a structural difference instead of a behavioural one.
+        capture_ldap_jndi_environment "$dest" "$dirs_status" "$dir_reg_status" \
+            "$directory_named" "$directory_registered" "$ldap_startup_lines" \
+            "$observed_factory" "$observed_pool_flag"
         return 0
     fi
 
@@ -5180,11 +7772,17 @@ flow_1_login()
     # Requirement 3 — the application must name the authenticated principal, and
     # it must be the configured account.
     if [ "$ident_status" = '200' ] && content_type_is_json "$ident_ctype"; then
-        if captured_contains "$dest" "\"userId\":\"${ARKCASE_USER}\"" \
-            || captured_contains "$dest" "\"userId\": \"${ARKCASE_USER}\""; then
+        # Scoped to the identity endpoint's own response body.  A whole-file
+        # search would have been satisfied by this flow's context prose, which
+        # names the configured principal too — the assertion would then have
+        # passed on text this script wrote rather than on the application's answer.
+        if section_body_contains "$dest" 'authenticated-identity' \
+            "\"userId\":\"${ARKCASE_USER}\"" \
+            || section_body_contains "$dest" 'authenticated-identity' \
+                "\"userId\": \"${ARKCASE_USER}\""; then
             identity_asserted='yes'
         fi
-        if captured_contains "$dest" '"authorities"'; then
+        if section_body_contains "$dest" 'authenticated-identity' '"authorities"'; then
             authorities_present='yes'
         fi
     fi
@@ -5192,6 +7790,67 @@ flow_1_login()
         unmet=$((unmet + 1))
         mark_incomplete "flow 1: the application did not confirm the authenticated identity and its granted authorities at ${FLOW1_IDENTITY_PATH} (status ${ident_status}, identity asserted ${identity_asserted}, authorities present ${authorities_present})"
     fi
+
+    # Requirement 4 — the DIRECTORY SERVICE must be observably active, and the
+    # configured directory must be observably registered.
+    #
+    # Both halves are asserted against the SCOPED body of their own probe, never
+    # against the whole capture file: this flow's own context prose names the
+    # directory and the two JNDI values, so a whole-file search would pass on text
+    # this script wrote.
+    if [ "$dirs_status" = '200' ] && content_type_is_json "$dirs_ctype"; then
+        if section_body_contains "$dest" 'ldap-directories' \
+            "$FLOW1_LDAP_DIRECTORY_NAME"; then
+            directory_named='yes'
+        fi
+    fi
+    if [ "$directory_named" != 'yes' ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 1: the directory configuration endpoint ${FLOW1_LDAP_DIRECTORIES_PATH} did not return a representation naming the configured directory '${FLOW1_LDAP_DIRECTORY_NAME}' (status ${dirs_status}, content type ${dirs_ctype}), so the directory service is not observably active and the migrated context-factory path is unproven"
+    fi
+
+    # Requirement 5 — a per-directory endpoint whose handling goes through the
+    # directory registry must answer.  A 200 or a 403 both establish that the
+    # directory resolved: a 403 is an authorisation decision ABOUT a registered
+    # directory, whereas a 404 means the registry did not know it.
+    case "$dir_reg_status" in
+        200|403) directory_registered='yes' ;;
+        *) directory_registered='no' ;;
+    esac
+    if [ "$directory_registered" != 'yes' ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 1: the per-directory endpoint for '${FLOW1_LDAP_DIRECTORY_NAME}' answered ${dir_reg_status}, so the directory was not resolved by the registry and the directory-service path this flow exists to observe was not exercised"
+    fi
+
+    # Requirement 6 — the container must have logged the context source being
+    # constructed.  This is the only observation that reaches the CLASS whose
+    # rewritten line this flow exists to observe; the probes above reach the
+    # service that uses it.
+    case "$ldap_startup_lines" in
+        unavailable)
+            unmet=$((unmet + 1))
+            mark_incomplete 'flow 1: no container log was supplied, so the directory-service context source was never observed being constructed and the one security-adjacent source edit in this migration remains unevidenced'
+            ;;
+        0)
+            unmet=$((unmet + 1))
+            mark_incomplete 'flow 1: the directory-service startup region matched 0 lines, so the context source was not observed being constructed in the captured startup window'
+            ;;
+    esac
+
+    # Requirement 7 — the two externalised JNDI values must be readable and must
+    # be exactly the values the naming service matches on.  Read from the file the
+    # migrated class falls back to, so this is an assertion about the delivered
+    # configuration rather than about the prose describing it.
+    if [ "$observed_factory" != 'com.sun.jndi.ldap.LdapCtxFactory' ] \
+        || [ "$observed_pool_flag" != 'com.sun.jndi.ldap.connect.pool' ]
+    then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 1: the externalised JNDI values read from ${FLOW1_LDAP_JNDI_PROPERTIES} are not the values the naming service matches on (initial context factory observed '${observed_factory}', pooling key observed '${observed_pool_flag}'); the naming service matches a factory by exact class name and a pooling key by exact property key and recognises no variation"
+    fi
+
+    capture_ldap_jndi_environment "$dest" "$dirs_status" "$dir_reg_status" \
+        "$directory_named" "$directory_registered" "$ldap_startup_lines" \
+        "$observed_factory" "$observed_pool_flag"
 
     if [ "$unmet" -eq 0 ]; then
         verdict='OBSERVED-AUTHENTICATED-AND-IDENTITY-CONFIRMED'
@@ -5210,7 +7869,18 @@ flow_1_login()
         "identity request observed: ${ident_status} content-type ${ident_ctype}" \
         "configured principal confirmed by the application: ${identity_asserted}" \
         "granted authorities present in the identity response: ${authorities_present}" \
+        "directory configuration endpoint: ${FLOW1_LDAP_DIRECTORIES_PATH}" \
+        "directory configuration request observed: ${dirs_status} content-type ${dirs_ctype}" \
+        "configured directory named in that response: ${directory_named} (directory: ${FLOW1_LDAP_DIRECTORY_NAME})" \
+        "per-directory registry endpoint observed: ${dir_reg_status} (resolved by the registry: ${directory_registered})" \
+        "directory-service startup region matched lines: ${ldap_startup_lines} (startup/ldap-context-source.log)" \
+        "externalised JNDI initial context factory observed: ${observed_factory}" \
+        "externalised JNDI connection pooling key observed: ${observed_pool_flag}" \
+        "directory-service evidence ledger: notes/ldap-jndi-environment.txt" \
         "requirements unmet: ${unmet}" \
+        'the directory-service observations are the difference between this flow asserting the security filter chain and asserting the migration edit it is named for.  An authenticated 200 proves the chain granted the request; it does not name the provider that granted it, and on a deployment configured for a token-based provider the identical 200 appears with no directory service involved at all.  Requirements 4 to 7 close that gap: a live directory list, a directory the registry resolved, the context source observed being constructed in the startup window, and the two externalised JNDI values read from the file the migrated class falls back to' \
+        'every one of those assertions is made against the SCOPED body of its own probe rather than against the capture file as a whole.  That matters here more than anywhere: this flow prose names the configured directory and both JNDI values, so a whole-file search would have been satisfied by text this script wrote rather than by anything the application returned' \
+        'the directory list response carries a bind credential.  It is redacted before any byte is written, by the same pipeline whose every rule is self-tested in notes/06-normalisation-and-redaction.txt, and the redaction is proven against the configured credential before the first capture file is opened' \
         'redirects are NOT followed by any probe in this flow.  That is deliberate and it is the difference between an authorisation assertion and a reachability assertion: with redirects followed, an anonymous request to a protected endpoint returns 200 with a login form, and a status-only check reports failed authentication as success' \
         'the content type is asserted alongside the status for the same reason: a login page and a protected resource can share a status line but never share a content type' \
         'session material is never captured: only the presence or absence of a session is recorded, and any cookie header is redacted' \
@@ -5234,24 +7904,86 @@ flow_1_login()
 #
 # ABSENT is returned for a missing, empty or malformed row, in the same wording
 # the digest gate uses, so an absence reads identically wherever it surfaces.
-recorded_artifact_digest()
+# read_digest_record — the ONE reader for a digest record file, applied to both
+# capture sides so neither can be read more leniently than the other.
+#
+# Answers with the 64-character digest when, and only when, the file holds
+# EXACTLY ONE line in EXACTLY the schema digest() writes, with field 2 equal to
+# the key the caller expects.  Anything else answers with a token that names the
+# problem:
+#
+#   ABSENT            no file, or an empty one
+#   RECORD-MALFORMED  the file exists but is not one record in the schema, or
+#                     labels a different key than the caller asked for
+#
+# The distinction matters and is the whole reason this reader exists.  The
+# previous reader accepted any value beginning with eight hexadecimal characters
+# and never looked at the label, so a hand-edited record read as a perfectly
+# good digest, and a record for the wrong artefact read as a digest for the
+# right one.  A malformed record must not be indistinguishable from a valid one,
+# and it must not be indistinguishable from an absent one either: absence means
+# the artefact was not built, whereas malformation means the record cannot be
+# trusted, and those call for different remedies.
+read_digest_record()
 {
-    local name="$1"
-    local file="${SMOKE_OUT_DIR}/artifacts/${name}.sha256"
+    local file="$1"
+    local expected_key="$2"
+    local lines=''
     local value=''
+    local label=''
+    local extra=''
 
-    if [ -f "$file" ]; then
-        value="$(awk 'NR == 1 { print $1 }' "$file" 2>/dev/null)" || value=''
+    if [ ! -f "$file" ] || [ ! -s "$file" ]; then
+        printf 'ABSENT'
+        return 0
+    fi
+
+    lines="$(wc -l < "$file" 2>/dev/null | tr -d '[:space:]')"
+    [ -n "$lines" ] || lines=0
+    if [ "$lines" -ne 1 ]; then
+        printf 'RECORD-MALFORMED'
+        return 0
+    fi
+
+    value="$(awk 'NR == 1 { print $1 }' "$file" 2>/dev/null)" || value=''
+    label="$(awk 'NR == 1 { print $2 }' "$file" 2>/dev/null)" || label=''
+    extra="$(awk 'NR == 1 { print $3 }' "$file" 2>/dev/null)" || extra=''
+
+    if [ -n "$extra" ] || [ "$label" != "$expected_key" ]; then
+        printf 'RECORD-MALFORMED'
+        return 0
     fi
 
     case "$value" in
-        [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*)
-            printf '%s' "$value"
-            ;;
-        *)
+        "$DIGEST_ABSENT_TOKEN")
             printf 'ABSENT'
+            return 0
+            ;;
+        "$DIGEST_NO_TOOL_TOKEN" | "$DIGEST_FAILED_TOKEN")
+            printf '%s' "$value"
+            return 0
             ;;
     esac
+
+    case "$value" in
+        *[!0-9a-f]* | '')
+            printf 'RECORD-MALFORMED'
+            return 0
+            ;;
+    esac
+    if [ "${#value}" -ne 64 ]; then
+        printf 'RECORD-MALFORMED'
+        return 0
+    fi
+
+    printf '%s' "$value"
+}
+
+recorded_artifact_digest()
+{
+    local name="$1"
+
+    read_digest_record "${SMOKE_OUT_DIR}/artifacts/${name}.sha256" "$name"
 }
 
 # other_artifact_digest — the same digest as recorded on the OTHER capture side.
@@ -5265,23 +7997,10 @@ recorded_artifact_digest()
 other_artifact_digest()
 {
     local name="$1"
-    local file="${SMOKE_COMPARE_AGAINST}/artifacts/${name}.sha256"
-    local value=''
 
     [ -n "$SMOKE_COMPARE_AGAINST" ] || { printf 'NOT-REQUESTED'; return 0; }
 
-    if [ -f "$file" ]; then
-        value="$(awk 'NR == 1 { print $1 }' "$file" 2>/dev/null)" || value=''
-    fi
-
-    case "$value" in
-        [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*)
-            printf '%s' "$value"
-            ;;
-        *)
-            printf 'ABSENT'
-            ;;
-    esac
+    read_digest_record "${SMOKE_COMPARE_AGAINST}/artifacts/${name}.sha256" "$name"
 }
 
 # artifact_digest_verdict — one artifact's cross-capture outcome, in words.
@@ -5305,6 +8024,10 @@ artifact_digest_verdict()
             printf 'no other capture was named for this invocation, so no cross-capture verdict is computed here; the recorded per-artifact outcome for the run is in comparison.txt'
             return 0
             ;;
+        RECORD-MALFORMED)
+            printf 'UNUSABLE - the other capture holds a digest record for this artifact that is not in the schema "<digest><two spaces><artifact key>", so its value cannot be trusted and no verdict is computed from it; re-capture that side'
+            return 0
+            ;;
         ABSENT)
             printf 'DIFFERENCE - the other capture records no digest for this artifact, which is an absence rather than a mismatch and is reported as such'
             return 0
@@ -5312,6 +8035,10 @@ artifact_digest_verdict()
     esac
 
     case "$mine" in
+        RECORD-MALFORMED)
+            printf 'UNUSABLE - this capture holds a digest record for this artifact that is not in the schema "<digest><two spaces><artifact key>", so its value cannot be trusted; the other capture records %s' "$theirs"
+            return 0
+            ;;
         ABSENT)
             printf 'DIFFERENCE - this capture records no digest for this artifact; the other capture records %s' "$theirs"
             return 0
@@ -5360,7 +8087,7 @@ artifact_digest_verdict()
 # ---------------------------------------------------------------------------
 flow_2_evidence_keys()
 {
-    local side_label side_runtime side_state
+    local side_runtime side_state
     local node_env node_app node_branch
     local d_app d_app_min d_vendors d_css d_home d_map
     local o_app o_app_min o_vendors o_css o_home o_map
@@ -5368,17 +8095,14 @@ flow_2_evidence_keys()
 
     case "$(basename -- "$SMOKE_OUT_DIR")" in
         baseline)
-            side_label='baseline'
             side_runtime='JDK 8'
             side_state='the tree at the base commit, before any file of this migration was edited'
             ;;
         migrated)
-            side_label='migrated'
             side_runtime='Java 17'
             side_state='the migrated tree, after the change set was applied'
             ;;
         *)
-            side_label="$(basename -- "$SMOKE_OUT_DIR")"
             side_runtime='(not declared for this capture directory)'
             side_state='(not declared for this capture directory)'
             ;;
@@ -5457,6 +8181,9 @@ flow_2_evidence_keys()
 
     RESULT_EXTRA_KEYS=(
         "runtime-designation: ${side_runtime} (declared label of this capture side, not probe output; the probe output of record is env/toolchain.txt)"
+        "capture-side-means: ${side_state}"
+        "observed-head-of-this-capture: ${SMOKE_OBSERVED_HEAD_SHORT} on ${SMOKE_OBSERVED_BRANCH}, working tree ${SMOKE_OBSERVED_TREE_STATE}"
+        "declared-side-against-observed-head: ${SMOKE_PROVENANCE_CONSISTENCY}"
         'base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)'
         "NODE_ENV: ${node_env}"
         "NODE_APP_INSTANCE: ${node_app}"
@@ -5541,7 +8268,7 @@ flow_2_evidence_observations()
         "recorded references carrying a cache-busting content hash: ${hashed_refs}.  On the non-production branch the page names individual source files, so a zero here is the expected reading and NOT a missing observation: the cache-busting task still ran and still produced hashed copies under the distribution directory, and on that branch the tie between the served page and the five digests is the digest rows themselves together with the identity of home.html, not a hash embedded in a filename"
         'why byte comparison carries the behavioural burden for this flow: the frontend tree carries no spec file of its OWN - zero are tracked in version control - even though the base-commit manifest declares Karma at package.json:L26 with its Grunt plugin at :L21 and Jasmine at :L25 and :L27, so artifact identity is the strongest available behavioural evidence for the frontend track.  Stated with that qualifier deliberately, because a bare count misleads in one direction: run the audit against a tree whose dependencies are installed and it returns a non-zero number, every one of them a spec file belonging to a third-party package underneath the install directory the frontend gitignore excludes.  Those are the dependencies own tests, not this application, and they are neither tracked nor run by any task in the pipeline'
         'why byte comparison is defensible: cache busting is content-hash based (Gruntfile.js:L79-L86, assets at :L82, src at :L84) with no timestamp, banner or date injection; minification runs with identifier mangling disabled (Gruntfile.js:L51); and the distribution directory is wiped first (Gruntfile.js:L131), so a stale artefact cannot masquerade as a match'
-        'honest caveat, recorded rather than glossed: source-map generation is enabled (Gruntfile.js:L52) and a source map embeds file paths, so the comparison build must run from the same relative path.  If it cannot, application.min.js.map differs while the JavaScript bundles do not; the map is then excluded from the byte comparison while the five artifacts above remain in scope.  The map is digested here too so the caveat can be checked rather than trusted, and it is also recorded in notes/determinism-basis.txt and notes/01-artifact-comparison-scope.txt'
+        'honest caveat, recorded rather than glossed: source-map generation is enabled (Gruntfile.js:L52) and a source map embeds file paths, so the comparison build must run from the same relative path.  If it cannot, application.min.js.map differs while the JavaScript bundles do not; the map is then excluded from the byte comparison while the five artifacts above remain in scope.  The map is digested here too so the caveat can be checked rather than trusted, and it is also recorded in notes/determinism-basis.txt and notes/frontend-comparison-provenance.txt'
         'the case detail view is the permission-dependent element of this flow: its handler is guarded by a permission expression naming the object identifier, the object type and the view permission, at FindCaseByIdAPIController.java:L61 immediately above the byId mapping at :L62, and permission evaluation runs through the reflection-based classpath scanning this migration deliberately left at its existing version after an end-to-end scan of a class file at major version 61 succeeded - a bump without a demonstrated incompatibility would itself be out of scope.  Security and permission-evaluation outcomes are on the preserve list, so a difference in any permission-dependent rendered element is a genuine regression rather than an expected consequence'
         'the asset-layout contract is frozen, so every frontend dependency key is immutable: the asset resolver holds literal installed-package paths, measured at the base commit as 87 unique quoted paths over 49 lines, 80 of them under the bower-components namespace and 7 not.  The migration plan quotes 56 over 49; the measured figures are the authoritative ones and the plan figure is noted rather than silently replaced.  Renaming a key, flattening the install topology or deduplicating a package that appears twice would break asset resolution SILENTLY - the build would succeed and the application would load nothing.  One consequence for this flow: the bootbox slot must keep resolving to its direct-dependency version rather than to the later transitive one'
         'normalisation applied to this capture: ISO-8601 timestamps, the Date, Last-Modified and Expires response headers, response validator headers, authentication-challenge parameters, generated request and correlation identifiers, and the absolute repository prefix in every recorded path.  Cookie and Set-Cookie lines are replaced wholesale, the configured credential value is replaced by a fixed placeholder before anything is written, and only the EXISTENCE of a session is recorded, never its value'
@@ -5590,6 +8317,160 @@ flow_2_evidence_observations()
 # result below cites the digests under artifacts/ rather than asserting on the
 # rendered bytes by itself, and an ABSENT digest makes the run incomplete.
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# probe_served_artifact — fetch one built frontend artifact FROM THE RUNNING
+# APPLICATION and compare the digest of the served bytes against the digest this
+# capture recorded for that artifact.
+#
+# This is the assertion that links rendering to the artifact comparison, and
+# nothing else in the deliverable makes it.  The five digests under artifacts/ are
+# taken from the BUILD OUTPUT on disk; the byte-identity criterion compares those
+# between two captures.  Neither step establishes that the deployed application
+# actually serves those bytes — a stale copy inside the deployed archive, a
+# rewriting filter, or a wrong asset root would all leave the digests matching
+# while the browser received something else entirely.  Fetching the artifact and
+# hashing what arrives closes that gap.
+#
+# The body is DIGESTED, NEVER ARCHIVED.  Four megabytes of vendor bundle has no
+# place in a committed capture, and the digest is the whole assertion anyway.  So
+# this probe records status, content type, reported length, received length, the
+# received digest and the comparison outcome — and writes no body block at all.
+# That is also why it has its own ceiling rather than the response-body cap: a cap
+# sized for a JSON response would refuse the bundle outright.
+# ---------------------------------------------------------------------------
+probe_served_artifact()
+{
+    local dest="$1"
+    local label="$2"
+    local url="$3"
+    local artifact_key="$4"
+
+    local tmp="${SMOKE_TMPDIR}/served-artifact"
+    local meta="${SMOKE_TMPDIR}/served-artifact-meta"
+    local err="${SMOKE_TMPDIR}/served-artifact-err"
+    local rc=0
+    local status size ctype
+    local received_bytes='0'
+    local served_digest='not-computed'
+    local recorded
+    local outcome
+    local refusal
+
+    : > "$tmp"
+    : > "$meta"
+    : > "$err"
+
+    refusal="$(probe_value_acceptable "the artifact URL" "$url")" || true
+    if [ -n "$refusal" ]; then
+        {
+            printf '===== %s (REFUSED) =====\n' "$label"
+            printf 'request-method: GET\n'
+            printf 'auth-mode: basic\n'
+            printf 'refusal: %s\n' "$refusal"
+            printf '\n'
+        } | sanitise >> "${dest}.out"
+        write_status_line "$dest" "${label}=REFUSED"
+        mark_incomplete "served-artifact probe refused before sending: ${label} (${refusal})"
+        return 1
+    fi
+
+    local -a proto_args
+    if [ "$(url_scheme "$url")" = 'https' ]; then
+        proto_args=( '--proto' '=https' '--proto-redir' '=https' )
+    else
+        proto_args=( '--proto' '=http,https' '--proto-redir' '=http,https' )
+    fi
+
+    local -a cmd
+    cmd=( 'curl'
+          '--silent' '--show-error'
+          '--request' 'GET'
+          '--output' "$tmp"
+          '--write-out' 'http_code=%{http_code}\nsize_download=%{size_download}\ncontent_type=%{content_type}\n'
+          '--connect-timeout' "$CURL_CONNECT_TIMEOUT"
+          '--max-time' "$CURL_MAX_TIME"
+          '--max-filesize' "$SMOKE_MAX_ARTIFACT_BYTES" )
+    cmd+=( "${proto_args[@]}" )
+    cmd+=( ${CURL_TLS_ARGS[@]+"${CURL_TLS_ARGS[@]}"} )
+    cmd+=( "$url" )
+
+    printf 'user = "%s:%s"\n' \
+        "$(curl_config_escape "$ARKCASE_USER")" \
+        "$(curl_config_escape "$ARKCASE_PASSWORD")" \
+        | "${cmd[@]}" '--basic' '--config' '-' > "$meta" 2> "$err"
+    rc=$?
+
+    status="$(sed -n 's|^http_code=||p' "$meta" | tail -1)"
+    size="$(sed -n 's|^size_download=||p' "$meta" | tail -1)"
+    ctype="$(sed -n 's|^content_type=||p' "$meta" | tail -1)"
+    [ -n "$status" ] || status="$NO_RESPONSE_TOKEN"
+    [ -n "$size" ] || size='0'
+    [ -n "$ctype" ] || ctype='unknown'
+
+    received_bytes="$(wc -c < "$tmp" 2>/dev/null | tr -d '[:space:]')"
+    [ -n "$received_bytes" ] || received_bytes='0'
+
+    if [ "$status" = '200' ] && [ "$received_bytes" != '0' ]; then
+        served_digest="$(digest_value "$tmp")"
+    fi
+
+    recorded="$(recorded_artifact_digest "$artifact_key")"
+
+    # Exit status 63 is the transport's own report that the artifact ceiling was
+    # reached, which is a different condition from a short read and is named as
+    # such rather than folded into a digest mismatch.
+    if [ "$rc" -eq 63 ]; then
+        outcome='CEILING-REACHED'
+        mark_incomplete "served artifact ${artifact_key} exceeded SMOKE_MAX_ARTIFACT_BYTES=${SMOKE_MAX_ARTIFACT_BYTES}, so it was refused rather than read and its served digest is unknown"
+    elif [ "$status" != '200' ]; then
+        outcome='NOT-SERVED'
+    elif [ "$recorded" = 'ABSENT' ]; then
+        outcome='NO-RECORDED-DIGEST'
+    elif [ "$recorded" = 'RECORD-MALFORMED' ]; then
+        outcome='RECORDED-DIGEST-UNUSABLE'
+    elif [ "$served_digest" = "$recorded" ]; then
+        outcome='MATCH'
+    else
+        outcome='DIFFER'
+    fi
+
+    {
+        printf '===== %s =====\n' "$label"
+        printf 'request-method: GET\n'
+        printf 'request-url: %s\n' "$url"
+        printf 'auth-mode: basic\n'
+        printf 'redirects-followed: 0\n'
+        printf 'certificate-verification-result: 0\n'
+        printf 'observed-http-status: %s\n' "$status"
+        printf 'observed-content-type: %s\n' "$ctype"
+        printf 'observed-content-length: %s\n' "$size"
+        printf 'observed-body-form: binary-not-archived\n'
+        printf 'capture-body-truncated: no\n'
+        printf 'capture-headers-truncated: no\n'
+        printf 'capture-diagnostics-truncated: no\n'
+        printf 'transport-exit-status-observed: %s\n' "$rc"
+        printf 'artifact-key: %s\n' "$artifact_key"
+        printf 'served-bytes-received: %s\n' "$received_bytes"
+        printf 'served-sha256: %s\n' "$served_digest"
+        printf 'recorded-artifact-sha256: %s\n' "$recorded"
+        printf 'served-equals-recorded: %s\n' "$outcome"
+        printf 'note: the response body is DIGESTED and deliberately NOT archived.  The\n'
+        printf '  digest is the assertion, and four megabytes of vendor bundle has no place\n'
+        printf '  in a committed capture.  What this section establishes is that the\n'
+        printf '  DEPLOYED APPLICATION serves exactly the bytes whose digest this capture\n'
+        printf '  recorded from the build output - a link neither the digest files nor the\n'
+        printf '  byte-identity comparison makes on its own, and one that a stale copy\n'
+        printf '  inside the deployed archive or a rewriting filter would break while\n'
+        printf '  leaving both of those looking healthy.\n'
+        printf '\n'
+    } | sanitise >> "${dest}.out"
+
+    write_status_line "$dest" "${label}=${status}"
+    write_status_line "$dest" "${label}-served-equals-recorded=${outcome}"
+
+    [ "$outcome" = 'MATCH' ]
+}
+
 flow_2_views()
 {
     local dest
@@ -5691,6 +8572,99 @@ flow_2_views()
         document_status='SKIPPED'
     fi
 
+    # ---- THE RENDERED VIEWS, AND THE PERMISSION-DEPENDENT DIFFERENCE ---------
+    #
+    # Three probes, and the pair of them across one URL is the point.  The rendered
+    # application page requires authentication, so the SAME URL answers differently
+    # depending on the caller: a redirect to the login page for an anonymous one,
+    # the application shell for a credentialed one.  Both sides are asserted, which
+    # is what makes it a permission-dependent RENDERED observation rather than two
+    # unrelated status codes.  The login page is probed too, because an anonymous
+    # caller is entitled to it and it carries required form controls of its own.
+    #
+    # Redirects are NOT followed by any of them, for the reason flow 1 states: with
+    # redirects followed, an anonymous request for a protected page yields 200 with
+    # a login form, and a status-only check reports failed authorisation as success.
+    http_probe "$dest" 'rendered-shell-anonymous' 'anon' 'GET' \
+        "${ARKCASE_BASE_URL}${FLOW2_RENDERED_SHELL_PATH}" \
+        --header 'Accept: text/html' || true
+    http_probe "$dest" 'rendered-shell-authenticated' 'basic' 'GET' \
+        "${ARKCASE_BASE_URL}${FLOW2_RENDERED_SHELL_PATH}" \
+        --header 'Accept: text/html' || true
+    http_probe "$dest" 'rendered-login-page' 'anon' 'GET' \
+        "${ARKCASE_BASE_URL}${FLOW2_LOGIN_PAGE_PATH}" \
+        --header 'Accept: text/html' || true
+
+    local rendered_anon_status rendered_anon_target
+    local rendered_auth_status rendered_auth_ctype rendered_auth_bytes
+    local login_status login_ctype
+    local shell_title_present='no'
+    local shell_title_absent_when_anonymous='no'
+    local login_controls_present='no'
+    local permission_dependent='no'
+
+    rendered_anon_status="$(read_status "$dest" 'rendered-shell-anonymous')"
+    rendered_anon_target="$(captured_field "$dest" 'rendered-shell-anonymous' 'redirect-target-reported')"
+    rendered_auth_status="$(read_status "$dest" 'rendered-shell-authenticated')"
+    rendered_auth_ctype="$(captured_field "$dest" 'rendered-shell-authenticated' 'observed-content-type')"
+    rendered_auth_bytes="$(captured_body_bytes "$dest" 'rendered-shell-authenticated')"
+    login_status="$(read_status "$dest" 'rendered-login-page')"
+    login_ctype="$(captured_field "$dest" 'rendered-login-page' 'observed-content-type')"
+
+    # Required rendered labels, each asserted against the SCOPED body of its own
+    # probe.  Scoping matters especially here: the required label strings are
+    # configuration values this script also prints into its own records, so a
+    # whole-file search would find every one of them without a page rendering.
+    if section_body_contains "$dest" 'rendered-shell-authenticated' \
+        "$FLOW2_SHELL_TITLE"; then
+        shell_title_present='yes'
+    fi
+    if ! section_body_contains "$dest" 'rendered-shell-anonymous' \
+        "$FLOW2_SHELL_TITLE"; then
+        shell_title_absent_when_anonymous='yes'
+    fi
+    if section_body_contains "$dest" 'rendered-login-page' "$FLOW2_LOGIN_ACTION" \
+        && section_body_contains "$dest" 'rendered-login-page' "$FLOW2_LOGIN_USER_FIELD" \
+        && section_body_contains "$dest" 'rendered-login-page' "$FLOW2_LOGIN_PASS_FIELD"
+    then
+        login_controls_present='yes'
+    fi
+
+    # The permission-dependent element, stated as the DIFFERENCE it actually is:
+    # the credentialed caller received the shell and the anonymous caller did not.
+    # Requiring only the first half would pass on a page served to everyone;
+    # requiring only the second would pass on a page served to nobody.
+    if [ "$shell_title_present" = 'yes' ] \
+        && [ "$shell_title_absent_when_anonymous" = 'yes' ]
+    then
+        case "$rendered_anon_status" in
+            30[12378]|401|403) permission_dependent='yes' ;;
+        esac
+    fi
+
+    # ---- THE SERVED ASSETS, DIGESTED AGAINST THE RECORDED ARTIFACT DIGESTS ----
+    local asset_key
+    local assets_matched=0
+    local assets_probed=0
+    local asset_outcomes=''
+
+    for asset_key in $SMOKE_COMPARED_ARTIFACT_KEYS; do
+        assets_probed=$((assets_probed + 1))
+        if [ "$asset_key" = "$FLOW2_RENDERED_PAGE_ARTIFACT_KEY" ]; then
+            # The rendered page is served from the application root rather than
+            # from the asset directory, and it is the one artifact that is ALSO a
+            # rendered view, so its served digest is compared here too.
+            probe_served_artifact "$dest" "served-${asset_key}" \
+                "${ARKCASE_BASE_URL}${FLOW2_RENDERED_SHELL_PATH}" "$asset_key" \
+                && assets_matched=$((assets_matched + 1))
+        else
+            probe_served_artifact "$dest" "served-${asset_key}" \
+                "${ARKCASE_BASE_URL}${FLOW2_ASSET_BASE}/${asset_key}" "$asset_key" \
+                && assets_matched=$((assets_matched + 1))
+        fi
+        asset_outcomes="${asset_outcomes}${asset_outcomes:+, }${asset_key}=$(read_status "$dest" "served-${asset_key}-served-equals-recorded")"
+    done
+
     # ---- the asset references the served page carries ------------------------
     record_referenced_assets "$dest" "$shell_body" "$FRONTEND_HOME_HTML"
     local referenced_assets
@@ -5771,6 +8745,19 @@ flow_2_views()
             "document view observed: ${document_status} (${FLOW2_DOCUMENT_PATH})" \
             'no view rendered on this run, so no permission-dependent rendered element was observed: the case detail and document views carry explicit per-view SKIPPED records with their reasons in flow-2-views.out rather than being omitted from it, and the case list returned no representation at all' \
             "absent artifact digests: ${absent_digests}" \
+            "rendered application page: ${FLOW2_RENDERED_SHELL_PATH}" \
+            "rendered page observed credentialed: ${rendered_auth_status} content-type ${rendered_auth_ctype} body bytes ${rendered_auth_bytes}" \
+            "rendered page required label present when credentialed: ${shell_title_present} (label: ${FLOW2_SHELL_TITLE})" \
+            "rendered page observed anonymous: ${rendered_anon_status} redirect target reported '${rendered_anon_target}'" \
+            "rendered page required label absent when anonymous: ${shell_title_absent_when_anonymous}" \
+            "permission-dependent rendering observed: ${permission_dependent}" \
+            "rendered login page observed: ${login_status} content-type ${login_ctype}, required form controls present ${login_controls_present}" \
+            "built frontend artifacts served by the deployed application with the recorded digest: ${assets_matched} of ${assets_probed}" \
+            "per-artifact served-equals-recorded outcome: ${asset_outcomes}" \
+            'the permission-dependent observation is stated as a DIFFERENCE across one URL rather than as a single status.  The rendered application page requires authentication, so the credentialed caller receives the shell and the anonymous caller does not; asserting only the first half would pass on a page served to everyone, and asserting only the second would pass on a page served to nobody' \
+            'the served-artifact comparison is the only assertion in this deliverable that links rendering to the byte-identity criterion.  The five digests under artifacts/ are taken from BUILD OUTPUT on disk, and the criterion compares those between two captures; neither step establishes that the deployed application serves those bytes.  A stale copy inside the deployed archive, a rewriting filter or a wrong asset root would leave both looking healthy while the browser received something else' \
+            'each served artifact is DIGESTED and never archived: the digest is the assertion, and a four-megabyte vendor bundle has no place in a committed capture' \
+            'every rendered-label assertion is made against the SCOPED body of its own probe.  That matters more here than anywhere else in this flow: the required label strings are configuration values this script also prints into its own records, so a whole-file search would find every one of them with no page having rendered at all' \
             "${FLOW2_EVIDENCE_OBSERVATIONS[@]}"
 
         mark_incomplete "flow 2-views recorded SKIPPED: ${skip_reason}"
@@ -5801,6 +8788,35 @@ flow_2_views()
         unmet=$((unmet + 1))
         mark_incomplete 'flow 2: the rendered page carried no recordable asset references, so the capture has no link between what was served and the artifact digests it is compared against'
     fi
+    # ---- the RENDERING requirements ----------------------------------------
+    # The flow is named "views render from served assets", and every requirement
+    # below is one clause of that sentence.  An earlier revision asserted only
+    # JSON representations, which established that the API layer answers a
+    # credentialed caller and nothing about rendering at all.
+    if [ "$rendered_auth_status" != '200' ] \
+        || ! content_type_is_html "$rendered_auth_ctype"
+    then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 2: the rendered application page at ${FLOW2_RENDERED_SHELL_PATH} did not return an HTML representation to the credentialed caller (status ${rendered_auth_status}, content type ${rendered_auth_ctype}), so no view rendered"
+    fi
+    if [ "$shell_title_present" != 'yes' ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 2: the rendered application page did not carry its required label (${FLOW2_SHELL_TITLE}); a status of 200 with an HTML content type is satisfied by an error page too, and the label is what distinguishes the application shell from one"
+    fi
+    if [ "$login_status" != '200' ] || ! content_type_is_html "$login_ctype" \
+        || [ "$login_controls_present" != 'yes' ]
+    then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 2: the rendered login page at ${FLOW2_LOGIN_PAGE_PATH} did not render with its required form controls (status ${login_status}, content type ${login_ctype}, controls present ${login_controls_present}); an anonymous caller is entitled to this page, so its absence is a rendering failure rather than an authorisation one"
+    fi
+    if [ "$permission_dependent" != 'yes' ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 2: the rendered application page was not observed to be permission-dependent (anonymous observed ${rendered_anon_status} redirecting to '${rendered_anon_target}', shell label present when credentialed ${shell_title_present}, absent when anonymous ${shell_title_absent_when_anonymous}); a page served identically to both callers proves no permission evaluation, and a page served to neither proves no rendering"
+    fi
+    if [ "$assets_matched" -ne "$assets_probed" ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 2: only ${assets_matched} of ${assets_probed} built frontend artifacts were served by the deployed application with the digest this capture recorded (${asset_outcomes}); without that equality the byte-identity criterion compares build output that the application may not be serving"
+    fi
 
     if [ "$unmet" -eq 0 ]; then
         verdict='OBSERVED-RENDERED-AND-ASSETS-DIGESTED'
@@ -5822,6 +8838,19 @@ flow_2_views()
         "document MIME type discovered: ${document_mime}" \
         "document view observed: ${document_status} content-type ${document_ctype} content-length ${document_clength} (${FLOW2_DOCUMENT_PATH})" \
         "absent artifact digests: ${absent_digests}" \
+        "rendered application page: ${FLOW2_RENDERED_SHELL_PATH}" \
+        "rendered page observed credentialed: ${rendered_auth_status} content-type ${rendered_auth_ctype} body bytes ${rendered_auth_bytes}" \
+        "rendered page required label present when credentialed: ${shell_title_present} (label: ${FLOW2_SHELL_TITLE})" \
+        "rendered page observed anonymous: ${rendered_anon_status} redirect target reported '${rendered_anon_target}'" \
+        "rendered page required label absent when anonymous: ${shell_title_absent_when_anonymous}" \
+        "permission-dependent rendering observed: ${permission_dependent}" \
+        "rendered login page observed: ${login_status} content-type ${login_ctype}, required form controls present ${login_controls_present}" \
+        "built frontend artifacts served by the deployed application with the recorded digest: ${assets_matched} of ${assets_probed}" \
+        "per-artifact served-equals-recorded outcome: ${asset_outcomes}" \
+        'the permission-dependent observation is stated as a DIFFERENCE across one URL rather than as a single status.  The rendered application page requires authentication, so the credentialed caller receives the shell and the anonymous caller does not; asserting only the first half would pass on a page served to everyone, and asserting only the second would pass on a page served to nobody' \
+        'the served-artifact comparison is the only assertion in this deliverable that links rendering to the byte-identity criterion.  The five digests under artifacts/ are taken from BUILD OUTPUT on disk, and the criterion compares those between two captures; neither step establishes that the deployed application serves those bytes.  A stale copy inside the deployed archive, a rewriting filter or a wrong asset root would leave both looking healthy while the browser received something else' \
+        'each served artifact is DIGESTED and never archived: the digest is the assertion, and a four-megabyte vendor bundle has no place in a committed capture' \
+        'every rendered-label assertion is made against the SCOPED body of its own probe.  That matters more here than anywhere else in this flow: the required label strings are configuration values this script also prints into its own records, so a whole-file search would find every one of them with no page having rendered at all' \
         "requirements unmet: ${unmet}" \
         'the case number, the document name and the document MIME type above are recorded verbatim as returned, prefix, separators and padding intact, and the row order of every captured body is the order the server sent it in: ordering is behaviour here, not presentation, so nothing is sorted, de-duplicated or reordered' \
         'this record does not stand alone by design: a rendered view proves nothing unless the assets behind it are byte-identical, so the per-artifact digests keyed above are part of the assertion and an ABSENT digest makes the run incomplete rather than merely noting a gap' \
@@ -5889,7 +8918,7 @@ flow3_store_leg()
         "probe-content-sha256: ${probe_digest}" \
         'probe-content-sha256-note: the digest of the fixed bytes this leg sends.  It is computed in every path, including the paths where the leg does not run, because it is what makes the two captures comparable at all: identical input is the precondition for reading anything into identical output' \
         "response-body-recorded-in-section: ${body_section}" \
-        'criterion-halves-read-from-this-leg: stored-document identity from the sha256 rows; MIME resolution from the Content-Type and recorded-mime-type rows, both verbatim'
+        'criterion-halves-read-from-this-leg: stored-document identity from the sha256 rows.  The MIME half is read from recorded-mime-type ONLY — the type the application recorded FOR THE DOCUMENT, which is the activation mapping output.  The Content-Type row above it is this store RESPONSE own type, normally JSON; it is recorded as endpoint evidence and is excluded from the MIME criterion, because comparing a response envelope type against a document media type reports a mismatch on a perfectly good round trip.  The criterion itself is asserted by flow_3_record_mime_tokens as a three-way identity and every mismatch is counted'
 }
 
 # Usage: flow3_retrieve_leg <state> <reason> <status> <content-type>
@@ -5919,7 +8948,7 @@ flow3_retrieve_leg()
         "retrieved-bytes-match-stored-bytes: ${match}" \
         "response-body-recorded-in-section: ${body_section}" \
         'response-body-form-note: a body that is not textual is recorded by size and digest and is never embedded, because arbitrary bytes in a text capture produce neither readable evidence nor a usable comparison' \
-        'criterion-halves-read-from-this-leg: stored-document identity by comparing the retrieved digest against the expected digest; MIME resolution from the Content-Type row, verbatim'
+        'criterion-halves-read-from-this-leg: stored-document identity by comparing the retrieved digest against the expected digest; the MIME half from the Content-Type row, verbatim, which on THIS leg is the document own served type and so is a genuine term of the identity.  That identity — declared, recorded and served naming one media type — is asserted by flow_3_record_mime_tokens, which counts every mismatch'
 }
 
 # ---------------------------------------------------------------------------
@@ -6077,6 +9106,170 @@ flow_3_record_legs()
         "retrieved-bytes-match-sent: ${bytes_match}"
 }
 
+# flow_3_record_mime_tokens — write flow 3's MIME criterion into the status file
+# and count the requirements it leaves unmet.
+#
+# THIS IS THE CRITERION THE FLOW EXISTS FOR.  The AAP made the activation
+# framework's REFERENCE implementation mandatory rather than the API-only jar
+# because the API-only jar was verified to lack META-INF/mimetypes.default and
+# META-INF/mailcap.default, while most of the activation-consuming files use MIME
+# type mapping.  Choosing the API-only jar would have compiled, deployed, and
+# then resolved MIME types differently.  The observable consequence of that
+# choice is the MIME type the application resolves FOR A DOCUMENT, so that is
+# what this function asserts.
+#
+# THE ASSERTION IS A THREE-WAY IDENTITY, and all three terms are required:
+#
+#   declared-on-send  =  recorded-by-the-application  =  resolved-on-download
+#
+#   declared      what this script's own probe declared when it sent the bytes.
+#                 Fixed by FLOW3_DOCUMENT_CONTENT_TYPE, identical on both runs,
+#                 and therefore the fixed reference point the other two are held
+#                 against.
+#   recorded      the type the application persisted FOR THE DOCUMENT, read out
+#                 of the store response body.  This is the direct output of the
+#                 activation framework's mapping and is the single most
+#                 behaviour-bearing value this flow captures.
+#   served        the type the download endpoint declares when it serves the same
+#                 document back.  It closes the loop: a type that is recorded
+#                 correctly but served differently is still a regression.
+#
+# EACH MISMATCH IS COUNTED.  An earlier revision compared the STORE RESPONSE's
+# own Content-Type against the download's Content-Type and counted neither
+# result.  That was wrong twice over.  It was the wrong pair — the store
+# response's Content-Type is the endpoint's representation format, normally JSON,
+# and comparing JSON against a document's media type reports a mismatch on a
+# perfectly good round trip.  And because no mismatch incremented the unmet
+# count, a genuine MIME regression could not move the verdict off
+# OBSERVED-ROUNDTRIP-COMPLETED.  The representation type is still recorded, under
+# a name that says what it is, and it is explicitly excluded from the criterion.
+#
+# THE STORE RESPONSE'S REPRESENTATION TYPE IS RECORDED, NOT COMPARED.  It is
+# genuine evidence about the endpoint and belongs in the capture; it is simply
+# not evidence about the document's MIME resolution, and a row that says so is
+# more useful than a row that omits it.
+#
+# CALLED ON EVERY PATH, including the paths that refuse the round trip, so the
+# status token set never varies by which precondition was missing.  A token set
+# that varies by failure mode cannot be diffed, and the whole point of these
+# rows is that the two captures line up token for token.  On an unobserved path
+# every term carries its not-observed token and the identity is not-compared,
+# which is a different statement from "no" and must not be conflated with it: a
+# skipped leg has not failed the criterion, it has not tested it.
+#
+# The unmet count is returned in FLOW3_MIME_UNMET rather than on stdout, so that
+# the function can write records without a command substitution capturing them.
+#
+# Usage: flow_3_record_mime_tokens <dest> <declared> <recorded> <served>
+#                                 <store-representation-type>
+flow_3_record_mime_tokens()
+{
+    local dest="$1"
+    local declared="$2"
+    local recorded="$3"
+    local served="$4"
+    local representation="$5"
+
+    FLOW3_MIME_UNMET=0
+
+    [ -n "$declared" ] || declared='not-observed'
+    [ -n "$recorded" ] || recorded='not-observed'
+    [ -n "$served" ] || served='not-observed'
+    [ -n "$representation" ] || representation='not-observed'
+
+    local declared_essence
+    local recorded_essence
+    local served_essence
+    declared_essence="$(mime_essence "$declared")"
+    recorded_essence="$(mime_essence "$recorded")"
+    served_essence="$(mime_essence "$served")"
+
+    # Every value is written VERBATIM.  Only the comparison below uses the
+    # essence, and the row that states the comparison says so.
+    # The declared type is recorded on EVERY path, including the paths where the
+    # document was never sent, for the same reason the probe content digest is:
+    # it is the identity of the document under test, it is fixed by this script,
+    # and it is identical on both runs, so recording it is what makes the other
+    # two terms comparable at all.  It is not a claim that a request was made —
+    # the store leg states that, and says leg-observed: no when it was not.
+    record_leg "$dest" 'mime-declared-on-send' "$declared" \
+        'the content type this run declares for the document under test, fixed by FLOW3_DOCUMENT_CONTENT_TYPE so that both captures declare the same thing, recorded verbatim.  Recorded on every path; whether the document was actually sent is stated by the store leg, not by this row'
+    record_leg "$dest" 'mime-recorded-by-application' "$recorded" \
+        'the content type the application persisted FOR THE DOCUMENT, read from the store response body; this is the direct output of the reinstated activation framework MIME mapping and is recorded verbatim, never normalised'
+    record_leg "$dest" 'mime-resolved-on-download' "$served" \
+        'the content type the download endpoint declared when serving the same document back; recorded verbatim'
+    record_leg "$dest" 'store-response-representation-type' "$representation" \
+        'the content type of the STORE RESPONSE ITSELF — the endpoint representation format, normally JSON.  Recorded because it is genuine evidence about the endpoint, and DELIBERATELY EXCLUDED from the MIME criterion because it describes the response envelope and not the document'
+
+    # An UNOBSERVED term makes the identity untestable, which is not the same as
+    # failing it: a leg that never ran has not failed the criterion, it has not
+    # tested it, and a capture that conflated the two would be misleading.
+    #
+    # A MIME TYPE THAT IS ABSENT FROM AN OBSERVED RESPONSE IS A FAILURE, NOT AN
+    # ABSENCE OF OBSERVATION, and it is deliberately NOT in the list below.  That
+    # distinction is the whole point of this flow.  The store leg ran and the
+    # application answered; it simply recorded no content type for the document.
+    # That is exactly the regression the AAP predicted for the API-only activation
+    # jar, which lacks META-INF/mimetypes.default and META-INF/mailcap.default —
+    # the deployment compiles, the upload succeeds, and no MIME type comes back.
+    # Folding that into not-compared would let the single regression this flow was
+    # built to catch pass without moving the verdict.  The absent token therefore
+    # flows into the comparison, where it cannot equal any real media type, and is
+    # counted as the mismatch it is.
+    local comparable='yes'
+    local term
+    for term in "$declared_essence" "$recorded_essence" "$served_essence"; do
+        case "$term" in
+            ''|'not-observed'|'not-attempted'|'not-compared'|'SKIPPED')
+                comparable='no'
+                ;;
+        esac
+    done
+
+    if [ "$comparable" != 'yes' ]; then
+        record_leg "$dest" 'mime-identity' 'not-compared' \
+            'at least one term of the three-way identity was not observed, so the identity was not tested.  That is deliberately NOT recorded as a failure: an untested criterion and a failed criterion are different findings and a capture that conflated them would be misleading'
+        record_leg "$dest" 'mime-resolution' 'not-compared' \
+            'no content type identity was established, because at least one of the three terms was not observed'
+        return 0
+    fi
+
+    local recorded_matches_declared='no'
+    local served_matches_declared='no'
+    local recorded_matches_served='no'
+    [ "$recorded_essence" = "$declared_essence" ] && recorded_matches_declared='yes'
+    [ "$served_essence" = "$declared_essence" ] && served_matches_declared='yes'
+    [ "$recorded_essence" = "$served_essence" ] && recorded_matches_served='yes'
+
+    if [ "$recorded_matches_declared" != 'yes' ]; then
+        FLOW3_MIME_UNMET=$((FLOW3_MIME_UNMET + 1))
+        mark_incomplete "flow 3: the application recorded the stored document's content type as ${recorded} but the document was sent as ${declared}; the activation framework MIME mapping did not resolve the declared type"
+    fi
+    if [ "$served_matches_declared" != 'yes' ]; then
+        FLOW3_MIME_UNMET=$((FLOW3_MIME_UNMET + 1))
+        mark_incomplete "flow 3: the download endpoint served the stored document as ${served} but it was sent as ${declared}"
+    fi
+    if [ "$recorded_matches_served" != 'yes' ]; then
+        FLOW3_MIME_UNMET=$((FLOW3_MIME_UNMET + 1))
+        mark_incomplete "flow 3: the content type the application recorded for the document (${recorded}) is not the content type it served the document as (${served})"
+    fi
+
+    record_leg "$dest" 'mime-identity' \
+        "$([ "$FLOW3_MIME_UNMET" -eq 0 ] && printf 'yes' || printf 'no')" \
+        "whether declared, recorded and served named the same media type.  Compared on the media type — type/subtype, lower-cased, parameters removed — because a charset parameter added by the container is not a MIME resolution difference; compared essences were declared=${declared_essence} recorded=${recorded_essence} served=${served_essence}, and every value above is recorded verbatim"
+
+    if [ "$FLOW3_MIME_UNMET" -eq 0 ]; then
+        record_leg "$dest" 'mime-resolution' "$served_essence" \
+            'the media type on which declared, recorded and served all agreed; the three verbatim values are recorded in their own rows above'
+    else
+        record_leg "$dest" 'mime-resolution' \
+            "declared=${declared};recorded=${recorded};served=${served}" \
+            'the three terms did not name the same media type; all three are recorded verbatim here and in their own rows above so the difference is visible without inference'
+    fi
+
+    return 0
+}
+
 flow_3_alfresco_roundtrip()
 {
     local dest
@@ -6093,8 +9286,16 @@ flow_3_alfresco_roundtrip()
     local download_status='not-observed'
     local download_ctype='not-observed'
     local download_bytes='not-observed'
+    # The length the download leg declared.  Declared here, with the other
+    # observed values, because it is reported on paths where the retrieve leg
+    # never runs and so must hold its not-observed token on those paths too.
+    local download_length='not-observed'
     local file_id='none'
     local recorded_name='not-observed'
+    # The MIME type the application recorded FOR THE DOCUMENT, read out of the
+    # store response and kept strictly separate from that response's own
+    # Content-Type: they are different observations and only this one is the
+    # output of the activation framework's mapping.  Declared exactly once.
     local recorded_mime='not-observed'
     local received_digest='not-observed'
     local bytes_match='not-compared'
@@ -6118,16 +9319,18 @@ flow_3_alfresco_roundtrip()
     printf '%s\n' 'ArkCase migration smoke probe document.' > "$probe_file"
     printf '%s\n' 'Fixed content, so that the baseline and migrated runs send identical bytes.' >> "$probe_file"
     sent_digest="$(digest_value "$probe_file")"
-    # The MIME type the repository RECORDED for the stored object, and the name it
-    # recorded for it, are lifted out of the store response and kept separate from
-    # that response's own Content-Type: they are different observations and the
-    # criterion needs both.  The recorded MIME type is the one the activation
-    # framework's mapping produces, which is the half of the criterion the
-    # artifact choice was made for.
-    local recorded_mime='not-observed'
+    # The name the repository RECORDED for the stored object.  The MIME type it
+    # recorded is declared once, with the other observed values at the top of this
+    # function; an earlier revision declared it a second time here, which was dead
+    # code and invited the two declarations to drift apart.
+    #
+    # The name SENT is FLOW3_DOCUMENT_NAME and is read from it directly wherever
+    # it is reported.  An earlier revision kept a second local holding that name
+    # as a literal, which was correct only while nobody overrode the knob: an
+    # operator who set FLOW3_DOCUMENT_NAME would have had the evidence state one
+    # name while the request carried another, and a capture that misreports its
+    # own input cannot support the comparison it exists for.
     local object_name='not-observed'
-    local download_length='not-observed'
-    local sent_name='arkcase-smoke-probe.txt'
     local probe_digest='not-observed'
 
     http_probe "$dest" 'repository-reachability' 'anon' 'GET' "$ALFRESCO_SHARE_URL" || true
@@ -6167,8 +9370,13 @@ flow_3_alfresco_roundtrip()
             "the store leg was not attempted: ${MUTATION_REFUSAL_REASON}"
         record_leg "$dest" 'download-document' 'SKIPPED' \
             'the retrieve leg was not attempted because nothing was stored to retrieve'
-        record_leg "$dest" 'mime-resolution' 'SKIPPED' \
-            'no content type was resolved on either leg, so the activation framework MIME mapping is unobserved'
+        # The full MIME criterion token set, with every observed term carrying its
+        # not-observed token and the identity recorded as not-compared.  Written
+        # here as well as on the exercised path so that the status token set does
+        # not depend on which path the flow took: a token set that varies by
+        # failure mode cannot be diffed against the other capture.
+        flow_3_record_mime_tokens "$dest" "$FLOW3_DOCUMENT_CONTENT_TYPE" \
+            'not-observed' 'not-observed' 'not-observed'
         record_leg "$dest" 'retrieved-bytes-match' 'SKIPPED' \
             'no bytes were sent and none were retrieved, so no comparison was made'
         record_leg "$dest" 'roundtrip' 'SKIPPED' \
@@ -6219,8 +9427,13 @@ flow_3_alfresco_roundtrip()
             'the store leg was not attempted: no parent object existed to attach a document to'
         record_leg "$dest" 'download-document' 'SKIPPED' \
             'the retrieve leg was not attempted because nothing was stored to retrieve'
-        record_leg "$dest" 'mime-resolution' 'SKIPPED' \
-            'no content type was resolved on either leg, so the activation framework MIME mapping is unobserved'
+        # The full MIME criterion token set, with every observed term carrying its
+        # not-observed token and the identity recorded as not-compared.  Written
+        # here as well as on the exercised path so that the status token set does
+        # not depend on which path the flow took: a token set that varies by
+        # failure mode cannot be diffed against the other capture.
+        flow_3_record_mime_tokens "$dest" "$FLOW3_DOCUMENT_CONTENT_TYPE" \
+            'not-observed' 'not-observed' 'not-observed'
         record_leg "$dest" 'retrieved-bytes-match' 'SKIPPED' \
             'no bytes were sent and none were retrieved, so no comparison was made'
         record_leg "$dest" 'roundtrip' 'SKIPPED' \
@@ -6285,7 +9498,6 @@ flow_3_alfresco_roundtrip()
         # retrieve probe below replaces it.
         recorded_name="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'fileName')"
         recorded_mime="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'fileActiveVersionMimeType')"
-        recorded_mime="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'fileActiveVersionMimeType')"
         object_name="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'fileName')"
         [ -n "$recorded_mime" ] || recorded_mime='absent-from-response-body'
         [ -n "$object_name" ] || object_name='absent-from-response-body'
@@ -6302,11 +9514,15 @@ flow_3_alfresco_roundtrip()
             "${ARKCASE_BASE_URL}${FLOW3_DOWNLOAD_PATH}?ecmFileId=${file_id}" || true
         download_status="$(read_status "$dest" 'download-document')"
         download_ctype="$(captured_field "$dest" 'download-document' 'observed-content-type')"
-        download_bytes="$(captured_body_bytes "$dest" 'download-document')"
         # Read back out of the capture, like every other assertion here, rather
-        # than out of a variable the probe left behind (R-T7).
-        download_length="$(captured_body_bytes "$dest" 'download-document')"
-        [ -n "$download_length" ] || download_length='not-observed'
+        # than out of a variable the probe left behind (R-T7).  ONE read, used for
+        # both of the names this value is reported under; an earlier revision
+        # issued the identical read twice into two locals, which could not
+        # disagree but did invite a reader to think the two rows were independent
+        # observations when they are one observation reported twice.
+        download_bytes="$(captured_body_bytes "$dest" 'download-document')"
+        [ -n "$download_bytes" ] || download_bytes='not-observed'
+        download_length="$download_bytes"
 
         if [ -f "${SMOKE_TMPDIR}/last-body" ]; then
             cp -- "${SMOKE_TMPDIR}/last-body" "$received_file" 2>/dev/null || true
@@ -6349,25 +9565,22 @@ flow_3_alfresco_roundtrip()
     fi
 
     # The store and retrieve legs are already in the status file: http_probe wrote
-    # them under the labels 'upload-document' and 'download-document'.  The three
-    # legs below are not statuses, so no probe records them, yet they are the
-    # flow's actual comparison criterion — identical stored document, identical
-    # MIME resolution.  They are written into the status file so that the criterion
-    # is machine-readable rather than only narrated in the result record, and so
-    # that this path's token set matches the unexercised paths' token set exactly.
+    # them under the labels 'upload-document' and 'download-document'.  The legs
+    # below are not statuses, so no probe records them, yet they are the flow's
+    # actual comparison criterion — identical stored document, identical MIME
+    # resolution.  They are written into the status file so that the criterion is
+    # machine-readable rather than only narrated in the result record, and so that
+    # this path's token set matches the unexercised paths' token set exactly.
     #
-    # The MIME token carries the resolved content type VERBATIM.  It is deliberately
-    # not reduced to yes/no and deliberately not normalised: a MIME type is
-    # behaviour-bearing here, it is the observable output of the activation
-    # framework's mapping, and reducing or normalising it would erase the one signal
-    # the activation artifact choice was made to protect.
-    if [ "$upload_ctype" = "$download_ctype" ] && [ "$upload_ctype" != 'not-attempted' ]; then
-        record_leg "$dest" 'mime-resolution' "$download_ctype" \
-            'the content type resolved identically on both legs; recorded verbatim because a MIME type is behaviour-bearing and is never normalised'
-    else
-        record_leg "$dest" 'mime-resolution' "store=${upload_ctype};retrieve=${download_ctype}" \
-            'the content type did not resolve identically on the two legs; both are recorded verbatim so the difference is visible'
-    fi
+    # The MIME criterion is the three-way identity between the type declared on
+    # send, the type the application recorded for the document, and the type it
+    # served the document back as; every mismatch is counted.  The reasoning, and
+    # why the store response's own Content-Type is recorded but excluded from the
+    # comparison, is at flow_3_record_mime_tokens.
+    flow_3_record_mime_tokens "$dest" "$FLOW3_DOCUMENT_CONTENT_TYPE" \
+        "$recorded_mime" "$download_ctype" "$upload_ctype"
+    unmet=$((unmet + FLOW3_MIME_UNMET))
+
     record_leg "$dest" 'retrieved-bytes-match' "$bytes_match" \
         'whether the bytes retrieved equalled the bytes sent, compared by digest'
     record_leg "$dest" 'roundtrip' "requirements-unmet-${unmet}" \
@@ -6406,8 +9619,12 @@ flow_3_alfresco_roundtrip()
         "parent object used: COMPLAINT ${parent_id} (created by flow 6)" \
         "upload observed: ${upload_status} content-type ${upload_ctype} (${FLOW3_UPLOAD_PATH})" \
         "stored document identifier recovered: ${file_id}" \
-        "mime type recorded for the stored object: ${recorded_mime}" \
-        "object name sent: ${sent_name}; object name recorded: ${object_name}" \
+        "mime type declared when the document was sent: ${FLOW3_DOCUMENT_CONTENT_TYPE}" \
+        "mime type recorded by the application for the stored object: ${recorded_mime}" \
+        "mime type the download endpoint served the object as: ${download_ctype}" \
+        "mime criterion requirements unmet: ${FLOW3_MIME_UNMET} (the three-way identity between the three rows immediately above)" \
+        "content type of the store RESPONSE itself: ${upload_ctype} — the endpoint representation format, recorded as endpoint evidence and deliberately excluded from the MIME criterion" \
+        "object name sent: ${FLOW3_DOCUMENT_NAME}; object name recorded: ${object_name}" \
         "download observed: ${download_status} content-type ${download_ctype} content-length ${download_length} (${FLOW3_DOWNLOAD_PATH})" \
         "digest of the bytes sent: ${sent_digest}" \
         "digest of the bytes retrieved: ${received_digest}" \
@@ -6416,7 +9633,9 @@ flow_3_alfresco_roundtrip()
         'both legs carry their own labelled section in the .out — store-leg then retrieve-leg — with the same field set in the same order whether or not the leg ran, so a directory diff lines up field against field (R-5, R-7)' \
         'repository-assigned object identifier: treated as BEHAVIOUR-BEARING, not as volatile.  It is captured verbatim on the store leg and reused verbatim to build the retrieve request, because the two legs must be shown to concern the SAME object; it is therefore expected to differ between two runs, and that row alone differing is not a behavioural difference.  No normalise expression touches it' \
         'this is a real round trip: a document with fixed, known bytes is stored against a real parent object, retrieved, and compared byte for byte, and the resolved content type is recorded on both legs' \
-        'the content type is the reason this flow exists in the form it does: it is the observable output of the activation framework MIME mapping, and it is deliberately NOT normalised, because a MIME type is behaviour-bearing here and normalising it would erase the signal' \
+        'the content type is the reason this flow exists in the form it does: it is the observable output of the activation framework MIME mapping, and every recorded value is verbatim, because a MIME type is behaviour-bearing here and rewriting a recorded one would erase the signal' \
+        'the MIME criterion is asserted as a three-way identity — the type declared on send, the type the application recorded for the document, and the type it served the document back as must all name one media type — and EVERY mismatch increments the unmet count, so a MIME regression moves this verdict off OBSERVED-ROUNDTRIP-COMPLETED.  A content type that is ABSENT from an observed store response is counted as a mismatch rather than as an absence of observation, because that is precisely the regression the API-only activation jar would produce: it lacks the default MIME and mailcap resources, so the upload succeeds and no type comes back' \
+        'the comparison is made on the media type — type and subtype, lower-cased, parameters removed — while every row keeps its verbatim value.  A charset parameter added by the servlet container is not a MIME resolution difference, and counting one would report a regression that did not happen; the row that states the comparison prints the essences it compared, so the judgement can be checked against the verbatim values and disagreed with' \
         'the uploaded document is registered for removal and deleted at the end of the run; see notes/cleanup.txt' \
         'if the generated document shape differs between the two captures, suspect provider resolution for the XML binding API first: a second implementation of the same API is on the deployed classpath through the persistence provider object-XML module, and the deployed classpath shape was verified by execution to resolve to the reference implementation and to produce identical output, which is why no provider-selection properties file is required anywhere and none is added' \
         'nothing captured on this run required a token to be normalised for a wording gate; if a future capture does, the substitution and its reason are recorded here rather than applied silently, and the surrounding element is kept' \
@@ -6462,6 +9681,179 @@ search_result_count()
     else
         printf 'unavailable'
     fi
+}
+
+# section_result_count — the reported match count inside ONE named probe section's
+# response body, rather than anywhere in the capture file.
+#
+# Same reader as search_result_count and the same disclosed limits; the only
+# difference is the scope, and the scope is the point.  A capture file
+# accumulates every section the flow has written so far, so a reader that spans
+# the whole file can answer from a section other than the one being asserted on.
+# Returns "unavailable" when no count was recorded in that section, which is
+# deliberately not the same answer as zero.
+section_result_count()
+{
+    local dest="$1"
+    local label="$2"
+    local found=''
+
+    found="$(captured_body_region "$dest" "$label" \
+        | LC_ALL=C grep -o '"numFound"[[:space:]]*:[[:space:]]*[0-9][0-9]*' \
+        | head -1 | sed -e 's|.*[^0-9]||')" || true
+
+    if [ -n "$found" ]; then
+        printf '%s' "$found"
+    else
+        printf 'unavailable'
+    fi
+}
+
+# flow5_delivery_observed — whether ONE delivery attempt actually shows the object
+# this run published having arrived.
+#
+# TWO INDEPENDENT CONDITIONS MUST BOTH HOLD, and each closes a distinct way the
+# obvious version of this test reports a delivery that did not happen.
+#
+#   1. THE SEARCH MUST REPORT AT LEAST ONE MATCH.  An earlier revision tested only
+#      that the object's number appeared somewhere in the capture.  By the time
+#      the delivery poll runs, this flow has ALREADY written the trigger half into
+#      that same capture file, and the trigger half prints
+#      trigger-generated-object-number — the very needle being searched for.  So
+#      every delivery attempt that answered 200 matched, on the script's own
+#      record, with an empty result set.  Measured on a reconstruction of exactly
+#      that file: an attempt returning 200 with "numFound":0 reported found=yes.
+#      The flow then recorded delivery as OBSERVED and the payload as "delivered
+#      and consumed" — a false positive on the single behaviour the flow exists to
+#      observe.
+#
+#   2. THE NUMBER MUST APPEAR IN THAT ATTEMPT'S OWN RESPONSE BODY.  Scoping alone
+#      is not sufficient either, which is why the count is required as well: the
+#      search platform echoes the submitted query back inside the response header
+#      of its own answer, so the number is present in the body of an answer that
+#      matched nothing.  The count is what distinguishes an echo from a hit.
+#
+# Both conditions are read back from the recorded capture rather than from
+# variables the probe left behind, like every other assertion here (R-T7).
+flow5_delivery_observed()
+{
+    local dest="$1"
+    local label="$2"
+    local needle="$3"
+    local count
+
+    count="$(section_result_count "$dest" "$label")"
+    case "$count" in
+        '' | *[!0-9]* | 0) return 1 ;;
+    esac
+
+    section_body_contains "$dest" "$label" "$needle" || return 1
+    return 0
+}
+
+# broker_counter — one integer counter out of a captured management response.
+#
+# grep and sed over the RECORDED section body, in the same idiom and with the same
+# disclosed limits as json_scalar, because R-1 forbids adding tooling without a
+# compatibility reason and a JSON processor is tooling.  The counters this reads
+# are plain integers at a known key, which is the case this idiom handles safely.
+#
+# Returns the literal token "unreadable" when the key was not found, which is
+# deliberately NOT zero: zero is a behavioural claim — nothing has transited this
+# destination — and "unreadable" says only that no such claim was observed.
+# Collapsing the two would let an unexposed surface read as an idle broker.
+broker_counter()
+{
+    local dest="$1"
+    local label="$2"
+    local key="$3"
+    local found=''
+
+    case "$key" in
+        '' | *[!A-Za-z0-9_]*) printf 'unreadable'; return 0 ;;
+    esac
+
+    found="$(captured_body_region "$dest" "$label" \
+        | LC_ALL=C grep -o "\"${key}\"[[:space:]]*:[[:space:]]*-\{0,1\}[0-9][0-9]*" \
+        | head -1 | sed -e 's|.*[^0-9-]||')" || true
+
+    if [ -n "$found" ]; then
+        printf '%s' "$found"
+    else
+        printf 'unreadable'
+    fi
+}
+
+# broker_reported_status — the status the management response itself reports.
+#
+# THE TRANSPORT STATUS IS NOT THE ANSWER HERE, and that is measured rather than
+# assumed.  The reference stack's JMX-over-HTTP bridge answers a refused request
+# with transport status 200 and puts the real 403 in the response body.  A probe
+# that read the transport status would therefore record a successful observation
+# of a refusal — precisely the class of false green R-T7 exists to forbid.  So the
+# embedded status is read, and it is what the requirement below is asserted on.
+#
+# Returns "unreadable" when no embedded status was recorded, kept distinct from a
+# numeric status for the same reason broker_counter keeps "unreadable" distinct
+# from zero.
+broker_reported_status()
+{
+    local dest="$1"
+    local label="$2"
+    local found=''
+
+    found="$(captured_body_region "$dest" "$label" \
+        | LC_ALL=C grep -o '"status"[[:space:]]*:[[:space:]]*[0-9][0-9]*' \
+        | head -1 | sed -e 's|.*[^0-9]||')" || true
+
+    if [ -n "$found" ]; then
+        printf '%s' "$found"
+    else
+        printf 'unreadable'
+    fi
+}
+
+# flow_5_record_delivery_tokens — flow 5's delivery and broker-side rows, in ONE
+# writer used by every path through the flow.
+#
+# WHY ONE WRITER.  The exercised path and the two refusal paths each wrote their
+# own block, and they had drifted apart: the refusal path emitted a broker-transit
+# row the exercised path did not, the exercised path grew ten broker rows the
+# refusal path did not, and the refusal path emitted a BARE valueless line whose
+# key a reader has to guess.  A status token set that varies by which path the
+# flow took cannot be diffed against the other capture, which defeats the purpose
+# of writing it — so the set is produced in one place and every path calls it.
+#
+# Every row is written on every path.  A row that was not observed carries its
+# explicit token, because an absent row is an absence a reader must notice while a
+# present one is an absence the diff shows them (R-5).
+#
+# Usage: flow_5_record_delivery_tokens <dest> <transit> <delivered> <payload-match>
+#                                      <match-count> <broker-status> <broker-name>
+#                                      <enqueue> <dequeue> <dispatch> <inflight>
+#                                      <consumers> <queue-size>
+flow_5_record_delivery_tokens()
+{
+    local dest="$1"
+
+    {
+        printf 'broker-transit=%s\n' "$2"
+        printf 'delivered=%s\n' "$3"
+        printf 'payload-match=%s\n' "$4"
+        printf 'search-reported-match-count=%s\n' "$5"
+        # The configured destination and the destination the BROKER named are
+        # separate rows on purpose: they are two observations, and the case where
+        # they disagree is a finding rather than a formatting detail.
+        printf 'destination-configured=%s\n' "$FLOW5_DESTINATION_NAME"
+        printf 'broker-management-reported-status=%s\n' "$6"
+        printf 'destination-reported-by-broker=%s\n' "$7"
+        printf 'broker-enqueue-count=%s\n' "$8"
+        printf 'broker-dequeue-count=%s\n' "$9"
+        printf 'broker-dispatch-count=%s\n' "${10}"
+        printf 'broker-inflight-count=%s\n' "${11}"
+        printf 'broker-consumer-count=%s\n' "${12}"
+        printf 'broker-queue-size=%s\n' "${13}"
+    } | sanitise >> "${dest}.status"
 }
 
 # search_result_ids — the document identifiers, IN THE ORDER THE SERVER RETURNED
@@ -7386,6 +10778,21 @@ flow_4_solr_search()
     dest="$(flow_prefix 4 solr-search)"
     flow_begin 4 solr-search 'search round-trip through the search engine'
 
+    # THE REQUEST IS PART OF THE CRITERION, so it is stated rather than left for a
+    # reader to reconstruct from a URL in a probe section.  An identical result set
+    # is only meaningful for an identical request, and this request was previously a
+    # match-everything query with no sort — under which "the first five" is whatever
+    # the index returns, every score is equal so there is no ranking to compare, and
+    # two requests against one index may legitimately order equally-scored documents
+    # differently.  The query is now qualified and the sort declared, and both are
+    # recorded here so the two captures can be shown to have asked the same thing.
+    record_flow_leg 4 solr-search 'search-request-declaration' 'OBSERVED' '' \
+        "search-query-submitted: ${FLOW4_QUERY}" \
+        "search-rows-requested: ${FLOW4_ROWS} from offset ${FLOW4_START}" \
+        "search-sort-declared: ${FLOW4_SORT:-(none: relevance order, which for a qualified query is behaviour-bearing and for a match-all query is arbitrary)}" \
+        "search-request-path-used: ${FLOW4_PATH}" \
+        'why-the-sort-is-declared: an undeclared order is not a stable order, and a difference in recorded ordering that came from the absence of a sort would be reported as a behavioural difference when nothing had changed.  A capture that manufactures false differences is as useless as one that misses real ones'
+
     # The fixed half of the record is written FIRST, before any request is made,
     # so that it is present whatever the run turns out to be able to reach.  A
     # provenance and criterion block that only appeared on the happy path would
@@ -7539,7 +10946,13 @@ flow_4_solr_search()
         unmet=$((unmet + 1))
         mark_incomplete "flow 4: the application search endpoint did not return a JSON result set (status ${app_status}, content type ${app_ctype})"
     fi
-    if ! captured_contains "$dest" 'response'; then
+    # Scoped to the SEARCH PROBE'S OWN RESPONSE BODY.  This was a whole-file search
+    # for the string "response", and by the time it ran the flow had already written
+    # its own prose into that file — including the word it was looking for — so the
+    # assertion could be satisfied by the script's own narration rather than by
+    # anything the application returned.  It is the last of the unscoped
+    # whole-capture searches; the scoped helpers exist precisely for this.
+    if ! section_body_contains "$dest" 'search-through-application' 'response'; then
         unmet=$((unmet + 1))
         mark_incomplete 'flow 4: the captured search body does not contain a result envelope, so the result set and its ordering cannot be compared'
     fi
@@ -7563,39 +10976,14 @@ flow_4_solr_search()
         mark_incomplete "flow 4: the search reported ${result_count} matches but no document identifier could be read back, so the ranking cannot be compared"
     fi
 
-    # The matched identifiers, their order, the total match count and the scores
-    # are transcribed out of the recorded body into their own section BEFORE the
-    # verdict is formed, so that the verdict can be read off the capture rather
-    # than off process state.  An HTTP 200 with an empty result set is a success
-    # by exit status and a failure by behaviour, so the count below is part of
-    # what has to be observed rather than a decoration on it (R-T7).
-    emit_search_result_set "$dest" 'search-through-application' "$engine_status"
-
-    local result_count hits_listed scores_exposed readiness
-    result_count="$(captured_field "$dest" 'search-result-set' 'RESULT_COUNT')"
-    hits_listed="$(captured_field "$dest" 'search-result-set' 'hits-listed-below')"
-    scores_exposed="$(captured_field "$dest" 'search-result-set' 'relevance-scores-exposed')"
-    readiness="$(captured_field "$dest" 'search-result-set' 'index-readiness')"
-    [ -n "$result_count" ] || result_count='unknown'
-    [ -n "$hits_listed" ] || hits_listed='unknown'
-    [ -n "$scores_exposed" ] || scores_exposed='unknown'
-    [ -n "$readiness" ] || readiness='not established'
-
-    case "$result_count" in
-        ''|unknown|'(not exposed)')
-            unmet=$((unmet + 1))
-            mark_incomplete 'flow 4: the recorded search body exposes no total-match figure, so the result set size cannot be compared against the baseline'
-            ;;
-        0)
-            unmet=$((unmet + 1))
-            mark_incomplete 'flow 4: the application search endpoint answered but matched nothing, so the identical-result-set criterion has no result set to compare; an answered request with an empty result set is not an observation of search behaviour'
-            ;;
-    esac
-
-    if [ "$hits_listed" = "$SMOKE_MAX_HITS_LISTED" ]; then
-        mark_truncated "search-result-set: the transcribed hit list reached the fixed bound SMOKE_MAX_HITS_LISTED=${SMOKE_MAX_HITS_LISTED}; the bound is identical in the replay, but the list is no longer the whole page"
-    fi
-
+    # ONE transcription, not two.  This 33-line block appeared VERBATIM TWICE:
+    # emit_search_result_set ran twice, writing the result-set section into the
+    # capture twice; the four captured_field reads ran twice; `local result_count
+    # hits_listed scores_exposed readiness` was declared twice; and the two unmet
+    # increments below fired twice, so a search that answered with an EMPTY result
+    # set counted TWO unmet requirements for one fault and the verdict overstated
+    # how many requirements had failed.  The duplicate is removed rather than
+    # guarded, because there was never a reason for the second pass to exist.
     # The matched identifiers, their order, the total match count and the scores
     # are transcribed out of the recorded body into their own section BEFORE the
     # verdict is formed, so that the verdict can be read off the capture rather
@@ -7701,6 +11089,45 @@ flow_4_solr_search()
 # the generated number itself is NOT written here.  Its value and its format,
 # which are the assertion, live in the paired .out capture.
 # ---------------------------------------------------------------------------
+# number_format_signature — the SHAPE of a generated number, with its digits and
+# letters replaced by class markers and its punctuation kept.
+#
+# THIS IS THE ONLY PART OF A GENERATED NUMBER THAT CAN BE COMPARED BETWEEN TWO
+# CAPTURES, and that is the whole reason it exists.  The number itself comes from a
+# sequence: two runs against the same deployment necessarily produce DIFFERENT
+# numbers, so a comparison of the numbers themselves would report a difference on
+# every single run and would therefore say nothing.  An earlier revision recorded
+# the number verbatim — correctly, because it is behaviour-bearing and must not be
+# normalised away — and then had nothing comparable to assert on, so the flow could
+# not actually fail when the numbering scheme changed.
+#
+# The shape closes that gap.  If the migrated build generated 20260807_001 where the
+# baseline generated 20260806_014, the numbers differ and the shapes are identical,
+# which is the correct reading: the sequence advanced, the FORMAT did not change.
+# If the migrated build generated C-2026-1 instead, the shape differs and that IS a
+# behavioural regression in the rule-engine output this flow exists to watch.
+#
+# Digits become 9 and letters become A, so "20260807_001" is "99999999_999" and
+# "CMP-2026-07" is "AAA-9999-99".  Separators are kept verbatim because a change of
+# separator is a format change.  Anything that is not a letter, a digit or a
+# printable separator is dropped rather than represented, so a stray byte cannot
+# make two identical formats look different.
+number_format_signature()
+{
+    local value="$1"
+
+    case "$value" in
+        '' | 'none' | 'not-observed' | 'SKIPPED' | 'unavailable')
+            printf 'not-observed'
+            return 0
+            ;;
+    esac
+
+    printf '%s' "$value" \
+        | LC_ALL=C sed -e 's/[0-9]/9/g' -e 's/[A-Za-z]/A/g' \
+                       -e 's/[^9A._/:-]//g'
+}
+
 finalise_number_tokens()
 {
     local dest="$1"
@@ -7730,7 +11157,13 @@ finalise_number_tokens()
     # so the containment and symbolic-link assertions still apply to this write.
     begin_capture_file "${dest}.status"
     {
-        printf '%s\n' "$observed"
+        # THE HEADLINE CARRIES A KEY.  It was written as a bare status code on a
+        # line of its own, which the status-hygiene audit correctly reports as
+        # uncomparable: a reader cannot tell what it is the status OF, and the
+        # canonical projection has an unlabelled token to align between the two
+        # captures.  Nothing reads a status file's first line positionally, so
+        # naming it costs nothing.  This was the last such row in the suite.
+        printf 'PRECONDITION_STATUS: %s\n' "$observed"
         printf 'CREATE: %s\n' "$create"
         printf 'NUMBER_ASSIGNED: %s\n' "$assigned"
         printf 'REASON: %s\n' "$reason"
@@ -8426,6 +11859,13 @@ number_criterion()
 
 flow_6_generated_number()
 {
+    # The comparable properties of the generated number: its shape, and the counts
+    # observed before and after the creation.  Declared here so every path carries
+    # them with an explicit token rather than leaving a row absent.
+    local number_format='not-observed'
+    local count_before='unavailable'
+    local count_after='unavailable'
+    local post_status='not-attempted'
     local dest
     dest="$(flow_prefix 6 generated-number)"
     flow_begin 6 generated-number 'create an object that receives a generated number'
@@ -8564,6 +12004,26 @@ flow_6_generated_number()
 
     if require_numeric_id "$complaint_id"; then
         printf '%s' "$complaint_id" > "$FIXTURE_COMPLAINT_ID_FILE"
+        # THE CREATED OBJECT IS RECORDED AS RESIDUE, because it cannot be removed.
+        #
+        # This flow creates a complaint and an earlier revision registered NOTHING
+        # for it, so every run left an object behind with no record that it had.
+        # The complaint plugin exposes no removal endpoint at all — its lifecycle
+        # endpoints are a close-with-disposition and a read-by-identifier — so
+        # register_cleanup is the wrong instrument: it EXECUTES its entries at the
+        # end of the run, and there is no request it could execute here.  Closing
+        # the complaint is not disposal either; it submits a disposition and starts
+        # an approval process, which would leave MORE state behind rather than less
+        # and would make this flow perform a business decision it has no business
+        # making.
+        #
+        # So the residue is declared instead of pretended away: the object, its
+        # number and the fact that no supported removal exists go into a ledger a
+        # reader and an operator can both act on.  An unremovable object that is
+        # recorded is a known cost; an unremovable object that is not recorded is a
+        # leak.
+        register_residue 'COMPLAINT' "$complaint_id" \
+            "created by flow 6 to observe generated numbering; the complaint plugin exposes no removal endpoint, so this object stays.  Retire it through the application's own close-with-disposition path if the deployment requires it — this script deliberately does not, because submitting a disposition starts an approval process and would leave more state behind than it removed"
     else
         complaint_id='none'
     fi
@@ -8609,6 +12069,75 @@ flow_6_generated_number()
 
         mark_incomplete 'flow 6: no generated number was present in the creation response, so the numbering behaviour the expression language and decision tables produce is unobserved'
     fi
+
+    # ---- THE NUMBERING PROGRESSION AND THE NUMBER'S FORMAT ----------------
+    #
+    # THE NUMBER ITSELF CANNOT BE COMPARED BETWEEN TWO CAPTURES, and that is not a
+    # limitation of this script but a property of a sequence: two runs against one
+    # deployment necessarily receive DIFFERENT numbers.  An earlier revision
+    # recorded the number verbatim - correctly, since it is behaviour-bearing and
+    # must not be normalised - and then had nothing comparable left to assert on, so
+    # the flow could not fail when the numbering behaviour changed.  Two things ARE
+    # comparable, and both are now observed and required.
+    #
+    # THE FORMAT.  Reduced to its shape, with digits and letters replaced by class
+    # markers and separators kept.  Two runs of an unchanged scheme produce the same
+    # shape from different numbers; a scheme that changed produces a different
+    # shape.  That is exactly the signal this flow watches, because the numbering is
+    # produced by the rule engine whose expression-evaluation library the migration
+    # advances, and a decision-table regression would show up here as a changed
+    # format rather than as a changed digit.
+    #
+    # THE PROGRESSION.  The same query that established the precondition is issued
+    # AGAIN after the creation, so the sequence is observed to have advanced by
+    # exactly one.  A numbering rule that answered with a number while creating
+    # nothing, or that created something without advancing, both pass a
+    # number-is-present check and both fail this one.
+    number_format="$(number_format_signature "$complaint_number")"
+    http_probe "$dest" 'numbering-progression' 'basic' 'GET' \
+        "${ARKCASE_BASE_URL}${FLOW6_PRECONDITION_PATH}" \
+        --header 'Accept: application/json' || true
+    post_status="$(read_status "$dest" 'numbering-progression')"
+    if [ "$post_status" = '200' ]; then
+        count_after="$(section_result_count "$dest" 'numbering-progression')"
+    fi
+    count_before="$(section_result_count "$dest" 'numbering-precondition')"
+
+    # The leg's label differs from the PROBE's label deliberately.  Both write a
+    # section into the same .out, and two sections sharing one name would make
+    # every scoped reader - captured_field and the section_body_* helpers - anchor
+    # on the first and never reach the second.  Caught by running it and counting
+    # the markers.
+    record_flow_leg 6 generated-number 'numbering-progression-observed' 'OBSERVED' '' \
+        "numbering-format-observed: ${number_format}" \
+        "numbering-format-expected: ${FLOW6_EXPECTED_FORMAT_RECORD}" \
+        'numbering-format-basis: the number with every digit replaced by 9 and every letter by A, separators kept verbatim.  This is the ONLY part of a generated number that two captures can compare, because the number itself advances between runs by construction' \
+        "numbering-count-before-creation: ${count_before}" \
+        "numbering-count-after-creation: ${count_after}" \
+        'numbering-progression-basis: the identical query issued before and after the creation, so the advance is observed rather than assumed from the presence of a number' \
+        "generated-number-recorded-verbatim-in: the create-object section of this capture; it is NOT reduced or normalised, because it is behaviour-bearing"
+
+    if [ "$number_format" = 'not-observed' ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete 'flow 6: no numbering format could be derived, because no number was observed; the format is the only part of a generated number two captures can compare, so without it this flow has nothing comparable to offer'
+    elif [ -n "$FLOW6_EXPECTED_FORMAT" ] \
+        && [ "$number_format" != "$FLOW6_EXPECTED_FORMAT" ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 6: the generated number has format ${number_format} where ${FLOW6_EXPECTED_FORMAT} was declared, so the numbering scheme the decision tables produce has changed"
+    fi
+
+    case "${count_before}:${count_after}" in
+        *unavailable*)
+            unmet=$((unmet + 1))
+            mark_incomplete "flow 6: the numbering sequence could not be observed to advance (count before ${count_before}, after ${count_after}), so a number was reported without the sequence being shown to move"
+            ;;
+        *)
+            if [ "$count_after" -le "$count_before" ] 2>/dev/null; then
+                unmet=$((unmet + 1))
+                mark_incomplete "flow 6: the object count did not advance across the creation (before ${count_before}, after ${count_after}), so the numbering rule reported a number while the sequence did not move"
+            fi
+            ;;
+    esac
 
     if [ "$unmet" -eq 0 ]; then
         verdict='OBSERVED-NUMBER-GENERATED'
@@ -8935,7 +12464,7 @@ record_event_transit_unobserved()
         printf '\n'
     } | sanitise >> "${dest}.out"
 
-    printf 'event-delivery=SKIPPED\n' >> "${dest}.status"
+    write_status_line "$dest" 'event-delivery=SKIPPED'
 }
 
 # ---------------------------------------------------------------------------
@@ -9319,23 +12848,44 @@ flow_5_activemq_event()
     local trigger_ctype
     local trigger_bytes
     local trigger_token
+    local broker_unprobed=''
     local trigger_body_dest='-'
     local trigger_body_label=''
     local delivery_token
     local delivery_body_dest='-'
     local delivery_body_label=''
     local payload_state
+    # What the search REPORTED as its match count on the last delivery attempt.
+    # Held separately from `found` because the two answer different questions:
+    # `found` is the flow's assertion, this is the observation the assertion was
+    # made from, and an evidence file that prints only the conclusion cannot be
+    # checked against the thing it concluded from.
+    local delivery_match_count='unavailable'
     local broker_status='not-configured'
+    # Broker-side counters for the destination, read from the broker itself rather
+    # than from the application's answer.  All default to the not-configured token
+    # so that a run without a broker surface records their absence explicitly
+    # instead of omitting the rows.
+    local broker_destination_status='not-configured'
+    local broker_destination_name='not-configured'
+    local broker_enqueue_count='not-configured'
+    local broker_dequeue_count='not-configured'
+    local broker_dispatch_count='not-configured'
+    local broker_inflight_count='not-configured'
+    local broker_consumer_count='not-configured'
+    local broker_queue_size='not-configured'
     local trigger_archived_in
     local trigger_body_provenance
     local messaging_references
     local skip_reason=''
 
-    startup_lines="$(log_region_matched 'messaging-and-persistence.log')"
+    startup_lines="$(log_region_matched 'messaging-init.log')"
+    local persistence_lines
+    persistence_lines="$(log_region_matched 'jpa-init.log')"
     if [ "$startup_lines" = 'unavailable' ]; then
         startup_note='broker and persistence startup lines not captured (no container log supplied)'
     else
-        startup_note="broker and persistence startup lines matched: ${startup_lines} (see startup/messaging-and-persistence.log)"
+        startup_note="broker startup lines matched: ${startup_lines} (see startup/messaging-init.log); persistence startup lines matched: ${persistence_lines} (see startup/jpa-init.log); both mined from the single window recorded in notes/startup-window.txt"
     fi
 
     number="$(fixture_complaint_number)"
@@ -9392,14 +12942,27 @@ flow_5_activemq_event()
     if [ "$number" != 'none' ]; then
         while [ "$attempt" -le "$SMOKE_INDEX_ATTEMPTS" ]; do
             http_probe "$dest" "delivery-attempt-${attempt}" 'basic' 'GET' \
-                "${ARKCASE_BASE_URL}${FLOW5_SEARCH_PATH}?q=%22${number}%22&start=0&n=5" \
+                "${ARKCASE_BASE_URL}${FLOW5_SEARCH_PATH}?q=%22$(percent_encode "$number")%22&start=0&n=5" \
                 --header 'Accept: application/json' || true
             last_status="$(read_status "$dest" "delivery-attempt-${attempt}")"
             attempts_used="$attempt"
-            if [ "$last_status" = '200' ] && captured_contains "$dest" "$number"; then
+            # Scoped to THIS attempt's own response body and qualified by a
+            # positive reported match count.  See flow5_delivery_observed for the
+            # two false-positive paths this closes, both measured rather than
+            # supposed.
+            if [ "$last_status" = '200' ] \
+                && flow5_delivery_observed "$dest" "delivery-attempt-${attempt}" \
+                    "$number"; then
                 found='yes'
+                delivery_match_count="$(section_result_count "$dest" \
+                    "delivery-attempt-${attempt}")"
                 break
             fi
+            # Recorded on every attempt, so that a run which never observed a
+            # delivery still says what the search reported instead of leaving a
+            # reader to infer it from the absence of a hit.
+            delivery_match_count="$(section_result_count "$dest" \
+                "delivery-attempt-${attempt}")"
             if [ "$attempt" -lt "$SMOKE_INDEX_ATTEMPTS" ]; then
                 sleep "$SMOKE_INDEX_INTERVAL"
             fi
@@ -9415,9 +12978,54 @@ flow_5_activemq_event()
     # A broker-side view, only when the operator exposed one.  Absent by
     # default, and recorded as absent rather than silently omitted.
     if [ -n "$BROKER_STATUS_URL" ]; then
-        http_probe "$dest" 'broker-status' 'basic' 'GET' "$BROKER_STATUS_URL" \
-            --header 'Accept: application/json' || true
+        if [ -n "$BROKER_REQUEST_ORIGIN" ]; then
+            http_probe "$dest" 'broker-status' 'broker' 'GET' "$BROKER_STATUS_URL" \
+                --header 'Accept: application/json' \
+                --header "Origin: ${BROKER_REQUEST_ORIGIN}" || true
+        else
+            http_probe "$dest" 'broker-status' 'broker' 'GET' "$BROKER_STATUS_URL" \
+                --header 'Accept: application/json' || true
+        fi
         broker_status="$(read_status "$dest" 'broker-status')"
+    fi
+
+    # ---- INDEPENDENT BROKER-SIDE VIEW OF THE DESTINATION -----------------
+    # Arrival evidence that does not come from the application's answer.  The
+    # consumer-side observation above asks the search index whether the object
+    # became findable; this asks the BROKER what passed through the destination and
+    # whether anything is consuming it.  The two can disagree, and when they do the
+    # disagreement is the finding — which is why both are captured and neither is
+    # allowed to stand in for the other.
+    if [ -n "$BROKER_DESTINATION_URL" ]; then
+        if [ -n "$BROKER_REQUEST_ORIGIN" ]; then
+            http_probe "$dest" 'broker-destination' 'broker' 'GET' \
+                "$BROKER_DESTINATION_URL" \
+                --header 'Accept: application/json' \
+                --header "Origin: ${BROKER_REQUEST_ORIGIN}" || true
+        else
+            http_probe "$dest" 'broker-destination' 'broker' 'GET' \
+                "$BROKER_DESTINATION_URL" \
+                --header 'Accept: application/json' || true
+        fi
+        # Asserted on the status the RESPONSE reports, not the one the transport
+        # reports; see broker_reported_status for why those differ here.
+        broker_destination_status="$(broker_reported_status "$dest" \
+            'broker-destination')"
+        broker_destination_name="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'Name')"
+        [ -n "$broker_destination_name" ] || \
+            broker_destination_name='absent-from-response-body'
+        broker_enqueue_count="$(broker_counter "$dest" 'broker-destination' \
+            'EnqueueCount')"
+        broker_dequeue_count="$(broker_counter "$dest" 'broker-destination' \
+            'DequeueCount')"
+        broker_dispatch_count="$(broker_counter "$dest" 'broker-destination' \
+            'DispatchCount')"
+        broker_inflight_count="$(broker_counter "$dest" 'broker-destination' \
+            'InFlightCount')"
+        broker_consumer_count="$(broker_counter "$dest" 'broker-destination' \
+            'ConsumerCount')"
+        broker_queue_size="$(broker_counter "$dest" 'broker-destination' \
+            'QueueSize')"
     fi
 
     if [ "$found" = 'yes' ]; then
@@ -9445,7 +13053,20 @@ flow_5_activemq_event()
         'delivery-message-persistence-effective: the provider default, because the property that makes an explicit quality of service take effect appears nowhere in the reactor; that default is also persistent, so the two readings agree' \
         'delivery-message-application-properties: none set by the publisher, which sends a destination and a payload and no properties' \
         'delivery-observation-means: the consumer-side observable effect.  The destination is consumed by the indexing listener, so the object named in the trigger half becoming findable requires that the message was published, delivered and applied.  No broker client library is installed to observe this, and none is needed' \
+        "delivery-observation-scope: the search response of THIS delivery attempt only, qualified by a positive reported match count of ${delivery_match_count}.  Both conditions are required.  An earlier revision searched the WHOLE capture file for the object number, and this flow writes that number into that same file in its own trigger half, so every attempt that answered 200 matched the script's own record and an empty result set was recorded as a delivery.  The count is required as well as the scope because the search platform echoes the submitted query inside its response, so the number is present in the body of an answer that matched nothing" \
         "delivery-observation-means-secondary: broker status surface ${broker_status}" \
+        "delivery-observation-means-independent: the broker's own view of the destination, which does not come from the application's answer at all.  Consumer-side and broker-side evidence can disagree, and when they do the disagreement is the finding, so both are captured and neither stands in for the other" \
+        "delivery-broker-management-reported-status: ${broker_destination_status}.  This is the status the RESPONSE reported, not the status the transport reported: the reference stack's management surface answers a refused read with transport status 200 and puts the real refusal inside the body, so asserting on the transport status would record a successful observation of a refusal (R-T7)" \
+        "delivery-broker-destination-reported-name: ${broker_destination_name}" \
+        "delivery-broker-enqueue-count: ${broker_enqueue_count} — messages the broker has accepted onto this destination" \
+        "delivery-broker-dequeue-count: ${broker_dequeue_count} — messages the broker has seen consumed from it" \
+        "delivery-broker-dispatch-count: ${broker_dispatch_count}" \
+        "delivery-broker-inflight-count: ${broker_inflight_count}" \
+        "delivery-broker-consumer-count: ${broker_consumer_count} — consumers attached at the moment of observation; zero means nothing can deliver what the destination carries, which is a broker-side fact that the application's answer cannot report" \
+        "delivery-broker-queue-size: ${broker_queue_size}" \
+        'delivery-broker-counter-basis: the counters are cumulative for the broker instance, not scoped to this run, and they are recorded as such rather than presented as a per-run delta.  What they establish is that the destination exists, that traffic has passed through it and that something is consuming it; what they do not establish on their own is that THIS run produced the traffic, which is what the consumer-side observation above is for' \
+        'delivery-broker-counters-read-without-a-broker-client: the destination name and every counter above were read over ordinary HTTP with the tool this script already uses.  An earlier revision recorded the destination as not observable without a broker client and cited the prohibition on adding tooling; the prohibition is real but the premise was wrong, and it was checked rather than argued' \
+        "delivery-observation-broker-credential: ${BROKER_CREDENTIAL_SOURCE}.  The broker is a separate security domain, so it receives its own credential or none; the ArkCase administrator credential is never sent to it" \
         "delivery-attempts-configured: ${SMOKE_INDEX_ATTEMPTS} at ${SMOKE_INDEX_INTERVAL}s" \
         "delivery-attempts-used: ${attempts_used}" \
         "delivery-final-observed-status: ${last_status}" \
@@ -9488,18 +13109,37 @@ flow_5_activemq_event()
         # after the capture window closes, so delivery is recorded from
         # OBSERVATION and is never inferred from a status code.  Nothing was
         # observed here, and the token says so plainly rather than defaulting to
-        # a success value.  The destination is likewise recorded as unobservable
-        # rather than guessed: reading it would require a broker client, and
-        # installing one purely to take a capture is a change without a
-        # compatibility reason, which R-1 places out of scope.
-        {
-            printf 'broker-transit=SKIPPED\n'
-            printf 'delivered=not-observed\n'
-            printf 'destination=not-observable-without-a-broker-client\n'
-            printf 'payload-match=not-observed\n'
-            printf 'SKIPPED\n'
-            printf 'REASON: %s\n' "$skip_reason"
-        } | sanitise >> "${dest}.status"
+        # a success value.
+        #
+        # Written through the SAME writer the exercised path uses, so that the two
+        # paths cannot drift into different token sets — they had, and the drift is
+        # described at flow_5_record_delivery_tokens.  The broker rows carry the
+        # not-configured token on this path because no broker probe was issued: this
+        # branch is reached when no event was produced, and reading counters that no
+        # message from this run could have moved would be evidence about the host's
+        # history rather than about this run.
+        # NO BROKER PROBE IS ISSUED ON THIS PATH, and the reason is not squeamishness:
+        # this branch is reached when the run produced no event, so the destination's
+        # counters describe traffic some OTHER process put there.  On a shared evaluation
+        # host that is not hypothetical -- the destination under observation was measured
+        # carrying an enqueue count from a neighbouring instance -- and recording it here
+        # would read as arrival evidence for a message this run never sent.
+        #
+        # The token distinguishes the two reasons a broker row can be empty, because
+        # collapsing them states something false.  'not-configured' means no management
+        # surface was supplied at all.  'not-probed-no-event-from-this-run' means one WAS
+        # supplied and was deliberately not read.  A reader diffing two captures needs to
+        # tell an unconfigured host from a run that had nothing to look for.
+        if [ -n "$BROKER_DESTINATION_URL" ]; then
+            broker_unprobed='not-probed-no-event-from-this-run'
+        else
+            broker_unprobed='not-configured'
+        fi
+        flow_5_record_delivery_tokens "$dest" 'SKIPPED' 'not-observed' \
+            'not-observed' 'not-attempted' "$broker_unprobed" "$broker_unprobed" \
+            "$broker_unprobed" "$broker_unprobed" "$broker_unprobed" "$broker_unprobed" \
+            "$broker_unprobed" "$broker_unprobed"
+        record_reason "$dest" "$skip_reason"
 
         # AND THE RECORD'S OWN "IF NOT EXECUTED" ROW MUST SAY SO TOO.  That row
         # defaults to "this flow executed", which is right for a flow that ran
@@ -9513,7 +13153,7 @@ flow_5_activemq_event()
 
         record_result 5 activemq-event 'NOT-EXERCISED-NO-EVENT-PRODUCED' \
             'messaging client on Java 17, unchanged by design: its messaging interfaces resolve from the broker client rather than from the platform, so the removal of the platform enterprise modules cannot reach it' \
-            'flow-5-activemq-event.out, flow-5-activemq-event.status and startup/messaging-and-persistence.log' \
+            'flow-5-activemq-event.out, flow-5-activemq-event.status, startup/messaging-init.log and startup/jpa-init.log' \
             "${startup_note}" \
             "state mutation permitted: ${MUTATIONS_ENABLED}" \
             "trigger half recorded: ${trigger_token} (${FLOW6_PATH})" \
@@ -9544,19 +13184,72 @@ flow_5_activemq_event()
     # published to the broker and consumed by the indexing pipeline.  It is
     # deliberately not derived from the polling request's own status, because a
     # 200 carrying an empty result set is the exact shape of a message that never
-    # arrived.  The destination name would require a broker client to read, and
-    # R-1 puts installing one for the sake of a capture out of scope, so it is
-    # recorded as unobservable rather than guessed.
-    {
-        if [ "$found" = 'yes' ]; then
-            printf 'delivered=yes\n'
-            printf 'payload-match=yes\n'
-        else
-            printf 'delivered=not-observed\n'
-            printf 'payload-match=not-observed\n'
+    # arrived — and it is no longer derived from the number merely appearing in the
+    # capture either, because this flow writes that number into the capture itself.
+    #
+    # THE DESTINATION IS NOW OBSERVED FROM THE BROKER, NOT DECLARED UNOBSERVABLE.
+    # An earlier revision recorded destination=not-observable-without-a-broker-client
+    # on the reasoning that reading it would need a broker client and R-1 puts
+    # installing tooling out of scope.  The first half of that was simply wrong,
+    # and it was checked rather than argued: the destination's own name and
+    # counters read over ordinary HTTP with the tool this script already uses, from
+    # the broker's management surface, with no client and no new tooling.  So the
+    # rows below carry what the BROKER said when a surface was exposed, and the
+    # not-configured token when none was — which is a statement about the operator's
+    # configuration, not about what is knowable.
+    if [ "$found" = 'yes' ]; then
+        flow_5_record_delivery_tokens "$dest" 'OBSERVED' 'yes' 'yes' \
+            "$delivery_match_count" "$broker_destination_status" \
+            "$broker_destination_name" "$broker_enqueue_count" \
+            "$broker_dequeue_count" "$broker_dispatch_count" \
+            "$broker_inflight_count" "$broker_consumer_count" \
+            "$broker_queue_size"
+    else
+        flow_5_record_delivery_tokens "$dest" 'NOT-OBSERVED' 'not-observed' \
+            'not-observed' "$delivery_match_count" \
+            "$broker_destination_status" "$broker_destination_name" \
+            "$broker_enqueue_count" "$broker_dequeue_count" \
+            "$broker_dispatch_count" "$broker_inflight_count" \
+            "$broker_consumer_count" "$broker_queue_size"
+    fi
+
+    # ---- BROKER-SIDE REQUIREMENTS ----------------------------------------
+    # Asserted only when a management surface was exposed.  With none exposed there
+    # is nothing to assert and counting an unmet requirement would punish the
+    # operator's configuration rather than report the application's behaviour; the
+    # rows above already say not-configured, and the run is not marked complete on
+    # the strength of evidence it never gathered.
+    if [ -n "$BROKER_DESTINATION_URL" ]; then
+        if [ "$broker_destination_status" != '200' ]; then
+            unmet=$((unmet + 1))
+            mark_incomplete "flow 5: the broker management surface did not report a successful read of the destination (reported status ${broker_destination_status}); note that this is the status INSIDE the response, because that surface answers a refusal with transport status 200"
         fi
-        printf 'destination=not-observable-without-a-broker-client\n'
-    } | sanitise >> "${dest}.status"
+        if [ "$broker_destination_name" != "$FLOW5_DESTINATION_NAME" ]; then
+            unmet=$((unmet + 1))
+            mark_incomplete "flow 5: the broker reported the destination as ${broker_destination_name} where ${FLOW5_DESTINATION_NAME} was configured, so the counters below may not describe the destination under observation"
+        fi
+        # A destination that has enqueued nothing has carried no traffic at all; a
+        # destination with no consumer cannot deliver what it carries.  Both are
+        # broker-side facts and neither can be read off the application's answer.
+        case "$broker_enqueue_count" in
+            '' | *[!0-9]* | 0)
+                unmet=$((unmet + 1))
+                mark_incomplete "flow 5: the broker reported enqueue count ${broker_enqueue_count} for ${FLOW5_DESTINATION_NAME}, so no message is shown to have been published to the destination at all"
+                ;;
+        esac
+        case "$broker_consumer_count" in
+            '' | *[!0-9]* | 0)
+                unmet=$((unmet + 1))
+                mark_incomplete "flow 5: the broker reported consumer count ${broker_consumer_count} for ${FLOW5_DESTINATION_NAME}, so nothing is shown to be consuming the destination"
+                ;;
+        esac
+        case "$broker_dequeue_count" in
+            '' | *[!0-9]* | 0)
+                unmet=$((unmet + 1))
+                mark_incomplete "flow 5: the broker reported dequeue count ${broker_dequeue_count} for ${FLOW5_DESTINATION_NAME}, so no message is shown to have been consumed from the destination"
+                ;;
+        esac
+    fi
 
     if [ "$unmet" -eq 0 ]; then
         verdict='OBSERVED-EVENT-TRANSITED-AND-INDEXED'
@@ -9566,15 +13259,18 @@ flow_5_activemq_event()
 
     record_result 5 activemq-event "$verdict" \
         'messaging client on Java 17, unchanged by design: its messaging interfaces resolve from the broker client rather than from the platform, so the removal of the platform enterprise modules cannot reach it' \
-        'flow-5-activemq-event.out, flow-5-activemq-event.status and startup/messaging-and-persistence.log' \
+        'flow-5-activemq-event.out, flow-5-activemq-event.status, startup/messaging-init.log and startup/jpa-init.log' \
         "trigger half recorded: ${trigger_token} (${FLOW6_PATH})" \
         "delivery half recorded: ${delivery_token} (destination ${FLOW5_DESTINATION_NAME})" \
         "object under observation: ${number} (created by flow 6)" \
         "attempts configured: ${SMOKE_INDEX_ATTEMPTS} at ${SMOKE_INDEX_INTERVAL}s" \
         "attempts used: ${attempts_used}" \
         "object became findable: ${found}" \
+        "search reported match count on the last attempt: ${delivery_match_count}" \
         "final observed status: ${last_status}" \
         "broker status surface: ${broker_status}" \
+        "broker-side view of the destination — management-reported status: ${broker_destination_status}, name: ${broker_destination_name}, enqueued: ${broker_enqueue_count}, dequeued: ${broker_dequeue_count}, dispatched: ${broker_dispatch_count}, in flight: ${broker_inflight_count}, consumers: ${broker_consumer_count}, current depth: ${broker_queue_size}" \
+        'the delivery finding is made from TWO independent observations, and the flow is explicit about what each one can carry.  The consumer-side observation — the object this run created becoming findable — is scoped to the response body of the single delivery attempt that matched, and is additionally required to carry a positive reported match count.  Both conditions are needed: an earlier revision searched the whole capture file for the object number, which this flow writes into that same file in its own trigger half, so an attempt answering 200 with an empty result set was recorded as a delivery; and scoping alone is still insufficient because the search platform echoes the submitted query inside its own answer.  The broker-side observation comes from the broker and not from the application, is cumulative for the broker instance rather than scoped to this run, and is labelled as such' \
         "${startup_note}" \
         "requirements unmet: ${unmet}" \
         'the observation is indirect and is labelled as such, but it is now POSITIVE: the object this run created becoming findable requires that an event it produced was published to the broker and consumed by the indexing pipeline.  An empty result set is therefore a failure here, not a pass' \
@@ -9584,70 +13280,6 @@ flow_5_activemq_event()
     # record must carry an identical field set on both paths so that a row-for-row
     # comparison between the two capture directories stays meaningful.
     record_flow5_comparison_context
-}
-
-# ---------------------------------------------------------------------------
-# PROCESS-CORPUS READERS.
-#
-# Flow 7's evidence has to say WHICH process definitions the engine is expected
-# to load and WHAT the definition it instantiates declares.  Both are read out of
-# the repository at run time rather than written into this script as constants,
-# for the same reason the runtime banners are captured from the tools themselves:
-# a hand-written value is an assertion about the corpus, and an assertion is not
-# evidence.  If a definition changes, these readers report the change; a constant
-# would keep reporting the old value and would be believed.
-#
-# Pure grep/sed/tr, with no document parser, because R-1 fences the toolset to a
-# POSIX shell plus curl.  The limitation that follows is stated rather than
-# hidden: these readers see the FIRST matching element of each kind in a file and
-# treat an element as text, so they are adequate for this corpus — every file in
-# it declares one process, and the definition flow 7 instantiates declares one
-# user task — and they would need revisiting for a multi-process definition.
-# ---------------------------------------------------------------------------
-
-# bpmn_tags — every opening tag of the named element in a file, one per line.
-# The file is folded to a single line first so that an attribute list broken
-# across source lines is still read as one tag; this corpus contains exactly that
-# formatting, so folding is required rather than defensive.  An optional
-# namespace prefix is accepted.  A closing tag cannot match, because the pattern
-# requires whitespace immediately after the element name.
-bpmn_tags()
-{
-    tr '\n' ' ' < "$1" 2>/dev/null | grep -oE "<[A-Za-z0-9]*:?$2[[:space:]][^>]*>"
-}
-
-# bpmn_attr — the value of one attribute of one tag.  The FIRST occurrence only,
-# and the attribute name must be preceded by whitespace or start the string, so
-# that asking for "id" cannot return the value of a longer attribute that happens
-# to end in those characters.
-bpmn_attr()
-{
-    printf '%s' "$1" | grep -oE "(^|[[:space:]])$2=\"[^\"]*\"" | head -1 \
-        | sed -e 's/^[[:space:]]*//' -e "s/^$2=\"//" -e 's/"$//'
-}
-
-# bpmn_corpus_files — the process-definition corpus, deterministically ordered.
-#
-# The sort is load-bearing, not cosmetic.  find walks directory entries in
-# whatever order the filesystem returns them, so two runs on two machines can
-# enumerate the same corpus in different orders; an unsorted list would then
-# differ between the baseline capture and the migrated replay for a reason that
-# has nothing to do with behaviour, and the comparison would report noise.  The
-# same four path kinds are pruned as in count_matching_files, so the enumeration
-# and the count can never disagree about what the corpus is.
-bpmn_corpus_files()
-{
-    local root="$1"
-
-    [ -d "$root" ] || return 0
-    find "$root" \
-            \( -type d \( -name 'target' \
-                       -o -name 'node_modules' \
-                       -o -name '.git' \
-                       -o -name 'blitzy_adhoc_test_*' \) -prune \) \
-            -o \( -name '*.bpmn*' -type f -print \) \
-            2>/dev/null \
-        | LC_ALL=C sort
 }
 
 # ---------------------------------------------------------------------------
@@ -9782,9 +13414,187 @@ bpmn_corpus_files()
 # engine logs once per deployed definition.  The result is always a plain
 # integer, because a token that is sometimes a word and sometimes a number
 # cannot be compared mechanically between the two runs.
+# flow7_task_record — the ONE task record in a task-list response that belongs to
+# the object this run created, written to a file and named on stdout.
+#
+# WHY THIS EXISTS.  The task-list endpoint answers with a LIST: a numFound, a
+# start, and a data array of task records.  On a shared host that list also
+# carries tasks belonging to objects this run never touched.  An earlier revision
+# read every task field with the plain scalar reader, which stops at the FIRST
+# occurrence of a key anywhere in the body — so the task key, the task name and
+# the assignee it reported could all belong to a DIFFERENT task than the one this
+# run's workflow created, and nothing in the capture would show that they did.
+# Three fields read from three positions in a list is not an observation of a
+# task; it is an observation of a list.
+#
+# THERE IS DELIBERATELY NO FALLBACK TO THE FIRST RECORD.  If no record carries the
+# object identity, this returns nothing and the caller records the task fields as
+# unobserved and counts the requirement unmet.  That is strictly better than
+# reporting a stranger's task as though it were ours: a missing observation is a
+# gap a reader can act on, while a misattributed one is a false statement that
+# looks like evidence.
+#
+# HOW THE RECORD IS ISOLATED, and the limits of it.  The data array is split at
+# record boundaries — a closing brace, a comma and an opening brace — and the
+# first record containing the identity needle is printed.  This is text
+# processing, not JSON parsing, for the same reason every other reader here is:
+# R-1 forbids adding tooling without a compatibility reason and a JSON processor
+# is tooling.  The disclosed limits are that a record containing a NESTED object
+# is split at the nested boundary too, and that a string value containing the
+# needle would match as readily as a field value.  Both are acceptable here
+# because the needle is an object identity that the caller also records
+# separately, and because the consequence of a mis-split is a record that fails
+# the field assertions rather than one that passes them wrongly.
+#
+# Usage: flow7_task_record <body-file> <needle> <output-file>
+#        prints the output file path when a record matched, nothing otherwise.
+flow7_task_record()
+{
+    local body_file="$1"
+    local needle="$2"
+    local out_file="$3"
+
+    [ -f "$body_file" ] || return 0
+
+    # The needle must LOOK like an object identity before it is used as one.
+    # Validating its shape rather than enumerating the script's sentinel strings
+    # keeps this function independent of where those sentinels are declared, and it
+    # also refuses a needle that could act as a grep pattern rather than a literal.
+    # An identity here is digits, letters, dash, underscore or dot and nothing else.
+    case "$needle" in
+        '' | *[!A-Za-z0-9._-]*) return 0 ;;
+    esac
+
+    # Split into candidate records, then select.  awk rather than a shell loop so
+    # that a large list does not become a per-line fork, and so the selection is
+    # one pass.
+    LC_ALL=C awk -v needle="$needle" '
+        {
+            gsub(/\}[[:space:]]*,[[:space:]]*\{/, "}\n{")
+            print
+        }
+    ' "$body_file" 2>/dev/null \
+        | LC_ALL=C grep -F -- "$needle" \
+        | head -1 > "$out_file" 2>/dev/null || true
+
+    if [ -s "$out_file" ]; then
+        printf '%s' "$out_file"
+    fi
+    return 0
+}
+
+# flow7_task_field — one task field out of the SELECTED record, trying each of the
+# names the deployment may expose it under and reporting which one answered.
+#
+# The task list is served from the search index, whose documents carry
+# suffixed field names — an identity field ends _s, a lower-cased string field
+# ends _lcs, a multi-valued one ends _ss — while the same logical field is exposed
+# under a plain name elsewhere in the API.  Rather than hard-code one convention
+# and silently read nothing when the deployment uses the other, this tries the
+# candidates in order and prints "<value>|<name-that-answered>" so the evidence
+# records HOW the value was read as well as what it was.  A capture that reports a
+# value without saying which field it came from cannot be checked.
+#
+# Usage: flow7_task_field <record-file> <candidate-name> [<candidate-name> ...]
+# json_nested_scalar — a scalar read from INSIDE one named nested object.
+#
+# The plain scalar reader stops at the first occurrence of a key anywhere in the
+# body, which is the wrong answer whenever the key is a common one.  A case file
+# carries several objects that each have a "name", so reading "name" from the whole
+# body says nothing about which of them answered.  This isolates the named outer
+# object first and reads the inner key from that alone.
+#
+# The isolation runs from the outer key's opening brace to the FIRST closing brace,
+# which is correct for an outer object that contains no nested object of its own
+# and is the case this is used for.  The limit is disclosed rather than hidden, and
+# the consequence of exceeding it is a read that returns nothing — so a caller
+# gets an unobserved value and counts its requirement unmet, rather than a wrong
+# value that passes.
+json_nested_scalar()
+{
+    local file="$1"
+    local outer="$2"
+    local inner="$3"
+    local fragment="${SMOKE_TMPDIR}/nested-fragment"
+
+    [ -f "$file" ] || return 0
+    case "${outer}${inner}" in
+        '' | *[!A-Za-z0-9_]*) return 0 ;;
+    esac
+
+    LC_ALL=C sed -e 's/}/}\n/g' -- "$file" 2>/dev/null \
+        | LC_ALL=C grep -F -- "\"${outer}\":{" \
+        | head -1 > "$fragment" 2>/dev/null || true
+
+    [ -s "$fragment" ] || return 0
+    json_scalar "$fragment" "$inner"
+}
+
+# json_first_array_string — the first string element of a JSON array value.
+#
+# The scalar reader matches a quoted value directly after the colon and therefore
+# cannot see "key":["value"].  A candidate group is served as a multi-valued field
+# and so arrives in exactly that shape, and a task assigned to a group rather than
+# to a named user is a perfectly ordinary assignment — so a reader that could not
+# see one would report a correctly assigned task as unassigned.  This was found by
+# running the selector against a group-assigned record, not by reading a schema.
+#
+# Only the FIRST element is returned, and the field is a set whose order the server
+# chose; that is sufficient here because the assertion is whether a group
+# assignment exists at all, and the whole record is archived beside it either way.
+json_first_array_string()
+{
+    local file="$1"
+    local key="$2"
+    local found=''
+
+    [ -f "$file" ] || return 0
+    case "$key" in
+        '' | *[!A-Za-z0-9_]*) return 0 ;;
+    esac
+
+    found="$(LC_ALL=C grep -o \
+        "\"${key}\"[[:space:]]*:[[:space:]]*\[[[:space:]]*\"[^\"]*\"" "$file" \
+        2>/dev/null | head -1 | sed -e 's|.*"\([^"]*\)"$|\1|')" || true
+    [ -n "$found" ] && printf '%s' "$found"
+    return 0
+}
+
+flow7_task_field()
+{
+    local record_file="$1"
+    shift
+    local name
+    local value
+
+    if [ -z "$record_file" ] || [ ! -f "$record_file" ]; then
+        printf 'not-observed|none'
+        return 0
+    fi
+
+    for name in "$@"; do
+        value="$(json_scalar "$record_file" "$name")"
+        if [ -n "$value" ]; then
+            printf '%s|%s' "$value" "$name"
+            return 0
+        fi
+        # The same field may be served as a single string or as a one-element set,
+        # and both are the same observation for this flow's purposes.  The name that
+        # answered is reported either way, with the shape it answered in, so the
+        # evidence says how the value was read.
+        value="$(json_first_array_string "$record_file" "$name")"
+        if [ -n "$value" ]; then
+            printf '%s|%s (first element of a set)' "$value" "$name"
+            return 0
+        fi
+    done
+    printf 'not-observed|none'
+    return 0
+}
+
 flow7_definitions_loaded_observed()
 {
-    local region="${SMOKE_OUT_DIR}/startup/process-definitions.log"
+    local region="${SMOKE_OUT_DIR}/startup/workflow-engine-init.log"
     local counted
 
     if [ ! -f "$region" ]; then
@@ -9835,13 +13645,32 @@ write_flow7_status_tokens()
 
     begin_capture_file "${dest}.status"
     {
-        printf '%s\n' "$headline"
+        # THE HEADLINE CARRIES A KEY.  It used to be written as a bare value on a
+        # line of its own, which left a reader to guess what it was the status OF,
+        # and left the canonical status projection comparing an unlabelled token
+        # between the two captures.  Nothing reads the first line positionally, so
+        # naming it costs nothing and makes the row self-describing.
+        printf 'HEADLINE_STATUS: %s\n' "$headline"
         printf 'START: %s\n' "$start"
         printf 'PROCESS_INSTANTIATED: %s\n' "$instantiated"
         printf 'TASK_ASSIGNED: %s\n' "$assigned"
+        # THIS IS THE ONLY WRITER OF DEFINITIONS_LOADED, and that is a correctness
+        # requirement rather than tidiness.  Two writers used to emit this key from
+        # two DIFFERENT quantities — this one, which counts process-definition
+        # evidence in the startup region, and the outcome records, which passed the
+        # region's LINE COUNT under the same name.  A run produced both
+        # "DEFINITIONS_LOADED: 0" and "DEFINITIONS_LOADED: unavailable" in one status
+        # file, which is a self-contradiction in the evidence and, worse, gave a
+        # reader a line count where they were told a definition count.  The line
+        # count now has its own name in the outcome records.
         printf 'DEFINITIONS_LOADED: %s\n' "$(flow7_definitions_loaded_observed)"
+        # The previously written rows are appended AFTER these, and any row this
+        # block owns is dropped from them, so a second call cannot leave two values
+        # for one key behind.
         if [ -s "$previous" ]; then
-            cat -- "$previous"
+            LC_ALL=C grep -v -E \
+                -e '^(HEADLINE_STATUS|START|PROCESS_INSTANTIATED|TASK_ASSIGNED|DEFINITIONS_LOADED): ' \
+                -- "$previous" || true
         fi
     } | sanitise >> "${dest}.status"
 }
@@ -9881,17 +13710,25 @@ FLOW7_UNOBSERVED='(not observed - no process instance was created by this run)'
 # authoritative; overridable so a different change set can state its own.
 FLOW7_DECLARED_BASE_COMMIT="${FLOW7_DECLARED_BASE_COMMIT:-c8f6226105c28c2743281d26bf21ad73f7bb7f26}"
 
-# The migrated tree's own commit, carried the SAME way and for the same reason.
+# The migrated tree's own commit, and this one is OBSERVED rather than declared.
 # The replay side has two commits worth naming and they are not interchangeable:
-# the base commit the pre-migration capture was taken at, and the head the change
-# set had reached when the replay ran.  Both are DECLARED labels rather than probe
-# output, and that is deliberate rather than lazy: `git rev-parse HEAD` inside this
-# script would be re-measured every run, so the recorded value would change the
-# moment this very record is committed and the file could never reproduce itself.
-# A declared label is stable, is overridable by a different change set, and is
-# honest about what it is.  It names the head the replay was captured AT, which is
-# necessarily the parent of the commit that records this file.
-FLOW7_DECLARED_MIGRATED_COMMIT="${FLOW7_DECLARED_MIGRATED_COMMIT:-0759c70353}"
+# the base commit the pre-migration capture was taken at, which is a fixed constant
+# of this migration, and the head the change set had reached when the replay ran,
+# which is a fact about the run.
+#
+# An earlier revision hardcoded the second, on the reasoning that reading it from
+# git would make the value change every run and so the file could never reproduce
+# itself byte for byte.  That reasoning is wrong in a way worth stating, because it
+# is a plausible mistake: a hardcoded provenance value does not become stable, it
+# becomes STALE - it went on naming a commit three commits behind the tree it was
+# describing, so every record carrying it asserted a provenance that was false.
+# Provenance is not a comparison field and was never compared; the comparison
+# already excludes the capture directory and the target base URL for exactly this
+# reason.  So it is read from git, with the observed value used as the default, and
+# it is still overridable for a replay taken from an exported archive that has no
+# git metadata - where it correctly reports 'not-a-git-checkout' instead of
+# inventing a commit.
+FLOW7_DECLARED_MIGRATED_COMMIT="${FLOW7_DECLARED_MIGRATED_COMMIT:-$SMOKE_OBSERVED_HEAD_SHORT}"
 
 # flow7_runtime_of_record — the runtime designation of the capture side, AND the
 # point in the change set at which the capture was taken.
@@ -9986,7 +13823,7 @@ flow7_mandated_observations()
         'bounding-finding-3: it reads no class bytes and touches no encapsulated platform package.  This is also the reason the register of production launch-configuration exceptions for encapsulated-package access - referred to here by title only, because its filename embeds a token this evidence folder carries nowhere, in any file, at any depth - is earned empty rather than assumed empty: no module needs opening on this engine behalf' \
         "verified-corpus-figure: ${processes} process definitions, re-derived at capture time rather than adopted.  Two commands, both recorded in flow-7-workflow-start.out: a find over the repository with target, node_modules and .git pruned, which is the primary measurement, and the plain form find . -name '*.bpmn*' -not -path '*/node_modules/*' | wc -l.  Both return 36 in a tree that carries no build output.  In a tree where a module has been built the plain form additionally counts the build copies of definition files beneath that module target directory, which is exactly why the pruned form is primary; the difference is a property of the working tree, not of the corpus.  The engine must load all 36" \
         'startup-timing-note: engine initialisation happens at deployment, before any request in this flow is sent, and the deployment step in the repository documentation records that the first startup takes 5 to 10 minutes, during which the engine deploys its definitions.  A definitions figure read from a running engine before deployment has finished therefore measures timing rather than behaviour, so an engine-side count is read only after deployment completes.  In this capture no engine-side count exists at all: the figure above is a corpus measurement taken from the tree, and the engine-side loading of those definitions is recorded as unobserved.  The limitation is stated plainly rather than papered over' \
-        'startup-evidence-location: the engine-initialisation region for this flow is archived under startup/ in this same capture directory, as startup/process-definitions.log, and never under a directory named after a log folder - that bare name is ignored by the repository at any depth, so such evidence would be silently uncommitted while every local check still passed and the deliverable would fail its completion condition invisibly' \
+        'startup-evidence-location: the engine-initialisation region for this flow is archived under startup/ in this same capture directory, as startup/workflow-engine-init.log, and never under a directory named after a log folder - that bare name is ignored by the repository at any depth, so such evidence would be silently uncommitted while every local check still passed and the deliverable would fail its completion condition invisibly' \
         'tls-and-readiness-context: the reference stack presents a self-signed TLS certificate, documented in the repository README and again in the setup guide under docs, so this capture accommodates it by verifying against a supplied authority bundle or a public-key pin rather than by disabling verification.  Without that accommodation every flow would fail on certificate verification instead of on behaviour, which is a false negative rather than evidence.  The trust mode this run actually used is recorded in the transport-trust-mode line above; readiness polling tolerates the slow first startup and does not gate the flow, so an unreachable stack still produces an explicit, comparable capture' \
         'scripting-engine-posture: the latent defect at the two dead call sites is REGISTERED, NOT FIXED, and no scripting-engine artifact is declared by either module that holds one.  Those call sites are provably unreachable dead code - the bean declaration that would instantiate one sits inside a comment region, its only consumer is commented out with it, the single active declaration names a different class, and no build file, configuration file or script references the engine by name - so their baseline behaviour is that they never run, and adding an engine for them would convert dead code into live code, which is a behaviour CHANGE measured against the baseline.  Separately and narrowly, the one path that DID execute at the baseline, the seven task listeners named in bounding-finding-1, is restored by a standalone engine artifact declared at runtime scope by the single module whose resources request it.  The two decisions are opposite because the two baselines are opposite, and reading either as the general rule would break the other' \
         'engine-version-deliberately-held: the engine own version is unchanged, deliberately, because no incompatibility was demonstrated for it and a version change without a demonstrated reason is out of scope.  It is held rather than overlooked: bumping the oldest load-bearing component in the reactor without a reason would itself be a rule violation, and a far larger behavioural risk than the one this gate manages' \
@@ -9995,7 +13832,7 @@ flow7_mandated_observations()
         'escape-clause-accounting: pre-existing conditions are documented rather than repaired.  The change set invokes the escape clause exactly twice - the removal of an unbuildable stylesheet-compiler toolchain, and a tracked frontend configuration module - and BOTH belong to the frontend track, so NEITHER invocation is in this folder.  Stating the count here keeps it auditable and stops it growing quietly.  Nothing in this capture repairs anything, retries a failure into submission, or hides an unexpected outcome' \
         'pre-existing-condition-recorded-not-repaired: the document-viewer surface of the reference stack is documented to answer HTTP 503, in two places - the repository README and the setup guide under docs - so it is captured as observed, is not treated as a migration regression, and is not repaired.  In this run it did not answer at all, because the reference host did not resolve' \
         'credential-handling-and-assignee: the configured administrator password never reaches an artefact - it is replaced by the fixed redaction placeholder on every write path, and only the EXISTENCE of a session is recorded, never its value.  The task assignee is deliberately NOT redacted: an assignee is a user identity and it is the behaviour under test, because task assignment is half the comparison criterion, and redacting it would leave two captures agreeing on a placeholder and demonstrating nothing' \
-        'assertion-source-files: every value in this record was read back from flow-7-workflow-start.status and flow-7-workflow-start.out after they had been written, and the engine-initialisation half from startup/process-definitions.log.  A transport exit status is recorded inside flow-7-workflow-start.out as one further observation and is never the basis of anything here.  The standing demonstration of why: the frontend build configuration at Gruntfile.js:L143-L144 sets the force option so that a failing task does not break the project, which lets a broken build exit zero, and two registered pre-existing defects in that same file are masked by exactly that setting'
+        'assertion-source-files: every value in this record was read back from flow-7-workflow-start.status and flow-7-workflow-start.out after they had been written, and the engine-initialisation half from startup/workflow-engine-init.log.  A transport exit status is recorded inside flow-7-workflow-start.out as one further observation and is never the basis of anything here.  The standing demonstration of why: the frontend build configuration at Gruntfile.js:L143-L144 sets the force option so that a failing task does not break the project, which lets a broken build exit zero, and two registered pre-existing defects in that same file are masked by exactly that setting'
 }
 
 # capture_process_engine_readiness — the non-transport half of flow 7's evidence.
@@ -10050,7 +13887,7 @@ capture_process_engine_readiness()
             [ -n "$key" ] && printf '%s\n' "$key" >> "$keys_file"
         done
         if bpmn_tags "$file" 'process' \
-                | grep -q -F -- "id=\"${FLOW7_PROCESS_DEFINITION_KEY}\""; then
+                | pipe_grep_found -F -- "id=\"${FLOW7_PROCESS_DEFINITION_KEY}\""; then
             printf '%s\n' "$file" >> "$defn_file"
         fi
         if LC_ALL=C grep -q -E -e 'scriptTask|scriptFormat' "$file" 2>/dev/null; then
@@ -10145,7 +13982,7 @@ capture_process_engine_readiness()
         printf 'engine-initialisation-happens-at: deployment, before any request in this\n'
         printf '  flow is sent, so its evidence is a startup-log region rather than a\n'
         printf '  response body\n'
-        printf 'engine-initialisation-evidence: startup/process-definitions.log\n'
+        printf 'engine-initialisation-evidence: startup/workflow-engine-init.log\n'
         printf 'engine-initialisation-lines-matched: %s\n' "$startup_lines"
         printf 'startup-evidence-directory-note: the region is written under startup/ and\n'
         printf '  never under a directory named after a log folder, because that name is\n'
@@ -10187,6 +14024,19 @@ capture_process_engine_readiness()
         printf '  is the behaviour under test, because task assignment is half of this\n'
         printf '  criterion.  It is not a credential and is never replaced.\n'
         printf 'declared-process-definition-key: %s\n' "$FLOW7_PROCESS_DEFINITION_KEY"
+        # Stated as its own answerable row, so the caller can ASSERT it by reading
+        # it back out of this capture rather than by re-deriving it (R-T7).  An
+        # earlier revision printed the declared key and the file that declares it
+        # and left a reader to notice whether the two agreed; a flow whose criterion
+        # names a definition key must be able to fail when that key is absent.
+        printf 'declared-process-definition-key-found-in-corpus: %s\n' \
+            "$([ -s "$defn_file" ] && printf 'yes' || printf 'no')"
+        printf 'declared-process-definition-key-found-in-corpus-basis: the corpus is\n'
+        printf '  the process definitions this repository ships, so this row establishes\n'
+        printf '  that the definition this flow is named for EXISTS.  It is deliberately\n'
+        printf '  not evidence that the engine ran it — that is what the loaded-definitions\n'
+        printf '  count from the startup region is for, and the two are asserted separately\n'
+        printf '  because they fail for different reasons.\n'
         printf 'declared-process-name: %s\n' "$declared_name"
         printf 'declared-task-definition-key: %s\n' "${declared_task_key:-(not read)}"
         printf 'declared-task-name-expression: %s\n' "${declared_task_name:-(not read)}"
@@ -10261,7 +14111,7 @@ flow_7_workflow_start()
         '  BEFORE any request in this flow is sent.  Nothing this flow asks over' \
         '  HTTP can observe it.  The initialisation evidence is therefore a' \
         '  captured startup-log REGION, archived under startup/ in this same' \
-        '  capture directory as startup/process-definitions.log.' \
+        '  capture directory as startup/workflow-engine-init.log.' \
         '' \
         'why startup/ and not the obvious name: the obvious directory name for' \
         '  startup output is ignored by the repository at any depth, so evidence' \
@@ -10326,6 +14176,22 @@ flow_7_workflow_start()
     FLOW7_OBSERVED_CANDIDATE_GROUP="$FLOW7_UNOBSERVED"
     FLOW7_OBSERVED_VARIABLES="$FLOW7_UNOBSERVED"
     FLOW7_OBSERVED_TASK_COUNT='0'
+    # The complaint the workflow was started FOR, read from the start response,
+    # which answers with the complaint rather than with a process descriptor.  This
+    # is the evidence that the workflow was started against the right object, and
+    # it is a different question from whether a task came out of it.
+    FLOW7_OBSERVED_COMPLAINT_ID="$FLOW7_UNOBSERVED"
+    FLOW7_OBSERVED_COMPLAINT_NUMBER="$FLOW7_UNOBSERVED"
+    # Whether a task record was isolated BY IDENTITY out of the task list.  Held
+    # separately from the task fields because it is the precondition for reading
+    # them: no selection means the fields below describe nothing, and that must be
+    # visible rather than inferred from three unobserved markers.
+    FLOW7_OBSERVED_TASK_RECORD_SELECTED='no'
+    # Whether the declared definition key is present in the process-definition
+    # corpus, and how many definitions the engine was observed to load.  These are
+    # the two engine-side halves that the start response cannot carry.
+    FLOW7_OBSERVED_DEFINITION_DECLARED='not-observed'
+    FLOW7_OBSERVED_DEFINITIONS_LOADED='0'
 
     local complaint_id
     local verdict
@@ -10346,11 +14212,11 @@ flow_7_workflow_start()
     local skip_reason=''
 
     processes="$(count_matching_files "$REPO_ROOT" '*.bpmn*')"
-    startup_lines="$(log_region_matched 'process-definitions.log')"
+    startup_lines="$(log_region_matched 'workflow-engine-init.log')"
     if [ "$startup_lines" = 'unavailable' ]; then
         startup_note='process-engine startup lines NOT captured: no container log was supplied, so engine initialisation and process-definition loading remain unobserved and the residual risk of this flow is NOT discharged'
     else
-        startup_note="process-engine startup lines matched: ${startup_lines} (see startup/process-definitions.log)"
+        startup_note="process-engine startup lines matched: ${startup_lines} (see startup/workflow-engine-init.log, mined from the single window recorded in notes/startup-window.txt)"
     fi
 
     # The read-only half runs first and unconditionally, so the flow still records
@@ -10422,13 +14288,17 @@ flow_7_workflow_start()
         # so a needless verdict change would ripple into files this flow does not
         # own.  R-5 asks for the absence to be visible and reasoned, not for a
         # particular verdict string.
+        # START, PROCESS_INSTANTIATED, TASK_ASSIGNED and DEFINITIONS_LOADED are
+        # NOT written here.  write_flow7_status_tokens owns those four and writes
+        # them for every path; emitting them here as well produced two values for
+        # one key in a single status file.  The bare 'SKIPPED' token that used to
+        # lead this list is likewise gone: a status line with no key cannot be
+        # compared between two captures, and the outcome is already stated by the
+        # verdict and by the REASON row below.
         record_outcome 7 workflow-start \
-            'SKIPPED' \
+            "OUTCOME: SKIPPED" \
             "REASON: ${skip_reason}" \
-            "START: ${start_status}" \
-            'PROCESS_INSTANTIATED: no' \
-            'TASK_ASSIGNED: no' \
-            "DEFINITIONS_LOADED: ${startup_lines}" \
+            "STARTUP_REGION_LINES: ${startup_lines}" \
             "DEFINITIONS_ON_DISK: ${processes}" \
             "PROCESS_DEFINITION_KEY: ${process_key}" \
             "TASK_NAME: ${task_name}" \
@@ -10455,7 +14325,7 @@ flow_7_workflow_start()
 
         record_result 7 workflow-start 'NOT-EXERCISED-WORKFLOW-NOT-STARTED' \
             'process engine residual risk: the oldest load-bearing component in the reactor, assigned to this gate rather than declared safe because it could not be bootstrapped for testing without a database' \
-            'flow-7-workflow-start.out, flow-7-workflow-start.status and startup/process-definitions.log' \
+            'flow-7-workflow-start.out, flow-7-workflow-start.status and startup/workflow-engine-init.log' \
             "workflow surface observed: $(read_status "$dest" 'task-list-before') (${FLOW7_TASKS_PATH})" \
             "workflow start recorded as NOT ATTEMPTED: ${blocked_because}" \
             'the start-workflow and task-list-after sections are present in flow-7-workflow-start.out as explicit NOT-ATTEMPTED records, so the capture has the same section layout as an exercised run and a row-for-row comparison stays meaningful' \
@@ -10498,14 +14368,37 @@ flow_7_workflow_start()
         cp -- "${SMOKE_TMPDIR}/last-body" "$start_body" 2>/dev/null || true
     fi
 
+    # WHAT THIS ENDPOINT ACTUALLY RETURNS, and why the reads below changed.
+    #
+    # The workflow-start endpoint answers with the COMPLAINT it started the workflow
+    # for — not with a process-instance descriptor.  An earlier revision read
+    # processDefinitionKey, processInstanceId, executionId and deploymentId out of
+    # this body; none of those fields is on a complaint, so every one of them read
+    # empty and the record then printed the unobserved marker for values it had
+    # looked for in a place they could never be.  That is worse than not looking:
+    # the capture appeared to have tried and failed to observe an engine, when in
+    # fact it had asked the wrong question.
+    #
+    # So this reads what the response DOES carry — the complaint identity and status
+    # — and the process-instance descriptor is recorded as not exposed by this
+    # endpoint, which is a fact about the API rather than a failure of the engine.
+    # The engine-side evidence this flow needs comes from two other places that do
+    # carry it: the startup region, for the definitions the engine loaded, and the
+    # task list, for the task the process created.
     if [ -s "$start_body" ]; then
-        FLOW7_OBSERVED_DEFINITION_KEY="$(json_scalar "$start_body" 'processDefinitionKey')"
-        FLOW7_OBSERVED_DEFINITION_ID="$(json_scalar "$start_body" 'processDefinitionId')"
-        FLOW7_OBSERVED_INSTANCE_ID="$(json_scalar "$start_body" 'processInstanceId')"
-        FLOW7_OBSERVED_EXECUTION_ID="$(json_scalar "$start_body" 'executionId')"
-        FLOW7_OBSERVED_DEPLOYMENT_ID="$(json_scalar "$start_body" 'deploymentId')"
+        FLOW7_OBSERVED_COMPLAINT_ID="$(json_scalar "$start_body" 'complaintId')"
+        [ -n "$FLOW7_OBSERVED_COMPLAINT_ID" ] || \
+            FLOW7_OBSERVED_COMPLAINT_ID='not-observed'
+        FLOW7_OBSERVED_COMPLAINT_NUMBER="$(json_scalar "$start_body" 'complaintNumber')"
+        [ -n "$FLOW7_OBSERVED_COMPLAINT_NUMBER" ] || \
+            FLOW7_OBSERVED_COMPLAINT_NUMBER='not-observed'
         FLOW7_OBSERVED_STATE="$(json_scalar "$start_body" 'status')"
-        [ -n "$FLOW7_OBSERVED_STATE" ] || FLOW7_OBSERVED_STATE="$(json_scalar "$start_body" 'state')"
+        [ -n "$FLOW7_OBSERVED_STATE" ] || FLOW7_OBSERVED_STATE='not-observed'
+        FLOW7_OBSERVED_DEFINITION_KEY='not-exposed-by-the-workflow-start-endpoint: it answers with the complaint, not with a process-instance descriptor'
+        FLOW7_OBSERVED_DEFINITION_ID="$FLOW7_OBSERVED_DEFINITION_KEY"
+        FLOW7_OBSERVED_INSTANCE_ID="$FLOW7_OBSERVED_DEFINITION_KEY"
+        FLOW7_OBSERVED_EXECUTION_ID="$FLOW7_OBSERVED_DEFINITION_KEY"
+        FLOW7_OBSERVED_DEPLOYMENT_ID="$FLOW7_OBSERVED_DEFINITION_KEY"
     fi
 
     http_probe "$dest" 'task-list-after' 'basic' 'GET' \
@@ -10517,19 +14410,60 @@ flow_7_workflow_start()
         if LC_ALL=C grep -q -F -- "$FIXTURE_TITLE" "${SMOKE_TMPDIR}/last-body" 2>/dev/null; then
             task_observed='yes'
         fi
-        task_id="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'taskId')"
+        # THE TASK IS SELECTED BY IDENTITY, NOT BY POSITION.
+        #
+        # This endpoint answers with a LIST of tasks, and on a shared host that list
+        # carries tasks belonging to objects this run never touched.  An earlier
+        # revision read each field with the plain scalar reader, which stops at the
+        # first occurrence of a key ANYWHERE in the body, so the task key, the task
+        # name and the assignee it reported could each have come from a different
+        # task than the one this run created — and nothing in the capture would have
+        # shown it.  Demonstrated on a three-task list where the run's own task was
+        # the second record: the naive read reported the key, name and assignee of a
+        # task belonging to a different complaint entirely.
+        #
+        # The record belonging to this run's complaint is isolated first, and every
+        # field is then read from that record alone.  When no record matches, the
+        # fields stay unobserved and the requirement is counted unmet; there is
+        # deliberately no fallback to the first record, because a misattributed
+        # observation that looks like evidence is worse than a missing one.
+        local task_record=''
+        local task_record_file="${SMOKE_TMPDIR}/flow7-task-record"
+        task_record="$(flow7_task_record "${SMOKE_TMPDIR}/last-body" \
+            "${complaint_id}-COMPLAINT" "$task_record_file")"
+        if [ -z "$task_record" ]; then
+            # Fall back to the bare object identity, not to a different record: some
+            # deployments key the parent reference without the type suffix.  This is
+            # still an identity match, just a looser spelling of the same identity.
+            task_record="$(flow7_task_record "${SMOKE_TMPDIR}/last-body" \
+                "$complaint_id" "$task_record_file")"
+        fi
+        FLOW7_OBSERVED_TASK_RECORD_SELECTED="$([ -n "$task_record" ] \
+            && printf 'yes' || printf 'no')"
+
+        task_id="$(json_scalar "$task_record_file" 'object_id_s')"
+        [ -n "$task_id" ] || task_id="$(json_scalar "$task_record_file" 'taskId')"
+        [ -n "$task_id" ] || task_id="$(json_scalar "$task_record_file" 'id')"
 
         # TASK ASSIGNMENT IS HALF THE COMPARISON CRITERION, so the assignee is
         # lifted out explicitly rather than left implicit in the body text.  A
         # start that returns a success status while assigning no task is
         # indistinguishable from a working one until these values are read.
+        #
+        # Each field is tried under every name the deployment may expose it as, and
+        # the name that answered is recorded beside the value: the list is served
+        # from the search index, whose documents carry suffixed field names, while
+        # the same logical field appears under a plain name elsewhere in the API.
+        # Recording which name answered is what lets a reader check the value.
         FLOW7_OBSERVED_TASK_ID="$task_id"
-        FLOW7_OBSERVED_TASK_DEFINITION_KEY="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'taskDefinitionKey')"
-        FLOW7_OBSERVED_TASK_NAME="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'title')"
-        [ -n "$FLOW7_OBSERVED_TASK_NAME" ] || FLOW7_OBSERVED_TASK_NAME="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'name')"
-        FLOW7_OBSERVED_ASSIGNEE="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'assignee')"
-        FLOW7_OBSERVED_CANDIDATE_GROUP="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'candidateGroups')"
-        [ -n "$FLOW7_OBSERVED_CANDIDATE_GROUP" ] || FLOW7_OBSERVED_CANDIDATE_GROUP="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'candidateGroup')"
+        FLOW7_OBSERVED_TASK_DEFINITION_KEY="$(flow7_task_field "$task_record_file" \
+            'taskDefinitionKey' 'task_definition_key_s')"
+        FLOW7_OBSERVED_TASK_NAME="$(flow7_task_field "$task_record_file" \
+            'title_t' 'title' 'name' 'name_lcs')"
+        FLOW7_OBSERVED_ASSIGNEE="$(flow7_task_field "$task_record_file" \
+            'assignee_id_lcs' 'assignee' 'assignee_s')"
+        FLOW7_OBSERVED_CANDIDATE_GROUP="$(flow7_task_field "$task_record_file" \
+            'candidate_group_ss' 'candidateGroups' 'candidateGroup')"
         FLOW7_OBSERVED_VARIABLES="$(json_scalar "${SMOKE_TMPDIR}/last-body" 'businessProcessName')"
         FLOW7_OBSERVED_TASK_COUNT="$(LC_ALL=C grep -o -F -- "$FIXTURE_TITLE" "${SMOKE_TMPDIR}/last-body" 2>/dev/null | grep -c . || printf '0')"
         # The BEHAVIOUR-BEARING half of this flow's comparison criterion, read out
@@ -10571,6 +14505,17 @@ flow_7_workflow_start()
 
     capture_process_engine_readiness "$dest" "$processes" "$startup_lines"
 
+    # BOTH ENGINE-SIDE OBSERVATIONS ARE READ BACK OUT OF THE CAPTURES THEY WERE
+    # WRITTEN INTO, not carried in variables from the code that computed them
+    # (R-T7).  If a value is asserted on, the evidence file must be able to show
+    # what it was asserted from, and reading it back is what guarantees the row a
+    # reviewer sees is the row the assertion used.
+    FLOW7_OBSERVED_DEFINITION_DECLARED="$(captured_field "$dest" \
+        'engine-readiness' 'declared-process-definition-key-found-in-corpus')"
+    [ -n "$FLOW7_OBSERVED_DEFINITION_DECLARED" ] || \
+        FLOW7_OBSERVED_DEFINITION_DECLARED='not-observed'
+    FLOW7_OBSERVED_DEFINITIONS_LOADED="$(flow7_definitions_loaded_observed)"
+
     if require_numeric_id "$task_id" && [ "$task_observed" = 'yes' ]; then
         register_cleanup 'POST' \
             "${ARKCASE_BASE_URL}${FLOW7_TASK_DELETE_PATH}/${task_id}" \
@@ -10587,6 +14532,78 @@ flow_7_workflow_start()
         unmet=$((unmet + 1))
         mark_incomplete "flow 7: no business-process task for the object this run created appeared at ${FLOW7_TASKS_PATH}, so process instantiation and task assignment are not demonstrated"
     fi
+    # ---- THE PROCESS IDENTITY AND TASK ASSIGNMENT REQUIREMENTS -------------
+    #
+    # An earlier revision counted exactly three requirements — a task-surface
+    # response, a successful start, and a task appearing — and PRINTED the declared
+    # process definition key, the task key, the task name and the assignee beside
+    # them without ever asserting any of them.  A run could therefore start a
+    # workflow of the wrong definition, produce a task with no key, no name and no
+    # assignee, and load zero process definitions, and still record
+    # OBSERVED-WORKFLOW-STARTED-AND-TASK-ASSIGNED.  Every value the flow declares as
+    # part of its criterion is now asserted, and each failure is counted separately
+    # so the verdict says how many of them failed rather than merely that one did.
+
+    # The workflow must have been started for the object this run created.  The
+    # start response answers with the complaint, so this is the one identity claim
+    # that response can support — and it is the claim that matters, because a
+    # workflow started against a different object would satisfy every other check.
+    if [ "$FLOW7_OBSERVED_COMPLAINT_ID" != "$complaint_id" ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 7: the workflow-start response identified complaint ${FLOW7_OBSERVED_COMPLAINT_ID} where this run created ${complaint_id}, so the workflow is not shown to have been started against the object under observation"
+    fi
+
+    # The declared process definition must exist in the definition corpus.  This is
+    # a repository-side observation and is honestly labelled as one: it establishes
+    # that the definition this flow names is real, not that the engine ran it.
+    if [ "$FLOW7_OBSERVED_DEFINITION_DECLARED" != 'yes' ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 7: the declared process definition key ${FLOW7_PROCESS_DEFINITION_KEY} was not found declared in any process definition in the corpus, so the definition this flow is named for is not shown to exist"
+    fi
+
+    # The engine must have been observed loading definitions.  A zero here means the
+    # startup region carried no evidence of any definition being deployed, which is
+    # the condition under which every task observation below is unexplained.
+    case "$FLOW7_OBSERVED_DEFINITIONS_LOADED" in
+        '' | *[!0-9]* | 0)
+            unmet=$((unmet + 1))
+            mark_incomplete "flow 7: the process-engine startup region carried no evidence of any process definition being loaded (counted ${FLOW7_OBSERVED_DEFINITIONS_LOADED}), so the engine is not shown to have deployed the 36 definitions the reactor ships"
+            ;;
+    esac
+
+    # A task record must have been isolated BY IDENTITY.  Without one, the three
+    # field assertions below would be asserting about nothing, so this is counted
+    # separately and named plainly.
+    if [ "$FLOW7_OBSERVED_TASK_RECORD_SELECTED" != 'yes' ]; then
+        unmet=$((unmet + 1))
+        mark_incomplete "flow 7: no task record in the task list carried the identity of complaint ${complaint_id}, so no task could be attributed to this run and the task key, name and assignee are unobserved.  The flow deliberately does not fall back to the first record in the list, because a task belonging to another object reported as ours would be a false observation rather than a missing one"
+    else
+        # Read from the selected record only.  Each is half-checked today by being
+        # printed; here each is required.
+        case "$FLOW7_OBSERVED_TASK_DEFINITION_KEY" in
+            'not-observed|none' | "$FLOW7_UNOBSERVED")
+                unmet=$((unmet + 1))
+                mark_incomplete 'flow 7: the task attributed to this run carried no task definition key, so the task cannot be tied to a node of the process definition'
+                ;;
+        esac
+        case "$FLOW7_OBSERVED_TASK_NAME" in
+            'not-observed|none' | "$FLOW7_UNOBSERVED")
+                unmet=$((unmet + 1))
+                mark_incomplete 'flow 7: the task attributed to this run carried no name'
+                ;;
+        esac
+        # A task is assigned to a NAMED USER or to a CANDIDATE GROUP, and either is a
+        # complete assignment.  Requiring both would fail a correctly
+        # group-assigned task; requiring neither would let an unassigned task pass,
+        # which is precisely what "task assignment" in this flow's own criterion
+        # forbids.  So the requirement is that at least one is observed.
+        if [ "$FLOW7_OBSERVED_ASSIGNEE" = 'not-observed|none' ] \
+            && [ "$FLOW7_OBSERVED_CANDIDATE_GROUP" = 'not-observed|none' ]; then
+            unmet=$((unmet + 1))
+            mark_incomplete 'flow 7: the task attributed to this run carried neither an assignee nor a candidate group, so it is not shown to have been assigned to anyone — and task assignment is half this flow criterion'
+        fi
+    fi
+
     if [ "$startup_lines" = 'unavailable' ]; then
         unmet=$((unmet + 1))
         mark_incomplete 'flow 7: no container log was supplied, so process-engine initialisation and the loading of the process definitions were not observed and the residual risk assigned to this gate is not discharged'
@@ -10601,11 +14618,12 @@ flow_7_workflow_start()
     # The outcome tokens go into .status BEFORE the result record is written, so
     # that record_result's observed-statuses block quotes the complete set and the
     # two files cannot disagree about what was observed.
+    # The four outcome tokens write_flow7_status_tokens owns are not repeated
+    # here; see the note on the not-exercised path above for why.  The startup
+    # region's LINE COUNT keeps its own name, because it is a line count and was
+    # previously published as though it were a definition count.
     record_outcome 7 workflow-start \
-        "START: ${start_status}" \
-        "PROCESS_INSTANTIATED: $(if [ "$start_status" = '200' ] && content_type_is_json "$start_ctype"; then printf 'yes'; else printf 'no'; fi)" \
-        "TASK_ASSIGNED: ${task_observed}" \
-        "DEFINITIONS_LOADED: ${startup_lines}" \
+        "STARTUP_REGION_LINES: ${startup_lines}" \
         "DEFINITIONS_ON_DISK: ${processes}" \
         "PROCESS_DEFINITION_KEY: ${process_key}" \
         "TASK_NAME: ${task_name}" \
@@ -10622,7 +14640,7 @@ flow_7_workflow_start()
 
     record_result 7 workflow-start "$verdict" \
         'process engine residual risk: the oldest load-bearing component in the reactor, assigned to this gate rather than declared safe because it could not be bootstrapped for testing without a database' \
-        'flow-7-workflow-start.out, flow-7-workflow-start.status and startup/process-definitions.log' \
+        'flow-7-workflow-start.out, flow-7-workflow-start.status and startup/workflow-engine-init.log' \
         "subject object: COMPLAINT ${complaint_id} (created by flow 6)" \
         "task list before the start observed: $(read_status "$dest" 'task-list-before')" \
         "workflow start observed: ${start_status} content-type ${start_ctype} (${FLOW7_WORKFLOW_PATH})" \
@@ -10734,11 +14752,29 @@ flow_8_routing_tokens()
     local object_id="$7"
     local object_number="$8"
     local reason="$9"
+    # The queue the case file REPORTED after the move, and after the move was
+    # reversed.  These two are the flow's actual applied-transition evidence: the
+    # rows above say what the rules decided and what the request answered, and only
+    # these say where the object ended up.  They are optional parameters so that
+    # every existing call site keeps working, and they default to the explicit
+    # not-recorded token rather than to a queue name.
+    local observed_after_transition="${10:-not-recorded}"
+    local observed_after_restore="${11:-not-recorded}"
 
     {
         printf 'TRANSITION: %s\n' "$transition"
         printf 'FROM_QUEUE: %s\n' "$from_queue"
         printf 'TO_QUEUE: %s\n' "$to_queue"
+        # TO_QUEUE is the DECISION; this is whether it was APPLIED.  A transition
+        # request answering 200 while the object never moved would show as these two
+        # rows disagreeing, which is the distinction an earlier revision could not
+        # make because it recorded neither.
+        printf 'QUEUE_OBSERVED_AFTER_TRANSITION: %s\n' "$observed_after_transition"
+        # And whether this run left the deployment as it found it.  The case file
+        # belongs to the deployment, not to this run, so a restore that answered 200
+        # without moving the object would have changed the very thing the capture
+        # exists to compare.
+        printf 'QUEUE_OBSERVED_AFTER_RESTORE: %s\n' "$observed_after_restore"
         printf 'NEXT_QUEUES_COUNT: %s\n' "$next_count"
         # The candidate set on ONE line, in the order the rules emitted it, so
         # that a reordering is a one-line difference rather than a silent one.
@@ -10784,6 +14820,49 @@ flow_8_routing_tokens()
 # commons-lang3 equivalent, and the emptiness check at line 197 switches to that
 # utility.  No dependency change is required, which is why the substitution is
 # low-risk.
+# flow8_read_case_queue - the queue a case file reports being in, right now.
+#
+# Probes the case file and reads the queue name out of the nested queue object.
+# The probe is captured under the label it is given, so the response the assertion
+# was made from is in the evidence beside the assertion (R-T7), and the two
+# read-backs get different labels so a reader can see the before and the after
+# rather than one row overwriting the other.
+#
+# Returns the literal token "unreadable" when no queue name could be read, which is
+# deliberately not an empty string and not a queue name: it says the observation
+# failed, and the caller counts that as the requirement being unmet rather than
+# silently comparing an empty value against a real one.
+#
+# Usage: flow8_read_case_queue <dest> <probe-label> <case-id>
+flow8_read_case_queue()
+{
+    local dest="$1"
+    local label="$2"
+    local case_id="$3"
+    local status
+    local name=''
+
+    case "$case_id" in
+        '' | *[!0-9]*) printf 'unreadable'; return 0 ;;
+    esac
+
+    http_probe "$dest" "$label" 'basic' 'GET' \
+        "${ARKCASE_BASE_URL}${FLOW8_CASE_READ_PATH}/${case_id}" \
+        --header 'Accept: application/json' || true
+    status="$(read_status "$dest" "$label")"
+
+    if [ "$status" = '200' ] && [ -f "${SMOKE_TMPDIR}/last-body" ]; then
+        name="$(json_nested_scalar "${SMOKE_TMPDIR}/last-body" 'queue' 'name')"
+    fi
+
+    if [ -n "$name" ]; then
+        printf '%s' "$name"
+    else
+        printf 'unreadable'
+    fi
+    return 0
+}
+
 flow_8_queue_transition()
 {
     local dest
@@ -10900,6 +14979,14 @@ flow_8_queue_transition()
     local next_queues_count='0'
     local transition_status='not-attempted'
     local restore_status='not-attempted'
+    # The queue the case file REPORTS being in, read back from the case file after
+    # the move and again after the move is reversed.  Declared here, with the other
+    # observed values, so both rows exist on every path and carry an explicit token
+    # on the paths where no transition was attempted - the not-attempted token is a
+    # different statement from a queue name and must not be mistaken for one.
+    local observed_queue_after_transition='not-attempted'
+    local observed_queue_after_restore='not-attempted'
+
     local verdict
     local unmet=0
 
@@ -10939,7 +15026,9 @@ flow_8_queue_transition()
             'not-observed' \
             'not-observed' \
             'not-observed' \
-            'no HTTP response from either the queue-definition or the case-discovery endpoint, so the decision tables governing queue entry and exit were never reached'
+            'no HTTP response from either the queue-definition or the case-discovery endpoint, so the decision tables governing queue entry and exit were never reached' \
+            'not-attempted' \
+            'not-attempted'
         # BOTH migration paths are named, because both converge on this flow and a
         # record that named only the library advance would understate what this
         # baseline is the reference for.  Every value the criterion is made of is
@@ -10981,7 +15070,9 @@ flow_8_queue_transition()
             'not-observed' \
             "$case_id" \
             "$case_number" \
-            'the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against'
+            'the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against' \
+            'not-attempted' \
+            'not-attempted'
         declare_flow_not_executed 'the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against and neither migration path was exercised'
         record_result 8 queue-transition 'NOT-EXERCISED-NO-CASE-FILE-AVAILABLE' \
             "two paths converge here: (1) the decision tables governing queue entry and exit, reached through the same expression language advanced for flow 6 - routing rather than numbering; and (2) one of the three compiler-visible JDK-internal call sites being rewritten, the string-utility import and emptiness check on the queue correspondence path" \
@@ -11037,18 +15128,46 @@ flow_8_queue_transition()
     # themselves computed, then reversed, so the application is left as found.
     if mutations_permitted && [ "$default_next" != 'none' ] && ! has_control_char "$default_next"; then
         http_probe "$dest" 'queue-transition' 'basic' 'GET' \
-            "${ARKCASE_BASE_URL}${FLOW8_ENQUEUE_PATH}/${case_id}?nextQueue=${default_next}&nextQueueAction=${FLOW8_QUEUE_ACTION}" \
+            "${ARKCASE_BASE_URL}${FLOW8_ENQUEUE_PATH}/${case_id}?nextQueue=$(percent_encode "$default_next")&nextQueueAction=$(percent_encode "$FLOW8_QUEUE_ACTION")" \
             --header 'Accept: application/json' || true
         transition_status="$(read_status "$dest" 'queue-transition')"
+        # ---- THE QUEUE IS READ BACK, BECAUSE A 200 IS NOT A TRANSITION ------
+        #
+        # An earlier revision transitioned the case file and then immediately
+        # restored it, asserting nothing but the HTTP status of each call.  A
+        # transition that answers 200 while leaving the case file exactly where it
+        # was is indistinguishable from a working one under that test - and "the
+        # object moved to the queue the rules computed" is the entire behaviour this
+        # flow is named for.  So the queue is read FROM THE CASE FILE after the move
+        # and required to BE the computed queue.
+        observed_queue_after_transition="$(flow8_read_case_queue "$dest" \
+            'case-queue-after-transition' "$case_id")"
+        if [ "$observed_queue_after_transition" != "$default_next" ]; then
+            unmet=$((unmet + 1))
+            mark_incomplete "flow 8: after the transition the case file reported queue [${observed_queue_after_transition}] where the routing rules computed [${default_next}], so the routing decision was evaluated but is not shown to have been APPLIED.  The transition request itself answered ${transition_status}, which is why the queue is read back rather than inferred from that status"
+        fi
 
         if [ "$origin_queue" != 'none' ] && [ -n "$origin_queue" ] \
             && ! has_control_char "$origin_queue"; then
             http_probe "$dest" 'queue-restore' 'basic' 'GET' \
-                "${ARKCASE_BASE_URL}${FLOW8_ENQUEUE_PATH}/${case_id}?nextQueue=${origin_queue}&nextQueueAction=${FLOW8_QUEUE_ACTION}" \
+                "${ARKCASE_BASE_URL}${FLOW8_ENQUEUE_PATH}/${case_id}?nextQueue=$(percent_encode "$origin_queue")&nextQueueAction=$(percent_encode "$FLOW8_QUEUE_ACTION")" \
                 --header 'Accept: application/json' || true
             restore_status="$(read_status "$dest" 'queue-restore')"
             if [ "$restore_status" != '200' ]; then
                 mark_incomplete "flow 8: the case file could not be returned to its original queue ${origin_queue} (restore observed ${restore_status}); the application has been left in a changed state"
+            fi
+            # AND READ BACK AGAIN AFTER THE RESTORE.  This flow mutates a case file
+            # that belongs to the deployment rather than to this run, so leaving it
+            # where it started is an obligation and not a courtesy.  A restore that
+            # answered 200 without moving the object would leave the deployment
+            # altered by the act of observing it, and the next run would evaluate
+            # different routing from a different starting queue - so the capture
+            # would have changed the very thing it exists to compare.
+            observed_queue_after_restore="$(flow8_read_case_queue "$dest" \
+                'case-queue-after-restore' "$case_id")"
+            if [ "$observed_queue_after_restore" != "$origin_queue" ]; then
+                unmet=$((unmet + 1))
+                mark_incomplete "flow 8: after the restore the case file reported queue [${observed_queue_after_restore}] where it began in [${origin_queue}], so this run has left the deployment in a state it did not find it in.  The restore request answered ${restore_status}"
             fi
         else
             restore_status='not-possible-original-queue-unknown'
@@ -11092,7 +15211,9 @@ flow_8_queue_transition()
         "$next_queues" \
         "$case_id" \
         "$case_number" \
-        ''
+        '' \
+        "$observed_queue_after_transition" \
+        "$observed_queue_after_restore"
 
     record_result 8 queue-transition "$verdict" \
         'two paths converge here: (1) the decision tables governing queue entry and exit, reached through the same expression language advanced for flow 6 - routing rather than numbering; and (2) one of the three compiler-visible JDK-internal call sites being rewritten, the string-utility import and emptiness check on the queue correspondence path' \
@@ -11151,6 +15272,116 @@ flow_8_queue_transition()
 # five artifacts above remain in scope.  The map is digested here as well, so the
 # caveat can be checked rather than taken on trust.
 # ---------------------------------------------------------------------------
+# The five compared artifact keys, and the one advisory key, declared ONCE.  The
+# writer, the record validator and the cross-capture comparison all read this
+# list, so a key cannot be added in one place and missed in another — which is
+# how three of the twelve committed records came to carry a label the producer
+# could not emit.
+SMOKE_COMPARED_ARTIFACT_KEYS='application.js application.min.js vendors.min.js application.min.css home.html'
+SMOKE_ADVISORY_ARTIFACT_KEYS='application.min.js.map'
+
+# artifact_source_path — the file on disk a given artifact key names.  Keeping
+# the mapping in one function means the key recorded in the evidence and the path
+# actually digested can never disagree.
+artifact_source_path()
+{
+    case "$1" in
+        home.html) printf '%s' "$FRONTEND_HOME_HTML" ;;
+        *) printf '%s/%s' "$FRONTEND_DIST_DIR" "$1" ;;
+    esac
+}
+
+# verify_artifact_digest_records — read every record back and require the exact
+# schema, then say so in a capture file of its own.
+#
+# This is the read-back half of the M14 fix.  Writing one schema is necessary but
+# not sufficient: the records are committed, and a committed file can be edited
+# afterwards by anybody, which is exactly what happened to three of the twelve
+# records in the previous revision of this deliverable.  So the shape is asserted
+# from disk after writing, every deviation is named with its file and its
+# offending line, and a deviation marks the capture incomplete rather than being
+# reported as a note.  A record whose schema cannot be trusted is not evidence.
+verify_artifact_digest_records()
+{
+    local key
+    local file
+    local state
+    local checked=0
+    local wellformed=0
+    local absent=0
+    local malformed=0
+    local rows="${SMOKE_TMPDIR}/artifact-record-rows"
+
+    : > "$rows"
+
+    for key in $SMOKE_COMPARED_ARTIFACT_KEYS $SMOKE_ADVISORY_ARTIFACT_KEYS; do
+        file="${SMOKE_OUT_DIR}/artifacts/${key}.sha256"
+        state="$(read_digest_record "$file" "$key")"
+        checked=$((checked + 1))
+        case "$state" in
+            RECORD-MALFORMED)
+                malformed=$((malformed + 1))
+                printf '  MALFORMED  artifacts/%s.sha256\n' "$key" >> "$rows"
+                if [ -f "$file" ]; then
+                    printf '             offending content: %s\n' \
+                        "$(head -c 400 "$file" | tr '\n' '|')" >> "$rows"
+                else
+                    printf '             offending content: <no such file>\n' >> "$rows"
+                fi
+                mark_incomplete "artifacts/${key}.sha256 is not one record in the digest schema '<64-hex-or-unavailability-token>  ${key}', so the recorded digest cannot be trusted"
+                ;;
+            ABSENT)
+                absent=$((absent + 1))
+                printf '  ABSENT     artifacts/%s.sha256 (schema correct, artefact not built)\n' \
+                    "$key" >> "$rows"
+                ;;
+            "$DIGEST_NO_TOOL_TOKEN" | "$DIGEST_FAILED_TOKEN")
+                malformed=$((malformed + 1))
+                printf '  %s  artifacts/%s.sha256\n' "$state" "$key" >> "$rows"
+                mark_incomplete "artifacts/${key}.sha256 records ${state}, so no digest was produced for ${key}"
+                ;;
+            *)
+                wellformed=$((wellformed + 1))
+                printf '  OK         artifacts/%s.sha256  %s\n' "$key" "$state" >> "$rows"
+                ;;
+        esac
+    done
+
+    local out="${SMOKE_OUT_DIR}/notes/artifact-digest-records.txt"
+    begin_capture_file "$out"
+    {
+        printf 'digest record schema validation\n'
+        printf '\n'
+        printf 'records-checked: %s\n' "$checked"
+        printf 'records-wellformed: %s\n' "$wellformed"
+        printf 'records-absent-but-wellformed: %s\n' "$absent"
+        printf 'records-malformed: %s\n' "$malformed"
+        printf '\n'
+        printf 'required schema, one line per file, two spaces between the fields:\n'
+        printf '  <64 lower-case hex> | %s | %s | %s\n' \
+            "$DIGEST_ABSENT_TOKEN" "$DIGEST_NO_TOOL_TOKEN" "$DIGEST_FAILED_TOKEN"
+        printf '  followed by the artifact KEY, which is the record file name with\n'
+        printf '  ".sha256" removed.  No path, no third field, no second line.\n'
+        printf '\n'
+        printf 'per-record outcome:\n'
+        cat "$rows"
+        printf '\n'
+        printf 'why this file exists.  Three of the twelve digest records committed by an\n'
+        printf 'earlier revision of this deliverable carried a path-qualified label\n'
+        printf '("assets/dist/application.min.js") that no code path in this script can\n'
+        printf 'produce, which proves they were edited after capture.  Two captures whose\n'
+        printf 'records label the same artefact differently cannot be compared by key, and\n'
+        printf 'nothing in the previous reader looked at the label at all.  The schema is\n'
+        printf 'now fixed where the record is written and asserted here where it is read\n'
+        printf 'back, so an edited record is a recorded, capture-incompleting condition\n'
+        printf 'rather than an invisible one.\n'
+        printf '\n'
+        printf 'a malformed record is NOT the same as an absent one: absence means the\n'
+        printf 'artefact was not built and the remedy is to build it, whereas malformation\n'
+        printf 'means the record cannot be trusted and the remedy is to re-capture it.\n'
+    } | sanitise >> "$out"
+}
+
 capture_frontend_digests()
 {
     local dir="${SMOKE_OUT_DIR}/artifacts"
@@ -11158,25 +15389,24 @@ capture_frontend_digests()
     local name
     local target
 
-    for artefact in \
-        "${FRONTEND_DIST_DIR}/application.js" \
-        "${FRONTEND_DIST_DIR}/application.min.js" \
-        "${FRONTEND_DIST_DIR}/vendors.min.js" \
-        "${FRONTEND_DIST_DIR}/application.min.css" \
-        "${FRONTEND_HOME_HTML}"
-    do
-        name="$(basename -- "$artefact")"
+    # Every record is written through digest() with an EXPLICIT key, so the label
+    # in the file is the key the validator and the comparison look for rather
+    # than whatever a base name happened to produce.
+    for name in $SMOKE_COMPARED_ARTIFACT_KEYS; do
+        artefact="$(artifact_source_path "$name")"
         target="${dir}/${name}.sha256"
         begin_capture_file "$target"
-        digest "$artefact" | sanitise >> "$target"
+        digest "$artefact" "$name" | sanitise >> "$target"
     done
 
     # The source map is digested separately and is NOT one of the five compared
     # artifacts, for the path-embedding reason recorded above.
-    name='application.min.js.map'
-    target="${dir}/${name}.sha256"
-    begin_capture_file "$target"
-    digest "${FRONTEND_DIST_DIR}/${name}" | sanitise >> "$target"
+    for name in $SMOKE_ADVISORY_ARTIFACT_KEYS; do
+        artefact="$(artifact_source_path "$name")"
+        target="${dir}/${name}.sha256"
+        begin_capture_file "$target"
+        digest "$artefact" "$name" | sanitise >> "$target"
+    done
 
     record_note 'determinism-basis.txt' \
         'why the five frontend artifact digests are a valid behavioural comparison' \
@@ -11234,21 +15464,26 @@ capture_frontend_digests()
     # capture that was just written, and the note is emitted through the same
     # sanitiser as every other capture file.
     # -----------------------------------------------------------------------
-    local required=5
+    local required=0
     local produced=0
     local failed=0
+    local record_state
 
-    for name in application.js application.min.js vendors.min.js \
-                application.min.css home.html
-    do
-        target="${dir}/${name}.sha256"
-        if [ -s "$target" ] \
-            && grep -qE '^[0-9a-f]{64}[[:space:]]' "$target" 2>/dev/null
-        then
-            produced=$((produced + 1))
-        else
-            failed=$((failed + 1))
-        fi
+    # The gate counts through read_digest_record, the same reader the validator
+    # and the comparison use.  An earlier revision counted with a grep of its
+    # own, which meant the gate could pass a record the comparison would later
+    # read differently.  One reader, one answer.
+    for name in $SMOKE_COMPARED_ARTIFACT_KEYS; do
+        required=$((required + 1))
+        record_state="$(read_digest_record "${dir}/${name}.sha256" "$name")"
+        case "$record_state" in
+            ABSENT | RECORD-MALFORMED | "$DIGEST_NO_TOOL_TOKEN" | "$DIGEST_FAILED_TOKEN")
+                failed=$((failed + 1))
+                ;;
+            *)
+                produced=$((produced + 1))
+                ;;
+        esac
     done
 
     local gate_state='FAILED'
@@ -11275,9 +15510,12 @@ capture_frontend_digests()
         '  side of the comparison came from.' \
         '' \
         'gate rule: all five compared artifacts must exist and must each yield a' \
-        '  well-formed 64-character lower-case hexadecimal digest.  A missing file,' \
-        '  an unavailable digest tool, an empty digest or a malformed digest is a' \
-        '  GATE FAILURE and is never recorded as a row of evidence.' \
+        '  well-formed 64-character lower-case hexadecimal digest in the exact' \
+        '  record schema "<digest><two spaces><artifact key>".  A missing file, an' \
+        '  unavailable digest tool, an empty digest, a malformed digest and a' \
+        '  record labelled with anything other than its own key are all GATE' \
+        '  FAILURES and none is ever recorded as a row of evidence.  The' \
+        '  per-record outcome is in notes/artifact-digest-records.txt.' \
         '' \
         'why the gate is a hard failure rather than a note: a capture taken without' \
         '  a completed frontend build would otherwise write five rows each reading' \
@@ -11294,6 +15532,130 @@ capture_frontend_digests()
         '' \
         'to satisfy the gate, build the frontend first:' \
         '  cd <frontend resources dir> && npm ci && npm run build'
+
+    # The records are read back and their schema asserted, after they are written
+    # and after the gate has counted them.  See verify_artifact_digest_records for
+    # why a schema that is only applied at write time is not enough.
+    verify_artifact_digest_records
+
+    capture_frontend_provenance
+}
+
+# capture_frontend_provenance — which build this side of the comparison came from.
+#
+# Necessary because the two sides of the artifact comparison are not necessarily
+# produced by the same toolchain.  The historical side is taken by pointing this
+# capture at a staged build made by the superseded package manager on the older
+# runtime, and the migrated side by a build made by the current one.  Two digest
+# sets with no record of which build produced each are unattributable, and an
+# unattributable difference cannot be adjudicated: a reader cannot tell a
+# regression from a toolchain artefact.
+#
+# Everything here is OBSERVED by this run.  The cross-build attribution itself —
+# which differences are caused by which toolchain — is an analysis over two runs
+# and belongs in docs/migration/ambiguity-resolutions.md, which this record names
+# rather than duplicates.
+capture_frontend_provenance()
+{
+    local dist_real='unresolvable'
+    local home_real='unresolvable'
+    local lockfile='absent'
+    local node_seen='not-on-path'
+    local npm_seen='not-on-path'
+    local built_age='not-observed'
+    local resources_dir
+    local mtime_epoch
+    local now_epoch
+
+    resources_dir="$(dirname -- "$FRONTEND_HOME_HTML")"
+
+    [ -d "$FRONTEND_DIST_DIR" ] \
+        && dist_real="$(cd "$FRONTEND_DIST_DIR" 2>/dev/null && pwd -P)"
+    [ -f "$FRONTEND_HOME_HTML" ] && home_real="$FRONTEND_HOME_HTML"
+    [ -f "${resources_dir}/package-lock.json" ] && lockfile='present'
+    command -v node >/dev/null 2>&1 && node_seen="$(node --version 2>/dev/null)"
+    command -v npm >/dev/null 2>&1 && npm_seen="$(npm --version 2>/dev/null)"
+    # The artifact age, in whole days, rather than its modification instant.
+    #
+    # Two reasons, and both matter.  An instant would be normalised to a token by
+    # the sanitiser, which is correct for a volatile value and leaves the field
+    # saying nothing.  An AGE in days is a small integer that survives
+    # normalisation, reads 0 on both sides when both sides build fresh, and reads
+    # large when a capture points at a staged historical build \u2014 which is exactly
+    # the hint this field exists to give.
+    if [ -f "${FRONTEND_DIST_DIR}/application.min.js" ]; then
+        mtime_epoch="$(date -r "${FRONTEND_DIST_DIR}/application.min.js" '+%s' 2>/dev/null)" \
+            || mtime_epoch=''
+        now_epoch="$(date '+%s' 2>/dev/null)" || now_epoch=''
+        case "${mtime_epoch}:${now_epoch}" in
+            *[!0-9:]* | :* | *: ) built_age='not-observed' ;;
+            *)
+                built_age="$(( (now_epoch - mtime_epoch) / 86400 ))"
+                ;;
+        esac
+    fi
+
+    # Whether the digested directory is the one this checkout builds into, computed
+    # rather than assumed.  It matters because a capture may legitimately point at a
+    # build staged elsewhere - the pre-migration side does exactly that, since the
+    # historical toolchain cannot build the migrated manifest - and in that case the
+    # recorded path is scratch and will not survive.  Saying so, and naming the
+    # committed script that reproduces the build, is the difference between a path a
+    # reader can act on and one that merely looks like provenance.
+    local dist_default
+    local dist_is_default='no'
+    dist_default="$(cd "${REPO_ROOT}/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist" 2>/dev/null && pwd -P)" || dist_default=''
+    if [ -n "$dist_default" ] && [ "$dist_real" = "$dist_default" ]; then
+        dist_is_default='yes'
+    fi
+
+    record_note 'frontend-comparison-provenance.txt' \
+        'which frontend build produced this side of the artifact comparison' \
+        '' \
+        'produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_frontend_provenance' \
+        '' \
+        "frontend-resources-directory: ${resources_dir}" \
+        "artifact-directory-configured: ${FRONTEND_DIST_DIR}" \
+        "artifact-directory-resolved: ${dist_real}" \
+        "home-html-probed: ${home_real}" \
+        "lockfile-in-the-resources-directory: ${lockfile}" \
+        "node-on-path-at-capture-time: ${node_seen}" \
+        "npm-on-path-at-capture-time: ${npm_seen}" \
+        "artifact-age-in-whole-days-at-capture-time: ${built_age}" \
+        "artifact-directory-is-the-in-tree-default: ${dist_is_default}" \
+        "$(if [ "$dist_is_default" = 'no' ]; then
+               printf '%s' 'artifact-directory-reproduction: this side digested a build OUTSIDE the working tree, and the directory it digested is scratch - it does not survive the run that produced it, so the path above identifies what was measured rather than somewhere a reader can look. The build itself IS reproducible from a committed script: docs/migration/smoke-evidence/historical-frontend/capture-historical-frontend.sh extracts the base commit, installs with the package manager and on the runtime the base commit used, runs the unchanged task graph and prints the six digests. Run it and compare against artifacts/ in this capture directory'
+           else
+               printf '%s' 'artifact-directory-reproduction: this side digested the in-tree build outputs, reproducible from this checkout with the manifest build script'
+           fi)" \
+        '' \
+        'read this together with:' \
+        '  env/toolchain.txt              the full toolchain this capture ran on' \
+        '  notes/artifact-gate.txt        whether all five digests were produced' \
+        '  notes/artifact-digest-records.txt  whether each record is in schema' \
+        '  notes/determinism-basis.txt    why the digests are a valid comparison' \
+        '  comparison.txt                 the per-artifact cross-capture outcome' \
+        '' \
+        'what this record does NOT contain, and where it lives instead.  Whether a' \
+        '  difference between the two digest sets is a REGRESSION or an artefact of' \
+        '  two different toolchains is an analysis over both runs, and no single run' \
+        '  is in a position to make it.  It is recorded in' \
+        '  docs/migration/ambiguity-resolutions.md, with the alternatives considered' \
+        '  and rejected.  This record supplies the input that analysis needs: which' \
+        '  build, on which runtime, with which package manager, this side came from.' \
+        '' \
+        'the node and npm versions above are the ones on PATH when the DIGESTS were' \
+        '  taken, which is not automatically the toolchain that PRODUCED the' \
+        '  artifacts: a capture may point at a staged build made elsewhere, and the' \
+        '  artifact age above is the only in-band hint of that.  An age of 0 days on' \
+        '  both sides means both sides built fresh on the toolchain each recorded; a' \
+        '  large age on one side means that side points at a staged build and its' \
+        '  recorded toolchain is NOT the one that produced its artifacts.  Treat the' \
+        '  two as independent facts, because they are.' \
+        '' \
+        'scope fence: this record adds no tooling and no build step.  It observes' \
+        '  paths and versions and states where the adjudication lives.  Nothing here' \
+        '  may be read as a pass mark.'
 }
 
 # ---------------------------------------------------------------------------
@@ -11413,6 +15775,20 @@ verify_surefire_pairing()
         fi
     fi
 
+    # A carry that failed or could not be checked is reported here rather than
+    # where it happened, because the carry runs before mark_incomplete exists.
+    # It is fatal to the capture for a concrete reason: publication replaces the
+    # destination wholesale, so an archive that did not reach the staging tree is
+    # an archive this run is about to delete.
+    case "$SMOKE_SUREFIRE_CARRY_VERIFY" in
+        FAILED*)
+            mark_incomplete "the installed archived-report subtree could not be carried into this run staging tree (${SMOKE_SUREFIRE_CARRY_VERIFY}); publishing replaces the destination wholesale, so the archive would be lost - see notes/surefire-pairing.txt"
+            ;;
+        UNVERIFIABLE*)
+            mark_incomplete "the archived-report subtree was carried into this run staging tree but the copy could not be verified (${SMOKE_SUREFIRE_CARRY_VERIFY}), so the archive published with this capture cannot be shown to be the installed one - see notes/surefire-pairing.txt"
+            ;;
+    esac
+
     local target="${SMOKE_OUT_DIR}/notes/surefire-pairing.txt"
     begin_capture_file "$target"
     {
@@ -11420,6 +15796,10 @@ verify_surefire_pairing()
         printf '\n'
         printf 'contract-file: %s\n' "$SMOKE_EXPECTED_SUITES"
         printf 'contract-state: %s\n' "$contract_state"
+        printf 'archive-carried-into-this-run: %s\n' "$SMOKE_SUREFIRE_CARRIED"
+        printf 'archive-carried-from: %s\n' "$SMOKE_SUREFIRE_CARRY_SOURCE"
+        printf 'archive-reports-carried: %s\n' "$SMOKE_SUREFIRE_CARRY_COUNT"
+        printf 'archive-carry-verification: %s\n' "$SMOKE_SUREFIRE_CARRY_VERIFY"
         printf 'suites-required-on-both-sides: %s\n' "$expected_count"
         printf 'suites-present-in-this-capture: %s\n' "$present_count"
         printf 'suites-missing-from-this-capture: %s\n' "$missing_count"
@@ -11443,6 +15823,20 @@ verify_surefire_pairing()
         printf 'rather than assumed here.  Demanding a counterpart either way would make every\n'
         printf 'newly added test an evidence gap.  Additions are listed by name below instead,\n'
         printf 'which is what keeps them accountable.\n'
+        printf '\n'
+        printf 'why the four archive-carry lines above exist.  The archive under surefire/ is\n'
+        printf 'not written by the capture producer at all: install-surefire-evidence.sh\n'
+        printf 'installs it from a raw test harvest, with its own checksum manifest and its own\n'
+        printf 'run provenance.  A full capture, however, writes into a fresh staging directory\n'
+        printf 'and is then moved into place over the destination, which is what makes a\n'
+        printf 'published capture exactly one run output.  Two things followed from that, both\n'
+        printf 'observed: the pairing check read an empty staging subtree and recorded every\n'
+        printf 'required suite as missing, and publication deleted the installed archive.  The\n'
+        printf 'archive is therefore carried into the staging tree before anything asserts on\n'
+        printf 'it, and the carried copy is re-verified against the digests the archive ships\n'
+        printf 'for itself.  A failed or unverifiable carry makes this capture INCOMPLETE,\n'
+        printf 'because an archive that did not reach the staging tree is one this run is about\n'
+        printf 'to remove.\n'
         printf '\n'
         printf 'suites required by the contract but missing here:\n'
         if [ "$contract_state" = 'read' ] && [ "$missing_count" -gt 0 ]; then
@@ -11504,6 +15898,157 @@ verify_surefire_pairing()
 # indistinguishable from a hole in the capture.  Every REQUIRED difference is
 # counted, named and pointed at the register that has to account for it.
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# CANONICAL PROJECTIONS — WHAT THE CROSS-CAPTURE COMPARISON ACTUALLY COMPARES.
+#
+# An earlier revision compared ONE STRING per flow: the final "verdict:" line of
+# the .result.txt file.  That is far too coarse to be evidence.  A verdict of
+# OBSERVED is written when a flow's requirements were met, and two runs can both
+# meet their requirements while disagreeing about every observation underneath —
+# different roles on the login, a different MIME type on the stored document, a
+# different ranking from the index, a different broker payload, a different
+# workflow task, a different queue.  Flow 6 in the committed evidence proves the
+# point concretely: its two .status files differ by two lines and comparison.txt
+# reports the flow as "match".
+#
+# So the comparison now reads the RECORDS, and it reads them through a declared
+# projection rather than raw, because parts of every capture legitimately differ
+# between two runs and comparing those parts would bury a real difference in
+# noise that can never be resolved.
+#
+# THE PROJECTION IS PUBLISHED, NOT ASSUMED.  Both key lists below are printed into
+# comparison.txt on every run, so a reader audits the rule instead of trusting
+# it, and a key silently moved from required to advisory shows up in the evidence.
+#
+# .status files are compared IN FULL, with no projection at all.  Every line in
+# one is a named check and its outcome, both of which are behaviour; there is
+# nothing in a .status file that legitimately varies between two runs of the same
+# suite.  A line present on one side and absent on the other is exactly the
+# condition flow 6 demonstrates, so line presence is compared too, not just the
+# values of lines that happen to appear on both sides.
+# ---------------------------------------------------------------------------
+
+# The .out keys whose values are behaviour and MUST agree.
+SMOKE_REQUIRED_OUT_KEYS='request-method auth-mode redirects-followed observed-http-status observed-content-type observed-body-form certificate-verification-result transport-exit-status-observed capture-body-truncated capture-headers-truncated capture-diagnostics-truncated'
+
+# The .out keys that legitimately differ between two runs, reported and never
+# counted.  Each is here for a stated reason:
+#   request-url                 the two captures target different base URLs by
+#                               construction; that is provenance, not behaviour
+#   observed-content-length     a response carrying a generated identifier differs
+#   observed-body-bytes         in width between runs, so its length differs
+#   observed-body-sha256        a body containing a new identifier hashes anew
+#   observed-session-cookie     a session identifier is new on every login
+#   http-version                negotiated per connection
+#   transport-trust-mode        an operator setting, recorded per capture
+#   redirect-target-reported    may embed the target host
+SMOKE_ADVISORY_OUT_KEYS='request-url observed-content-length observed-body-bytes observed-body-sha256 observed-session-cookie http-version transport-trust-mode redirect-target-reported'
+
+# canonical_out_projection — the comparable projection of one .out file.
+#
+# Emits the probe SECTION HEADERS in order, so that the set and sequence of probes
+# a flow performed is itself compared, and then the required key/value lines.
+# Everything inside a delimited block — a response body, the transport
+# diagnostics, the response headers — is skipped, because a body legitimately
+# carries identifiers and because a body line could otherwise coincidentally look
+# like a record line and be projected as one.
+canonical_out_projection()
+{
+    local file="$1"
+
+    [ -f "$file" ] || return 0
+
+    awk -v keys="$SMOKE_REQUIRED_OUT_KEYS" '
+        BEGIN {
+            n = split(keys, k, " ")
+            for (i = 1; i <= n; i++) { want[k[i]] = 1 }
+            inblock = 0
+            probe = "(before any probe)"
+        }
+        /^----- end [a-z-]+ -----$/ { inblock = 0; next }
+        /^----- [a-z-]+ -----$/     { inblock = 1; next }
+        inblock { next }
+        /^===== .* =====$/ {
+            probe = $0
+            printf "PROBE  %s\n", probe
+            next
+        }
+        {
+            idx = index($0, ": ")
+            if (idx > 1) {
+                key = substr($0, 1, idx - 1)
+                if (key in want) {
+                    printf "%s | %s = %s\n", probe, key, substr($0, idx + 2)
+                }
+            }
+        }
+    ' < "$file"
+}
+
+# canonical_status_projection — a .status file, in a stable order.  No keys are
+# dropped: see the note above for why a .status file needs no projection.
+canonical_status_projection()
+{
+    local file="$1"
+
+    [ -f "$file" ] || return 0
+    LC_ALL=C sort -- "$file"
+}
+
+# compare_record_pair — compare one projected record set against its counterpart,
+# print the outcome, and print the DIFFERENCE when there is one.
+#
+# Prints "match" or "DIFFER" as its first word and returns 0 for a match, 1 for a
+# difference, so the caller both reports and counts from one call.  A difference
+# is shown rather than merely tallied: a count tells a reader that something moved
+# and a diff tells them what, and only the second is actionable.
+compare_record_pair()
+{
+    local label="$1"
+    local mine_file="$2"
+    local theirs_file="$3"
+    local target="$4"
+    local shown=40
+    local difflines
+
+    if [ ! -s "$mine_file" ] && [ ! -s "$theirs_file" ]; then
+        printf '  %-8s %s: both sides recorded nothing\n' 'EMPTY' "$label" \
+            | sanitise >> "$target"
+        return 1
+    fi
+
+    if LC_ALL=C cmp -s -- "$mine_file" "$theirs_file"; then
+        printf '  %-8s %s: %s record(s) agree\n' 'match' "$label" \
+            "$(count_lines_in "$mine_file")" | sanitise >> "$target"
+        return 0
+    fi
+
+    # grep -c rather than grep | wc -l, and the failure absorbed rather than
+    # branched on: grep exits 1 when it matches nothing, which under pipefail
+    # would propagate and discard a perfectly valid count of zero.
+    difflines="$(LC_ALL=C diff -- "$theirs_file" "$mine_file" 2>/dev/null \
+        | grep -c -E '^[<>]')" || true
+    case "$difflines" in
+        '' | *[!0-9]*) difflines='unknown' ;;
+    esac
+
+    {
+        printf '  %-8s %s\n' 'DIFFER' "$label"
+        printf '            this-capture records:  %s\n' "$(count_lines_in "$mine_file")"
+        printf '            other-capture records: %s\n' "$(count_lines_in "$theirs_file")"
+        printf '            differing lines: %s\n' "$difflines"
+        printf '            "<" is the OTHER capture, ">" is THIS capture:\n'
+        LC_ALL=C diff -- "$theirs_file" "$mine_file" 2>/dev/null \
+            | grep -E '^[<>]' | head -n "$shown" | sed -e 's|^|              |'
+        if [ "$difflines" != 'unknown' ] && [ "$difflines" -gt "$shown" ]; then
+            printf '              ... %s further differing line(s) not shown; run\n' \
+                $((difflines - shown))
+            printf '              diff -r on the two captures for the whole set\n'
+        fi
+    } | sanitise >> "$target"
+    return 1
+}
+
 write_comparison()
 {
     local other="$SMOKE_COMPARE_AGAINST"
@@ -11537,8 +16082,25 @@ write_comparison()
         printf 'Computed by reading both captures back off disk at the end of this run.\n'
         printf 'Not authored.  Every row below is a comparison of two files that exist.\n'
         printf '\n'
-        printf 'REQUIRED comparisons — flow verdicts:\n'
+        printf 'REQUIRED comparisons — per flow: the verdict, the FULL .status record\n'
+        printf 'set, and the canonical projection of the .out record set.  All three,\n'
+        printf 'because a verdict on its own is one string and two runs can agree on it\n'
+        printf 'while disagreeing about every observation beneath it.\n'
+        printf '\n'
+        printf 'the .out projection compares these keys, per probe section, and the\n'
+        printf 'sequence of probe sections itself:\n'
+        printf '  %s\n' "$SMOKE_REQUIRED_OUT_KEYS"
+        printf 'and reports these without counting them, each because it legitimately\n'
+        printf 'differs between two runs of the same suite:\n'
+        printf '  %s\n' "$SMOKE_ADVISORY_OUT_KEYS"
+        printf 'response bodies, transport diagnostics and response headers are not\n'
+        printf 'projected: a body carries generated identifiers by construction.  What\n'
+        printf 'makes a body assertable is a NAMED CHECK over it, and every such check\n'
+        printf 'lands in the .status file, which is compared here in full.\n'
     } | sanitise >> "$target"
+
+    local mine_proj="${SMOKE_TMPDIR}/proj-mine"
+    local theirs_proj="${SMOKE_TMPDIR}/proj-theirs"
 
     for entry in $SMOKE_FLOW_SLUGS; do
         n="${entry%%-*}"
@@ -11559,32 +16121,124 @@ write_comparison()
             rows="DIFFER"
             required_diffs=$((required_diffs + 1))
         fi
-        printf '  %-7s flow-%s-%s: this=%s other=%s\n' \
+        printf '\n  %-8s flow-%s-%s verdict: this=%s other=%s\n' \
             "$rows" "$n" "$slug" "$verdict" "$other_verdict" \
             | sanitise >> "$target"
+
+        # The full .status record set.  No projection: every line is a named check
+        # and its outcome, and a line present on one side only is exactly the
+        # condition the previous verdict-only comparison could not see.
+        canonical_status_projection "${dest}.status" > "$mine_proj"
+        canonical_status_projection "${other}/flow-${n}-${slug}.status" > "$theirs_proj"
+        compare_record_pair "flow-${n}-${slug}.status" \
+            "$mine_proj" "$theirs_proj" "$target" \
+            || required_diffs=$((required_diffs + 1))
+
+        # The canonical projection of the .out record set.
+        canonical_out_projection "${dest}.out" > "$mine_proj"
+        canonical_out_projection "${other}/flow-${n}-${slug}.out" > "$theirs_proj"
+        compare_record_pair "flow-${n}-${slug}.out (projected)" \
+            "$mine_proj" "$theirs_proj" "$target" \
+            || required_diffs=$((required_diffs + 1))
     done
+
+    # The reference-stack probe outcomes are behaviour too: which of the six
+    # external authorities answered, and with what.  Compared as a REQUIRED row
+    # for the same reason the flow status files are.
+    printf '\nREQUIRED comparison — reference-stack probe outcomes:\n' \
+        | sanitise >> "$target"
+    canonical_status_projection "${SMOKE_OUT_DIR}/notes/reference-stack.status" > "$mine_proj"
+    canonical_status_projection "${other}/notes/reference-stack.status" > "$theirs_proj"
+    compare_record_pair 'notes/reference-stack.status' \
+        "$mine_proj" "$theirs_proj" "$target" \
+        || required_diffs=$((required_diffs + 1))
+
+    # Readiness polling is deliberately NOT compared.  Its record set is one line
+    # per attempt, and the number of attempts a container needs to answer varies
+    # between two runs of the same build by minutes — the documented first-start
+    # window is five to ten.  Comparing it would produce a difference on almost
+    # every run that no fix could ever resolve, and a comparison that always
+    # differs is a comparison nobody reads.
+    {
+        printf '\nNOT compared — notes/readiness.status:\n'
+        printf '  one record per polling attempt, and the number of attempts a container\n'
+        printf '  needs varies between runs of the same build.  The FINAL observed status\n'
+        printf '  is what matters and it is recorded in notes/readiness.txt.\n'
+        printf '  this-capture final: %s\n' \
+            "$(sed -n 's|^final-observed-status: ||p' \
+                "${SMOKE_OUT_DIR}/notes/readiness.txt" 2>/dev/null | tail -1)"
+        printf '  other-capture final: %s\n' \
+            "$(sed -n 's|^final-observed-status: ||p' \
+                "${other}/notes/readiness.txt" 2>/dev/null | tail -1)"
+    } | sanitise >> "$target"
 
     printf '\nREQUIRED comparisons — the five frontend artifact digests:\n' \
         | sanitise >> "$target"
 
-    for name in application.js application.min.js vendors.min.js \
-                application.min.css home.html
-    do
-        mine='(absent)'
-        theirs='(absent)'
-        [ -s "${SMOKE_OUT_DIR}/artifacts/${name}.sha256" ] \
-            && mine="$(awk 'NR==1{print $1}' "${SMOKE_OUT_DIR}/artifacts/${name}.sha256")"
-        [ -s "${other}/artifacts/${name}.sha256" ] \
-            && theirs="$(awk 'NR==1{print $1}' "${other}/artifacts/${name}.sha256")"
-        if [ "$mine" = "$theirs" ]; then
-            printf '  %-7s %s: %s\n' 'match' "$name" "$mine" | sanitise >> "$target"
+    # Both sides are read through read_digest_record, so a record that is not in
+    # the schema is reported as UNUSABLE and counted, rather than having its first
+    # field taken at face value.  Two records that are both malformed must not be
+    # able to compare equal and read as agreement.
+    for name in $SMOKE_COMPARED_ARTIFACT_KEYS; do
+        mine="$(recorded_artifact_digest "$name")"
+        theirs="$(other_artifact_digest "$name")"
+        if [ "$mine" = 'RECORD-MALFORMED' ] || [ "$theirs" = 'RECORD-MALFORMED' ]; then
+            required_diffs=$((required_diffs + 1))
+            {
+                printf '  %-8s %s\n' 'UNUSABLE' "$name"
+                printf '            this  %s\n' "$mine"
+                printf '            other %s\n' "$theirs"
+                printf '            a record outside the schema "<digest><two spaces><artifact key>"\n'
+                printf '            cannot be compared; see notes/artifact-digest-records.txt\n'
+            } | sanitise >> "$target"
+        elif [ "$mine" = "$theirs" ]; then
+            printf '  %-8s %s: %s\n' 'match' "$name" "$mine" | sanitise >> "$target"
         else
             required_diffs=$((required_diffs + 1))
             {
-                printf '  %-7s %s\n' 'DIFFER' "$name"
+                printf '  %-8s %s\n' 'DIFFER' "$name"
                 printf '            this  %s\n' "$mine"
                 printf '            other %s\n' "$theirs"
             } | sanitise >> "$target"
+        fi
+    done
+
+    # The startup regions, compared by their matched-line counts and by the window
+    # each was mined from.  The counts are the denominator the previous revision
+    # had none of: "both sides matched 40 lines" means something only when both
+    # sides mined one bounded window each, which is now recorded per region.
+    {
+        printf '\nADVISORY comparison — startup region evidence volumes:\n'
+        printf '  Counts, not identity.  Two boots of the same build legitimately emit\n'
+        printf '  different numbers of lines, so a difference here is not counted.  What\n'
+        printf '  IS actionable is a region that is empty on one side and populated on\n'
+        printf '  the other, and that is called out explicitly below.\n'
+    } | sanitise >> "$target"
+
+    local region
+    local mine_count
+    local theirs_count
+    for region in catalina.out.log spring-context.log jpa-init.log \
+                  reflection-scan.log workflow-engine-init.log messaging-init.log \
+                  ldap-context-source.log frontend-build.log readiness-poll.log \
+                  errors.log
+    do
+        mine_count='(region absent)'
+        theirs_count='(region absent)'
+        [ -f "${SMOKE_OUT_DIR}/startup/${region}" ] \
+            && mine_count="$(sed -n 's|^matched-lines: ||p' \
+                "${SMOKE_OUT_DIR}/startup/${region}" | tail -1)"
+        [ -f "${other}/startup/${region}" ] \
+            && theirs_count="$(sed -n 's|^matched-lines: ||p' \
+                "${other}/startup/${region}" | tail -1)"
+        if { [ "$mine_count" = '0' ] && [ "$theirs_count" != '0' ]; } \
+            || { [ "$theirs_count" = '0' ] && [ "$mine_count" != '0' ]; }
+        then
+            printf '  %-8s startup/%s: this=%s other=%s — populated on one side only\n' \
+                'ONESIDED' "$region" "$mine_count" "$theirs_count" | sanitise >> "$target"
+        else
+            printf '  %-8s startup/%s: this=%s other=%s\n' \
+                'counts' "$region" "$mine_count" "$theirs_count" | sanitise >> "$target"
         fi
     done
 
@@ -11624,6 +16278,24 @@ write_comparison()
         printf '    evidence, and are not compared\n'
         printf '  durations, host names and run instants legitimately vary between two\n'
         printf '    runs of the same suite and are not compared\n'
+        printf '  the .out keys listed as advisory at the top of this file, each for the\n'
+        printf '    stated reason that it differs between two runs of the same build\n'
+        printf '  startup region line COUNTS, because two boots of the same build emit\n'
+        printf '    different numbers of lines; a region populated on one side only is\n'
+        printf '    called out as ONESIDED above, and that one IS actionable\n'
+        printf '  the readiness polling record set, for the reason stated beside it\n'
+        printf '\n'
+        printf 'WHAT IS NO LONGER ADVISORY, and why it changed.  An earlier revision of\n'
+        printf 'this comparison read ONE STRING per flow: the final verdict line.  Two\n'
+        printf 'runs can agree on that string while disagreeing about the role granted at\n'
+        printf 'login, the MIME type the repository stored, the ranking the index\n'
+        printf 'returned, the payload the broker carried, the number that was generated,\n'
+        printf 'the task the engine created and the queue the object moved to — every one\n'
+        printf 'of which is behaviour this migration promises to preserve.  Flow 6 in the\n'
+        printf 'previous committed evidence demonstrated it: its two status record sets\n'
+        printf 'differed by two lines and the comparison reported the flow as a match.\n'
+        printf 'The .status record sets and the projected .out record sets are therefore\n'
+        printf 'REQUIRED rows now, and a difference in either is counted.\n'
         printf '\n'
         printf 'REQUIRED-DIFFERENCES: %s\n' "$required_diffs"
         printf '\n'
@@ -11743,6 +16415,13 @@ write_completeness()
         [ -n "$pairing_unexpected" ] || pairing_unexpected='0'
     fi
 
+    local manifest_state='not-checked'
+    if [ -f "${SMOKE_OUT_DIR}/notes/manifest.txt" ]; then
+        manifest_state="$(sed -n 's|^manifest-state: ||p' \
+            "${SMOKE_OUT_DIR}/notes/manifest.txt" | tail -1)"
+        [ -n "$manifest_state" ] || manifest_state='unknown'
+    fi
+
     if [ "$flows_with_result" -lt "$flows_expected" ] \
         || [ "$flows_skipped" -gt 0 ] \
         || [ "$flows_not_exercised" -gt 0 ] \
@@ -11765,6 +16444,7 @@ write_completeness()
         printf 'flows-not-exercised: %s\n' "$flows_not_exercised"
         printf 'flows-with-unmet-requirements: %s\n' "$flows_with_unmet"
         printf 'absent-frontend-artifact-digests: %s\n' "$absent_digests"
+        printf 'capture-manifest-state: %s\n' "$manifest_state"
         printf 'archived-report-contract-state: %s\n' "$pairing_state"
         printf 'archived-report-suites-missing: %s\n' "$pairing_missing"
         printf 'archived-report-suites-lost: %s\n' "$pairing_lost"
@@ -11884,6 +16564,23 @@ write_summary()
         printf '  notes/cleanup.txt              removal of that state, and its outcome\n'
         printf '  notes/surefire-pairing.txt     archived unit-test report pairing against\n'
         printf '                                 the committed contract\n'
+        printf '  notes/manifest.txt             the exact set of files this run produced,\n'
+        printf '                                 checked against the declared manifest\n'
+        printf '  notes/startup-window.txt       the ONE bounded startup window every\n'
+        printf '                                 startup region was mined from, with the\n'
+        printf '                                 source digest, line numbers and byte\n'
+        printf '                                 offsets needed to re-derive it\n'
+        printf '  notes/artifact-digest-records.txt  schema validation of the six digest\n'
+        printf '                                 records, read back after writing\n'
+        printf '  notes/frontend-comparison-provenance.txt  which frontend build produced\n'
+        printf '                                 this side of the artifact comparison\n'
+        printf '  notes/06-normalisation-and-redaction.txt  the redaction and\n'
+        printf '                                 normalisation ledger, with a live\n'
+        printf '                                 self-test of every rule class\n'
+        printf '  static-audit.txt               the internal-package audit gate, run and\n'
+        printf '                                 captured by this script\n'
+        printf '  jacoco-liveness.txt            coverage instrumentation liveness,\n'
+        printf '                                 measured from the execution data on disk\n'
         printf '  startup/                       startup-log regions (never a directory\n'
         printf '                                 named after a log folder: that name is\n'
         printf '                                 git-ignored at any depth)\n'
@@ -11997,6 +16694,8 @@ run_single_flow()
     esac
 
     run_cleanup
+    # Published beside the cleanup note, always, even when empty: see report_residue.
+    report_residue
 
     for entry in out status result.txt; do
         if [ ! -f "${dest}.${entry}" ]; then
@@ -12033,6 +16732,451 @@ run_single_flow()
     return 1
 }
 
+# ---------------------------------------------------------------------------
+# THE MANIFEST — THE EXACT SET OF FILES A FULL RUN PRODUCES.
+#
+# Two tiers, and the distinction is load-bearing.
+#
+# REQUIRED: a full run always produces it.  Missing means a producer did not run,
+#   which is a hole in the capture and is recorded as one.
+# CONDITIONAL: produced only when a stated precondition holds — the startup
+#   regions when a container log was supplied and the unavailability record when
+#   none was, the comparison when another capture was named, the archived reports
+#   when they were installed.  Present is fine and absent is fine; what is NOT
+#   fine is a path in neither tier, because the staging directory starts empty, so
+#   an unlisted file can only mean a producer emits something the manifest does not
+#   know about.  That is drift, and it is exactly how the previous evidence tree
+#   came to hold files from three different script generations.
+#
+# The manifest is emitted as a list rather than held in an array so it can be
+# generated, diffed and printed by the same code on any POSIX shell.
+# ---------------------------------------------------------------------------
+# The three capture files that are written AFTER validate_manifest runs, and
+# therefore cannot be checked by it: the manifest note it writes itself, the
+# completeness verdict which must be able to read the manifest state, and the
+# summary which indexes both.  They are checked by
+# verify_deferred_manifest_entries once they exist.  Naming them in one place keeps
+# the two checks from disagreeing about which files are deferred.
+SMOKE_DEFERRED_MANIFEST_ENTRIES='notes/manifest.txt notes/completeness.txt summary.txt'
+
+manifest_required()
+{
+    local entry n slug
+
+    printf '%s\n' 'summary.txt'
+    printf '%s\n' 'static-audit.txt'
+    printf '%s\n' 'jacoco-liveness.txt'
+
+    for entry in $SMOKE_FLOW_SLUGS; do
+        n="${entry%%-*}"
+        slug="${entry#*-}"
+        printf 'flow-%s-%s.out\n' "$n" "$slug"
+        printf 'flow-%s-%s.status\n' "$n" "$slug"
+        printf 'flow-%s-%s.result.txt\n' "$n" "$slug"
+    done
+
+    printf '%s\n' 'env/toolchain.txt'
+
+    local key
+    for key in $SMOKE_COMPARED_ARTIFACT_KEYS $SMOKE_ADVISORY_ARTIFACT_KEYS; do
+        printf 'artifacts/%s.sha256\n' "$key"
+    done
+
+    printf '%s\n' 'notes/06-normalisation-and-redaction.txt'
+    printf '%s\n' 'notes/artifact-digest-records.txt'
+    printf '%s\n' 'notes/artifact-gate.txt'
+    printf '%s\n' 'notes/completeness.txt'
+    printf '%s\n' 'notes/corpus-figures.txt'
+    printf '%s\n' 'notes/created-state.txt'
+    printf '%s\n' 'notes/determinism-basis.txt'
+    printf '%s\n' 'notes/frontend-comparison-provenance.txt'
+    printf '%s\n' 'notes/ldap-jndi-environment.txt'
+    printf '%s\n' 'notes/manifest.txt'
+    printf '%s\n' 'notes/readiness.out'
+    printf '%s\n' 'notes/readiness.status'
+    printf '%s\n' 'notes/readiness.txt'
+    printf '%s\n' 'notes/reference-stack.out'
+    printf '%s\n' 'notes/reference-stack.status'
+    printf '%s\n' 'notes/reference-stack.txt'
+    printf '%s\n' 'notes/surefire-pairing.txt'
+}
+
+manifest_conditional()
+{
+    printf '%s\n' 'comparison.txt'
+    printf '%s\n' 'notes/cleanup.txt'
+    printf '%s\n' 'notes/residue.txt'
+    printf '%s\n' 'notes/comparison-unavailable.txt'
+    printf '%s\n' 'notes/startup-window.txt'
+    printf '%s\n' 'startup/unavailable.log'
+    printf '%s\n' 'startup/catalina.out.log'
+    printf '%s\n' 'startup/spring-context.log'
+    printf '%s\n' 'startup/jpa-init.log'
+    printf '%s\n' 'startup/reflection-scan.log'
+    printf '%s\n' 'startup/workflow-engine-init.log'
+    printf '%s\n' 'startup/messaging-init.log'
+    printf '%s\n' 'startup/ldap-context-source.log'
+    printf '%s\n' 'startup/frontend-build.log'
+    printf '%s\n' 'startup/readiness-poll.log'
+    printf '%s\n' 'startup/errors.log'
+}
+
+# validate_manifest — compare what was produced against what the manifest names.
+#
+# Returns 0 when the produced set is exactly REQUIRED plus a subset of CONDITIONAL,
+# and non-zero otherwise.  Either way it writes notes/manifest.txt, because the
+# accounting is evidence in its own right and a run that fails the check needs it
+# most.  Every discrepancy marks the capture incomplete: a missing required file and
+# an unexpected extra one are different defects, but both mean the published tree is
+# not what the manifest says it is.
+validate_manifest()
+{
+    local produced="${SMOKE_TMPDIR}/manifest-produced"
+    local required="${SMOKE_TMPDIR}/manifest-required"
+    local allowed="${SMOKE_TMPDIR}/manifest-allowed"
+    local missing="${SMOKE_TMPDIR}/manifest-missing"
+    local unexpected="${SMOKE_TMPDIR}/manifest-unexpected"
+    local emptyfiles="${SMOKE_TMPDIR}/manifest-empty"
+    local out="${SMOKE_OUT_DIR}/notes/manifest.txt"
+    local rel
+    local n_missing n_unexpected n_empty n_produced n_required
+    local state='COMPLETE-AND-EXACT'
+
+    manifest_required | LC_ALL=C sort > "$required"
+    { manifest_required; manifest_conditional; } | LC_ALL=C sort -u > "$allowed"
+
+    # Three files are written AFTER this comparison and are therefore added to the
+    # produced set explicitly, rather than being reported missing by the very check
+    # that precedes them.  They are not left unchecked: verify_deferred_manifest_
+    # entries asserts all three once they exist, and appends its outcome here.
+    {
+        ( cd "$SMOKE_OUT_DIR" 2>/dev/null && find . -type f -print ) \
+            | sed -e 's|^\./||'
+        printf '%s\n' "$SMOKE_DEFERRED_MANIFEST_ENTRIES" | tr ' ' '\n'
+    } | LC_ALL=C sort -u > "$produced" 2>/dev/null || : > "$produced"
+
+    # The archived unit-test reports are a whole subtree whose membership is the
+    # pairing contract's business, not the manifest's.  They are accounted for
+    # under notes/surefire-pairing.txt, so the manifest treats the subtree as one
+    # allowed prefix rather than enumerating several hundred paths here.
+    LC_ALL=C grep -v '^surefire/' "$produced" > "${produced}.f" 2>/dev/null \
+        || : > "${produced}.f"
+    mv -- "${produced}.f" "$produced"
+
+    LC_ALL=C comm -23 "$required" "$produced" > "$missing"
+    LC_ALL=C comm -23 "$produced" "$allowed" > "$unexpected"
+
+    : > "$emptyfiles"
+    while IFS= read -r rel; do
+        [ -n "$rel" ] || continue
+        if [ -e "${SMOKE_OUT_DIR}/${rel}" ] && [ ! -s "${SMOKE_OUT_DIR}/${rel}" ]; then
+            printf '%s\n' "$rel" >> "$emptyfiles"
+        fi
+    done < "$required"
+
+    n_missing="$(count_lines_in "$missing")"
+    n_unexpected="$(count_lines_in "$unexpected")"
+    n_empty="$(count_lines_in "$emptyfiles")"
+    n_produced="$(count_lines_in "$produced")"
+    n_required="$(count_lines_in "$required")"
+
+    if [ "$n_missing" -gt 0 ] || [ "$n_unexpected" -gt 0 ] || [ "$n_empty" -gt 0 ]; then
+        state='DRIFTED'
+    fi
+
+    # The two startup tiers are mutually exclusive by construction; both present
+    # means the tree was assembled from two runs, which is the precise condition
+    # the committed evidence exhibited.
+    local both_startup_tiers='no'
+    if [ -f "${SMOKE_OUT_DIR}/startup/unavailable.log" ] \
+        && [ -f "${SMOKE_OUT_DIR}/startup/catalina.out.log" ]
+    then
+        both_startup_tiers='yes'
+        state='DRIFTED'
+    fi
+
+    begin_capture_file "$out"
+    {
+        printf 'capture manifest accounting\n'
+        printf '\n'
+        printf 'produced-by: docs/migration/smoke-evidence/smoke-checks.sh, validate_manifest\n'
+        printf 'manifest-state: %s\n' "$state"
+        printf 'staged-then-published: %s\n' "$SMOKE_STAGED"
+        printf 'published-to: %s\n' "$SMOKE_FINAL_OUT_DIR"
+        printf '\n'
+        printf 'required-paths: %s\n' "$n_required"
+        printf 'produced-paths-excluding-the-archived-report-subtree: %s\n' "$n_produced"
+        printf 'required-but-missing: %s\n' "$n_missing"
+        printf 'produced-but-not-in-the-manifest: %s\n' "$n_unexpected"
+        printf 'required-and-present-but-empty: %s\n' "$n_empty"
+        printf 'both-startup-tiers-present: %s\n' "$both_startup_tiers"
+        printf '\n'
+        printf 'required but missing:\n'
+        if [ "$n_missing" -gt 0 ]; then sed -e 's|^|  |' "$missing"; else printf '  (none)\n'; fi
+        printf '\n'
+        printf 'produced but not named by the manifest:\n'
+        if [ "$n_unexpected" -gt 0 ]; then sed -e 's|^|  |' "$unexpected"; else printf '  (none)\n'; fi
+        printf '\n'
+        printf 'required, present, and zero bytes:\n'
+        if [ "$n_empty" -gt 0 ]; then sed -e 's|^|  |' "$emptyfiles"; else printf '  (none)\n'; fi
+        printf '\n'
+        printf 'why this accounting exists.  A previous revision of this producer wrote\n'
+        printf 'every file directly into the destination and removed nothing, so a file an\n'
+        printf 'OLDER revision had emitted survived a run of a NEWER one.  The committed\n'
+        printf 'evidence tree showed it plainly: eight startup regions under names the\n'
+        printf 'producer had stopped emitting sat beside five under the names it did emit, a\n'
+        printf 'summary under a superseded name sat beside the current one, and six notes\n'
+        printf 'had no producer anywhere in the script.  A reader could not tell which files\n'
+        printf 'the run in front of them had written.\n'
+        printf '\n'
+        printf 'A full run now writes into a fresh sibling staging directory, is checked\n'
+        printf 'against the manifest above, and is moved into place with the previous\n'
+        printf 'capture renamed aside first.  The published tree is exactly one run output\n'
+        printf 'BY CONSTRUCTION: there is no path by which a file from an earlier run can\n'
+        printf 'survive, because the directory it would have survived in is replaced whole.\n'
+        printf '\n'
+        printf 'the archived unit-test report subtree under surefire/ is excluded from this\n'
+        printf 'accounting on purpose: its membership is adjudicated by the pairing contract\n'
+        printf 'in notes/surefire-pairing.txt, and enumerating several hundred report paths\n'
+        printf 'here would duplicate that check and disagree with it the first time a suite\n'
+        printf 'is added.\n'
+        printf '\n'
+        printf 'the two startup tiers are mutually exclusive: a run either resolves a\n'
+        printf 'startup window and writes the region files, or resolves none and writes\n'
+        printf 'startup/unavailable.log.  Both present means the tree was assembled from two\n'
+        printf 'different runs.\n'
+        printf '\n'
+        printf 'these paths are written after this accounting is computed, so they are\n'
+        printf 'counted as produced here and asserted separately once they exist; the\n'
+        printf 'outcome of that assertion is appended to the end of this file:\n'
+        printf '  %s\n' "$SMOKE_DEFERRED_MANIFEST_ENTRIES"
+    } | sanitise >> "$out"
+
+    if [ "$n_missing" -gt 0 ]; then
+        mark_incomplete "${n_missing} file(s) the manifest requires were not produced by this run (see notes/manifest.txt for the list)"
+    fi
+    if [ "$n_unexpected" -gt 0 ]; then
+        mark_incomplete "${n_unexpected} file(s) were produced that the manifest does not name, so a producer emits something the manifest does not know about (see notes/manifest.txt)"
+    fi
+    if [ "$n_empty" -gt 0 ]; then
+        mark_incomplete "${n_empty} required file(s) were produced empty, and an empty capture file is not evidence (see notes/manifest.txt)"
+    fi
+    if [ "$both_startup_tiers" = 'yes' ]; then
+        mark_incomplete 'both startup/unavailable.log and the startup region files are present, which cannot happen in one run and means this tree was assembled from two'
+    fi
+
+    [ "$state" = 'COMPLETE-AND-EXACT' ]
+}
+
+# verify_deferred_manifest_entries — assert the three files the manifest check
+# could not see, and append the outcome to the manifest note.
+#
+# Without this, a failure in the completeness writer or the summary writer would
+# leave the capture missing a required file and nothing would say so, because the
+# only check that looks at the required set runs before they exist.
+verify_deferred_manifest_entries()
+{
+    local out="${SMOKE_OUT_DIR}/notes/manifest.txt"
+    local rel
+    local bad=0
+    local rows=''
+
+    for rel in $SMOKE_DEFERRED_MANIFEST_ENTRIES; do
+        if [ ! -f "${SMOKE_OUT_DIR}/${rel}" ]; then
+            rows="${rows}  MISSING  ${rel}
+"
+            bad=$((bad + 1))
+            mark_incomplete "the deferred capture file ${rel} was not produced, so the capture is missing a file the manifest requires"
+        elif [ ! -s "${SMOKE_OUT_DIR}/${rel}" ]; then
+            rows="${rows}  EMPTY    ${rel}
+"
+            bad=$((bad + 1))
+            mark_incomplete "the deferred capture file ${rel} was produced empty, and an empty capture file is not evidence"
+        else
+            rows="${rows}  OK       ${rel}
+"
+        fi
+    done
+
+    if [ -f "$out" ]; then
+        {
+            printf '\n'
+            printf 'deferred-entry assertion, run after the three files above were written:\n'
+            printf '%s' "$rows"
+            printf 'deferred-entries-not-usable: %s\n' "$bad"
+        } | sanitise >> "$out"
+    fi
+
+    [ "$bad" -eq 0 ]
+}
+
+# publish_capture — move the staged tree into the destination, atomically enough.
+#
+# Three renames rather than a copy: the previous capture is renamed aside, the
+# staged tree is renamed into place, and the set-aside tree is then removed.  Each
+# rename is a single directory operation within one filesystem, so a reader never
+# observes a partially populated destination — they see the old tree or the new
+# one.  A copy could not offer that.
+#
+# Publication is UNCONDITIONAL on the manifest outcome, and that is deliberate.
+# The staging directory starts empty, so the staged tree is already free of stale
+# files whatever the manifest says; withholding it would leave the PREVIOUS tree
+# published, which is both older and — as the committed evidence showed — the one
+# actually contaminated.  The manifest outcome is recorded in notes/manifest.txt
+# and drives the completeness verdict instead.
+# audit_status_hygiene — every published status file must be comparable, row by
+# row, against the other capture's copy of it.  Two shapes make that impossible,
+# and both are checked here rather than trusted.
+#
+# WHY THIS AUDIT EXISTS.  Three separate flows had drifted into writing status rows
+# that could not be compared, and each was found by running the thing rather than
+# by reading it:
+#
+#   A VALUELESS LINE.  A row consisting of a bare token — a status code on a line
+#   of its own, or the word SKIPPED with no key — tells a reader nothing about what
+#   it is the status OF, and gives the canonical projection an unlabelled token to
+#   align.  Two captures can differ on such a line with no way to say what
+#   differed.
+#
+#   A DUPLICATED KEY.  Two writers emitting one key is not merely untidy: one run
+#   produced DEFINITIONS_LOADED twice in a single file, once from a count of
+#   process-definition evidence and once from a count of log LINES, so the file
+#   contradicted itself and a reader was handed a line count under the name of a
+#   definition count.  Whichever value a comparison happened to read would be
+#   arbitrary.
+#
+# Both are recorded through mark_incomplete rather than raised as a hard failure.
+# The capture is real evidence and is worth keeping; what must not happen is that
+# it is published as complete while carrying a row nobody can compare.  The
+# completeness verdict is computed after this runs, so a violation reaches it.
+#
+# The key grammar accepted here is the one every flow already uses: a leading
+# name of letters, digits, underscores, dashes or DOTS, followed by '=' or ': '.
+# Dots are in the grammar because several rows are named after the artifact they
+# describe and an artifact name carries an extension — served-application.js is a
+# perfectly readable key.  That was found by this audit reporting those rows as
+# valueless on its first run, which they are not; the grammar was too narrow, not
+# the rows malformed.
+audit_status_hygiene()
+{
+    local file
+    local base
+    local offending
+    local duplicated
+    local found=0
+
+    for file in "${SMOKE_OUT_DIR}"/*.status; do
+        [ -f "$file" ] || continue
+        base="$(basename -- "$file")"
+
+        # A row with no key.  Blank lines are not rows and are skipped; a
+        # continuation line indented under a keyed row is a deliberate part of the
+        # narration and is skipped for the same reason.
+        offending="$(LC_ALL=C grep -n -v -E \
+            -e '^[A-Za-z_][A-Za-z_0-9.-]*(=|: )' \
+            -e '^[[:space:]]*$' \
+            -e '^[[:space:]]+' \
+            -- "$file" | head -5)" || true
+        if [ -n "$offending" ]; then
+            found=$((found + 1))
+            mark_incomplete "status hygiene: ${base} carries one or more rows with no key, which cannot be compared against the other capture's copy of the file.  First offenders: $(printf '%s' "$offending" | tr '\n' ';')"
+        fi
+
+        # One key, two values.  Read from the file rather than from the writers, so
+        # the check holds however many writers a flow grows.
+        duplicated="$(LC_ALL=C sed -n \
+            -e 's/^\([A-Za-z_][A-Za-z_0-9.-]*\)=.*/\1/p' \
+            -e 's/^\([A-Za-z_][A-Za-z_0-9.-]*\): .*/\1/p' \
+            -- "$file" | LC_ALL=C sort | LC_ALL=C uniq -d | head -5)" || true
+        if [ -n "$duplicated" ]; then
+            found=$((found + 1))
+            mark_incomplete "status hygiene: ${base} emits the same key more than once, so which value a comparison reads is arbitrary and the file may contradict itself.  Duplicated keys: $(printf '%s' "$duplicated" | tr '\n' ' ')"
+        fi
+    done
+
+    # AND EVERY .out FILE MUST HAVE UNIQUELY NAMED SECTIONS.
+    #
+    # Every scoped reader in this script - captured_field, captured_body_region and
+    # the section_body_* helpers - anchors on a section marker and stops at the first
+    # one it matches.  Two sections sharing a name therefore make the second
+    # unreachable: its fields are in the file, look present to a reader, and cannot
+    # be read by anything that asserts on them.  This was introduced accidentally
+    # while adding a leg whose label matched a probe's label, and found by counting
+    # markers rather than by reading the code, which is exactly why it is checked
+    # here from now on.
+    for file in "${SMOKE_OUT_DIR}"/*.out; do
+        [ -f "$file" ] || continue
+        base="$(basename -- "$file")"
+
+        # COMPARED AS RAW MARKERS, with no normalisation.  A first version of this
+        # check stripped a trailing " (SKIPPED)" before comparing, on the theory that
+        # "X" and "X (SKIPPED)" name the same section.  They do not: they are
+        # distinct literal markers, and every reader here anchors on the exact
+        # marker, so both are reachable and neither shadows the other.  That version
+        # reported four perfectly good files as defective.  The audit compares what
+        # the readers compare, which is the raw marker.
+        duplicated="$(LC_ALL=C sed -n \
+            -e 's/^===== \(.*\) =====$/\1/p' \
+            -- "$file" | LC_ALL=C sort | LC_ALL=C uniq -d | head -5)" || true
+        if [ -n "$duplicated" ]; then
+            found=$((found + 1))
+            mark_incomplete "section hygiene: ${base} contains more than one section with the same name, which makes every field in the later one unreachable to the scoped readers that assert on it.  Duplicated section names: $(printf '%s' "$duplicated" | tr '\n' ' ')"
+        fi
+    done
+
+    [ "$found" -eq 0 ]
+}
+
+publish_capture()
+{
+    local staged="$SMOKE_OUT_DIR"
+    local final="$SMOKE_FINAL_OUT_DIR"
+    local superseded="${final}.superseded-$$"
+
+    [ "$SMOKE_STAGED" = 'yes' ] || return 0
+
+    if [ ! -d "$staged" ]; then
+        printf 'smoke-checks.sh: the staged capture directory vanished: %s\n' "$staged" >&2
+        return 1
+    fi
+
+    if [ -e "$final" ]; then
+        if [ -e "$superseded" ]; then
+            printf 'smoke-checks.sh: cannot set the previous capture aside; %s exists.\n' \
+                "$superseded" >&2
+            printf '  The staged capture is complete and is left at %s.\n' "$staged" >&2
+            return 1
+        fi
+        if ! mv -- "$final" "$superseded"; then
+            printf 'smoke-checks.sh: could not rename the previous capture aside.\n' >&2
+            printf '  The staged capture is complete and is left at %s.\n' "$staged" >&2
+            return 1
+        fi
+    fi
+
+    if ! mv -- "$staged" "$final"; then
+        printf 'smoke-checks.sh: could not move the staged capture into place.\n' >&2
+        printf '  Staged capture:    %s\n' "$staged" >&2
+        printf '  Intended location: %s\n' "$final" >&2
+        if [ -d "$superseded" ]; then
+            printf '  Restoring the previous capture from %s\n' "$superseded" >&2
+            mv -- "$superseded" "$final" || \
+                printf '  RESTORE FAILED. The previous capture is at %s\n' "$superseded" >&2
+        fi
+        return 1
+    fi
+
+    if [ -d "$superseded" ]; then
+        rm -rf -- "$superseded"
+    fi
+
+    printf 'smoke-checks.sh: published the staged capture to %s\n' "$final" >&2
+    printf '  Every file there was written by THIS run: the destination was replaced\n' >&2
+    printf '  wholesale rather than written into, so no file from an earlier run and no\n' >&2
+    printf '  file from an earlier revision of this script can have survived.\n' >&2
+    return 0
+}
+
 main()
 {
     local overall
@@ -12042,7 +17186,15 @@ main()
         return $?
     fi
 
-    printf 'smoke-checks.sh: capturing into %s\n' "$SMOKE_OUT_DIR" >&2
+    if [ "$SMOKE_STAGED" = 'yes' ]; then
+        printf 'smoke-checks.sh: staging into %s\n' "$SMOKE_OUT_DIR" >&2
+        printf 'smoke-checks.sh: will publish to %s by replacing it wholesale\n' \
+            "$SMOKE_FINAL_OUT_DIR" >&2
+    else
+        printf 'smoke-checks.sh: capturing in place into %s\n' "$SMOKE_OUT_DIR" >&2
+        printf 'smoke-checks.sh: a subset run does not stage; see the staging note near\n' >&2
+        printf '  the top of this script for why.\n' >&2
+    fi
     printf 'smoke-checks.sh: transport trust mode %s; state mutation permitted: %s\n' \
         "$TLS_TRUST_MODE" "$MUTATIONS_ENABLED" >&2
 
@@ -12051,7 +17203,10 @@ main()
     # a narrower version of itself; see the SMOKE_FLOWS documentation above.
     if [ -z "$SMOKE_FLOWS" ]; then
         capture_toolchain
+        capture_redaction_ledger
         capture_corpus_figures
+        capture_static_audit
+        capture_jacoco_liveness
         capture_startup_regions
         capture_frontend_digests
         capture_reference_stack
@@ -12062,23 +17217,47 @@ main()
         printf '  digests and summary of the whole run are left untouched.\n' >&2
     fi
 
-    flow_selected 1 && flow_1_login
-    flow_selected 2 && flow_2_views
-    flow_selected 6 && flow_6_generated_number
-    flow_selected 3 && flow_3_alfresco_roundtrip
-    flow_selected 4 && flow_4_solr_search
-    flow_selected 5 && flow_5_activemq_event
-    flow_selected 7 && flow_7_workflow_start
-    flow_selected 8 && flow_8_queue_transition
+    # Each selection is COUNTED as well as acted on, so that "how many flows did
+    # this invocation actually run" is a number the run can assert on rather than
+    # something a reader has to infer from which files changed.
+    local flows_run=0
+
+    flow_selected 1 && { flow_1_login; flows_run=$((flows_run + 1)); }
+    flow_selected 2 && { flow_2_views; flows_run=$((flows_run + 1)); }
+    flow_selected 6 && { flow_6_generated_number; flows_run=$((flows_run + 1)); }
+    flow_selected 3 && { flow_3_alfresco_roundtrip; flows_run=$((flows_run + 1)); }
+    flow_selected 4 && { flow_4_solr_search; flows_run=$((flows_run + 1)); }
+    flow_selected 5 && { flow_5_activemq_event; flows_run=$((flows_run + 1)); }
+    flow_selected 7 && { flow_7_workflow_start; flows_run=$((flows_run + 1)); }
+    flow_selected 8 && { flow_8_queue_transition; flows_run=$((flows_run + 1)); }
+
+    # A run that executed no flow at all wrote no evidence, and must not be able to
+    # report success.  Startup validation already refuses a token outside 1..8, so
+    # reaching zero here means something else selected nothing; either way the
+    # answer is the same and it is not silence.
+    if [ "$flows_run" -eq 0 ]; then
+        printf 'smoke-checks.sh: NO FLOW RAN.  This invocation selected none of the eight
+' >&2
+        printf '  flows, so it captured no evidence at all.  Refused rather than reported as
+' >&2
+        printf '  a successful capture: a run that writes nothing must not be
+' >&2
+        printf '  indistinguishable from one that writes eight flows.
+' >&2
+        printf '  SMOKE_FLOWS was: %s\n' "${SMOKE_FLOWS:-<unset, which selects all eight>}" >&2
+        return 2
+    fi
 
     if [ -n "$SMOKE_FLOWS" ]; then
         # Cleanup still runs: whatever a selected flow created must be removed,
         # or the litter changes what the next capture sees.  It writes nothing
         # when nothing was created.
         run_cleanup
+    # Published beside the cleanup note, always, even when empty: see report_residue.
+    report_residue
 
-        printf 'smoke-checks.sh: subset capture of flow(s) %s complete in %s\n' \
-            "$SMOKE_FLOWS" "$SMOKE_OUT_DIR" >&2
+        printf 'smoke-checks.sh: subset capture of %s flow(s) [%s] complete in %s\n' \
+            "$flows_run" "$SMOKE_FLOWS" "$SMOKE_OUT_DIR" >&2
         printf 'smoke-checks.sh: no completeness verdict is written for a subset run,\n' >&2
         printf '  because a subset is not in a position to compute one.  Re-run without\n' >&2
         printf '  SMOKE_FLOWS to refresh the whole capture and its verdict.\n' >&2
@@ -12094,11 +17273,45 @@ main()
     write_created_state_note
     write_comparison
     run_cleanup
+    # Published beside the cleanup note, always, even when empty: see report_residue.
+    report_residue
+
+    # The manifest is validated BEFORE the completeness verdict is computed, so
+    # that a drifted manifest is one of the reasons the verdict reads INCOMPLETE
+    # rather than a separate finding a reader has to correlate by hand.  Its own
+    # exit status is deliberately discarded here: it has already recorded every
+    # discrepancy through mark_incomplete, and the verdict is derived from that
+    # record like every other assertion in this script.
+    validate_manifest || true
+
+    # Every status file is checked for the two shapes that make a status row
+    # uncomparable, BEFORE the completeness verdict is computed, so a violation
+    # lands in the verdict rather than being discovered by a reviewer.  Its status
+    # is discarded for the same reason validate_manifest's is: it records every
+    # discrepancy through mark_incomplete.
+    audit_status_hygiene || true
 
     overall="$(write_completeness)"
     write_summary "$overall"
 
-    printf 'smoke-checks.sh: capture complete.  Evidence is in %s\n' "$SMOKE_OUT_DIR" >&2
+    # The three files written after the manifest accounting are asserted now that
+    # they exist.  Its status is discarded for the same reason validate_manifest's
+    # is: it has already recorded every discrepancy through mark_incomplete.
+    verify_deferred_manifest_entries || true
+
+    # Publication is the last action, after every file is written and the manifest
+    # accounted for.  See publish_capture for why it is unconditional on the
+    # manifest outcome.
+    if ! publish_capture; then
+        printf 'smoke-checks.sh: PUBLICATION FAILED.  The capture itself is complete;\n' >&2
+        printf '  it is at %s and has NOT been moved to %s.\n' \
+            "$SMOKE_OUT_DIR" "$SMOKE_FINAL_OUT_DIR" >&2
+        printf '  Nothing was deleted.  Move it into place by hand once the cause is\n' >&2
+        printf '  cleared, or re-run.\n' >&2
+        return 1
+    fi
+
+    printf 'smoke-checks.sh: capture complete.  Evidence is in %s\n' "$SMOKE_FINAL_OUT_DIR" >&2
     printf 'smoke-checks.sh: completeness verdict: %s (see notes/completeness.txt)\n' \
         "$overall" >&2
     printf 'smoke-checks.sh: this script does not report a behavioural pass or fail.\n' >&2

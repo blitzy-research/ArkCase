@@ -1,81 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ARCHIVED UNIT TEST REPORT . MIGRATED SIDE . com.armedia.acm.plugins.casefile.service.MergeCaseServiceImplTest
-
-  module                 acm-case-file-plugin
-  base commit            c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short c8f6226105)
-  runtime of record      Java 17
-  provenance             produced by a test run and relocated here unchanged.  This
-                         file was NOT composed by hand and was NOT derived from test
-                         source: every attribute, every property value and the whole
-                         payload below was written by the test runner itself.
-  relocated from         acm-plugins/acm-default-plugins/acm-case-file-plugin/target/surefire-reports/TEST-com.armedia.acm.plugins.casefile.service.MergeCaseServiceImplTest.xml
-                         quoted above as text only.  That build output directory name is
-                         ignored by the repository at any depth, so a report left where
-                         the runner wrote it would pass every local check while the
-                         committed deliverable stayed empty.  Relocation out of it is
-                         therefore mandatory rather than cosmetic, and the native file
-                         name was carried over unchanged rather than renamed.  The
-                         directory is quoted here, never recreated under this tree.
-
-  RULES PROVENANCE, both facts stated together.  First: there is no on disk user rules
-  document for this project.  The rules facility reports none, which is recorded
-  explicitly here and is not licence to lower the bar.  Second: rules are nonetheless
-  present and binding.  The requirements embed a numbered block of seven rules, labelled
-  R-1 through R-7 in the plan, plus seven transformation rules labelled R-T1 through
-  R-T7, and they govern this work in full.  Those R identifiers are the plan's own
-  navigational labels rather than quoted titles.  No rule text is transcribed here.
-
-  WHAT THIS REPORT IS EVIDENCE OF.  The suite runs on the class level runner that the
-  application framework's TestContext support provides, with a context configuration
-  declared on the class, so executing it loads an application context.  Nothing about
-  that arrangement changed in this migration: the framework stays on the generation it
-  was already on.  A green result is therefore unit level evidence that context loading
-  survived the runtime change, which the deployment gate confirms separately.  The class
-  also exercises the mocking library whose advance this migration required, so it carries
-  that evidence too.  The payload below is the run's own context startup output, retained
-  in full and verbatim; nothing in it was invented, and it was not truncated, because
-  truncating it would discard the evidence that the context initialised.  The recorded
-  class file version and runtime version properties are the runner's own record that this
-  tier compiled and executed on Java 17 rather than on the superseded release level.  The
-  pre migration side of the pair was captured on JDK 8 and is archived under the sibling
-  baseline directory using this identical file name.
-
-  HOW TO COMPARE THE TWO TIERS.  Judge testcase presence, outcome and failure message
-  content.  Do not compare raw bytes: the payload below carries wall clock timestamps and
-  object identity hash codes, so byte equality across tiers is impossible even in
-  principle and its absence would mean nothing.  Read this report together with the
-  sibling docs/migration/smoke-evidence/migrated/jacoco-liveness.txt, because coverage
-  instrumentation that measured an empty data set would still produce a pass and a zero
-  exit status while proving nothing.  No assertion here rests on an exit status.
-
-  OUTCOME AND ITS CONSEQUENCES.  One test method, testMergeCases, declared in
-  acm-plugins/acm-default-plugins/acm-case-file-plugin/src/test/java/com/armedia/acm/plugins/casefile/service/MergeCaseServiceImplTest.java
-  and observed by the runner to execute.  It carries no failure element and no error
-  element, so this suite owes zero rows to the baseline test failures register; a failure
-  without a matching row there would be a migration regression rather than an accepted
-  prior condition.  The class declares no ignore annotation and is not excluded from this
-  run, and the suite records no skipped test, so nothing here presents a disabled test.
-  A similarly named integration test class in the same package is deliberately absent
-  from this archive: integration tests are bound after the unit test phase by a separate
-  plugin and emit their own reports, and an absent integration test is neither a pass nor
-  a failure and can never justify an exclusion.
-
-  SUBSTITUTIONS AND AUDITED ZEROS.  The runner emits a large system property dump whose
-  path bearing entries hold absolute filesystem locations; those entries are omitted,
-  which is the sanctioned treatment for an absolute path and also keeps credentials that
-  neighbouring integration classes set out of this archive entirely.  The retained subset
-  is the runtime and platform identification, and it is the runner's own text.  The
-  retained payload was audited and carries no absolute path.  It also carries zero tokens
-  of the namespace this migration excludes, and zero module access JVM arguments, that is
-  zero arguments that open or export an otherwise encapsulated JDK package to the unnamed
-  module.  Both zeros are earned rather than assumed: the audit was run over the complete
-  raw capture, not merely over the part retained here.  Consistently with that, the
-  register titled JDK Access Exceptions is empty.  No library version is stated anywhere
-  in this file; version justification belongs solely to the dependency change inventory.
--->
-
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.service.MergeCaseServiceImplTest" time="0.151" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.service.MergeCaseServiceImplTest" time="0.168" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -94,11 +18,11 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="testMergeCases" classname="com.armedia.acm.plugins.casefile.service.MergeCaseServiceImplTest" time="0.123">
-    <system-out><![CDATA[2026-08-03 15:30:03,488 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
-2026-08-03 15:30:03,489 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@4a2c5404, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@2a1ded4f, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@115adb9, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@5c2b1148, org.springframework.test.context.support.DirtiesContextTestExecutionListener@740ff2bd, org.springframework.test.context.transaction.TransactionalTestExecutionListener@313d1ee6, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@1de9051d, org.springframework.test.context.event.EventPublishingTestExecutionListener@19cce6b9]
-2026-08-03 15:30:03,635 [INFO ] [main] com.armedia.acm.plugins.casefile.service.MergeCaseServiceImpl - Going to merge 55435345435_2133 into 123123123213_123213
-2026-08-03 15:30:03,636 [INFO ] [main] com.armedia.acm.plugins.casefile.service.MergeCaseServiceImpl - moved 1 documents  from container id=null to container id=null
+  <testcase name="testMergeCases" classname="com.armedia.acm.plugins.casefile.service.MergeCaseServiceImplTest" time="0.142">
+    <system-out><![CDATA[2026-08-07 07:28:39,399 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+2026-08-07 07:28:39,400 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@19cce6b9, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@125d6527, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@4b4e83a4, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@1e5ab63d, org.springframework.test.context.support.DirtiesContextTestExecutionListener@60dd6261, org.springframework.test.context.transaction.TransactionalTestExecutionListener@19504700, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@26bca42d, org.springframework.test.context.event.EventPublishingTestExecutionListener@6d9c1599]
+2026-08-07 07:28:39,563 [INFO ] [main] com.armedia.acm.plugins.casefile.service.MergeCaseServiceImpl - Going to merge 55435345435_2133 into 123123123213_123213
+2026-08-07 07:28:39,564 [INFO ] [main] com.armedia.acm.plugins.casefile.service.MergeCaseServiceImpl - moved 1 documents  from container id=null to container id=null
 ]]></system-out>
   </testcase>
 </testsuite>

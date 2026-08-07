@@ -113,16 +113,22 @@
             POM is in none of those lists, so this edit is OUTSIDE the frozen plan's file list and is not
             authorised by it. It is retained only because reverting it breaks a higher-precedence obligation of
             the same plan, and the measurement is on record: with the literal 1.8.6 in this element, this
-            module reports Tests run: 23, Failures: 0, Errors: 12, every one an InaccessibleObjectException on
-            java.lang.Object.finalize() raised from GroovyBeanDefinitionReader; with the reactor property in its
-            place, Tests run: 23, Failures: 0, Errors: 0. Those twelve errors do not exist at the JDK 8 baseline, so they would be new
+            module reports Tests run: 23, Failures: 0, Errors: 12. Of those twelve, one is an
+            ExceptionInInitializerError whose cause is java.lang.reflect.InaccessibleObjectException: Unable to
+            make protected void java.lang.Object.finalize() throws java.lang.Throwable accessible: module
+            java.base does not "opens java.lang" to unnamed module, raised the first time a test touches Groovy;
+            the remaining eleven are the follow-on java.lang.NoClassDefFoundError: Could not initialize class
+            groovy.lang.GroovySystem. With the reactor property in its place, Tests run: 23, Failures: 0,
+            Errors: 0. Those twelve errors do not exist at the JDK 8 baseline, so they would be new
             failures, which the plan's unit-test gate and its no-disabling-failing-tests rule both forbid. There
             is also no way to confine the change to the parent: a version declared on a direct dependency wins
             over dependencyManagement, and an inherited parent-level dependency loses to the child's own
             declaration, so this declaration must reference the reactor property or the pin never reaches this
-            module. Recorded for owner decision in
-            docs/migration/dependency-change-inventory.md under the deviations section; it is a deviation
-            pending approval, not approved scope. -->
+            module. The measurement above is the justification, recorded in
+            docs/migration/dependency-change-inventory.md under "Additional Changes Required by a Measured
+            Java 17 Failure". What that page cannot settle, and what a human owner must decide, is the file
+            scope: this POM is not in the plan's permitted list, and that departure is disclosed there rather
+            than absorbed. -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.168" tests="6" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.161" tests="6" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,7 +18,7 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="releaseLocksWhenExistingLocks" classname="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.153">
+  <testcase name="releaseLocksWhenExistingLocks" classname="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.146">
     <system-out><![CDATA[Releasing lock with test data: [1, FILE, READ, userId, READ, userId, 1, true, null, false]
 Releasing lock with test data: [1, FILE, READ, userId, READ, anotherUserId, 1, false, null, false]
 Releasing lock with test data: [1, FILE, READ, userId, WRITE, userId, 1, false, null, false]
@@ -28,74 +28,74 @@ Releasing lock with test data: [1, FILE, READ, userId, SHARED_WRITE, anotherUser
 Releasing lock with test data: [1, FILE, READ, userId, DELETE, userId, 1, false, null, false]
 Releasing lock with test data: [1, FILE, READ, userId, DELETE, anotherUserId, 1, false, null, false]
 Releasing lock with test data: [1, FILE, WRITE, userId, READ, userId, 1, false, null, false]
-2026-08-03 15:27:24,366 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [WRITE] , no need to unlock it.
+2026-08-07 07:26:02,957 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [WRITE] , no need to unlock it.
 Releasing lock with test data: [1, FILE, WRITE, userId, READ, anotherUserId, 1, false, null, false]
-2026-08-03 15:27:24,366 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [WRITE] , no need to unlock it.
+2026-08-07 07:26:02,957 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [WRITE] , no need to unlock it.
 Releasing lock with test data: [1, FILE, WRITE, userId, WRITE, userId, 1, true, null, false]
 Releasing lock with test data: [1, FILE, WRITE, userId, WRITE, anotherUserId, 1, false, null, true]
-2026-08-03 15:27:24,367 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
+2026-08-07 07:26:02,958 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
 Releasing lock with test data: [1, FILE, WRITE, userId, SHARED_WRITE, userId, 1, false, null, true]
-2026-08-03 15:27:24,368 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type SHARED_WRITE by user: userId
+2026-08-07 07:26:02,959 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type SHARED_WRITE by user: userId
 Releasing lock with test data: [1, FILE, WRITE, userId, SHARED_WRITE, anotherUserId, 1, false, null, true]
-2026-08-03 15:27:24,368 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type SHARED_WRITE by user: anotherUserId
+2026-08-07 07:26:02,959 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type SHARED_WRITE by user: anotherUserId
 Releasing lock with test data: [1, FILE, WRITE, userId, DELETE, userId, 1, false, null, true]
-2026-08-03 15:27:24,368 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type DELETE by user: userId
+2026-08-07 07:26:02,959 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type DELETE by user: userId
 Releasing lock with test data: [1, FILE, WRITE, userId, DELETE, anotherUserId, 1, false, null, true]
-2026-08-03 15:27:24,369 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
+2026-08-07 07:26:02,960 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
 Releasing lock with test data: [1, FILE, DELETE, userId, READ, userId, 1, false, null, false]
-2026-08-03 15:27:24,369 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [DELETE] , no need to unlock it.
+2026-08-07 07:26:02,960 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [DELETE] , no need to unlock it.
 Releasing lock with test data: [1, FILE, DELETE, userId, READ, anotherUserId, 1, false, null, true]
-2026-08-03 15:27:24,369 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type READ by user: anotherUserId
+2026-08-07 07:26:02,960 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type READ by user: anotherUserId
 Releasing lock with test data: [1, FILE, DELETE, userId, DELETE, userId, 1, true, null, false]
 Releasing lock with test data: [1, FILE, DELETE, userId, DELETE, anotherUserId, 1, false, null, true]
-2026-08-03 15:27:24,370 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
+2026-08-07 07:26:02,961 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
 Releasing lock with test data: [1, FILE, DELETE, userId, WRITE, userId, 1, false, null, true]
-2026-08-03 15:27:24,370 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type WRITE by user: userId
+2026-08-07 07:26:02,961 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type WRITE by user: userId
 Releasing lock with test data: [1, FILE, DELETE, userId, WRITE, anotherUserId, 1, false, null, true]
-2026-08-03 15:27:24,371 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
+2026-08-07 07:26:02,961 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
 Releasing lock with test data: [1, FILE, DELETE, userId, SHARED_WRITE, userId, 1, false, null, true]
-2026-08-03 15:27:24,371 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type SHARED_WRITE by user: userId
+2026-08-07 07:26:02,962 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type SHARED_WRITE by user: userId
 Releasing lock with test data: [1, FILE, DELETE, userId, SHARED_WRITE, anotherUserId, 1, false, null, true]
-2026-08-03 15:27:24,371 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type SHARED_WRITE by user: anotherUserId
+2026-08-07 07:26:02,962 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type SHARED_WRITE by user: anotherUserId
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, READ, userId, 1, false, null, false]
-2026-08-03 15:27:24,371 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [SHARED_WRITE] , no need to unlock it.
+2026-08-07 07:26:02,962 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [SHARED_WRITE] , no need to unlock it.
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, READ, anotherUserId, 1, false, null, false]
-2026-08-03 15:27:24,372 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [SHARED_WRITE] , no need to unlock it.
+2026-08-07 07:26:02,963 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [FILE] with id [1] does not have lock of type [SHARED_WRITE] , no need to unlock it.
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, SHARED_WRITE, userId, 1, true, 1, false]
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, SHARED_WRITE, anotherUserId, 1, true, 1, false]
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, SHARED_WRITE, userId, 1, false, null, true]
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, SHARED_WRITE, anotherUserId, 1, false, null, true]
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, WRITE, userId, 1, false, null, true]
-2026-08-03 15:27:24,373 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type WRITE by user: userId
+2026-08-07 07:26:02,964 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type WRITE by user: userId
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, WRITE, anotherUserId, 1, false, null, true]
-2026-08-03 15:27:24,373 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
+2026-08-07 07:26:02,964 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, DELETE, userId, 1, false, null, true]
-2026-08-03 15:27:24,373 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type DELETE by user: userId
+2026-08-07 07:26:02,964 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type DELETE by user: userId
 Releasing lock with test data: [1, FILE, SHARED_WRITE, userId, DELETE, anotherUserId, 1, false, null, true]
-2026-08-03 15:27:24,374 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
+2026-08-07 07:26:02,965 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to release object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
 ]]></system-out>
   </testcase>
   <testcase name="acquireLocksWhenNoExistingLockReturnsNewAcquiredLockAndSavesToDb" classname="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.002">
-    <system-out><![CDATA[2026-08-03 15:27:24,375 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=READ]
-2026-08-03 15:27:24,375 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [READ] for object [FILE:1]
-2026-08-03 15:27:24,376 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=WRITE]
-2026-08-03 15:27:24,376 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [WRITE] for object [FILE:1]
-2026-08-03 15:27:24,376 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
-2026-08-03 15:27:24,376 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
-2026-08-03 15:27:24,376 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=DELETE]
-2026-08-03 15:27:24,377 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [DELETE] for object [FILE:1]
+    <system-out><![CDATA[2026-08-07 07:26:02,966 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=READ]
+2026-08-07 07:26:02,966 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [READ] for object [FILE:1]
+2026-08-07 07:26:02,966 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=WRITE]
+2026-08-07 07:26:02,966 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [WRITE] for object [FILE:1]
+2026-08-07 07:26:02,967 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
+2026-08-07 07:26:02,967 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
+2026-08-07 07:26:02,967 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=DELETE]
+2026-08-07 07:26:02,967 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [DELETE] for object [FILE:1]
 ]]></system-out>
   </testcase>
   <testcase name="releaseUnknownLockThrowsException" classname="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.0"/>
-  <testcase name="acquireUnknownLockThrowsException" classname="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.001"/>
-  <testcase name="releaseLocksWhenNoExistinLocks" classname="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.0"/>
+  <testcase name="acquireUnknownLockThrowsException" classname="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.0"/>
+  <testcase name="releaseLocksWhenNoExistinLocks" classname="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.001"/>
   <testcase name="acquireLocksWhenExistingLocks" classname="com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest" time="0.011">
     <system-out><![CDATA[Acquiring lock with test data: [1, FILE, READ, userId, READ, userId, true, true, true, false]
-2026-08-03 15:27:24,379 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=READ]
-2026-08-03 15:27:24,379 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [READ] for object [FILE:1]
+2026-08-07 07:26:02,970 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=READ]
+2026-08-07 07:26:02,970 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [READ] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, READ, userId, READ, anotherUserId, true, true, true, false]
-2026-08-03 15:27:24,380 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=READ]
-2026-08-03 15:27:24,380 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [READ] for object [FILE:1]
+2026-08-07 07:26:02,970 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=READ]
+2026-08-07 07:26:02,970 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [READ] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, READ, userId, WRITE, userId, true, true, false, false]
 Acquiring lock with test data: [1, FILE, READ, userId, WRITE, anotherUserId, true, true, false, false]
 Acquiring lock with test data: [1, FILE, READ, userId, SHARED_WRITE, userId, true, true, false, false]
@@ -103,58 +103,58 @@ Acquiring lock with test data: [1, FILE, READ, userId, SHARED_WRITE, anotherUser
 Acquiring lock with test data: [1, FILE, READ, userId, DELETE, userId, true, true, false, false]
 Acquiring lock with test data: [1, FILE, READ, userId, DELETE, anotherUserId, true, true, false, false]
 Acquiring lock with test data: [1, FILE, WRITE, userId, READ, userId, true, true, true, false]
-2026-08-03 15:27:24,381 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=WRITE]
-2026-08-03 15:27:24,381 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [WRITE] for object [FILE:1]
+2026-08-07 07:26:02,972 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=WRITE]
+2026-08-07 07:26:02,972 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [WRITE] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, WRITE, userId, READ, anotherUserId, true, true, true, false]
-2026-08-03 15:27:24,382 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=WRITE]
-2026-08-03 15:27:24,382 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [WRITE] for object [FILE:1]
+2026-08-07 07:26:02,972 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=WRITE]
+2026-08-07 07:26:02,972 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [WRITE] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, WRITE, userId, WRITE, userId, false, false, true, false]
-2026-08-03 15:27:24,382 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=WRITE]
-2026-08-03 15:27:24,382 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [WRITE] for object [FILE:1]
+2026-08-07 07:26:02,973 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=WRITE]
+2026-08-07 07:26:02,973 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [WRITE] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, WRITE, userId, WRITE, anotherUserId, false, false, false, true]
-2026-08-03 15:27:24,383 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
+2026-08-07 07:26:02,973 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
 Acquiring lock with test data: [1, FILE, WRITE, userId, SHARED_WRITE, userId, false, false, false, true]
-2026-08-03 15:27:24,383 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type SHARED_WRITE by user: userId
+2026-08-07 07:26:02,973 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type SHARED_WRITE by user: userId
 Acquiring lock with test data: [1, FILE, WRITE, userId, SHARED_WRITE, anotherUserId, false, false, false, true]
-2026-08-03 15:27:24,383 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type SHARED_WRITE by user: anotherUserId
+2026-08-07 07:26:02,974 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type SHARED_WRITE by user: anotherUserId
 Acquiring lock with test data: [1, FILE, WRITE, userId, DELETE, userId, false, false, false, true]
-2026-08-03 15:27:24,383 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type DELETE by user: userId
+2026-08-07 07:26:02,974 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type DELETE by user: userId
 Acquiring lock with test data: [1, FILE, WRITE, userId, DELETE, anotherUserId, false, false, false, true]
-2026-08-03 15:27:24,384 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
+2026-08-07 07:26:02,974 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=WRITE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
 Acquiring lock with test data: [1, FILE, DELETE, userId, READ, userId, true, false, true, false]
-2026-08-03 15:27:24,384 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=DELETE]
-2026-08-03 15:27:24,384 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [DELETE] for object [FILE:1]
+2026-08-07 07:26:02,975 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=DELETE]
+2026-08-07 07:26:02,975 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [DELETE] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, DELETE, userId, READ, anotherUserId, false, false, false, true]
 Acquiring lock with test data: [1, FILE, DELETE, userId, DELETE, userId, true, true, true, false]
-2026-08-03 15:27:24,384 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=DELETE]
-2026-08-03 15:27:24,385 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [DELETE] for object [FILE:1]
+2026-08-07 07:26:02,975 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=DELETE]
+2026-08-07 07:26:02,975 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [DELETE] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, DELETE, userId, DELETE, anotherUserId, false, false, false, true]
 Acquiring lock with test data: [1, FILE, DELETE, userId, WRITE, userId, false, false, false, true]
-2026-08-03 15:27:24,385 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type WRITE by user: userId
+2026-08-07 07:26:02,976 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type WRITE by user: userId
 Acquiring lock with test data: [1, FILE, DELETE, userId, WRITE, anotherUserId, false, false, false, true]
 Acquiring lock with test data: [1, FILE, DELETE, userId, SHARED_WRITE, userId, false, false, false, true]
-2026-08-03 15:27:24,385 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type SHARED_WRITE by user: userId
+2026-08-07 07:26:02,977 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=DELETE]. Reason: Object already has a lock of type SHARED_WRITE by user: userId
 Acquiring lock with test data: [1, FILE, DELETE, userId, SHARED_WRITE, anotherUserId, false, false, false, true]
 Acquiring lock with test data: [1, FILE, SHARED_WRITE, userId, READ, userId, true, true, true, false]
-2026-08-03 15:27:24,386 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
-2026-08-03 15:27:24,386 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
+2026-08-07 07:26:02,977 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
+2026-08-07 07:26:02,977 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, SHARED_WRITE, userId, READ, anotherUserId, true, true, true, false]
-2026-08-03 15:27:24,387 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
-2026-08-03 15:27:24,387 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
+2026-08-07 07:26:02,978 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
+2026-08-07 07:26:02,978 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, SHARED_WRITE, userId, SHARED_WRITE, userId, false, false, true, false]
-2026-08-03 15:27:24,387 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
-2026-08-03 15:27:24,387 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
+2026-08-07 07:26:02,978 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [userId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
+2026-08-07 07:26:02,978 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, SHARED_WRITE, userId, SHARED_WRITE, anotherUserId, false, false, true, false]
-2026-08-03 15:27:24,387 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [anotherUserId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
-2026-08-03 15:27:24,388 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
+2026-08-07 07:26:02,979 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [anotherUserId] about to create object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]
+2026-08-07 07:26:02,979 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [SHARED_WRITE] for object [FILE:1]
 Acquiring lock with test data: [1, FILE, SHARED_WRITE, userId, WRITE, userId, false, false, false, true]
-2026-08-03 15:27:24,388 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type WRITE by user: userId
+2026-08-07 07:26:02,979 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type WRITE by user: userId
 Acquiring lock with test data: [1, FILE, SHARED_WRITE, userId, WRITE, anotherUserId, false, false, false, true]
-2026-08-03 15:27:24,388 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
+2026-08-07 07:26:02,979 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type WRITE by user: anotherUserId
 Acquiring lock with test data: [1, FILE, SHARED_WRITE, userId, DELETE, userId, false, false, false, true]
-2026-08-03 15:27:24,388 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type DELETE by user: userId
+2026-08-07 07:26:02,980 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type DELETE by user: userId
 Acquiring lock with test data: [1, FILE, SHARED_WRITE, userId, DELETE, anotherUserId, false, false, false, true]
-2026-08-03 15:27:24,389 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
+2026-08-07 07:26:02,980 [ERROR] [main] com.armedia.acm.plugins.ecm.service.lock.FileLockingProvider -  userId not able to acquire object lock[objectId=1, objectType=FILE, lockType=SHARED_WRITE]. Reason: Object already has a lock of type DELETE by user: anotherUserId
 ]]></system-out>
   </testcase>
 </testsuite>

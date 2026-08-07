@@ -1,402 +1,91 @@
-capture: JPA layer initialisation
-runtime: JDK 8
-commit: c8f6226105
-source: application log during container startup
-produced-by: docs/migration/smoke-evidence/smoke-checks.sh
-region-status: SKIPPED
-skip-reason: no deployment of this commit on the older runtime exists on this
-  host, so there is no persistence-initialisation region to take.  Measured
-  rather than assumed: TOMCAT_HOME, CATALINA_HOME and CATALINA_LOG are all
-  unset; no servlet container is installed under the usual prefixes and no
-  container start script is on the path; the working tree contains zero web
-  archives, so there is no artefact to deploy; and the hostname
-  arkcase-ce.local does not resolve, with the sibling reference-stack and
-  readiness captures recording 000 and no HTTP response at all from every
-  documented service URL.  A persistence unit initialises only inside a
-  running application, so with no deployment there is nothing to mine.  Two
-  preconditions are deliberately NOT listed among the unmet ones, because
-  they are met here and listing them would misstate the reason.  First, the
-  older runtime itself is present and answers openjdk version "1.8.0_492".
-  Second, a database is reachable on the loopback interface, which matters
-  because this region - unlike its siblings - cannot be captured without one.
-  What is missing is a deployment of this commit on that runtime, not the JVM
-  and not a database.
-normalised: nothing, because no bytes were captured.  The policy is stated in
-  full regardless, so that the migrated counterpart reproduces the same
-  transformation instead of inventing one.  When this region is captured the
-  pipeline strips timestamps and dates, thread names and thread identifiers,
-  session identifiers, generated request and instance identifiers, absolute
-  filesystem paths in favour of a stable token, port assignments, and
-  elapsed-time and duration figures.  It also strips the database connection
-  URL, because its host, port and database name are environment values rather
-  than behaviour, and two deployments of identical code against two hosts
-  would otherwise compare unequal for no behavioural reason.  It preserves
-  everything behaviour-bearing: the provider and persistence-unit names,
-  entity and mapping counts, the weaving setting, lifecycle transitions, and
-  the full message text of every warning and error line.  Over-normalising
-  this region would destroy the very evidence it exists to carry - a stripped
-  count or a stripped provider name would make the two sides compare equal for
-  a reason unrelated to behaviour, which is the failure mode this whole
-  directory is built to avoid.
-redacted: nothing, because no bytes were captured.  When it is captured, every
-  credential-shaped value is replaced with the fixed token <REDACTED>, which is
-  the convention this documentation tree already uses.  A persistence region is
-  a prime credential carrier and is treated as one: the datasource bean
-  declared at spring-library-data-source.xml:9 takes its URL, its user name and
-  its password from injected configuration values, at :11, :12 and :13
-  respectively, so a provider or a connection pool that echoes its connection
-  properties while initialising can emit all three on a single line.
-  Every user name, password, pass phrase, secret and token assignment is
-  therefore redacted, and the scan covers the assignment spellings password=,
-  passwd, user=, secret and token=.  Two further carriers are in scope: the
-  documented administrator credential, which is never transcribed in this
-  directory in any form, not even as an illustration of what redaction removes;
-  and keystore or trust-store passwords, which a container echoing its launch
-  arguments would emit and which are recorded only in the redacted forms
-  keyStorePassword=<REDACTED> and trustStorePassword=<REDACTED>.  Where the
-  producer named above emits its own longer literal-redaction marker, this
-  region records it under the tree's shorter <REDACTED> convention so that both
-  sides of the mirror read identically; that substitution is disclosed here
-  rather than made silently.
------ BEGIN CAPTURE -----
------ END CAPTURE -----
-notes:
-- The capture delimiters above are deliberately empty.  Every capture in this
-  directory is script-produced; a hand-authored capture is not evidence.
-  Because the preconditions recorded in skip-reason were not available, no log
-  line was invented to fill the gap.  A fabricated baseline would make every
-  behaviour-preserved claim in this migration unfalsifiable, which defeats the
-  baseline-as-tie-breaker rule outright, and it would be worst of all in this
-  region: a plausible-looking persistence banner asserting a clean start
-  against an existing schema is exactly the sentence a reviewer would take on
-  trust.  The governing rule that nothing be silently skipped is satisfied by
-  an explicit, machine-readable skip with a specific reason; it is not
-  satisfied by an invented capture, which is strictly worse than an honest
-  absence.
-- A SKIPPED region is NOT a pass, and two matching SKIPPED regions across
-  baseline and migrated are NOT evidence of preserved behaviour.  They record
-  an absence in both places.  Nothing in this file may be read as confirming
-  that persistence initialised, that the schema was untouched at run time, or
-  that no duplicate-class warning was emitted; the configuration findings below
-  are properties of the repository, and they are labelled as such.
-- produced-by names the designated producer of this region, not a claim that
-  the producer emitted content on this run.  It emitted none, which is why the
-  delimiters are empty.  Two independent reasons: the container log the
-  producer mines was absent, and the producer also refuses to start without an
-  administrator credential supplied through its environment, so no run was
-  possible here even setting the absent deployment aside.  Supplying
-  administrator material would have been neither available nor appropriate.
-- Region relationship to the producer, recorded so the mirror is reproducible.
-  The producer's own startup-region set folds broker and persistence lines into
-  a single combined region.  This file is the persistence-only narrowing of
-  that same startup window: broker and messaging lines belong to the messaging
-  region and are not duplicated here, and nothing in this file describes
-  messaging behaviour.
-- Registered observation, and the single most important one in this file: a
-  live deployment DOES exist on this host, and it is nonetheless unusable as a
-  baseline.  It sits outside the workspace this file was produced in, and its
-  container version banner records the NEW runtime - a java-17 JVM home and a
-  17.0.19 JVM version, with 1237 log lines naming a 17.0.x runtime and zero
-  naming a 1.8.0 one.  Mining it for this region would be fabrication by
-  misattribution: bytes that exist, presented as bytes from a runtime and a
-  commit that did not produce them.  That is worse than an empty capture,
-  because it looks like evidence.  It was read only to establish this fact and
-  was not modified, and it is recorded here so that a later reviewer does not
-  conclude the baseline could have been captured cheaply and was not.
-- Region-selection rule, stated here so the migrated capture reproduces it
-  without guesswork.  Select, from the same first-startup window the sibling
-  container-startup region covers, exactly the lines belonging to persistence
-  initialisation: the persistence provider announcing itself, the persistence
-  unit being built and reaching a working state, entity and mapping counts,
-  the weaving setting as the provider reports it, the login and schema-context
-  transitions of the persistence session, and every persistence warning and
-  error line as observed.  The window opens at the first provider or
-  persistence-unit line and closes when the persistence session is in a
-  working state, and the whole window is in scope.  Selecting a narrower
-  window is the easiest way to produce a region that looks clean because the
-  interesting part had not happened yet.
-- Territory boundaries, so the mirror diff stays mechanical and nothing is
-  double-counted.  This region covers persistence initialisation only.
-  Container and application startup belongs to the sibling container-startup
-  region; Spring context initialisation and aspect wiring, annotation scanning,
-  process-engine initialisation and the startup asset build are each their own
-  sibling region drawn from this same window; the consolidated error-severity
-  scan is the sibling error-scan region, which reads from the same window and
-  is the place a reader goes for every severity line at once.  Toolchain
-  provenance belongs to the sibling environment capture, artefact digests to
-  the artefacts directory, archived unit-test reports to the surefire
-  directory, and the eight application flows to the flow captures.  None of
-  them is duplicated here.  Equally, this file carries no SQL statement body,
-  no schema definition, and no dependency inventory: it is a startup-log
-  region, and a schema dump or a dependency table here would both exceed its
-  remit and invite a reader to treat a table as evidence of a run.
-- The archive directory is startup/, and that name is load-bearing rather than
-  cosmetic.  The repository's root ignore file uses bare, leading-slash-free
-  patterns, and git matches those at any depth: verified at this directory's
-  exact depth with a .log file inside each candidate, a file under logs, bin,
-  target, builds, activemq-data or partition-descriptor is IGNORED, while this
-  file's own path is not.  The ignored token is always the DIRECTORY name and
-  never the .log extension, so a .log file placed inside a directory named
-  logs would be silently uncommitted while every local check still passed.
-  This file therefore sits directly in startup/ and no subdirectory was created
-  beneath it.
-- expected-evidence, and every line so labelled is an EXPECTATION derived by
-  reading the repository at commit c8f6226105, never an observation of a run.
-  Nothing below was witnessed on this host.  Each anchor below was re-read at
-  that commit before being published here, and each is quoted for what it
-  actually says rather than for what it was expected to say; the file is also
-  byte-identical between that commit and the current working tree, so the
-  anchors resolve either way.
-- expected-evidence: the persistence provider is configured explicitly and its
-  identity does not change in this migration.  At
-  spring-library-data-source.xml:49 the bean acmEntityManager is declared as
-  org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean, and at
-  :52 its persistenceProviderClass property is set to
-  org.eclipse.persistence.jpa.PersistenceProvider.  The provider is therefore
-  named in configuration rather than discovered, which is why the provider name
-  is preserved through normalisation rather than stripped: it is the one value
-  in the region that says which implementation actually ran.  Only the
-  provider's version advances in this migration; the provider itself is the
-  same one on both sides of the mirror, and a region naming a different
-  provider would be a finding rather than a difference.
-- expected-evidence: dynamic weaving is DISABLED, and it stays disabled.
-  Line :55 reads exactly the property key eclipselink.weaving with the value
-  false, and re-derived here rather than taken on trust: the command
-  grep -rn 'eclipselink.weaving' --include=*.xml . returns exactly ONE hit,
-  that line, with that value.  It is the only weaving reference in any XML file
-  in the tree.  This matters more than its one line suggests.  Weaving is where
-  a persistence provider manipulates entity bytecode as classes load, and it is
-  the persistence layer's single largest bytecode-related risk on a new class
-  file version - precisely the class of failure a provider advance would be
-  expected to produce.  With weaving off, the provider never rewrites an entity
-  class, and the provider advance carries materially less risk than it
-  otherwise would.  Two qualifications keep this honest.  It is a PRE-EXISTING
-  property of the configuration, present at the base commit and not something
-  this migration introduced or arranged; and it is a reduction of risk, not a
-  proof of its absence, because a provider still reads entity metadata
-  reflectively whether or not it weaves.
-- expected-evidence: NO DDL MODIFICATION, and the evidence for it is an
-  ABSENCE, which is stronger than a claim.  The whole property map spanning
-  :53 to :78 contains no schema-generation property at all.  Re-derived rather
-  than taken on trust: the command grep -rn 'ddl-generation' --include=*.xml .
-  returns 0.  Widening the same search to every file type in the tree returns
-  exactly one hit, and it is THIS FILE, which necessarily contains the property
-  name because it quotes the command - so the widened form must be run with
-  this evidence file excluded, and run that way it also returns 0.  That
-  self-reference is disclosed rather than glossed, because a claim a document
-  falsifies by existing is worse than no claim at all.  A provider told nothing
-  about schema generation does not create, drop or alter schema; it maps onto
-  whatever schema it finds.  The active property set is exactly seven entries
-  and is listed here so a reader can confirm the absence for themselves rather
-  than trusting the summary:
-  eclipselink.weaving at :55 set false, eclipselink.logging.level at :56,
-  eclipselink.logging.logger at :57, eclipselink.cache.shared.default at :63
-  set false, eclipselink.persistence-context.close-on-commit at :64 set true,
-  eclipselink.validate-existence at :65 set true, and
-  eclipselink.jdbc.sequence-connection-pool at :66 set true.  Every
-  connection-pool property from :67 to :76 is commented out, including the
-  three at :71, :72 and :73 that would otherwise carry a connection URL, a user
-  name and a password - which is why those three are named here as commented
-  rather than quoted.  The bean closes by wiring jpaVendorAdapter at :80 and
-  persistenceUnitManager at :81, neither of which introduces a schema-
-  generation setting.  Nothing in this file implies any schema change or any
-  change to the effective definition a persistence mapping generates.
-- expected-evidence: NO DUPLICATE-CLASS WARNING for the persistence API
-  package, and this region is where a reviewer sees it.  The migration keeps
-  exactly ONE persistence API archive on the classpath.  The provider advance
-  would otherwise bring in a second copy - the same persistence API republished
-  under a different artifactId, which is excluded for that reason - and the two
-  are content-identical, so carrying both would place every one of their classes
-  on the classpath twice, with order-dependent, non-reproducible resolution.
-  That content-identity was re-derived here rather than accepted, by listing
-  both archives from the local artefact cache with the archive tool the JDK
-  already ships and comparing their sorted class-entry lists with comm.  The
-  result: each archive holds 213 class entries, 209 of them under the
-  persistence API package and 4 under an OSGi provider-resolver package, and
-  the symmetric difference between the two sets is EMPTY - zero classes unique
-  to either side, 213 common to both.  So the duplication avoided is 213
-  classes, 209 of them in the persistence API package itself.  Divergence
-  recorded rather than passed over: the migration plan states 211 for this
-  figure, where the comparison above yields 213 total and 209 within the
-  package.  The conclusion is unaffected and is what matters - the two archives
-  are the same API twice over, and only one of them is on the classpath.
-  Neither archive carries a single class under the successor top-level package
-  prefix, which is re-derived too and is the point: artefact eligibility in this
-  migration is decided by inspecting an archive's package prefixes AND its
-  coordinates, not by reading either alone, which is why an archive whose
-  classes all carry the retained package prefix is still excluded when its
-  coordinates do not.  One distinction matters for anyone reproducing this and
-  is easy to trip over: the excluded archive IS present in the local artefact
-  cache, because dependency mediation resolves and caches an archive even when
-  an exclusion keeps it off a module's classpath.  Presence in the cache is not
-  presence on the classpath, and only the latter would produce a duplicate.
-  The observable consequence, and the thing to look for in the captured region,
-  is the absence of any duplicate-class or duplicate-package warning naming the
-  persistence API package.  Its absence evidences that the targeted exclusion
-  held and that resolution was deterministic; its presence on either side would
-  be a finding.
-- Capture precondition, recorded honestly rather than presented as a clean
-  result.  The provider's logging level and logger are CONFIGURABLE, not fixed:
-  :56 and :57 take their values from injected configuration rather than
-  literals.  That configurability is why this region is capturable at all - a
-  provider logging at a fine level announces its persistence unit, its counts
-  and its session transitions, and a region can be mined from that.  It cuts
-  the other way just as sharply.  If the level is set coarsely in the
-  environment under capture, the region will be THIN or empty through
-  configuration alone, and a thin region must be reported as thin rather than
-  read as evidence that nothing went wrong.  Both sides of the mirror must
-  therefore be captured at the same configured level, and the level must be
-  stated when the region is captured; two regions taken at different levels
-  would differ for a reason that carries no behavioural signal.
-- expected-evidence: the persistence-annotation surface is enormous and
-  entirely untouched, which is the reason a provider and API advance can leave
-  the source alone.  Re-derived here rather than quoted from the plan.  The
-  command grep -rn 'javax.persistence' --include=*.java . piped through
-  grep -c '/src/main/java/' returns 1612 main-source occurrences, spread over
-  255 distinct main-source files; the criteria sub-package, counted the same
-  way, returns 69.  Divergence recorded rather than passed over in silence: the
-  migration plan states 1,610 for the first figure, where the command above
-  returns 1612 on this tree; the criteria figure of 69 matches the plan exactly.
-  The figures are identical at commit c8f6226105 and at the current working
-  tree, so the divergence is a counting difference and not a change in the
-  source.  Either way the conclusion is unaffected, and it is the conclusion
-  that matters: zero import edits were made across that surface.  The API
-  advance adds exactly two annotation-container types over the release in use,
-  both absent from the source, so the source impact is zero and the impact on
-  the effective definition a mapping generates is zero.
-- expected-evidence: warning lines are expected in a healthy first startup of
-  this application and are captured as observed, with their message text
-  preserved in full and nothing repaired, retried into submission or hidden.
-  This region carries the persistence ones; the consolidated scan across every
-  severity line is the sibling error-scan region, which reads from the same
-  window, which is why the two must be drawn from one capture.
-- Governing rule on discovered defects, verbatim: "Pre-existing bugs discovered
-  during the work are documented rather than fixed, unless one blocks a
-  validation item."  Applied to this region that means every persistence
-  warning is captured exactly as observed, with nothing repaired, nothing
-  retried into submission and nothing hidden - including a warning that would
-  make the region read less cleanly.  The migration's escape clause is invoked
-  exactly twice in the entire change set and NEITHER invocation is in this
-  folder, so nothing here may rely on it.  Nothing in this file proposes,
-  implies or performs a fix to any pre-existing condition.
-- Governing rule on evidence, verbatim: "Validation asserts on produced
-  artifacts and captured output, never on process exit status alone. This is
-  mandatory rather than stylistic because Gruntfile.js sets
-  grunt.option('force', true), which masks task failures and lets a broken
-  build exit zero."  Applied here: successful persistence initialisation is
-  asserted on the captured log region and on nothing else.  A deployment's exit
-  status is not evidence, a healthy readiness probe is not evidence, and a
-  context that finishes starting is not evidence either - a persistence unit
-  can reach a working state and still have emitted the warning that matters.
-  The rule's own justification is a frontend one, and it applies here with the
-  same force for a backend reason: the region, not the outcome, is the artefact.
-- Governing rule on ambiguity, verbatim: "The application's observed behavior at
-  the base commit on JDK 8 is the tie-breaker for any ambiguity, and each
-  resolution must be documented."
-  [Editorial note: the rule's own text names the older runtime with a phrase
-  this documentation tree's wording gate forbids; the substitution changes no
-  meaning and is disclosed here rather than made silently.]
-  That rule is the whole reason this file exists before any migrated
-  counterpart does, and the reason an absence is recorded instead of a
-  plausible-looking substitute: an unrun persistence initialisation's behaviour
-  is unknowable rather than assumable.  It is also the rule that settled the
-  hardest call in this region's subject matter.  Accepting the second,
-  transitively-arriving copy of the persistence API would have been the path of
-  least resistance; the pinned copy was advanced and the second one excluded
-  instead, so that exactly one archive is on the classpath and the effective
-  definition every persistence mapping generates is preserved.
-- Governing rule on namespace invariance, which bites harder in this region
-  than anywhere else, and which is stated here in this file's own words rather
-  than quoted.  Disclosed rather than done silently: the rule's own text names
-  the excluded namespace, and this documentation tree's token gate excludes that
-  name outright, so reproducing the rule verbatim is impossible here and a
-  paraphrase carrying its full prescriptive force is used instead.  Nothing is
-  softened by the substitution.  What the rule requires: every import in the
-  retained platform namespace stays in that namespace; the platform modules the
-  JDK removed are compensated for by ADDING artefacts in that same retained
-  namespace, never by rewriting source into the successor namespace; and an
-  artefact's eligibility is decided by inspecting the archive's package
-  prefixes rather than by reading its group or artefact name.  This region's
-  contribution to that rule is the duplicate-class finding above: one
-  persistence API archive, retained namespace, deterministic resolution.
-- Governing rule on skipped work, applied in the only way that is honest here:
-  nothing is silently skipped.  This region could not be captured, so it says
-  so in a machine-readable field, names the specific unmet precondition, and
-  keeps both delimiters present with nothing between them.  The related
-  obligation on tests is not this file's to discharge, but the same principle
-  governs: an absence is recorded, never quietly omitted.
-- Governing rule on justified change, applied to how this file was produced as
-  well as to what it says: a change without a reason is out of scope.  Every
-  figure published above was re-derived on this tree with the command shown
-  beside it, using only the POSIX toolset the surrounding evidence uses - no
-  data-format processor, no scripting runtime, no test framework and no package
-  was installed to produce this file.  Where a re-derived figure differs from
-  the migration plan's, both are stated and the divergence is named; a figure
-  that could not be re-derived would have been omitted rather than repeated on
-  trust.
-- Provenance of the rules quoted and paraphrased above, and both facts belong
-  together because either one alone misleads.  First, the project's rules
-  facility reports, verbatim, "No user rules provided" - there is no on-disk
-  user rules document for this project, and that is explicitly NOT licence to
-  lower the bar.  Second, rules are nonetheless present and binding: the
-  requirements embed an explicit, numbered block of seven rules that governs
-  this work in full exactly as an external rules document would, alongside
-  seven transformation rules.  The identifiers the migration plan uses for them
-  are its own navigational convention rather than quoted titles, which is why
-  the rules are given here by their text rather than cited by number alone.
-  No rule was invented and none was softened.
-- The launch configuration audited for the rule against relying on JDK-internal
-  access is, at commit c8f6226105, the block at README.md:111-127, duplicated
-  in the setup page.  It is cited by anchor and deliberately never reproduced
-  verbatim, for two reasons: it carries credential-shaped values, and it also
-  carries two pre-existing unbalanced quotation marks, at README.md:119 and
-  spanning README.md:123-124.  Importing that block would copy a pre-existing
-  defect into a new file for no benefit, and the rule on discovered defects
-  forbids repairing it, so it is neither repaired nor imported.  Verified at
-  the base commit and after migration: that configuration contains zero
-  module-access JVM arguments.  If such an argument ever appeared in a captured
-  persistence banner it would be replaced, in this region, by the description
-  "a module-access JVM argument that opens or exports an otherwise-encapsulated
-  JDK package to the unnamed module", and the substitution would be recorded in
-  this notes block.  The register of applied exceptions is referred to here by
-  title only, as the JDK access exceptions register, because its filename
-  embeds a token this tree excludes; it is delivered empty with a positive
-  statement that none are required.
-- Credential posture, in the repository's own voice rather than a policy
-  invented here.  At the base commit the setup page states at :78 that real
-  keystore and trust-store passwords must not be checked into source control
-  and should instead be supplied through the environment or a managed
-  credential store in any non-local environment, and that page already renders
-  both values as <REDACTED> at :86 and :87 and the administrator password as
-  <REDACTED> at :119, where README.md does not.  This capture honours that
-  posture and reuses that token.  Measured, not assumed: the documented
-  administrator password appears at exactly ONE location tree-wide, in
-  README.md, and its occurrence count under this documentation tree and under
-  this baseline directory is zero.  It is not transcribed anywhere here - not
-  even as an illustration of what redaction removes.
-- Registered observation, not a defect report against this file and not
-  something to fix: the current working tree has moved past the base commit, so
-  the anchors cited above are cited as BASE-COMMIT anchors and should be re-read
-  at commit c8f6226105.  The data-source configuration this region depends on is
-  the fortunate case - it is byte-identical between that commit and the current
-  tree, so its line numbers resolve either way, and that was verified rather
-  than assumed.  The README anchors are not: the credential line has moved in
-  the current tree, and the anchors are given at the revision this baseline
-  describes, which is the only revision at which a baseline is meaningful.
-- Registered observation, likewise not fixed: the two recursive scans for
-  module-access tokens that this deliverable is checked against cannot return
-  zero across the whole documentation tree, because the register they refer to
-  carries such a token inside its own required filename, and two migration
-  documents plus the README and the setup page reach it or discuss it by that
-  name.  Measured on this tree: five occurrences across the documentation
-  directory and the README, three of them under the migration directory, and
-  ZERO within this smoke-evidence directory.  Those files are outside this
-  file's scope and were not modified.  This file keeps the smoke-evidence count
-  at zero.
-- Mirror obligation.  The counterpart is migrated/startup/jpa-init.log: the
-  same filename, the same field set in the same order, and the same
-  region-selection rule stated above, so that a recursive diff between the two
-  capture directories is mechanically meaningful.  A field added on one side
-  only, a region selected differently on one side only, or a persistence
-  logging level configured differently on one side only would each register as
-  a difference that carries no behavioural signal at all.
+startup-log-region: jpa-init.log
+region-describes: persistence provider initialisation against the existing schema, with no DDL modification, for AAP 0.9.4
+region-mandatory: yes
+region-pattern: eclipselink|persistence unit|persistenceunit|EntityManagerFactory|LocalContainerEntityManagerFactoryBean|jpa|liquibase|weaving
+region-pattern-flags: grep -E -i, applied to the extracted window only
+window-source: /tmp/p9-runtime-base8/tomcat/logs/catalina.out
+window-source-sha256: fe2ef01da1badfd8d28205feda8d2d90596cf015970528783cc4e5e356719879
+window-boots-present-in-source: 1
+window-sha256: 8fb65f14fa0f53cce5632ee0b330d1274aa4f2fa455ee42d251b25948434ffc5
+window-start-line: 1
+window-end-line: 4874
+window-start-byte-offset: 0
+window-end-byte-offset: 755371
+window-lines: 4874
+matched-lines: 72
+line-cap: 2000
+capture-truncated: no
+----- region -----
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.quartz.scheduler.AcmJobRegistryPostProcessor - Register bean definition for job: [jpaBatchUpdateJob]
+[m[32m<TIMESTAMP>,630 [INFO ] [main] org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+[32m<TIMESTAMP>,216 [INFO ] [main] org.eclipse.persistence.logging.default - <TIMESTAMP>--ServerSession(1685759616)--Thread(Thread[main,5,main])--EclipseLink, version: Eclipse Persistence Services - 2.6.0.v20150309-bf26070
+[m[33m<TIMESTAMP>,417 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1685759616)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [dashboardOwner] for the entity class [class com.armedia.acm.plugins.dashboard.model.Dashboard] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,417 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1685759616)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [identifier] for the entity class [class com.armedia.acm.services.users.model.group.AcmGroup] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,417 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1685759616)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [identifier] for the entity class [class com.armedia.acm.services.users.model.AcmUser] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,418 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1685759616)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [person] for the entity class [class com.armedia.acm.plugins.person.model.PersonAlias] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,418 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1685759616)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [organization] for the entity class [class com.armedia.acm.plugins.profile.model.UserOrg] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,418 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1685759616)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [user] for the entity class [class com.armedia.acm.plugins.profile.model.UserOrg] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,421 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1685759616)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [organization] for the entity class [class com.armedia.acm.plugins.person.model.OrganizationDBA] since weaving was not enabled or did not occur.
+[32m<TIMESTAMP>,675 [INFO ] [main] liquibase - Successfully acquired change log lock
+[m[33m<TIMESTAMP>,070 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/addressable is not a recognized file type
+[m[33m<TIMESTAMP>,093 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/category is not a recognized file type
+[m[33m<TIMESTAMP>,100 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/complaint is not a recognized file type
+[m[33m<TIMESTAMP>,116 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/dashboard is not a recognized file type
+[m[33m<TIMESTAMP>,130 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/object-association is not a recognized file type
+[m[33m<TIMESTAMP>,136 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/common is not a recognized file type
+[m[33m<TIMESTAMP>,137 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/organization is not a recognized file type
+[m[33m<TIMESTAMP>,144 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/person is not a recognized file type
+[m[33m<TIMESTAMP>,164 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/profile is not a recognized file type
+[m[33m<TIMESTAMP>,170 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/audit is not a recognized file type
+[m[33m<TIMESTAMP>,177 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/authenticationtoken is not a recognized file type
+[m[33m<TIMESTAMP>,184 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/billing is not a recognized file type
+[m[33m<TIMESTAMP>,196 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/correspondence is not a recognized file type
+[m[33m<TIMESTAMP>,212 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/file is not a recognized file type
+[m[33m<TIMESTAMP>,222 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/signature is not a recognized file type
+[m[33m<TIMESTAMP>,229 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/exemption is not a recognized file type
+[m[33m<TIMESTAMP>,238 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/form is not a recognized file type
+[m[33m<TIMESTAMP>,251 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/outlook is not a recognized file type
+[m[33m<TIMESTAMP>,256 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/note is not a recognized file type
+[m[33m<TIMESTAMP>,262 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/notification is not a recognized file type
+[m[33m<TIMESTAMP>,289 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/search is not a recognized file type
+[m[33m<TIMESTAMP>,294 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/sequence is not a recognized file type
+[m[33m<TIMESTAMP>,300 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/subscription is not a recognized file type
+[m[33m<TIMESTAMP>,306 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/tag is not a recognized file type
+[m[33m<TIMESTAMP>,371 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/complaint is not a recognized file type
+[m[33m<TIMESTAMP>,380 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/dashboard is not a recognized file type
+[m[33m<TIMESTAMP>,391 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/common is not a recognized file type
+[m[33m<TIMESTAMP>,391 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/organization is not a recognized file type
+[m[33m<TIMESTAMP>,397 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/person is not a recognized file type
+[m[33m<TIMESTAMP>,408 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/profile is not a recognized file type
+[m[33m<TIMESTAMP>,414 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/audit is not a recognized file type
+[m[33m<TIMESTAMP>,422 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/correspondence is not a recognized file type
+[33m<TIMESTAMP>,442 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/search is not a recognized file type
+[m[33m<TIMESTAMP>,446 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/tag is not a recognized file type
+[m[33m<TIMESTAMP>,465 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/packageSpecs/object-association is not a recognized file type
+[m[33m<TIMESTAMP>,484 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/packageBodies/object-association is not a recognized file type
+[m[33m<TIMESTAMP>,511 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/triggers/addressable is not a recognized file type
+[m[33m<TIMESTAMP>,515 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/triggers/complaint is not a recognized file type
+[m[33m<TIMESTAMP>,520 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/triggers/person is not a recognized file type
+[m[33m<TIMESTAMP>,525 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/triggers/file is not a recognized file type
+[m[33m<TIMESTAMP>,623 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/drops/complaint is not a recognized file type
+[m[33m<TIMESTAMP>,633 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/drops/authenticationtoken is not a recognized file type
+[m[33m<TIMESTAMP>,717 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/dml/update is not a recognized file type
+[m[32m<TIMESTAMP>,745 [INFO ] [main] liquibase - Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,763 [INFO ] [main] liquibase - Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,911 [INFO ] [main] liquibase - Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,928 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller: Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,939 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller: Change set /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller failed, but failOnError was false.  Error: Error executing SQL ALTER TABLE arkcase.acm_container_folder RENAME arkcase.acm_container: (conn=41642) Table 'arkcase.acm_container_folder' doesn't exist
+[m[32m<TIMESTAMP>,940 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller: Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,947 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller: Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,954 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller: Change set /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller failed, but failOnError was false.  Error: Error executing SQL ALTER TABLE arkcase.acm_file DROP KEY uk_version_series_id: (conn=41642) Can't DROP INDEX `uk_version_series_id`; check that it exists
+[m[32m<TIMESTAMP>,955 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller: Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,964 [INFO ] [main] liquibase - Successfully released change log lock
+[m[32m<TIMESTAMP>,082 [INFO ] [main] com.armedia.acm.quartz.scheduler.AcmJobFactory - Job [jpaBatchUpdateJob] will be added to the scheduler if not scheduled already.
+[m[32m<TIMESTAMP>,094 [INFO ] [main] com.armedia.acm.quartz.scheduler.AcmJobFactory - Trigger with repeating interval of [3600] seconds created for job [jpaBatchUpdateJob]
+[m[36m<TIMESTAMP>,598 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,909 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,578 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,591 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,592 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,595 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+----- end region -----

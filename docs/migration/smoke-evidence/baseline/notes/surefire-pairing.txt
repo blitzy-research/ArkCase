@@ -1,13 +1,17 @@
 archived unit-test report pairing
 
-contract-file: <REPO-ROOT>/docs/migration/smoke-evidence/expected-suites.txt
+contract-file: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-004_575ea9/docs/migration/smoke-evidence/expected-suites.txt
 contract-state: read
+archive-carried-into-this-run: yes
+archive-carried-from: docs/migration/smoke-evidence/baseline/surefire
+archive-reports-carried: 278
+archive-carry-verification: verified: every digest in the archive own manifest matches the carried copy, so the archive published with this capture is byte-identical to the installed one
 suites-required-on-both-sides: 278
 suites-present-in-this-capture: 278
 suites-missing-from-this-capture: 0
 suites-present-but-not-in-the-contract: 0
 suites-lost-baseline-only: 0
-suites-added-migrated-only: 7
+suites-added-migrated-only: 6
 
 A suite archived at baseline with no migrated counterpart proves nothing:
 something that used to run either stopped running or stopped being archived,
@@ -26,6 +30,20 @@ rather than assumed here.  Demanding a counterpart either way would make every
 newly added test an evidence gap.  Additions are listed by name below instead,
 which is what keeps them accountable.
 
+why the four archive-carry lines above exist.  The archive under surefire/ is
+not written by the capture producer at all: install-surefire-evidence.sh
+installs it from a raw test harvest, with its own checksum manifest and its own
+run provenance.  A full capture, however, writes into a fresh staging directory
+and is then moved into place over the destination, which is what makes a
+published capture exactly one run output.  Two things followed from that, both
+observed: the pairing check read an empty staging subtree and recorded every
+required suite as missing, and publication deleted the installed archive.  The
+archive is therefore carried into the staging tree before anything asserts on
+it, and the carried copy is re-verified against the digests the archive ships
+for itself.  A failed or unverifiable carry makes this capture INCOMPLETE,
+because an archive that did not reach the staging tree is one this run is about
+to remove.
+
 suites required by the contract but missing here:
   (none)
 
@@ -41,5 +59,4 @@ suites ADDED — archived on the migrated side only (accounted for, not fatal):
   - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
   - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
   - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
-  - ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest.xml
   - ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml

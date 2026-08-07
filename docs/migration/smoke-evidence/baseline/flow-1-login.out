@@ -4,103 +4,231 @@ title: authenticated login, authorisation result and asserted identity
 
 ===== anonymous =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/admin/businessHours
+request-url: http://localhost:20050/arkcase/api/latest/plugin/admin/businessHours
 auth-mode: anon
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
-observed-content-length: (none reported)
-observed-body-bytes: 0
+http-version: 1.1
+observed-http-status: 401
+observed-content-type: text/html;charset=utf-8
+observed-content-length: 721
+observed-body-bytes: 721
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 0
 ----- body -----
-(empty)
+<!doctype html><html lang="en"><head><title>HTTP Status 401 – Unauthorized</title><style type="text/css">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class="line" /><p><b>Type</b> Status Report</p><p><b>Message</b> Unauthorized</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class="line" /><h3>Apache Tomcat/9.0.120</h3></body></html>
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-(none)
+HTTP/1.1 401 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/html;charset=utf-8
+Content-Language: en
+Content-Length: 721
+Date: <HTTP-DATE>
+
+
 ----- end response-headers -----
 
 ===== authenticated =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/admin/businessHours
+request-url: http://localhost:20050/arkcase/api/latest/plugin/admin/businessHours
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
 observed-content-length: (none reported)
-observed-body-bytes: 0
+observed-body-bytes: 177
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 0
 ----- body -----
-(empty)
+{"businessHours.businessDayHoursEnabled":false,"businessHours.endOfBusinessDayTime":"16:00","businessHours.startOfBusinessDayTime":"08:00","businessHours.defaultDueDateGap":180}
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-(none)
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+
+
 ----- end response-headers -----
 
 ===== authenticated-identity =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/users/info
+request-url: http://localhost:20050/arkcase/api/latest/users/info
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
 observed-content-length: (none reported)
-observed-body-bytes: 0
+observed-body-bytes: 3482
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 0
 ----- body -----
-(empty)
+{"userId":"arkcase-admin@arkcase.org","fullName":"ArkCase Administrator","mail":"arkcase-admin@arkcase.org","firstName":"ArkCase","lastName":"Administrator","authorities":["ROLE_ADMINISTRATOR","ROLE_PRE_AUTHENTICATED","ARKCASE_ADMINISTRATOR@ARKCASE.ORG","ROLE_SUPERVISOR","ROLE_BILLING_QUEUE"],"privileges":["acmCalendarAdminPrivilege","acmCaseApprovePrivilege","costsheetApprovePrivilege","subscribePrivilege","acmNotificationModulePrivilege","acmTaskClaimPrivilege","acmSubscriptionModulePrivilege","saveCasePrivilege","blogPrivilege","acmCaseModulePrivilege","tagPrivilege","acmOrganizationDeletePrivilege","acmSearchModulePrivilege","acmObjectTitleSavePrivilege","acmCategoryManagementPrivilege","documentRepositoryModulePrivilege","acmPersonDeletePrivilege","timesheetCreatePrivilege","acmSignatureFindPrivilege","acmPersonAssociationListPrivilege","acmOrganizationModulePrivilege","acmTaskDeletePrivilege","acmConsultationSavePrivilege","acmTaskCreatePrivilege","acmPersonFindPrivilege","acmOrganizationAssociationDeletePrivilege","acmTaskListPrivilege","participantPrivilege","acmObjectTitleGetPrivilege","acmGetSequenceRegistryPrivilege","acmPersonModulePrivilege","timesheetPrivilege","acmOrganizationSavePrivilege","acmTimeModulePrivilege","costsheetCreatePrivilege","helloWorldPrivilege","acmTaskModulePrivilege","acmAdhocReportModulePrivilege","acmListBillingInvoicesPrivilege","acmPersonTypesPrivilege","acmGenerateCorrespondencePrivilege","acmCalendarEventsCreatePrivilege","caseFileListPrivilege","acmSaveNotePrivilege","acmEmailConfigurePrivilege","acmComplaintModulePrivilege","filePrivilege","acmCreateBillingItemPrivilege","acmPersonSavePrivilege","timesheetApprovePrivilege","searchPrivilege","auditReadEventsForObjectPrivilege","acmDeleteNoteByIdPrivilege","acmNotificationPrivilege","acmSignatureConfirmPrivilege","acmCalendarEventsDeletePrivilege","acmOrganizationAssociationListPrivilege","acmGetSequenceResetPrivilege","dashboardPrivilege","generateStateOfArkcasePrivilege","listLocksDetailsPrivilege","acmPersonListPrivilege","acmOrganizationAssociationSavePrivilege","acmComplaintCreatePrivilege","adminPrivilege","acmReportModulePrivilege","acmCalendarEventsSavePrivilege","acmListNotesPrivilege","objectSuggestionPrivilege","acmCalendarReadShortenedConfigPrivilege","objectUnLockPrivilege","acmOrganizationListPrivilege","acmSaveSequenceResetPrivilege","acmCreateBillingInvoicePrivilege","acmAdminModulePrivilege","profilePrivilege","acmListBillingItemsPrivilege","acmAuditModulePrivilege","acmComplaintListPrivilege","acmPersonAssociationDeletePrivilege","objectLockPrivilege","acmPersonAssociationSavePrivilege","listMilestonesGroupedByDate","acmOrganizationDetailsPrivilege","acmConsultationListPrivilege","reportPrivilege","auditPrivilege","listLockedObjectsPrivilege","acmComplaintApprovePrivilege","acmGlobalAllowPrivilege","acmTaskSavePrivilege","splitCaseFilePrivilege","acmComplaintSavePrivilege","acmCalendarEventsListPrivilege","acmTaskCompletePrivilege","acmSaveSequenceConfigurationPrivilege","acmConsultationModulePrivilege","acmCostModulePrivilege","documentRepositoryManagerPrivilege","acmOutlookListObjectsPrivilege","caseFileCreatePrivilege","acmSearchPrivilege","acmDashboardModulePrivilege","acmTagModulePrivilege","costsheetPrivilege","acmGetSequenceConfigurationPrivilege"],"directoryName":"arkcase","country":null,"countryAbbreviation":null,"department":null,"company":null,"title":null,"notificationMessage":null,"langCode":"en"}
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-(none)
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+
+
 ----- end response-headers -----
 
-===== authenticated (SKIPPED) =====
-SKIPPED
-reason: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/plugin/admin/businessHours
-note: this flow could not be executed.  The record is deliberate: an
-  unexecuted flow is reported rather than omitted, so that the
-  eight-flow completion condition stays verifiable and the gap is
-  visible in a directory diff, in the completeness verdict and in the
-  exit status (R-5).
+===== ldap-directories =====
+request-method: GET
+request-url: http://localhost:20050/arkcase/api/latest/plugin/admin/ldapconfiguration/directories
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: (none reported)
+observed-body-bytes: 2865
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{"arkcase":{"ldapConfig.userAttributes":"cn,userAccountControl,sn,givenName,dn,distinguishedname,memberOf,sAMAccountName,userPrincipalName,uid,uidNumber,c,co,company,department,title,shadowMax,shadowLastChange,msDS-UserPasswordExpiryTimeComputed,modifyTimestamp,description,member","ldapConfig.enableEditingLdapUsers":true,"ldapConfig.authUserDn":"cn=admin,dc=arkcase,dc=org","ldapConfig.syncEnabled":true,"ldapConfig.ldapUrl":"ldap://127.0.0.1:389","ldapConfig.groupsSortingAttribute":"cn","ldapConfig.changedGroupSearchFilter":"(&(objectclass=groupOfNames)(modifyTimestamp>=%s))","ldapConfig.id":"arkcase","ldapConfig.directoryType":"openldap","ldapConfig.addGroupTemplate":{"member":"member","objectClass":"top,groupOfNames,sortableGroupofnames","cn":"cn","gidNumber":"gidNumber"},"ldapConfig.groupSearchBase":"OU=groups","ldapConfig.allChangedUsersPageFilter":"(&(objectClass=person)(uid>=%s)(modifyTimestamp>=%s))","ldapConfig.allChangedUsersFilter":"(&(objectClass=person)(modifyTimestamp>=%s))","ldapConfig.syncPageSize":500,"ldapConfig.fullSyncCron":"0 5 0 1/1 * ? *","ldapConfig.changedGroupSearchPageFilter":"(&(objectclass=groupOfNames)(cn>=%s)(modifyTimestamp>=%s))","ldapConfig.ldapAddUserConfig":{"objectClass":"top,person,user,organizationalPerson","sn":"sn","userAccountControl":512,"cn":"cn","sAMAccountName":"sAMAccountName","unicodePwd":"<REDACTED-CREDENTIAL>","homeDirectory":"homeDirectory","givenName":"givenName","userPrincipalName":"userPrincipalName","mail":"mail"},"ldapConfig.base":"dc=arkcase,dc=org","ldapConfig.allUsersSortingAttribute":"uid","ldapConfig.groupPrefix":"","ldapConfig.groupSearchFilterForUser":"(&(objectClass=groupOfNames)(member=%s))","ldapConfig.ldapAddGroupConfig":{"cn":"cn","objectClass":"top,group","sAMAccountName":"sAMAccountName"},"ldapConfig.userSearchFilter":"(&(objectClass=person)(uid=%s))","ldapConfig.addUserTemplate":{"userPassword":"<REDACTED-CREDENTIAL>","homeDirectory":"homeDirectory","mail":"mail","givenName":"givenName","objectClass":"top,person,inetOrgPerson,organizationalPerson,posixAccount,uacPerson,shadowAccount","shadowMax":99999,"shadowWarning":7,"cn":"cn","shadowLastChange":12994,"uid":"uid","uidNumber":"uidNumber","id":"arkcase","sn":"sn","gidNumber":"gidNumber","userAccountControl":"userAccountControl"},"ldapConfig.autoGenerateUserId":false,"ldapConfig.allUsersFilter":"(&(objectClass=person))","ldapConfig.groupSearchFilter":"(objectclass=groupOfNames)","ldapConfig.userPrefix":"","ldapConfig.partialSyncCron":"0 0/1 * 1/1 * ? *","ldapConfig.allUsersPageFilter":"(&(objectClass=person)(uid>=%s))","ldapConfig.userIdAttributeName":"uid","ldapConfig.groupControlGroup":"","ldapConfig.userDomain":"arkcase.org","ldapConfig.userControlGroup":"","ldapConfig.authUserPassword":"<REDACTED-CREDENTIAL>","ldapConfig.userSearchBase":"OU=users","ldapConfig.groupSearchPageFilter":"(&(objectclass=groupOfNames)(cn>=%s))"}}
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== ldap-directory-registered =====
+request-method: GET
+request-url: http://localhost:20050/arkcase/api/latest/ldap/arkcase/editingEnabled
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: (none reported)
+observed-body-bytes: 31
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{"enableEditingLdapUsers":true}
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
 

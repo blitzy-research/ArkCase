@@ -84,9 +84,11 @@ Two consequences for how the archive is read:
 
   The baseline report is therefore **correctly absent rather than missing**, and no report was lost, deleted or left unproduced. It is recorded here because a reviewer diffing the two trees will find it; because it is the one direction of difference that cannot be a regression — a test that never ran before and passes now; and because it is a real, if small, behavioural consequence of pinning the runner, which belongs on this page rather than in a footnote. Nothing was fabricated to close the gap, and nothing should be: an authored baseline report for a suite the baseline runner never selected would be exactly the defect this archive exists to have escaped.
 
-### The eight migrated suites with no baseline counterpart, and why each has none
+### The six migrated suites with no baseline counterpart, and why each has none
 
-The archived migrated half carries **285** suites against the baseline half's **278**; the working tree now runs **286**, and the whole of that difference is enumerated below rather than left to be discovered from a count mismatch. The pairing is enforced mechanically by the committed contract at `smoke-evidence/expected-suites.txt`, generated from the two installed archives by `install-surefire-evidence.sh --manifest`; `smoke-checks.sh` reads it and each capture's `notes/surefire-pairing.txt` records the result. Both sides report **0 suites missing, 0 unlisted and 0 lost**, which is the fact that matters: **no suite that ran at baseline has stopped running or stopped being archived.**
+The archived migrated half carries **284** suites against the baseline half's **278**, and the whole of that difference is enumerated below rather than left to be discovered from a count mismatch. The pairing is enforced mechanically by the committed contract at `smoke-evidence/expected-suites.txt`, generated from the two installed archives by `install-surefire-evidence.sh --manifest`; `smoke-checks.sh` reads it and each capture's `notes/surefire-pairing.txt` records the result. That contract currently records **278 suites in both, 0 baseline-only and 6 migrated-only**, and the figure that matters is the zero: **no suite that ran at baseline has stopped running or stopped being archived.**
+
+The archived migrated half and the working tree now agree exactly, at 284 suites and 933 test methods each, because the archive was re-harvested from the runner's own output at final `HEAD` rather than carried forward from an earlier run. How it is produced, what the two transformations applied to it are, and which fail-closed gates it has to pass are all described in [Surefire Evidence Archive](surefire-evidence-archive.md).
 
 | Module | Test class | Tests | Outcome | Why no baseline counterpart |
 | --- | --- | --- | --- | --- |
@@ -95,18 +97,17 @@ The archived migrated half carries **285** suites against the baseline half's **
 | `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest` | 9 | all pass | Class did not exist at the base commit |
 | `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest` | 7 | all pass | Class did not exist at the base commit |
 | `acm-services/acm-service-login` | `com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest` | 7 | all pass | Class did not exist at the base commit |
-| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierSafetyTest` | 18 | all pass | Class did not exist at the base commit. Two of the eighteen were added after the deployment QA pass: one executes the real package manager with the environment the startup build hands it, and one requires a failed front-end command to carry its own output |
-| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest` | 6 | all pass | Class did not exist at the base commit |
-| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierDeploymentCopyTest` | 9 | all pass | Class did not exist at the base commit. Added after the deployment QA pass, covering the deployment copy: the package manager's own symbolic links, containment of the folder walk, the stale sweep's deletion candidates, a missing assembled folder, and a copy whose source cannot be read |
+| `acm-user-interface/ark-angular-starter` | `com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest` | 4 | all pass | Class did not exist at the base commit. It loads the production Spring context unchanged and pins the two values the package-manager migration changed - the `npm ci` install command and `package-lock.json` in the copy manifest - plus the two Grunt invocations the pipeline retains |
 
-**The two reasons are not interchangeable, and the distinction is load-bearing.** Seven of the eight classes are absent from the base commit outright, so no baseline run could ever have produced a report for them. The seventh existed and was skipped by the runner. Only the second kind is a behavioural consequence of this migration; collapsing both into "newly added" would have quietly hidden that. The generated pairing note therefore states both possibilities and defers the per-suite attribution to this table rather than asserting one.
+**The two reasons are not interchangeable, and the distinction is load-bearing.** Five of the six classes are absent from the base commit outright, so no baseline run could ever have produced a report for them. The sixth, `SolrReindexServiceTests`, did exist there and was simply not selected by the baseline runner. Only the second kind is a behavioural consequence of this migration; collapsing both into "newly added" would have quietly hidden that. The generated pairing note therefore states both possibilities and defers the per-suite attribution to this table rather than asserting one.
 
-The arithmetic closes exactly, and it is stated for both the archived capture and the working tree because the two differ by design.
+The arithmetic closes exactly, and it is stated for the archive and for the working tree together because they are now the same run rather than two runs that have to be reconciled.
 
-- **Archived capture:** **278 baseline suites / 892 test methods** against **285 migrated suites / 951 test methods**. The first seven suites above contribute 1 + 13 + 9 + 7 + 7 + 16 + 6 = **59** methods, and 892 + 59 = 951. Every figure is read out of the two installed archives, whose `sha256-manifest.txt` files verify clean.
-- **Working tree now:** **286 suites / 962 test methods**, re-measured by a full offline `mvn -B -o -fae test` run and cross-checked against all 286 `TEST-*.xml` reports, which agree exactly. The delta of +1 suite and +11 methods over the archived migrated half is the eighth suite above (9 methods) plus the two methods added to `AngularResourceCopierSafetyTest`; both additions exist to hold the deployment defects the QA pass found, and each was verified to fail against the pre-fix class before being committed.
+- **278 baseline suites / 892 test methods** against **284 migrated suites / 933 test methods**. The six suites above contribute 1 + 13 + 9 + 7 + 7 + 4 = **41** methods, and 892 + 41 = 933. Every figure is read out of the two installed archives, whose `sha256-manifest.txt` files verify clean.
+- The migrated half was re-harvested from the runner's own output at final `HEAD` on JDK 17 — `mvn -B -ntp -fae test`, BUILD SUCCESS, 284 suites across 67 modules — and installed by `install-surefire-evidence.sh`, which refuses rather than warns on a report that cannot state its own runtime. So **the archive and the working tree agree at 284 / 933 by construction**, and there is no reconciliation paragraph to get wrong. Re-running the install produces a byte-identical tree.
+- **No test method was removed from a suite the baseline ran.** Every one of the 278 paired suites carries the same method set on both sides; the whole of the 41-method delta is in the six unpaired suites enumerated above, and all 41 pass. The frontend-assembly bean's runtime contract is covered by the wiring suite, which asserts the two migrated values against the production context rather than against a copy of it.
 
-In both runs the red outcomes are **3 failures, 1 error and 21 skips**, and **all four red outcomes are the four rows registered below** — so the entire delta against the baseline is additive coverage, with no regression anywhere in the corpus.
+In both halves the red outcomes are **3 failures, 1 error and 21 skips**, and **all four red outcomes are the four rows registered below**. Within the unit-test corpus, therefore, the entire delta against the baseline is additive coverage with no regression. That claim is deliberately scoped to the unit corpus: there is exactly one migration-attributable red outside it, it is an integration test, and it is registered in its own section below rather than folded into this sentence.
 
 ### The environment precondition that gates a complete run
 
@@ -202,6 +203,21 @@ The 13 in one file are the FOIA business-rule concentration named in the corpus 
 
 One reporting difference between the two halves is recorded here so it is not mistaken for a changed outcome: for a **class-level** `@Ignore`, the implicitly bound Surefire at the baseline named the skipped testcase after the class, while the pinned 3.5.2 leaves that name empty. Both report one skipped testcase for the same class. The outcome is identical; only the label differs.
 
+A **second** reporting difference is much more visible in a directory listing, and is recorded here for the same reason. Counting reports that carry any captured standard output:
+
+| | reports with `<system-out>` | `<system-out>` elements | attached to |
+|---|---|---|---|
+| baseline (Surefire 2.12.4) | **1** of 278 | 3 | a `testcase`, never a `testsuite` |
+| migrated (Surefire 3.5.2) | **151** of 284 | 396 | a `testcase`, never a `testsuite` |
+
+That 1-versus-151 gap is a change in what the *runner* writes, not in what the *tests* do, and it was characterised rather than assumed:
+
+- The single baseline report holding output is `acm-service-ecm/TEST-…FileDownloadAPIControllerTest.xml`, and the three elements sit on exactly its **three failing** testcases — `downloadFileByIdAndVersion_successful`, `downloadFileById_successful` and `override_mime_type`. Its one passing testcase, `downloadFileById_fileNotFoundInDb`, carries none. The other red suite, `FolderCompressorTest`, carries none at all: its erroring testcase produced no standard output to capture.
+- So the baseline runner attaches captured output to a testcase only when that testcase went red **and** produced output. The pinned 3.5.2 attaches it to green testcases too, which is where the other 150 reports come from.
+- The decisive check is a twin pair with identical outcomes and different capture. `acm-service-ecm/TEST-…RecycleBinItemServiceImplTest.xml` reports `tests=3 failures=0 errors=0 skipped=0` on **both** sides; the migrated report carries `<system-out>` and the baseline report does not.
+
+Nothing was added to either half and nothing was removed: each archive holds what its runner wrote. The consequence for the comparison is that captured output is not a comparable field between the two halves, which is why the pairing contract and the row-for-row comparison assert on suites, testcases and outcome counts — all of which pair exactly — and not on output volume.
+
 ### Uncovered modules — neither passed nor failed
 
 An **uncovered** module is one for which the archive holds no report at all. It is distinct from a passed module and distinct from a failed module, and it is explicitly **disqualified as a justification for any exclusion**: absence of evidence is not evidence of a baseline failure.
@@ -213,7 +229,47 @@ The archive covers **66 of the 76 test-source-bearing modules**. The remaining *
 - `acm-standard-applications` — `arkcase`
 - `acm-tool-integrations` — `acm-activemq-configuration`, `acm-ephesoft`, `acm-files-property-file-manager`, `acm-spring-context-holder`, `acm-spring-data-source`
 
-Every one of the ten is uncovered for the same benign reason: its test tree holds no Surefire-eligible test class. The tests there are `*IT` classes, which Failsafe executes in the integration-test phase and which emit their own reports, so they are correctly absent from a Surefire-only archive; the few remaining files in those trees are fixtures, entities and message listeners with no test method at all, which the runner correctly declines to run. **Nothing was skipped, excluded or lost to reach this boundary** — the run reached every module, and the migrated archive covers exactly the same 66 modules, so the covered set is identical on both sides.
+Every one of the ten is uncovered for the same benign reason: its test tree holds no Surefire-eligible test class. The tests there are `*IT` classes, which Failsafe executes in the integration-test phase and which emit their own reports, so they are correctly absent from a Surefire-only archive; the few remaining files in those trees are fixtures, entities and message listeners with no test method at all, which the runner correctly declines to run. **Nothing was skipped, excluded or lost to reach this boundary** — the run reached every module.
+
+The migrated half covers **67** modules against the baseline's 66, and the whole of that difference is `ark-angular-starter`, which had no `src/test/java` tree at the base commit and now has three classes in one. The set difference in the other direction is **empty**: every module the baseline covered is covered by the migrated half too. The working tree now holds **77** test-source trees against the base commit's 76, for the same single reason.
+
+### The one migration-attributable red, and it is not a baseline row
+
+Everything above concerns the **unit** corpus that `mvn test` executes and that the archive covers. There is exactly one red outcome outside it that this migration caused, and it is registered here — in its own section, with its own heading — precisely so that it can never be mistaken for one of the four baseline rows.
+
+| Module | Test class | Methods red | Kind | Runner | Runtime the report states |
+| --- | --- | --- | --- | --- | --- |
+| `acm-plugins/acm-extra-plugins/acm-personnel-security-plugin` | `com.armedia.acm.plugins.personnelsecurity.service.BackgroundInvestigationBusinessProcessIT` | 2 of 2 | `error` | Failsafe, integration-test phase | `17.0.19+10-1-25.10.2-Ubuntu` |
+
+**It is NOT pre-existing, and it is NOT eligible for an exclusion.** R-5 permits an exclusion only for a failure already present at the JDK 8 baseline. This one was green there, so the register's whole permission structure excludes it: there is no row to cite, and no `excludes` entry may ever name it. The migrated Surefire declaration carries no `excludes` element at all, and this class is not a Surefire class in any case.
+
+**The cause, measured rather than inferred.** JEP 372 removed Nashorn from the JDK in version 15. `personnelSecurityBackgroundInvestigation_v11.bpmn20.xml` — a **main** resource of that plugin, not a test fixture — declares seven `complete`-event `ScriptTaskListener` blocks whose `language` field is `javascript`. On a JDK that shipped Nashorn, `ScriptEngineManager` registered a factory under that alias and Activiti resolved it while a task was completed. On Java 17 the manager registers no factory for the name, and the listener fails on the next dereference. The engine is deliberately not reinstated; the full decision, and the exact withdrawn change that would restore the behaviour, are in [Pre-existing Defects](pre-existing-defects.md) entry 57.
+
+**The two errors are one fault, not two.** This is worth stating because the arithmetic invites double-counting:
+
+| Method | Error message | Engine message present |
+| --- | --- | --- |
+| `startProcess_processStart_happyPath` | `Exception while invoking TaskListener: … Can't find scripting engine for 'javascript'` | yes |
+| `startProcess_processStart_denyClearance` | `Query return 2 results instead of max 1` | **no** — and no `Caused by` chain either |
+
+The second method's stack nevertheless runs through the same `completeTask` helper, and the fixture shares one `jdbc:h2:mem:activiti` database across both methods, so the second error is the downstream consequence of the first leaving its process instance uncompleted. One cause, two red methods.
+
+**Why it does not appear in any archive, and why no validation gate sees it.** The class is an `*IT`, so Surefire never selects it and it is absent from both halves of the Surefire archive by construction. `maven-failsafe-plugin` **is** inherited by this module — it is declared in the root aggregator's `build/plugins` and bound to `integration-test` and `verify` — but the build command the migration is validated by is `mvn clean install -DskipTests && mvn test`, which skips tests in the first invocation and stops at the `test` phase in the second. **The integration-test phase is never reached, so this red sits outside every one of the five validation gates.** Recording it here is the only thing that makes it visible.
+
+Reproducing it takes one command, and it needs no external service — the fixture runs against an in-memory database:
+
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+mvn -B -ntp -pl acm-plugins/acm-extra-plugins/acm-personnel-security-plugin -am verify \
+  -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false \
+  -Dit.test=BackgroundInvestigationBusinessProcessIT -Dfailsafe.failIfNoSpecifiedTests=false \
+  -Dmaven.test.failure.ignore=true
+# => Tests run: 2, Failures: 0, Errors: 2, Skipped: 0
+# report: .../acm-personnel-security-plugin/target/failsafe-reports/
+#         TEST-com.armedia.acm.plugins.personnelsecurity.service.BackgroundInvestigationBusinessProcessIT.xml
+```
+
+`-am` is required rather than optional: with `-pl` alone the module's dependencies resolve from installed sibling artifacts instead of from the reactor, and a 2.1-vintage pair of XML-binding jars that the reactor excludes is then requested and cannot be resolved. That is an artefact of the invocation, not a defect in the module.
 
 ## The Migrated Surefire Declaration
 
@@ -335,30 +391,30 @@ grep -rho '<testcase' $BASE | wc -l                                             
 grep -rho '<skipped'  $BASE | wc -l                                                           # 21
 grep -rho '<failure'  $BASE | wc -l                                                           # 3
 grep -rho '<error'    $BASE | wc -l                                                           # 1
-find $MIG  -name 'TEST-*.xml' | wc -l                                                         # 285
+find $MIG  -name 'TEST-*.xml' | wc -l                                                         # 284
 find $MIG  -mindepth 1 -maxdepth 1 -type d | wc -l                                            # 67
-grep -rho '<testcase' $MIG | wc -l                                                            # 951
+grep -rho '<testcase' $MIG | wc -l                                                            # 933
 grep -rho '<skipped'  $MIG | wc -l                                                            # 21
 grep -rho '<failure'  $MIG | wc -l                                                            # 3
 grep -rho '<error'    $MIG | wc -l                                                            # 1
 
-# the seven-suite delta and the pairing contract that enforces it.  Write the two listings to
+# the six-suite delta and the pairing contract that enforces it.  Write the two listings to
 # files rather than comparing them through process substitution: comm needs both inputs sorted
 # under the SAME collation, and LC_ALL=C is what makes '-' and '.' order predictably.
 ( cd $BASE && find . -name 'TEST-*.xml' | sed 's|^\./||' | LC_ALL=C sort ) > /tmp/b.list
 ( cd $MIG  && find . -name 'TEST-*.xml' | sed 's|^\./||' | LC_ALL=C sort ) > /tmp/m.list
-LC_ALL=C comm -13 /tmp/b.list /tmp/m.list | wc -l                                             # 7  <- added
+LC_ALL=C comm -13 /tmp/b.list /tmp/m.list | wc -l                                             # 6  <- added
 LC_ALL=C comm -23 /tmp/b.list /tmp/m.list | wc -l                                             # 0  <- nothing lost
 grep -c '^BOTH'           docs/migration/smoke-evidence/expected-suites.txt                   # 278
-grep -c '^MIGRATED-ONLY'  docs/migration/smoke-evidence/expected-suites.txt                   # 7
+grep -c '^MIGRATED-ONLY'  docs/migration/smoke-evidence/expected-suites.txt                   # 6
 grep -c '^BASELINE-ONLY'  docs/migration/smoke-evidence/expected-suites.txt                   # 0
 
 # every report states its own runtime, so the archive proves which JDK produced it without
 # reference to any prose on this page.  The allowlist retains 16 native properties per report.
 grep -rl 'name="java.runtime.version" value="1.8.0_492' $BASE | wc -l                         # 278
 grep -rl 'name="java.class.version" value="52.0"'       $BASE | wc -l                         # 278
-grep -rl 'name="java.runtime.version" value="17.0.19'   $MIG  | wc -l                         # 285
-grep -rl 'name="java.class.version" value="61.0"'       $MIG  | wc -l                         # 285
+grep -rl 'name="java.runtime.version" value="17.0.19'   $MIG  | wc -l                         # 284
+grep -rl 'name="java.class.version" value="61.0"'       $MIG  | wc -l                         # 284
 
 # integrity: each archive carries a checksum manifest covering every report and its own
 # provenance note, so an edit after harvest is detectable rather than invisible.

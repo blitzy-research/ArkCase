@@ -15,14 +15,16 @@ observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 7
 ----- body -----
 (empty)
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
 
 ----- end transport-diagnostics -----
 ----- response-headers -----
@@ -46,14 +48,16 @@ observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 7
 ----- body -----
 (empty)
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
 
 ----- end transport-diagnostics -----
 ----- response-headers -----
@@ -77,14 +81,16 @@ observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 7
 ----- body -----
 (empty)
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
 
 ----- end transport-diagnostics -----
 ----- response-headers -----
@@ -108,17 +114,152 @@ observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 7
 ----- body -----
 (empty)
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
 
 ----- end transport-diagnostics -----
 ----- response-headers -----
 (none)
 ----- end response-headers -----
+
+===== config-server =====
+request-method: GET
+request-url: http://localhost:9999/actuator/health
+auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json
+observed-content-length: (none reported)
+observed-body-bytes: 103
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{"name":"actuator","profiles":["health"],"label":null,"version":null,"state":null,"propertySources":[]}
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 OK
+Connection: keep-alive
+Transfer-Encoding: chunked
+Content-Type: application/json
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== message-broker-management =====
+request-method: GET
+request-url: http://localhost:8161/api/jolokia/read/org.apache.activemq:type=Broker,brokerName=localhost/BrokerVersion
+auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 401
+observed-content-type: text/html;charset=iso-8859-1
+observed-content-length: 449
+observed-body-bytes: 449
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+<title>Error 401 Unauthorized</title>
+</head>
+<body><h2>HTTP ERROR 401 Unauthorized</h2>
+<table>
+<tr><th>URI:</th><td>/api/jolokia/read/org.apache.activemq:type=Broker,brokerName=localhost/BrokerVersion</td></tr>
+<tr><th>STATUS:</th><td>401</td></tr>
+<tr><th>MESSAGE:</th><td>Unauthorized</td></tr>
+<tr><th>SERVLET:</th><td>-</td></tr>
+</table>
+
+</body>
+</html>
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: basic realm="ActiveMQRealm"
+Cache-Control: must-revalidate,no-cache,no-store
+Content-Type: text/html;charset=iso-8859-1
+Content-Length: 449
+
+
+----- end response-headers -----
+
+===== message-broker-transport =====
+probe-kind: tcp-connect
+endpoint: localhost:61616
+purpose: the wire the application publishes and consumes messages on, as opposed to the management surface above
+connect-timeout-seconds: 10
+bytes-sent: 0
+credential-sent: none
+observed-outcome: CONNECTED
+what-this-does-and-does-not-establish: a completed connection proves the
+  port accepts connections.  It does NOT establish that the service behind
+  it is healthy, that it speaks the protocol expected of it, or that this
+  application can authenticate to it.  Those are observed, where they are
+  observed at all, by the flows that use the service.
+
+===== directory-service =====
+probe-kind: tcp-connect
+endpoint: localhost:389
+purpose: the directory the login flow authenticates against and the synchronisation jobs read
+connect-timeout-seconds: 10
+bytes-sent: 0
+credential-sent: none
+observed-outcome: CONNECTED
+what-this-does-and-does-not-establish: a completed connection proves the
+  port accepts connections.  It does NOT establish that the service behind
+  it is healthy, that it speaks the protocol expected of it, or that this
+  application can authenticate to it.  Those are observed, where they are
+  observed at all, by the flows that use the service.
+
+===== database =====
+probe-kind: tcp-connect
+endpoint: localhost:3306
+purpose: the relational store the persistence layer maps onto, whose schema this migration leaves unchanged
+connect-timeout-seconds: 10
+bytes-sent: 0
+credential-sent: none
+observed-outcome: CONNECTED
+what-this-does-and-does-not-establish: a completed connection proves the
+  port accepts connections.  It does NOT establish that the service behind
+  it is healthy, that it speaks the protocol expected of it, or that this
+  application can authenticate to it.  Those are observed, where they are
+  observed at all, by the flows that use the service.
 

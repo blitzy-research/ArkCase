@@ -1,64 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Archived unit-test report, MIGRATED side of the runtime migration evidence pair.
-
-  module: acm-case-file-plugin
-  suite: com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIControllerTest
-  capture runtime of record: Java 17
-  base commit of record: c8f6226105c28c2743281d26bf21ad73f7bb7f26, short c8f6226105, the
-      pre-migration commit the paired baseline side of this report was captured at, on JDK 8.
-
-  provenance: PRODUCED BY RUNNING THE SUITE. This file is runner output. It was not authored,
-      not derived from test source, and not reconstructed from a build log, because an authored
-      report can only ever contain what its author already believed and so can never record a
-      failure nobody predicted, which is the one thing an evidence pair exists for. The runner
-      wrote it into the module's own build output directory, at target/surefire-reports/, which
-      version control ignores at any depth; it was therefore copied out into the flat per-module
-      folder it now sits in, keeping the native file name the runner gave it. The name was
-      relocated, never retyped.
-
-  the two things changed in the report on the way in, and nothing else in it was: absolute
-      machine paths became stable placeholders, and the runner's system-property dump was reduced
-      to a documented allowlist kept native. Every testsuite, testcase, failure, error, skipped
-      and system-out element below is the runner's own, and the property dump was not padded with
-      authored entries; the retained java.runtime.version and java.class.version are the runner's
-      own words too, which is what lets a reader confirm the producing runtime from this report
-      alone instead of trusting this comment. This provenance block, ahead of the root element, is
-      the only thing added to the file afterwards, and the archive's digest manifest records the
-      file as it now stands, so the archive verifies rather than reporting a spurious edit.
-
-  outcome, read out of this report rather than off a process exit status: one test, no failure,
-      no error, nothing skipped. The paired baseline report records the same single test passing
-      on JDK 8, so this suite owes no row to the Baseline Test Failures register, and a red test
-      matching no row there would be a migration regression rather than an accepted baseline
-      condition. This class declares no ignore annotation and is excluded from no run, so nothing
-      here presents it as ignored or excluded.
-
-  re-verified independently: this class was run again in this working tree on Java 17, at branch
-      tip d5698836f006eede8cd15ee2344960d56d2b16f8, and the report that run produced states the
-      same single test with no failure, no error and nothing skipped. Six of the seven logged
-      lines match the payload below once the timestamp prefix and the identity hash codes are
-      normalized, including the controller's own line and the test's own line carrying the
-      response body. The seventh differs only in a servlet initialization duration measured in
-      milliseconds, which is why cross-tier agreement is judged on testcase presence, outcome and
-      message content, and never on raw bytes.
-
-  scope of this capture: the five REST controller suites in this module are the unit-level
-      evidence that the API contract is preserved, paths, verbs, request and response shapes and
-      authentication behaviour alike. No argument that opens or exports an otherwise encapsulated
-      JDK package to the unnamed module appears here or is needed for this suite, and the JDK
-      Access Exceptions register is correspondingly empty. No credential value, principal name,
-      request header or session identifier appears below. The javax namespace is preserved
-      deliberately by this migration and is untouched here.
-
-  rules provenance, both facts stated together because either one alone misleads: there is no
-      on-disk user rules document for this project, the rules facility reporting none, which is
-      recorded explicitly and is not licence to lower the bar; and rules are nonetheless present
-      and binding, the requirements embedding a numbered block of seven rules plus seven
-      transformation rules that govern this work in full. Those identifiers are the migration
-      plan's own navigational labels rather than quoted titles.
--->
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIControllerTest" time="0.894" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIControllerTest" time="0.881" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -77,14 +18,14 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="testNumberOfActiveCaseFilesByQueue" classname="com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIControllerTest" time="0.815">
-    <system-out><![CDATA[2026-08-03 15:29:55,237 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
-2026-08-03 15:29:55,237 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@6bac4719, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@2fb800ca, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@6d8c1584, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@2e826bd1, org.springframework.test.context.support.DirtiesContextTestExecutionListener@271f6597, org.springframework.test.context.transaction.TransactionalTestExecutionListener@484e9fee, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@45e38356, org.springframework.test.context.event.EventPublishingTestExecutionListener@7882a4d8]
-2026-08-03 15:29:55,283 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-03 15:29:55,283 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-03 15:29:55,283 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-2026-08-03 15:29:56,049 [DEBUG] [main] com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIController - Get number of active Case Files by queue.
-2026-08-03 15:29:56,075 [INFO ] [main] com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIControllerTest - Results: {"Delete":29,"Appeal":0,"Billing":4,"Fulfill":2,"Approve":5}
+  <testcase name="testNumberOfActiveCaseFilesByQueue" classname="com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIControllerTest" time="0.856">
+    <system-out><![CDATA[2026-08-07 07:28:31,353 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+2026-08-07 07:28:31,353 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@24ed4582, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@18601f1e, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@4140d677, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@2c890ee3, org.springframework.test.context.support.DirtiesContextTestExecutionListener@62068fa5, org.springframework.test.context.transaction.TransactionalTestExecutionListener@7a86e414, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@3db2665d, org.springframework.test.context.event.EventPublishingTestExecutionListener@59a8891e]
+2026-08-07 07:28:31,403 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-07 07:28:31,403 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-07 07:28:31,403 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
+2026-08-07 07:28:32,207 [DEBUG] [main] com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIController - Get number of active Case Files by queue.
+2026-08-07 07:28:32,234 [INFO ] [main] com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIControllerTest - Results: {"Delete":29,"Appeal":0,"Billing":4,"Fulfill":2,"Approve":5}
 ]]></system-out>
   </testcase>
 </testsuite>

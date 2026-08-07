@@ -41,8 +41,6 @@ import com.armedia.acm.tool.comprehendmedical.service.AWSComprehendMedicalServic
 import com.armedia.acm.tool.mediaengine.model.MediaEngineStatusType;
 import com.armedia.acm.tool.mediaengine.service.MediaEngineIntegrationEventPublisher;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,6 +92,15 @@ public class AWSComprehendMedicalServiceTest
      */
     private InputStream mediaStreamOverride;
 
+    /**
+     * The one media file the service under test is permitted to open while {@link #mediaStreamOverride}
+     * is armed. A test assigns this alongside the stub stream, and the override asserts the identity
+     * before handing the stream over. The expectation being replaced named the file explicitly, so the
+     * seam has to enforce the same constraint: without it the stub stream would be returned for any
+     * argument and a regression that opened the wrong file would still pass.
+     */
+    private File expectedMediaFile;
+
     @Before
     public void setUp()
     {
@@ -102,7 +109,17 @@ public class AWSComprehendMedicalServiceTest
             @Override
             protected InputStream openMediaStream(File mediaFile) throws IOException
             {
-                return mediaStreamOverride != null ? mediaStreamOverride : super.openMediaStream(mediaFile);
+                if (mediaStreamOverride == null)
+                {
+                    return super.openMediaStream(mediaFile);
+                }
+
+                // Raised as an AssertionError rather than an exception on purpose: the production caller wraps this
+                // call in a try-with-resources whose handler catches Exception, so an exception here would be
+                // reported as an upload failure and swallow the argument mismatch instead of failing the test.
+                Assert.assertSame("the media stream was requested for a file other than the one under test",
+                        expectedMediaFile, mediaFile);
+                return mediaStreamOverride;
             }
         };
         awsComprehendMedicalService.setS3Client(s3Client);
@@ -138,6 +155,7 @@ public class AWSComprehendMedicalServiceTest
         configuration.setProfile("profile");
 
         when(awsComprehendMedicalConfigurationService.getAwsComprehendMedicalConfiguration()).thenReturn(configuration);
+        expectedMediaFile = file;
         mediaStreamOverride = fileStream;
         when(s3Client.doesObjectExist((String) configuration.getBucket(),
                 comprehendMedicineDTO.getRemoteId() + "/" + comprehendMedicineDTO.getRemoteId())).thenReturn(false);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListenerTest" time="0.0" tests="3" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListenerTest" time="0.007" tests="3" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,18 +18,18 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="statusChangeEvent_closed_shouldDeclareRecords" classname="com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListenerTest" time="0.0">
-    <system-out><![CDATA[2026-08-03 15:31:18,646 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Finding case closed statuses
-2026-08-03 15:31:18,646 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Case closed statuses: closed
-2026-08-03 15:31:18,647 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Event: com.armedia.acm.casefile.status.changed
-2026-08-03 15:31:18,647 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Status: closed; status counts as closed: true
+  <testcase name="statusChangeEvent_closed_shouldDeclareRecords" classname="com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListenerTest" time="0.003">
+    <system-out><![CDATA[2026-08-07 07:29:52,686 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Finding case closed statuses
+2026-08-07 07:29:52,686 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Case closed statuses: closed
+2026-08-07 07:29:52,687 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Event: com.armedia.acm.casefile.status.changed
+2026-08-07 07:29:52,687 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Status: closed; status counts as closed: true
 ]]></system-out>
   </testcase>
-  <testcase name="statusChangeEvent_notClosed_shouldNotDeclareRecords" classname="com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListenerTest" time="0.0">
-    <system-out><![CDATA[2026-08-03 15:31:18,648 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Finding case closed statuses
-2026-08-03 15:31:18,649 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Case closed statuses: closed
-2026-08-03 15:31:18,649 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Event: com.armedia.acm.casefile.status.changed
-2026-08-03 15:31:18,649 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Status: open; status counts as closed: false
+  <testcase name="statusChangeEvent_notClosed_shouldNotDeclareRecords" classname="com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListenerTest" time="0.001">
+    <system-out><![CDATA[2026-08-07 07:29:52,689 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Finding case closed statuses
+2026-08-07 07:29:52,689 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Case closed statuses: closed
+2026-08-07 07:29:52,689 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Event: com.armedia.acm.casefile.status.changed
+2026-08-07 07:29:52,689 [DEBUG] [main] com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListener - Status: open; status counts as closed: false
 ]]></system-out>
   </testcase>
   <testcase name="doNotProceed_shouldNotDeclareRecords" classname="com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListenerTest" time="0.0"/>

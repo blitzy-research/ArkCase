@@ -1,0 +1,51 @@
+the single bounded startup window every region is mined from
+
+deployed-artifact: /tmp/p9-runtime-base8/tomcat/webapps/arkcase.war
+deployed-artifact-bytes: 273015606
+deployed-artifact-sha256: 7fccd5a2a474a6dd9bdaf41bd519124b431b2de2791d6a37e7f9edb67693dc91
+deployed-artifact-why-digested: a base URL and a container log identify a
+  host and a port, not a build.  Where several checkouts of this project are
+  deployed side by side, a capture taken against a neighbour container looks
+  exactly like one taken against your own.  This digest is the value that
+  ties the behaviour recorded below to a specific archive; unmeasured means
+  no archive was named for this run, and the tie is then not established.
+
+source: /tmp/p9-runtime-base8/tomcat/logs/catalina.out
+source-bytes: 827688
+source-lines: 5473
+source-sha256: fe2ef01da1badfd8d28205feda8d2d90596cf015970528783cc4e5e356719879
+
+window-basis: last-boot-marker-to-startup-completed
+window-opened-by: line 1: 07-Aug-2026 04:28:18.601 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/9.0.120
+window-closed-by: line 4874: 07-Aug-2026 04:30:57.548 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [158722] milliseconds
+window-start-line: 1
+window-end-line: 4874
+window-start-byte-offset: 0
+window-end-byte-offset: 755371
+window-lines: 4874
+window-sha256: 8fb65f14fa0f53cce5632ee0b330d1274aa4f2fa455ee42d251b25948434ffc5
+
+boot-marker-pattern-used: VersionLoggerListener\.log[[:space:]]+Server[[:space:]]version[[:space:]]name:
+boot-marker-candidates-in-preference-order:
+  VersionLoggerListener\.log[[:space:]]+Server[[:space:]]version[[:space:]]name:;   Catalina\.load[[:space:]]+Server[[:space:]]initialization[[:space:]]in;   StandardService\.startInternal[[:space:]]+Starting[[:space:]]service[[:space:]]\[;   StandardEngine\.startInternal[[:space:]]+Starting[[:space:]]Servlet[[:space:]]engine
+boots-present-in-source: 1
+startup-completed-marker-pattern: Server startup in
+error-signature-pattern: ERROR|SEVERE|Exception|Caused by|NoClassDefFoundError|IllegalAccessError|NoSuchMethodError
+
+how to re-derive the window from the source, byte for byte:
+  sed -n '1,4874p' <source> | sha256sum
+  must print 8fb65f14fa0f53cce5632ee0b330d1274aa4f2fa455ee42d251b25948434ffc5
+
+why one window rather than one grep per region.  A container log
+  accumulates every boot the container has ever performed.  Mining each
+  region from the whole file makes each region a union over an unknown
+  number of unrelated startups, so the region files stop describing one
+  event while still reading as though they do, and the two capture sides
+  have no common denominator to compare.  The window is therefore resolved
+  once, from the LAST boot marker to the first startup-completed line at or
+  after it, and every region is mined from the extracted window.
+
+if window-basis reads whole-file, the log carried no recognisable boot
+  marker.  The regions are then mined from the entire log and the fact is
+  stated here rather than hidden: a narrowed window that silently was not
+  narrowed would be the worst of both.

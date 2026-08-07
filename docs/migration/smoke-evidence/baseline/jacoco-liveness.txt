@@ -1,0 +1,23 @@
+coverage instrumentation liveness
+
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_jacoco_liveness
+search-root: <REPO-ROOT>
+searched-for: files named jacoco.exec
+
+why liveness is measured rather than assumed.  The coverage plugin
+publishes its agent configuration through the default argLine property.  A
+test-runner declaration that sets a literal argLine overrides it and
+severs instrumentation with no diagnostic at all; the configured check
+goal then evaluates an EMPTY execution data set against its minimum ratio
+and reports a pass.  A capture that recorded only that the goal passed
+could not tell that apart from a real pass.  Non-empty execution data,
+measured per module off disk, can.
+
+execution-data-files-found: 0
+
+state: NOT-MEASURED
+reason: no execution data file exists anywhere under the search root at
+  the moment this capture was taken.  That is the expected state when
+  the reactor was last built with tests skipped, and it is NOT evidence
+  that instrumentation is severed.  To measure liveness, run the unit
+  test suite and capture again.

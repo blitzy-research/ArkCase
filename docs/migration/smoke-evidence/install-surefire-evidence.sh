@@ -401,7 +401,44 @@ if [ -z "$FROM_ABS" ] || [ "$FROM_ABS" = '/' ]; then
     fail 'the reactor root resolved to /'
 fi
 
-mkdir -p "${INTO}/surefire" || fail "could not create ${INTO}/surefire"
+# ---------------------------------------------------------------------------
+# STAGE, THEN PUBLISH — AND THE REASON IS A DEFECT THIS SCRIPT ONCE HAD.
+#
+# Every fail-closed check below runs AFTER the reports have been written out,
+# because each one is a claim about the written archive rather than about the
+# source.  An earlier revision wrote them straight into the destination, so a
+# refusal left the destination holding a partial archive — including, in the worst
+# case, the very report whose credential caused the refusal, sitting in a tracked
+# directory where the next `git add` would sweep it up.  A gate that refuses and
+# then leaves the thing it refused on disk is not a gate.
+#
+# So the whole archive is built in a staging directory beside the destination,
+# every check runs against the staging tree, and the destination is only touched
+# once every check has passed.  A refusal removes the staging tree and leaves the
+# previously committed archive exactly as it was; the destination is therefore
+# always either the old archive or the new one, never a mixture and never a
+# half-written one.  The staging directory is named with a leading dot and the
+# process id so two concurrent runs cannot collide, and it is removed on EVERY
+# exit path including a signal.
+# ---------------------------------------------------------------------------
+INTO_PARENT="$(dirname -- "$INTO")"
+[ -d "$INTO_PARENT" ] || mkdir -p "$INTO_PARENT" || fail "could not create ${INTO_PARENT}"
+INTO_PARENT="$(cd "$INTO_PARENT" && pwd -P)" || fail "could not resolve ${INTO_PARENT}"
+STAGE_ROOT="${INTO_PARENT}/.$(basename -- "$INTO").surefire-staging.$$"
+WORK="${STAGE_ROOT}/surefire"
+
+discard_stage()
+{
+    [ -n "${STAGE_ROOT:-}" ] || return 0
+    case "$STAGE_ROOT" in
+        */.*.surefire-staging.*) rm -rf -- "$STAGE_ROOT" ;;
+        *) : ;;
+    esac
+}
+trap discard_stage EXIT HUP INT TERM
+
+rm -rf -- "$STAGE_ROOT"
+mkdir -p "$WORK" || fail "could not create the staging directory ${WORK}"
 
 reports="$(find "$FROM_ABS" -path '*/target/surefire-reports/TEST-*.xml' -type f 2>/dev/null | LC_ALL=C sort)"
 
@@ -498,7 +535,7 @@ printf '%s\n' "$reports" | while IFS= read -r report; do
     [ -n "$report" ] || continue
     module="$(printf '%s' "$report" | sed -E 's|.*/([^/]+)/target/surefire-reports/.*|\1|')"
     base="$(basename -- "$report")"
-    mkdir -p "${INTO}/surefire/${module}" || exit 1
+    mkdir -p "${WORK}/${module}" || exit 1
 
     # The single documented transformation.  Applied with awk index/substr rather
     # than a regular expression, because the values being replaced are absolute
@@ -543,7 +580,7 @@ printf '%s\n' "$reports" | while IFS= read -r report; do
             print line
         }
         END { print n > "/dev/stderr" }
-    ' "$report" 2>> "${INTO}/surefire/.substitution-counts" > "${INTO}/surefire/${module}/${base}.paths" || exit 1
+    ' "$report" 2>> "${WORK}/.substitution-counts" > "${WORK}/${module}/${base}.paths" || exit 1
 
     # THE SECOND TRANSFORMATION: reduce the system property dump to the allowlist.
     #
@@ -574,13 +611,13 @@ printf '%s\n' "$reports" | while IFS= read -r report; do
             print
         }
         END { printf "%d %d %d\n", dropped, lt, gt > "/dev/stderr" }
-    ' "${INTO}/surefire/${module}/${base}.paths" 2>&1 >"${INTO}/surefire/${module}/${base}")" || exit 1
-    rm -f -- "${INTO}/surefire/${module}/${base}.paths"
+    ' "${WORK}/${module}/${base}.paths" 2>&1 >"${WORK}/${module}/${base}")" || exit 1
+    rm -f -- "${WORK}/${module}/${base}.paths"
 
     dropped_props="$(printf '%s' "$filter_counts" | awk '{ print $1 + 0 }')"
     dropped_lt="$(printf '%s' "$filter_counts" | awk '{ print $2 + 0 }')"
     dropped_gt="$(printf '%s' "$filter_counts" | awk '{ print $3 + 0 }')"
-    printf '%s\n' "$dropped_props" >> "${INTO}/surefire/.dropped-property-counts"
+    printf '%s\n' "$dropped_props" >> "${WORK}/.dropped-property-counts"
 
     # STRUCTURAL VERIFICATION, per file, immediately after writing.
     #
@@ -593,8 +630,8 @@ printf '%s\n' "$reports" | while IFS= read -r report; do
     # unparseable reports before this check existed.
     src_open="$(tr -cd '<' < "$report" | wc -c | tr -d '[:space:]')"
     src_close="$(tr -cd '>' < "$report" | wc -c | tr -d '[:space:]')"
-    out_open="$(tr -cd '<' < "${INTO}/surefire/${module}/${base}" | wc -c | tr -d '[:space:]')"
-    out_close="$(tr -cd '>' < "${INTO}/surefire/${module}/${base}" | wc -c | tr -d '[:space:]')"
+    out_open="$(tr -cd '<' < "${WORK}/${module}/${base}" | wc -c | tr -d '[:space:]')"
+    out_close="$(tr -cd '>' < "${WORK}/${module}/${base}" | wc -c | tr -d '[:space:]')"
     expect_open=$((src_open - dropped_lt))
     expect_close=$((src_close - dropped_gt))
     if [ "$expect_open" != "$out_open" ] || [ "$expect_close" != "$out_close" ]; then
@@ -607,14 +644,14 @@ printf '%s\n' "$reports" | while IFS= read -r report; do
         printf '  The installed report would not parse.  Refusing to continue.\n' >&2
         exit 1
     fi
-    if ! grep -q '<property name="java.runtime.version"' "${INTO}/surefire/${module}/${base}"; then
+    if ! grep -q '<property name="java.runtime.version"' "${WORK}/${module}/${base}"; then
         printf 'install-surefire-evidence.sh: %s carries no native java.runtime.version.\n' "$base" >&2
         printf '  The allowlist exists so that every installed report states the runtime that\n' >&2
         printf '  produced it.  A report without it cannot serve as provenance.  Refusing to\n' >&2
         printf '  continue.\n' >&2
         exit 1
     fi
-    if [ ! -s "${INTO}/surefire/${module}/${base}" ]; then
+    if [ ! -s "${WORK}/${module}/${base}" ]; then
         printf 'install-surefire-evidence.sh: %s installed empty; refusing to continue.\n' "$base" >&2
         exit 1
     fi
@@ -633,14 +670,223 @@ if [ "$harvest_status" -ne 0 ]; then
 fi
 
 installed="$(printf '%s\n' "$reports" | wc -l | tr -d '[:space:]')"
-if [ -f "${INTO}/surefire/.substitution-counts" ]; then
-    substitutions="$(awk '{ s += $1 } END { printf "%d", s }' "${INTO}/surefire/.substitution-counts")"
-    rm -f -- "${INTO}/surefire/.substitution-counts"
+if [ -f "${WORK}/.substitution-counts" ]; then
+    substitutions="$(awk '{ s += $1 } END { printf "%d", s }' "${WORK}/.substitution-counts")"
+    rm -f -- "${WORK}/.substitution-counts"
 fi
 dropped_total=0
-if [ -f "${INTO}/surefire/.dropped-property-counts" ]; then
-    dropped_total="$(awk '{ s += $1 } END { printf "%d", s }' "${INTO}/surefire/.dropped-property-counts")"
-    rm -f -- "${INTO}/surefire/.dropped-property-counts"
+if [ -f "${WORK}/.dropped-property-counts" ]; then
+    dropped_total="$(awk '{ s += $1 } END { printf "%d", s }' "${WORK}/.dropped-property-counts")"
+    rm -f -- "${WORK}/.dropped-property-counts"
+fi
+
+# ---------------------------------------------------------------------------
+# SECRET AND PERSONAL-DATA CHECK — FAIL CLOSED, ACROSS THE WHOLE ARCHIVE.
+#
+# Surefire reports carry whatever a test wrote to standard output, and a test that
+# logs a request, a configuration object or an authentication failure can put a
+# credential into a file that is then committed to a public repository forever.
+# The absolute-path check below establishes that the capture machine's filesystem
+# layout does not leak; it says nothing at all about credentials, and an archive
+# can be perfectly free of machine paths while carrying a private key.  This is the
+# gate for that, and it is deliberately a SEPARATE gate rather than an extension of
+# the path check, because the two answer different questions and a reader of the
+# provenance note needs both answered.
+#
+# IT FAILS CLOSED.  An unrecognised match stops the install; nothing is redacted in
+# place and nothing is shipped with a warning.  Redacting would be worse than
+# refusing: it would silently alter machine output, which is precisely the defect
+# this whole deliverable is being corrected for, and it would leave a reader unable
+# to tell an edited report from an unedited one.  The correct response to a
+# credential in a test's output is to fix the test, not to launder the evidence.
+#
+# THE ALLOWLIST IS EXACT LITERALS, NOT PATTERNS.  A pattern allowlist is how a real
+# secret gets waved through: it is written to admit one known fixture and then
+# admits a whole shape.  Every entry below is a complete string, is committed in
+# the test source that emits it, and carries the reason it is there.  Anything that
+# is not one of these exact strings is refused even if it looks similar.
+#
+# The entries were established by scanning the archive and then reading the source
+# that produces each hit, not by assuming what a fixture looks like:
+#
+#   The signed-token value emitted by the token-signing service test.  It is the
+#   canonical example token from the token specification's own documentation - its
+#   payload decodes to the well-known sub 1234567890 / name John Doe / iat
+#   1516239022 - and it is a literal in the committed test source.  It is a public
+#   test vector, not a credential.
+#
+#   Three fixture user addresses in the arkcase.org domain.  These are the standard
+#   demonstration users the test data ships with; the domain is the project's own
+#   and the accounts exist only in test fixtures.  They are personal data in shape
+#   only.
+#
+# Note what is NOT allowlisted and therefore refused: the evaluation host's
+# documented administrator password and its documented database password.  Both are
+# real working credentials for the reference stack, both appear in this
+# repository's setup documentation, and neither has any business in a test report.
+# Scanning for them specifically is how this gate proves it can catch a credential
+# it has actually seen rather than only ones it can imagine.
+# ---------------------------------------------------------------------------
+SECRET_ALLOWLIST_FILE="${TMPDIR:-/tmp}/surefire-secret-allowlist.$$"
+: > "$SECRET_ALLOWLIST_FILE"
+{
+    printf '%s\n' 'eyJhbGciOiJIUzI1NiJ9.ewogICJzdWIiOiAiMTIzNDU2Nzg5MCIsCiAgIm5hbWUiOiAiSm9obiBEb2UiLAogICJpYXQiOiAxNTE2MjM5MDIyCn0.0Gh1Ilzj9aeD2gxmjTn2U-Yo-NxpW8hMet_CY6bDkKg'
+    printf '%s\n' 'ann-acm@arkcase.org'
+    printf '%s\n' 'arkcase-admin@arkcase.org'
+    printf '%s\n' 'ian-acm@arkcase.org'
+} >> "$SECRET_ALLOWLIST_FILE"
+
+secret_hits="${TMPDIR:-/tmp}/surefire-secret-hits.$$"
+: > "$secret_hits"
+
+# Each shape is scanned separately so that the refusal can name WHICH shape
+# matched.  "A secret was found" is not actionable; "a PEM private key header was
+# found in this file" is.
+scan_secret_shape()
+{
+    local shape_name="$1"
+    local pattern="$2"
+    local file
+    local match
+
+    grep -rElZ -- "$pattern" "${WORK}" --include='*.xml' 2>/dev/null \
+        | tr '\0' '\n' | while IFS= read -r file; do
+        [ -n "$file" ] || continue
+        grep -Eoh -- "$pattern" "$file" 2>/dev/null | LC_ALL=C sort -u \
+            | while IFS= read -r match; do
+            [ -n "$match" ] || continue
+            if LC_ALL=C grep -qxF -- "$match" "$SECRET_ALLOWLIST_FILE"; then
+                continue
+            fi
+            printf '%s\t%s\n' "$shape_name" "$file" >> "$secret_hits"
+        done
+    done
+}
+
+scan_secret_shape 'a PEM private key header' \
+    '-----BEGIN [A-Z ]*PRIVATE KEY-----'
+scan_secret_shape 'an AWS access key identifier' \
+    'AKIA[0-9A-Z]{16}'
+scan_secret_shape 'a signed token' \
+    'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_+/=-]{10,}\.[A-Za-z0-9_-]{10,}'
+scan_secret_shape 'a bearer token' \
+    'Bearer [A-Za-z0-9._~+/-]{16,}'
+scan_secret_shape 'a credential assignment' \
+    '(password|passwd|pwd|secret|apikey|api_key|privateKey)[[:space:]]*[=:][[:space:]]*[^[:space:]<>"&]{4,}'
+scan_secret_shape 'credentials embedded in a URL' \
+    '[a-z][a-z0-9+.-]*://[^/[:space:]<>"]+:[^@/[:space:]<>"]+@'
+scan_secret_shape 'an email address' \
+    '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+
+# ---------------------------------------------------------------------------
+# LITERAL-VALUE SCANNING — AND WHY THE LITERALS ARE NOT WRITTEN DOWN HERE.
+#
+# The shapes above catch a credential that arrives in a recognisable FORM: an
+# assignment, a URL userinfo segment, a token, a key header.  They do not catch a
+# BARE value — a test that logs just the password of the environment it ran
+# against produces a string with no shape to match.  So the deployment's actual
+# secrets are scanned for as fixed strings too.
+#
+# An earlier revision of this script did that by writing those secrets into the
+# argument list, which is the very defect this gate exists to prevent: it put the
+# reference stack's administrator and database passwords into a committed file,
+# where reading the scanner taught you the credentials it was protecting, and it
+# only ever worked for one deployment.  The values are therefore supplied OUT OF
+# BAND, by the same variables and credential files the capture producer already
+# uses, and this script holds none of them.
+#
+# Fixed-string matching is used rather than regular-expression matching because a
+# password legitimately contains metacharacters, and a value such as a trailing
+# '!' or a leading '@' would otherwise be interpreted rather than searched for.
+#
+# Availability is REPORTED, not assumed.  A literal check that could not run
+# because its value was not supplied is named in the output, so a run cannot
+# quietly cover less than a reader believes it did.
+# ---------------------------------------------------------------------------
+scan_secret_literal()
+{
+    local shape_name="$1"
+    local value="$2"
+    local file
+
+    # A short value would match half the archive by coincidence; refuse to use it
+    # as a needle rather than drown the report in false positives.
+    [ "${#value}" -ge 6 ] || return 0
+
+    grep -rFlZ -- "$value" "${WORK}" --include='*.xml' 2>/dev/null \
+        | tr '\0' '\n' | while IFS= read -r file; do
+        [ -n "$file" ] || continue
+        if LC_ALL=C grep -qxF -- "$value" "$SECRET_ALLOWLIST_FILE"; then
+            continue
+        fi
+        printf '%s\t%s\n' "$shape_name" "$file" >> "$secret_hits"
+    done
+}
+
+# Reads a secret from <NAME> or <NAME>_FILE, scans for it, and records coverage.
+# The value is held in a local and never printed, never written to a file, and
+# never passed through a command line that another process could observe.
+literal_checks_run=''
+literal_checks_unavailable=''
+scan_named_secret()
+{
+    local var="$1"
+    local description="$2"
+    local value=''
+    local file_var="${var}_FILE"
+
+    value="$(printf '%s' "${!var-}")"
+    if [ -z "$value" ] && [ -n "${!file_var-}" ] && [ -r "${!file_var}" ]; then
+        # Only the first line, and without a trailing newline: a credential file
+        # written by `printf` and one written by an editor must behave alike.
+        IFS= read -r value < "${!file_var}" || true
+    fi
+
+    if [ -n "$value" ]; then
+        scan_secret_literal "$description" "$value"
+        literal_checks_run="${literal_checks_run}${literal_checks_run:+, }${description}"
+    else
+        literal_checks_unavailable="${literal_checks_unavailable}${literal_checks_unavailable:+, }${description} (set ${var} or ${file_var})"
+    fi
+}
+
+scan_named_secret 'ARKCASE_PASSWORD' 'the application administrator password'
+scan_named_secret 'BROKER_PASSWORD' 'the message broker password'
+scan_named_secret 'DATABASE_PASSWORD' 'the database password'
+scan_named_secret 'DIRECTORY_SERVICE_PASSWORD' 'the directory service bind password'
+
+if [ -s "$secret_hits" ]; then
+    printf 'install-surefire-evidence.sh: REFUSING TO INSTALL.\n' >&2
+    printf '  A credential-shaped or personal-data-shaped value was found in a report that\n' >&2
+    printf '  was about to be committed, and it is not one of the exact fixture literals\n' >&2
+    printf '  this script allows.  The value itself is NOT printed here: printing it would\n' >&2
+    printf '  put it in a build log as well as in a report.\n' >&2
+    printf '  Matches, by shape and file:\n' >&2
+    LC_ALL=C sort -u "$secret_hits" \
+        | sed -e "s|${WORK}/||" -e 's|\t| in |' -e 's|^|    |' >&2
+    printf '  Remediation: fix the TEST so it stops emitting the value.  Do NOT redact the\n' >&2
+    printf '  report: these files are machine output and editing them is the defect this\n' >&2
+    printf '  archive is being corrected for.  If the value is genuinely a deterministic,\n' >&2
+    printf '  public test fixture, add its EXACT literal to the allowlist in this script\n' >&2
+    printf '  together with the reason and the test source that emits it.\n' >&2
+    rm -f -- "$secret_hits" "$SECRET_ALLOWLIST_FILE"
+    exit 1
+fi
+rm -f -- "$secret_hits"
+
+# State the coverage of the literal half of the gate.  The shapes always run; the
+# literal checks run only for values that were supplied, and a reader is entitled
+# to know which those were without inspecting the environment themselves.  Names
+# and descriptions are printed; values never are.
+printf 'secret gate: 7 shape check(s) ran against every installed report.\n'
+if [ -n "$literal_checks_run" ]; then
+    printf '  literal value check(s) that ran: %s\n' "$literal_checks_run"
+else
+    printf '  literal value check(s) that ran: none\n'
+fi
+if [ -n "$literal_checks_unavailable" ]; then
+    printf '  literal value check(s) NOT run because the value was not supplied: %s\n' \
+        "$literal_checks_unavailable"
 fi
 
 # ---------------------------------------------------------------------------
@@ -670,7 +916,7 @@ leaked=''
 for leak_root in "$FROM_ABS" "${HOME:-}"; do
     [ -n "$leak_root" ] || continue
     [ "$leak_root" = '/' ] && continue
-    if grep -rlF -- "$leak_root" "${INTO}/surefire" 2>/dev/null | grep -q .; then
+    if grep -rlF -- "$leak_root" "${WORK}" 2>/dev/null | grep -q .; then
         leaked="${leaked}${leak_root}
 "
     fi
@@ -683,8 +929,8 @@ if [ -n "$leaked" ]; then
     printf '%s' "$leaked" | sed -e 's|^|    |' >&2
     printf '  Files carrying one of them:\n' >&2
     for leak_root in $leaked; do
-        grep -rlF -- "$leak_root" "${INTO}/surefire" 2>/dev/null \
-            | sed -e "s|^${INTO}/surefire/|    |" | head -10 >&2
+        grep -rlF -- "$leak_root" "${WORK}" 2>/dev/null \
+            | sed -e "s|^${WORK}/||" -e 's|^|    |' | head -10 >&2
     done
     printf '  Remediation: the repository path is taken from the maven.repo.local property\n' >&2
     printf '  and, when the run recorded none, from the default location.  If neither is the\n' >&2
@@ -693,9 +939,51 @@ if [ -n "$leaked" ]; then
     exit 1
 fi
 
+# SOURCE PROVENANCE — READ, NEVER PASSED IN.
+#
+# The archive has to be attributable to a revision, or a reader cannot tell which
+# change set produced it.  The commit, the branch and the dirty state are all read
+# from the harvest root's own repository at install time rather than taken as
+# arguments, so a caller cannot label an archive with a revision it did not come
+# from.  The dirty state is recorded HONESTLY as a file count: a capture taken from
+# a working tree with uncommitted edits is still evidence, but it is evidence about
+# the tree rather than about the commit, and the difference matters enough to print.
+harvest_commit='not-a-git-checkout'
+harvest_branch='not-a-git-checkout'
+harvest_dirty='not-a-git-checkout'
+if git -C "$FROM_ABS" rev-parse --git-dir >/dev/null 2>&1; then
+    harvest_commit="$(git -C "$FROM_ABS" rev-parse HEAD 2>/dev/null || printf 'unreadable')"
+    harvest_branch="$(git -C "$FROM_ABS" rev-parse --abbrev-ref HEAD 2>/dev/null || printf 'unreadable')"
+    # The archive being written is excluded from the count.  Including it would make
+    # the number self-referential and therefore unstable: the install would count the
+    # files it is in the middle of writing, so two identical runs would disagree by
+    # however many reports changed.  The interesting quantity is the state of the tree
+    # APART from this deliverable, and that is what is recorded.
+    # Two things are excluded, and the second one is easy to miss: the archive itself,
+    # and the staging directory this run created beside it.  Leaving the staging
+    # directory in would add one untracked path that exists only while the install is
+    # running, so the recorded number would be one higher than the same number measured
+    # a second later -- a discrepancy a reader would rightly not trust.
+    into_rel="${INTO#"$FROM_ABS"/}"
+    stage_rel="$(basename -- "$STAGE_ROOT")"
+    dirty_count="$(git -C "$FROM_ABS" status --porcelain 2>/dev/null \
+        | grep -v -F -- "${into_rel}/surefire/" \
+        | grep -v -F -- "${stage_rel}" \
+        | grep -c . || true)"
+    if [ "${dirty_count:-0}" -eq 0 ]; then
+        harvest_dirty='clean -- every file outside this archive tracked and unmodified'
+    else
+        harvest_dirty="$(printf '%s path(s) OUTSIDE this archive differed from the commit above, so the capture is evidence about the working tree at that moment rather than about the commit alone. This archive itself is excluded from the count, which would otherwise be self-referential and unstable' "$dirty_count")"
+    fi
+fi
+
 # Runtime provenance is READ OUT OF the installed reports rather than asserted,
 # so the note cannot claim a runtime the reports do not show.
-first_installed="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' 2>/dev/null | LC_ALL=C sort | head -1)"
+# `| head -1` here would close the pipe under sort and make it print a broken-pipe
+# diagnostic onto the install output.  This tool's output is itself evidence, so a
+# spurious error line in it is a defect: the first name is taken with sed's own
+# range rather than by killing the writer.
+first_installed="$(find "${WORK}" -type f -name 'TEST-*.xml' 2>/dev/null | LC_ALL=C sort | sed -n '1p')"
 if [ -n "$first_installed" ]; then
     runtime_version="$(sed -n 's|.*<property name="java.runtime.version" value="\([^"]*\)".*|\1|p' "$first_installed" | head -1)"
     vm_version="$(sed -n 's|.*<property name="java.vm.version" value="\([^"]*\)".*|\1|p' "$first_installed" | head -1)"
@@ -706,7 +994,7 @@ fi
 # Aggregate counts, summed straight out of the installed reports.  The element
 # attributes are read rather than any summary file, so the totals cannot disagree
 # with the archive they describe.
-totals="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' -exec awk '
+totals="$(find "${WORK}" -type f -name 'TEST-*.xml' -exec awk '
         function attr(line, key,   m) {
             if (match(line, key "=\"[0-9]+\"") == 0) { return 0 }
             m = substr(line, RSTART + length(key) + 2, RLENGTH - length(key) - 3)
@@ -731,6 +1019,9 @@ totals="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' -exec awk '
     printf 'and an authored report can only ever contain what its author already believed.\n'
     printf '\n'
     printf 'harvested-by: install-surefire-evidence.sh, committed beside this archive\n'
+    printf 'harvested-from-commit: %s\n' "$harvest_commit"
+    printf 'harvested-from-branch: %s\n' "$harvest_branch"
+    printf 'working-tree-at-harvest: %s\n' "$harvest_dirty"
     printf 'integrity: sha256-manifest.txt beside this note covers every report here and\n'
     printf '  this note itself.  Verify the archive has not been edited since it was\n'
     printf '  harvested with:  cd <this directory> && sha256sum -c sha256-manifest.txt\n'
@@ -742,7 +1033,8 @@ totals="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' -exec awk '
     printf 'runtime provenance, read out of the installed reports themselves:\n'
     printf '  java.runtime.version: %s\n' "${runtime_version:-unknown}"
     printf '  java.vm.version: %s\n' "${vm_version:-unknown}"
-    printf '  installed JDK path recorded by the runtime: %s\n' "${jdk_path:-unknown}"
+    printf '  installed JDK path recorded by the runtime: %s\n' \
+        "${jdk_path:-not carried: java.home and sun.boot.library.path are machine paths and the property allowlist drops them, so this archive states the runtime by version rather than by location}"
     printf '\n'
     printf 'the two transformations applied, and their exact extent:\n'
     printf '  1. absolute machine paths replaced with placeholders: %s occurrences\n' "$substitutions"
@@ -768,6 +1060,12 @@ totals="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' -exec awk '
     printf '  exactly the angle brackets the dropped lines carried and no others, and to\n'
     printf '  still state its own java.runtime.version -- so a report in this archive proves\n'
     printf '  which runtime produced it without reference to any prose, including this note.\n'
+    printf '  ONE further difference, stated rather than glossed because "byte-identical" is\n'
+    printf '  a strong word: the runner writes no newline after the closing testsuite tag and\n'
+    printf '  the rewriter emits one, so every installed report is exactly one trailing\n'
+    printf '  newline longer than its source.  Nothing else differs -- that was checked by\n'
+    printf '  reproducing the substitutions on the raw reports and comparing the whole of\n'
+    printf '  each report from </properties> onward, for all of them, not for a sample.\n'
     printf '\n'
     printf 'why the paths were replaced rather than kept:\n'
     printf '  the baseline necessarily runs from a throwaway checkout of the base commit, so\n'
@@ -775,7 +1073,7 @@ totals="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' -exec awk '
     printf '  different roots by construction, so keeping the paths would make every report\n'
     printf '  differ between the two sides for a reason unrelated to test outcomes, which is\n'
     printf '  precisely what the row-for-row comparison must not be flooded with.\n'
-} > "${INTO}/surefire/run-provenance.txt"
+} > "${WORK}/run-provenance.txt"
 
 # A DIGEST MANIFEST OVER THE ARCHIVE.
 #
@@ -788,13 +1086,49 @@ totals="$(find "${INTO}/surefire" -type f -name 'TEST-*.xml' -exec awk '
 # without a single formatting warning; the instructions for using it live in the
 # provenance note beside it, where prose belongs.
 (
-    cd "${INTO}/surefire" || exit 1
+    cd "${WORK}" || exit 1
     find . -type f -name 'TEST-*.xml' | LC_ALL=C sort | while IFS= read -r f; do
         sha256sum "$f"
     done
     sha256sum ./run-provenance.txt
-) > "${INTO}/surefire/sha256-manifest.txt"
+) > "${WORK}/sha256-manifest.txt"
+
+# THE MANIFEST IS VERIFIED BEFORE THE ARCHIVE IS PUBLISHED, NOT AFTER.
+#
+# A manifest that does not verify is worse than no manifest: it invites a reviewer
+# to run `sha256sum -c`, see a mismatch, and conclude the archive was tampered with
+# when in fact it was written wrong.  So the check the reviewer will run is run
+# here first, against the staging tree, and a failure refuses the publish.
+manifest_check="$( cd "$WORK" && LC_ALL=C sha256sum -c --quiet sha256-manifest.txt 2>&1 )" || {
+    printf 'install-surefire-evidence.sh: the digest manifest does not verify against the\n' >&2
+    printf '  archive it was just written from, so nothing is published.\n' >&2
+    printf '%s\n' "$manifest_check" | sed -e 's|^|    |' | head -10 >&2
+    exit 1
+}
+
+# PUBLISH.  Every fail-closed check above has passed, so the staging tree is now
+# the archive.  The destination is replaced by moving the previous archive aside
+# first and removing it only once the new one is in place, so an interruption
+# leaves one complete archive rather than none: if the rename of the new tree
+# fails, the old one is moved back.
+mkdir -p "$INTO" || fail "could not create ${INTO}"
+retired=''
+if [ -e "${INTO}/surefire" ]; then
+    retired="${INTO}/.surefire.retired.$$"
+    rm -rf -- "$retired"
+    mv -- "${INTO}/surefire" "$retired" || fail "could not move the previous archive aside at ${INTO}/surefire"
+fi
+if ! mv -- "$WORK" "${INTO}/surefire"; then
+    if [ -n "$retired" ] && [ -e "$retired" ]; then
+        mv -- "$retired" "${INTO}/surefire" || true
+    fi
+    fail "could not publish the staged archive into ${INTO}/surefire" \
+        '  The previously committed archive has been restored.'
+fi
+[ -n "$retired" ] && rm -rf -- "$retired"
+discard_stage
 
 printf 'installed %s executed Surefire reports into %s/surefire (%s path substitutions, %s properties dropped)\n' \
     "$installed" "$INTO" "$substitutions" "$dropped_total"
 printf 'aggregate: %s\n' "$totals"
+printf 'manifest verified before publish: %s report digests + the provenance note\n' "$installed"

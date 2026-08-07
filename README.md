@@ -63,7 +63,7 @@ ArkCase requires a configuration folder which is housed in another GitHub reposi
 
 The build command above skips the integration tests, so it does not need this folder.  `mvn verify` does: the integration-test Spring contexts import `${user.home}/.arkcase/acm/encryption/spring-properties-encryption.xml` and `${user.home}/.arkcase/acm/app-config.xml` directly, read `${user.home}/.arkcase/acm/conf.yml`, and decrypt property values with the key material under `${user.home}/.arkcase/acm/private`.  Without the folder those tests fail during context initialisation with `FileNotFoundException` on a `.arkcase` path, which reads like a code failure and is not one.  Set the folder up, and start the configuration server described below, before drawing conclusions from an integration-test result.
 
-#### Required after the Spring Security 5.8 upgrade: the configuration folder's security schema declarations
+#### DEPLOYMENT PRECONDITION — the configuration folder's security schema declarations must be updated for Spring Security 5.8
 
 `WEB-INF/web.xml` loads `file:${user.home}/.arkcase/acm/spring-security/spring-security-config-*.xml` from the configuration folder into the same root application context as ArkCase's own security configuration.  ArkCase now runs Spring Security 5.8, whose XML namespace handler refuses to parse a document whose `xsi:schemaLocation` names an older security schema than the version on the classpath, so **every one of those files must declare the version-less schema**:
 
@@ -80,6 +80,17 @@ org.springframework.beans.factory.parsing.BeanDefinitionParsingException: Config
 ```
 
 and every request returns HTTP 404 because the context never initialises.  Replacing `spring-security-5.4.xsd` with `spring-security.xsd` in those files is a namespace-declaration change only: it alters no `<http>`, `<intercept-url>`, `<form-login>` or method-security semantics.  ArkCase's own three declarations were changed the same way in this repository; the configuration folder lives in a separate repository and has to be updated there.
+
+**This is a precondition of the deployment contract, not a defect in this repository, and it is stated as one so that it is satisfied deliberately rather than discovered at startup.**  The configuration folder is a separate deliverable in a separate repository, versioned and released independently of the application; it is not in this migration's file list and cannot be changed from here.  What this repository owes is that the requirement is unambiguous, that the remedy is exact, and that it is verifiable before a deployment is attempted — which is what the rest of this section provides.  Do this once per configuration folder, before starting Tomcat:
+
+```bash
+cd ${HOME}/.arkcase/acm/spring-security
+grep -l 'spring-security-5\.4\.xsd' spring-security-config-*.xml     # expect the eight files named above
+sed -i 's|spring-security-5\.4\.xsd|spring-security.xsd|g' spring-security-config-*.xml
+grep -c 'spring-security-5\.4\.xsd' spring-security-config-*.xml     # every file must now report 0
+```
+
+The last command is the gate: while any file still reports a non-zero count the context will not initialise, and every request will return HTTP 404 for the reason quoted above rather than for any reason in the application.  The same change belongs upstream in [`ArkCase/.arkcase`](https://github.com/ArkCase/.arkcase) so that a fresh clone of the configuration folder is deployable without it; until that lands, the four commands above are the whole of the remedy.
 
 ### Run the Configuration Server
 
@@ -145,7 +156,7 @@ export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NAT
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
 
-This launch configuration deliberately contains no argument that opens or exports an encapsulated JDK package, and Java 17 needs none: nothing above relies on JDK internal access, which is why the register of applied exceptions in [`docs/migration/add-opens-exceptions.md`](docs/migration/add-opens-exceptions.md) is empty. That page also records the two production requirements for such access that the migration did measure, and how each was removed at its source by advancing the library that needed it rather than by opening a JDK module -- so the register is empty because the requirement is gone, not because it was never looked for.  Every strong encapsulation failure found during the Java 17 migration was inside a test library and was resolved by upgrading or removing that library rather than by opening a JDK module to the application; ArkCase's own reflective code only ever targets ArkCase classes, and ArkCase installs no `SecurityManager`.
+This launch configuration deliberately contains no argument that opens or exports an encapsulated JDK package, and Java 17 needs none: nothing above relies on JDK internal access, which is why the table of applied exceptions in [`docs/migration/add-opens-exceptions.md`](docs/migration/add-opens-exceptions.md) is **empty**.  The register is empty because the requirement is gone, not because it was never looked for.  Five strong-encapsulation failures were measured during the migration: **two in test libraries** -- the mocking framework's class proxy factory and the reflection helper of the framework that was removed outright -- and **three in production dependencies**: the decision-table engine's ASM consequence-invoker generator reaching for the protected four-argument `ClassLoader.defineClass`, the object mapper calling `setAccessible` on `java.time` fields, and the LDAP context source holding an internal JNDI factory as a class constant in its static initialiser.  Each of the five was removed at its source by advancing or removing the library that needed it, never by opening a JDK module to the application, so none became an applied exception.  ArkCase's own reflective code only ever targets ArkCase classes, and ArkCase installs no `SecurityManager`.
 
 `NODE_ENV=development` explicitly selects the non-production branch of the front-end build that Tomcat runs at startup: `Gruntfile.js` tests only for the exact value `production` when it decides which asset lists to render into `home.html`, so every other value — including an unset variable — follows the same development branch.  The export is therefore documentation of the intended branch rather than a strict requirement, and it is kept for that reason.  That build now installs its dependencies with `npm ci` on Node 20.
 

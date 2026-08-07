@@ -1,312 +1,52 @@
-static audit gate, baseline capture, taken before any file in the change set was edited
+static audit gate — captured output
 
-capture-kind: before
-gate-name: static audit gate
-base-commit: c8f6226105
-baseline-runtime: JDK 8
-baseline-runtime-record: env/toolchain.txt in this same capture directory
-authoritative-presentation: the static audit register under docs/migration/
-role-of-this-file: raw archive only, being command, commit, output, counts and
-  classification
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_static_audit
+authoritative-presentation: docs/migration/static-audit-output.md
+gate-state: FAILED
 
-This is the BEFORE capture of the static audit gate, recorded on JDK 8 at the base
-commit named above; the authoritative, human-facing presentation of the same
-evidence is the static audit register under docs/migration/.
+search-root: <REPO-ROOT>
+search-pattern: sun.misc\|com.sun.
+search-include: *.java
+search-pruned-directories: target, node_modules, .git, blitzy_adhoc_test_*
+tool: grep (GNU grep) 3.11
+java-files-searched: 3456
 
-This file adds no narrative to that register and is not a competing presentation of
-it.  The runtime is recorded for provenance rather than because it changes the
-result: the gate is a textual search over source files and executes no Java, so its
-output is runtime-independent.  What is not runtime-independent is the tree it
-reads, and that is fixed by the base commit above.
+command, reproducible verbatim from the repository root:
+  grep -rn -e 'sun.misc\|com.sun.' --include='*.java' --exclude-dir=target \
+      --exclude-dir=node_modules --exclude-dir=.git . \
+      | grep -F '/src/main/java/' | LC_ALL=C sort
+  and the same with /src/test/java/ for the test-source count.
 
-===== gate command, as specified by the testing requirements =====
+hits-whole-tree: 7
+hits-main-source: 7
+hits-test-source: 0
 
-grep -rn "sun.misc\|com.sun." --include=*.java <main source>
+grep exit-status semantics, stated because they are inverted for this
+gate: grep exits 0 when it MATCHES and 1 when it does not, so for a gate
+that must find nothing, exit 1 is the passing outcome and exit 0 the
+failing one.  Every count above was read back from the captured output
+file rather than inferred from any exit status, which is the only way an
+empty result and a failed search can be told apart.
 
-It runs against main source and is required to return zero hits.
+----- main-source hits, sorted -----
+<REPO-ROOT>/acm-services/acm-service-convert-file/src/main/java/com/armedia/acm/service/MimeMessageParser.java:33:import com.sun.mail.util.BASE64DecoderStream;
+<REPO-ROOT>/acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java:338:     * Set the context factory. Default is com.sun.jndi.ldap.LdapCtxFactory.
+<REPO-ROOT>/acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java:55:    public static final String SUN_LDAP_POOLING_FLAG = "com.sun.jndi.ldap.connect.pool";
+<REPO-ROOT>/acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java:56:    private static final Class DEFAULT_CONTEXT_FACTORY = com.sun.jndi.ldap.LdapCtxFactory.class;
+<REPO-ROOT>/acm-standard-applications/acm-foia/src/main/java/gov/foia/service/FOIAQueueCorrespondenceService.java:54:import com.sun.xml.fastinfoset.stax.events.Util;
+<REPO-ROOT>/acm-standard-applications/acm-foia/src/main/java/gov/foia/service/NiemExportServiceImpl.java:235:         * com.sun.org.apache.xalan.internal.xsltc.trax - JDK
+<REPO-ROOT>/acm-tool-integrations/acm-pdf-utilities/src/main/java/com/armedia/acm/pdf/service/PdfServiceImpl.java:137:             * com.sun.org.apache.xalan.internal.xsltc.trax - JDK
+----- end main-source hits -----
 
-===== how this capture was produced =====
+----- test-source hits, sorted -----
+(no output: test source carried zero hits at the base commit and carries
+zero here, so nothing was introduced while rewriting the mocking-framework
+test classes)
+----- end test-source hits -----
 
-The working tree on this branch is already migrated, so running the gate against it
-produces the after-capture and not this one.  Every .java file of the base commit
-was materialised into a scratch directory outside the repository working tree, and
-the gate was run there, so the output carries the same ./ path prefixes the command
-produces in an ordinary checkout.
-
-The scratch directory must sit outside the working tree.  Extract the base commit
-into a subdirectory of the checkout instead and the after-capture re-discovers those
-historical files, because the gate recurses from the repository root and its
---include filter does not care that they are a copy.  That manufactures a
-convincing false failure of 7 where 0 is expected, on a tree which is in fact fully
-migrated.
-
-commands, exactly as run, in this order:
-
-SCRATCH=$(mktemp -d)
-git archive c8f6226105 | tar -x -C "$SCRATCH" --wildcards '*.java'
-( cd "$SCRATCH" && grep -rn "sun.misc\|com.sun." --include=*.java . | grep "/src/main/java/" | sort )
-( cd "$SCRATCH" && grep -rn "sun.misc\|com.sun." --include=*.java . | grep -c "/src/main/java/" )
-( cd "$SCRATCH" && grep -rn "sun.misc\|com.sun." --include=*.java . | grep "/src/main/java/" | cut -d: -f1 | sort -u | wc -l )
-( cd "$SCRATCH" && grep -rn "sun.misc\|com.sun." --include=*.java . | grep "/src/test/java/" | sort )
-( cd "$SCRATCH" && grep -rn "sun.misc\|com.sun." --include=*.java . | grep -c "/src/test/java/" )
-( cd "$SCRATCH" && grep -rn "sun\.misc\|com\.sun\." --include=*.java . | grep -c "/src/main/java/" )
-( cd "$SCRATCH" && grep -rn "sun.misc\|com.sun." --include=*.java . | wc -l )
-rm -rf "$SCRATCH"
-
-cross-check, run at the repository root and extracting nothing:
-
-git grep -n "sun.misc\|com.sun." c8f6226105 -- '*.java' | grep -c "/src/main/java/"
-
-It reports the same seven lines in a commit-prefixed path form instead of the ./
-form, which confirms the count independently of the extraction step.
-
-tooling: GNU grep 3.11
-java-files-materialised-and-searched: 3456
-
-===== counts =====
-
-main-source-hits: 7
-main-source-files: 5
-test-source-hits: 0
-whole-tree-hits: 7
-escaped-pattern-main-source-hits: 7
-escaped-pattern-test-source-hits: 0
-
-The whole-tree count equals the main-source count, so all seven occurrences live in
-main source and none sits outside it in generated, sample or resource-adjacent Java.
-Replacing each unescaped . with a literal \. yields a byte-identical result set,
-which confirms there are no regex artefacts and no false positives: every one of the
-seven is a genuine textual reference rather than a wildcard coincidence.
-
-===== capture A, main source, verbatim =====
-
-command: grep -rn "sun.misc\|com.sun." --include=*.java . | grep "/src/main/java/" | sort
-
-===== capture A output begins, deterministic ordering, piped through sort =====
-./acm-services/acm-service-convert-file/src/main/java/com/armedia/acm/service/MimeMessageParser.java:33:import com.sun.mail.util.BASE64DecoderStream;
-./acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java:338:     * Set the context factory. Default is com.sun.jndi.ldap.LdapCtxFactory.
-./acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java:55:    public static final String SUN_LDAP_POOLING_FLAG = "com.sun.jndi.ldap.connect.pool";
-./acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java:56:    private static final Class DEFAULT_CONTEXT_FACTORY = com.sun.jndi.ldap.LdapCtxFactory.class;
-./acm-standard-applications/acm-foia/src/main/java/gov/foia/service/FOIAQueueCorrespondenceService.java:54:import com.sun.xml.fastinfoset.stax.events.Util;
-./acm-standard-applications/acm-foia/src/main/java/gov/foia/service/NiemExportServiceImpl.java:235:         * com.sun.org.apache.xalan.internal.xsltc.trax - JDK
-./acm-tool-integrations/acm-pdf-utilities/src/main/java/com/armedia/acm/pdf/service/PdfServiceImpl.java:137:             * com.sun.org.apache.xalan.internal.xsltc.trax - JDK
-===== capture A output ends =====
-
-divergence from the expected seven lines: none in content.  All seven match the
-expected set character for character.  The only difference is presentation order,
-and it is the tool's: sort is lexical over the whole line, so within
-ActiveDirectoryAbstractContextSource.java it places :338 ahead of :55, and :55
-ahead of :56, because the character 3 precedes 5.  In ascending line order the
-three occurrences in that file are 55, 56 and 338.  No line is missing and none is
-duplicated.  The order is preserved rather than renumbered into line order, because
-this is captured output rather than a narrative.
-
-===== capture A output begins, unsorted, exactly as this run emitted it =====
-./acm-standard-applications/acm-foia/src/main/java/gov/foia/service/NiemExportServiceImpl.java:235:         * com.sun.org.apache.xalan.internal.xsltc.trax - JDK
-./acm-standard-applications/acm-foia/src/main/java/gov/foia/service/FOIAQueueCorrespondenceService.java:54:import com.sun.xml.fastinfoset.stax.events.Util;
-./acm-tool-integrations/acm-pdf-utilities/src/main/java/com/armedia/acm/pdf/service/PdfServiceImpl.java:137:             * com.sun.org.apache.xalan.internal.xsltc.trax - JDK
-./acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java:55:    public static final String SUN_LDAP_POOLING_FLAG = "com.sun.jndi.ldap.connect.pool";
-./acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java:56:    private static final Class DEFAULT_CONTEXT_FACTORY = com.sun.jndi.ldap.LdapCtxFactory.class;
-./acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java:338:     * Set the context factory. Default is com.sun.jndi.ldap.LdapCtxFactory.
-./acm-services/acm-service-convert-file/src/main/java/com/armedia/acm/service/MimeMessageParser.java:33:import com.sun.mail.util.BASE64DecoderStream;
-===== capture A output ends =====
-
-Directory traversal order is filesystem-dependent, so the unsorted output of this
-run is archived beside the sorted form.  The two blocks hold the same seven lines;
-sort changed their order and nothing else.  The sorted form is the one to compare
-against, because it is stable across filesystems.
-
-===== per-file hit tally, main source =====
-
-command: grep -rn "sun.misc\|com.sun." --include=*.java . | grep "/src/main/java/" | cut -d: -f1 | sort | uniq -c
-
-1 acm-services/acm-service-convert-file/src/main/java/com/armedia/acm/service/MimeMessageParser.java
-3 acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java
-1 acm-standard-applications/acm-foia/src/main/java/gov/foia/service/FOIAQueueCorrespondenceService.java
-1 acm-standard-applications/acm-foia/src/main/java/gov/foia/service/NiemExportServiceImpl.java
-1 acm-tool-integrations/acm-pdf-utilities/src/main/java/com/armedia/acm/pdf/service/PdfServiceImpl.java
-
-The distribution is uneven, which is what lets one file carry three of the seven:
-ActiveDirectoryAbstractContextSource.java accounts for three hits, at lines 55, 56
-and 338, and each of the other four files carries one.
-
-===== capture B, test source, verbatim =====
-
-command: grep -rn "sun.misc\|com.sun." --include=*.java . | grep "/src/test/java/" | sort
-
-The command emitted no output lines at all.  There is nothing between the markers
-below, and that emptiness is the evidence.
-
-===== capture B output begins =====
-===== capture B output ends =====
-
-test-source-hits: 0
-
-Test source is clean at the base commit, so it has nothing inherited to clean up.
-That recorded zero is what makes any hit introduced later while rewriting the six
-mocking-framework test classes identifiable as a new violation rather than an
-inherited one, and it is why the count is archived explicitly instead of omitted as
-uninteresting.
-
-===== classification of the seven occurrences =====
-
-The gate matches text rather than resolving symbols.  Only three of the seven
-occurrences are code the compiler sees; the other four are one configuration string
-literal and three Javadoc comment blocks.
-
-occurrence: MimeMessageParser.java:33
-  kind: import statement
-  compiler-visible: yes
-
-occurrence: ActiveDirectoryAbstractContextSource.java:56
-  kind: class-literal field initializer
-  compiler-visible: yes
-
-occurrence: FOIAQueueCorrespondenceService.java:54
-  kind: import statement
-  compiler-visible: yes
-
-occurrence: ActiveDirectoryAbstractContextSource.java:55
-  kind: string literal, being a JNDI pooling property key
-  compiler-visible: no
-
-occurrence: ActiveDirectoryAbstractContextSource.java:338
-  kind: Javadoc prose
-  compiler-visible: no
-
-occurrence: NiemExportServiceImpl.java:235
-  kind: Javadoc prose
-  compiler-visible: no
-
-occurrence: PdfServiceImpl.java:137
-  kind: Javadoc prose
-  compiler-visible: no
-
-compiler-visible-occurrences: 3
-non-code-occurrences: 4
-
-===== consequence: the gate is textual, not semantic =====
-
-Because the gate matches text, all seven must be eliminated.  A build could compile
-perfectly, deploy perfectly, and pass every functional smoke flow, and still fail
-this gate on four comment and string occurrences.  Those four produce no diagnostic
-of any kind, at any stage, on any runtime, and they are exactly as disqualifying as
-the three that do, because the gate reads bytes in files rather than symbols in a
-symbol table.  Anyone who reads the requirement as removing the compile errors
-produces a change set that fails validation for reasons which look inexplicable in
-a build log, the build log being clean.
-
-Conversely, a module-access JVM argument, meaning one that opens or exports an
-otherwise-encapsulated JDK package to the unnamed module, could never have
-satisfied this gate under any reading of the rules.  Such an argument alters what
-the JVM permits at run time and removes no character from any source file, so all
-seven occurrences would survive it verbatim and the count would still read 7.  The
-rules forbid that shortcut and the gate's textual nature independently forecloses
-it; the two constraints agree, so one set of edits complies with both.
-
-===== rules provenance, both facts stated together =====
-
-There is no on-disk user rules document for this project.  The rules facility was
-queried four times, plainly with no range, with a forced complete read, and with
-two explicit ranges, and returned exactly "No user rules provided." on every call,
-so there is no external full-text source to defer to.
-
-Rules are nonetheless present and binding.  The requirements embed an explicit,
-numbered block of seven rules that govern this work in full, exactly as an external
-rules document would, plus seven transformation rules.  Recording only the first
-fact would imply that best practice is the sole standard here, which is wrong;
-recording only the second would misrepresent where the rules came from.  The
-identifiers R-1 through R-7 and R-T1 through R-T7 are the migration plan's own
-navigational convention rather than quoted titles.  No rule has been invented and
-none has been softened: enterprise-standard best practice applies on top of them,
-never as a substitute.
-
-===== the rules this capture answers to =====
-
-R-7, baseline behaviour is the tie-breaker, is the rule that creates this file.
-  quoted with one disclosed substitution: "The application's observed behavior at
-  the base commit on JDK 8 is the tie-breaker for any ambiguity, and each
-  resolution must be documented."
-  editorial note: the rule's own text names the older runtime with a phrase the
-  wording gate of this documentation tree forbids, and "JDK 8" is substituted for
-  it.  The substitution changes no meaning and is disclosed here rather than made
-  silently.
-  compliance: this capture was taken at the base commit, on JDK 8, before a single
-  file was edited.  It is irreversible, because nothing done later can reconstruct
-  it, which is why baseline capture is the first executable action of the
-  implementation rather than a validation afterthought.  Without it the migrated
-  zero-hit result would prove nothing, there being no recorded prior state to
-  compare it against.
-
-R-6, document discovered bugs, do not fix them.
-  quoted: "Pre-existing bugs discovered during the work are documented rather than
-  fixed, unless one blocks a validation item."
-  compliance: the seven hits are archived exactly as the tool emitted them.  No
-  source file was edited in order to produce this capture, and nothing noticed while
-  capturing was tidied up.  The change set invokes the escape clause exactly twice
-  and neither invocation is in this folder, so nothing here fixes anything.
-
-R-T7, evidence over exit codes.
-  quoted: "Validation asserts on produced artifacts and captured output, never on
-  process exit status alone.  This is mandatory rather than stylistic because
-  Gruntfile.js sets grunt.option('force', true), which masks task failures and lets
-  a broken build exit zero."
-  compliance: the evidence in this file is the captured output text and the integer
-  counts above.  Nothing here rests on the exit status of grep, which is 0 when it
-  matches and 1 when it does not, the opposite of success for a gate that must find
-  nothing.  Capture B is asserted from its empty output, with the count shown
-  alongside.
-
-R-2, no JDK-internal access in production launch configuration, reaches this file
-  through two recursive audits over the directories that contain it.
-  quoted with one disclosed substitution: "Production launch configuration must not
-  rely on <a module-access JVM argument that opens an otherwise-encapsulated JDK
-  package to the unnamed module> or other JDK-internal access, except where a
-  pinned third-party dependency documentedly requires it, and each such exception
-  must be documented."
-  editorial note: the rule names that argument literally.  This file sits inside
-  audits which require the literal argument names to be absent, so the name is
-  described rather than written.  The prohibition is reproduced at full strength, as
-  a prohibition and not a preference.
-  compliance: this file contains no literal occurrence of either of the two
-  module-access argument names, nor of the legacy reflective-access flag.  The
-  register that would record such an exception is referred to by title only, as the
-  JDK access exceptions register, because its own filename embeds one of those
-  names.  Its list of applied exceptions is empty, and the audited production launch
-  configuration in README.md provably contains none of these arguments.
-
-R-1, justified changes, applies here as a scope fence.
-  quoted: "Every dependency version change must have a specific Java 17 or Node 20
-  compatibility reason... A change without a reason is out of scope."
-  compliance: producing this capture required grep and nothing else.  No dependency,
-  no tool, no script and no documentation page was added for it, and no navigation
-  entry was added anywhere on its behalf.
-
-R-5, no disabling of failing tests.
-  quoted: "Failing tests must not be disabled, and exclusions are limited to
-  failures already present at baseline."
-  compliance: this file declares zero test exclusions.  It touches R-5 only through
-  capture B, whose recorded zero is the reference a later test-source hit would be
-  measured against.
-
-===== fences, stated so their absence is not mistaken for an oversight =====
-
-no build-configuration edit is made or implied by this file, and none is suggested
-no import is rewritten out of the javax namespace anywhere in this change set
-no library is opened, replaced or upgraded on the strength of this capture
-no credential value appears in this file, in any form
-the superseded frontend package manager is named nowhere here, and is presented
-  neither as a prerequisite nor as a recommendation, having no bearing on an audit
-  of Java sources
-
-===== verification =====
-
-A reviewer re-derives this capture with the commands listed under how this capture
-was produced.  The first must emit the seven lines of capture A; the counts that
-follow must read 7, then 5, then no output at all, then 0, then 7, then 7.
-
-The figures here agree with the static audit register under docs/migration/, whose
-completion condition is a before-capture of 7 hits and an after-capture of 0.  Were
-a figure ever to disagree, this raw capture would be authoritative for what was
-observed, and the divergence would be recorded rather than edited away on either
-side.  None disagrees.
+per-file tally, main source:
+        1 <REPO-ROOT>/acm-services/acm-service-convert-file/src/main/java/com/armedia/acm/service/MimeMessageParser.java
+        3 <REPO-ROOT>/acm-services/acm-service-login/src/main/java/com/armedia/acm/auth/ad/ActiveDirectoryAbstractContextSource.java
+        1 <REPO-ROOT>/acm-standard-applications/acm-foia/src/main/java/gov/foia/service/FOIAQueueCorrespondenceService.java
+        1 <REPO-ROOT>/acm-standard-applications/acm-foia/src/main/java/gov/foia/service/NiemExportServiceImpl.java
+        1 <REPO-ROOT>/acm-tool-integrations/acm-pdf-utilities/src/main/java/com/armedia/acm/pdf/service/PdfServiceImpl.java

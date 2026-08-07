@@ -1,11 +1,12 @@
-queue-definitions=000
-case-discovery=000
-TRANSITION: not-observed-no-http-response
-FROM_QUEUE: not-observed-no-http-response
-TO_QUEUE: not-observed-no-http-response
+queue-definitions=200
+case-discovery=500
+TRANSITION: not-attempted-no-case-file
+FROM_QUEUE: none
+TO_QUEUE: not-observed-no-case-file
+QUEUE_OBSERVED_AFTER_TRANSITION: not-attempted
+QUEUE_OBSERVED_AFTER_RESTORE: not-attempted
 NEXT_QUEUES_COUNT: not-observed
 NEXT_QUEUES: not-observed
-OBJECT_ID: not-observed
-OBJECT_NUMBER: not-observed
-REASON: no HTTP response from either the queue-definition or the case-discovery endpoint, so the decision tables governing queue entry and exit were never reached
-queue-definitions=SKIPPED
+OBJECT_ID: none
+OBJECT_NUMBER: none
+REASON: the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against

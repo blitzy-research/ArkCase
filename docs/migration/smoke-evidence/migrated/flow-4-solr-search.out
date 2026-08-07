@@ -2,35 +2,59 @@ flow: 4
 slug: 4-solr-search
 title: search round-trip through the search engine
 
+===== search-request-declaration =====
+OBSERVED
+search-query-submitted: object_type_s%3ACOMPLAINT
+search-rows-requested: 5 from offset 0
+search-sort-declared: create_date_tdt%20asc
+search-request-path-used: /api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
+why-the-sort-is-declared: an undeclared order is not a stable order, and a difference in recorded ordering that came from the absence of a sort would be reported as a behavioural difference when nothing had changed.  A capture that manufactures false differences is as useless as one that misses real ones
+
 ===== search-through-application =====
 request-method: GET
-request-url: https://arkcase-ce.local/arkcase/api/latest/plugin/search/advancedSearch?q=*%3A*&start=0&n=5
+request-url: http://localhost:20040/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
-observed-content-length: (none reported)
-observed-body-bytes: 0
+http-version: 1.1
+observed-http-status: 500
+observed-content-type: text/plain;charset=UTF-8
+observed-content-length: 37
+observed-body-bytes: 37
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 0
 ----- body -----
-(empty)
+Unable to process query, server error
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-(none)
+HTTP/1.1 500 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 37
+Date: <HTTP-DATE>
+Connection: close
+
+
 ----- end response-headers -----
 
 ===== search-engine-direct =====
@@ -50,26 +74,53 @@ observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
 capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 6
+transport-exit-status-observed: 7
 ----- body -----
 (empty)
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (6) Could not resolve host: arkcase-ce.local
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
 
 ----- end transport-diagnostics -----
 ----- response-headers -----
 (none)
 ----- end response-headers -----
 
-===== search-through-application (SKIPPED) =====
-SKIPPED
-reason: no HTTP response from the application search endpoint
-note: this flow could not be executed.  The record is deliberate: an
-  unexecuted flow is reported rather than omitted, so that the
-  eight-flow completion condition stays verifiable and the gap is
-  visible in a directory diff, in the completeness verdict and in the
-  exit status (R-5).
+===== search-result-set =====
+transcribed-from: search-through-application recorded body, re-read from this capture file
+extraction-tooling: grep, sed and awk only; no JSON processor and no
+  search-client library, because adding tooling without a compatibility
+  reason is out of scope (R-1)
+request-url-transcribed-from: http://localhost:20040/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
+source-body-truncated: no
+engine-response-header-status: (not exposed)
+total-match-count: (not exposed)
+RESULT_COUNT: unknown
+hits-listed-below: 0
+relevance-scores-exposed: no
+relevance-scores-listed: 0
+max-score-reported: (not exposed)
+index-readiness: not established: the response exposes no total-match figure, so this capture cannot say whether the index was populated (search engine reached directly: no, observed 000)
+page-window: fixed by the request URL above and therefore identical in the
+  replay; the engine returns one page, so hits-listed-below may be smaller
+  than total-match-count without anything having been dropped here
+ordering-treatment: as returned.  Not sorted, not deduplicated, not
+  reordered, not truncated by this transcription, and no score removed.
+  Ordering is behaviour, not presentation.
+query-time-figure: removed by the normaliser and shown as <QUERY-TIME-MS>
+  in the body above.  It is the ONLY value inside a search response this
+  capture removes, because it measures how long the engine spent rather
+  than what the engine returned; the count, the identifiers, their order
+  and the scores are all left exactly as received.
+score-absence-note: the request URL above does not ask the engine for a
+  relevance score, so none is exposed per hit and none has been dropped.
+  The RETURNED ORDER below is then the whole of the ranking evidence,
+  which is why it is transcribed verbatim.
+----- ordered result set -----
+(no matched document identifier is exposed by the recorded body)
+----- end ordered result set -----
 
