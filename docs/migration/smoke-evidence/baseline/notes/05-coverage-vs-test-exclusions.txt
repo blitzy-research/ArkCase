@@ -1,0 +1,596 @@
+================================================================================
+COVERAGE EXCLUSIONS ARE NOT TEST EXCLUSIONS — and how a measurement could lie
+================================================================================
+
+FILE: docs/migration/smoke-evidence/baseline/notes/05-coverage-vs-test-exclusions.txt
+SCOPE: what a coverage exclusion is and is not, and the one mechanism by which
+  the coverage measurement in this reactor could report success while measuring
+  nothing.  The note closes two holes that a reviewer auditing compliance with
+  the no-disabled-tests rule is very likely to fall into: the inference that the
+  aggregator's coverage globs are test exclusions, and the assumption that a
+  green coverage check proves instrumentation ran.  It is note 5 of 6 in this
+  folder.
+CAPTURE: baseline — the reactor exactly as it stood at the base commit, on
+  JDK 8, before a single file of the migration was edited.
+BASE COMMIT: c8f6226105c28c2743281d26bf21ad73f7bb7f26 (short form c8f6226105)
+CONCLUSION: coverage exclusions are not test exclusions; instrumentation
+  liveness must be proved, not inferred.
+
+WHERE THE ANCHORS COME FROM, stated first because it changes how every line
+number below should be read.  This is a baseline note, so every anchor is the
+line AS IT STANDS AT THE BASE COMMIT and not the line it occupies in the working
+tree.  The distinction is not pedantic here.  The aggregator has since been
+edited by this change set, and the coverage plugin block has moved by more than
+a hundred and fifty lines as a result, so an anchor read out of the migrated
+tree would point at unrelated configuration.  Two consequences follow, and both
+are acted on rather than merely noted.  Every anchor below was re-derived
+directly from the base-commit file, by reference, so it answers for the baseline
+whatever state the tree it is checked against happens to be in:
+
+  git show c8f6226105:pom.xml | sed -n '427,490p'
+
+And because a line number is the least durable way to identify an element, every
+element named below is additionally identifiable by something no edit shifts —
+its execution id, or its tag name, or the property it reads.  Entry 1 publishes
+both, and says plainly which of the two to trust.
+
+RULES PROVENANCE — both halves, because either one alone misleads.
+  1. There is no on-disk user rules document for this project.  The project's
+     rules facility reports, verbatim, "No user rules provided."  It was queried
+     twice, once whole and once by range, and returned that single line both
+     times.  There is consequently no external full-text source to defer to for
+     the rules applied below.
+  2. Rules are nonetheless present and binding.  The requirements embed an
+     explicit, numbered block of seven rules that govern this work in full,
+     exactly as an external rules document would, plus seven transformation
+     rules that are the operational form of the preservation and exclusion
+     lists.  Fourteen constraints apply, and their authoritative statements live
+     in the governing migration plan, which is the source of rule text precisely
+     because the facility has none.
+  Recording only the first fact would imply that enterprise best practice is the
+  sole standard here, which is wrong: fourteen specific, enumerated constraints
+  apply, and two of them are the reason this note exists at all.  Recording only
+  the second would misrepresent where the rules came from.  Best practice is
+  applied on top of the fourteen, never as a substitute for them, and no rule
+  has been invented and none has been softened.
+
+  The identifiers R-1 through R-7 and R-T1 through R-T7, and the descriptive
+  labels attached to them, are the migration plan's own navigational convention.
+  They are not quoted titles.  They exist so that a decision recorded here can
+  be traced back to the constraint that produced it.
+
+  One quotation convention is disclosed rather than applied silently.  This
+  documentation tree carries a wording gate that forbids the two-word rendering
+  of the older runtime's name, so that runtime is written JDK 8 everywhere in
+  this note, including inside quoted rule text.  R-7 reads: "The application's
+  observed behavior at the base commit on JDK 8 is the tie-breaker for any
+  ambiguity, and each resolution must be documented."  [Editorial note: the
+  rule's own text names the older runtime with the phrase this tree's wording
+  gate forbids; the substitution changes no meaning, and it is disclosed here
+  rather than made silently.  The newer runtime is written Java 17, which the
+  gate does not affect.]
+
+================================================================================
+1. THE COVERAGE CONFIGURATION AS IT STANDS AT BASELINE
+================================================================================
+
+The coverage plugin is declared once, in the root aggregator, inside the build
+plugins list rather than under plugin management, so it is active for every
+module in the reactor without a child declaration.  Its complete shape at the
+base commit, element by element, with the line each occupies:
+
+--------------------------------------------------------------------------------
+  jacoco-maven-plugin, the whole plugin block       pom.xml:L427-L490
+  groupId                                           pom.xml:L428
+  artifactId                                        pom.xml:L429
+  version, driven by a property                     pom.xml:L430
+  plugin-level configuration element                pom.xml:L431-L444
+  excludes element, holding eight globs             pom.xml:L432-L443
+  executions element                                pom.xml:L445-L489
+  execution, id pre-unit-test                       pom.xml:L446-L454
+    goal prepare-agent                              pom.xml:L449
+    destFile, the coverage data file                pom.xml:L452
+  execution, id post-unit-test, phase test          pom.xml:L455-L465
+    goal report                                     pom.xml:L459
+    outputDirectory                                 pom.xml:L462
+    dataFile                                        pom.xml:L463
+  execution, id check, phase test                   pom.xml:L466-L488
+    goal check                                      pom.xml:L470
+    failure-halting override, COMMENTED OUT         pom.xml:L473
+    rules element                                   pom.xml:L474-L485
+    rule element                                    pom.xml:L475-L484
+    element BUNDLE                                  pom.xml:L476
+    limits element                                  pom.xml:L477-L483
+    limit element                                   pom.xml:L478-L482
+    counter LINE                                    pom.xml:L479
+    value COVEREDRATIO                              pom.xml:L480
+    minimum, driven by a property                   pom.xml:L481
+    dataFile                                        pom.xml:L486
+  version property, value 0.8.7 at the baseline     pom.xml:L151
+  minimum-coverage property, value 0.02             pom.xml:L152
+--------------------------------------------------------------------------------
+
+WHAT THE CONFIGURATION DOES, in one pass, because the anchors above are only
+useful to a reader who knows what they are looking at.  The pre-unit-test
+execution starts the coverage agent and writes its data to a single file whose
+location is expressed entirely through the build-output directory property,
+exactly as the file writes it:
+
+  ${project.build.directory}/jacoco-reports/jacoco.exec
+
+The post-unit-test execution renders a report from that same data file.  The
+check execution, bound to the same phase, evaluates one rule — bundle-scoped,
+counting lines, comparing the covered ratio against the minimum-coverage
+property — against that same data file.  All three executions name the one data
+file, which is what makes the coupling in entry 3 possible: there is a single
+artefact that every stage depends on, so a single mistake upstream empties the
+input of everything downstream.
+
+ANCHOR SUPERSESSION, recorded because a looser set of figures is in circulation
+and a reviewer who checks this note against those figures rather than against
+the file will think one of the two is wrong.  Three of the circulating anchors
+are imprecise, and the re-derived values above supersede them:
+
+  plugin block, cited loosely as L427-L470
+    The block does not end at L470.  L470 is the check execution's own goal
+    element, twenty lines short of the closing plugin tag at L490.  Reading the
+    block as ending there truncates the check execution entirely — including the
+    rule, the minimum and the data file that entry 3 turns on.
+
+  agent execution, cited loosely as L433-L441
+    That span is inside the excludes body: it covers the first coverage glob
+    through the seventh.  The execution that binds the agent is L446-L454.  The
+    two ranges do not overlap, and confusing them attributes the globs to the
+    agent, which is precisely the wrong inference entry 2 exists to prevent.
+
+  check goal, cited loosely as L466-L470
+    That span is the execution's opening tag through its goal element.  The
+    execution runs to L488.  Everything that makes the check a gate rather than
+    a declaration — the commented-out override at L473, the rule at L475-L484,
+    the minimum at L481 and the data file at L486 — falls outside the cited
+    range.
+
+Each of the three was re-read line by line before being called imprecise, and
+each superseded figure is printed rather than quietly corrected, so that a
+reviewer holding the older numbers can see which is which and why.
+
+ANCHOR VOLATILITY, and the durable alternative.  The anchors above are stable by
+construction: they describe a commit, and a commit does not change.  Anchors
+that describe the working tree are not stable, and this file is a live
+demonstration — the coverage plugin block sat at L427-L490 at the base commit
+and sits several hundred lines lower in the migrated tree, because the change
+set inserted configuration above it.  Any figure expressed against the working
+tree, in this document tree or elsewhere, should therefore be re-derived before
+it is relied on rather than trusted on sight.  The durable identifiers, which no
+insertion moves, are the ones to quote when a line number is not available: the
+plugin's artifactId, the execution ids pre-unit-test, post-unit-test and check,
+the goal names prepare-agent, report and check, and the two property names read
+at L430 and L481.  Where this note needs a fact about the migrated side it names
+the element that way, and the migrated capture — not this folder — is where the
+migrated configuration is described.
+
+ONE STRUCTURAL DIFFERENCE IS FLAGGED HERE so that a recursive diff of the two
+captures does not read it as an error.  At the baseline the plugin carries
+exactly one excludes element, the plugin-level one at L432-L443 that entry 2
+transcribes, and it governs reporting.  The migrated aggregator carries a second
+excludes element of a different kind, scoped to the agent rather than to the
+report and written in class-name patterns rather than in path globs.  That is a
+migrated-side fact, and explaining it belongs to the migrated twin of this note.
+It is named here only because a reviewer who expects one excludes element and
+finds two is entitled to know in advance which capture answers for which.
+
+================================================================================
+2. THE EIGHT COVERAGE GLOBS, AND WHY THEY ARE NOT TEST EXCLUSIONS
+================================================================================
+
+All eight are transcribed literally, in file order, grouped under the two
+comments the file itself uses to group them.  The comments are reproduced as the
+file writes them, including their own wording about coverage percentages,
+because the comments are the clearest evidence of what the globs were for:
+
+--------------------------------------------------------------------------------
+  pom.xml:L433   <!-- with 0% test coverage -->
+  pom.xml:L434     **/com/armedia/acm/form/closecomplaint/**
+  pom.xml:L435     **/com/armedia/acm/tools/activemq/**
+  pom.xml:L436     **/com/armedia/acm/crypto/**
+  pom.xml:L437     **/com/armedia/acm/tool/zylab/**
+  pom.xml:L438     **/com/armedia/acm/data/**
+
+  pom.xml:L439   <!-- with < 2% (defined ${code.coverage.minimum}) test coverage -->
+  pom.xml:L440     **/com/armedia/acm/calendar/**
+  pom.xml:L441     **/com/armedia/acm/plugins/admin/**
+  pom.xml:L442     **/com/armedia/acm/service/outlook/**
+--------------------------------------------------------------------------------
+
+Five under the first comment: the close-complaint form package, the
+message-broker tools package, the crypto package, one document-tool package, and
+the data package.  Three under the second: the calendar package, the admin
+plugins package, and the outlook service package.  Eight in total, all of them
+Ant-style path globs, all of them inside the plugin-level configuration element
+at pom.xml:L431-L444, and none of them inside any execution.
+
+WHAT THEY ARE.  They are coverage exclusions.  They are read by the coverage
+plugin and they tell it which packages to omit when it computes and reports a
+ratio.  Their entire effect is on a measurement.
+
+WHAT THEY ARE NOT, stated in the strongest terms this note can put it.  THEY
+DISABLE NO TEST.  Not one test anywhere in the reactor is skipped, ignored,
+deselected or prevented from running by any of the eight.  Every test class in
+every one of those eight packages still compiles, is still selected by the test
+phase, and still executes; the only thing that happens differently is that the
+lines it covered are left out of a ratio.  A test in the calendar package that
+fails, fails; a test there that passes, passes; and the archive in ../surefire/
+records the result of both, because the coverage configuration never touched
+execution in the first place.
+
+WHY THAT DISTINCTION MATTERS HERE, and it is the whole reason this note exists.
+R-5 reads: "Failing tests must not be disabled, and exclusions are limited to
+failures already present at baseline."  A reviewer auditing that rule will
+search the aggregator for the word exclude, will land on this block, will find
+eight exclusions in the build configuration of a project that claims to disable
+no test, and will have to decide what to make of it.  The answer is that these
+are not exclusions in R-5's sense at all, and two consequences follow:
+
+  Nothing in this block is a test exclusion, so nothing in this block needs a
+  row in docs/migration/baseline-test-failures.md, and the absence of a row for
+  any of these eight packages is not a gap in that register.
+
+  No glob in this block may EVER be cited to justify a test exclusion.  A
+  coverage glob is not precedent.  An exclusion in the migration's new pinned
+  unit-test-runner declaration must cite a row in
+  docs/migration/baseline-test-failures.md — a row that names a test which was
+  already failing at the base commit, evidenced by an archived report — and a
+  coverage glob is not such a row and cannot be converted into one.  The two
+  things are not the same kind of object: one omits a package from a
+  measurement, the other stops a test from running.
+
+ONE CLARIFYING OBSERVATION, which is the file's own.  The second comment states
+the criterion for its three globs as coverage below the configured minimum, and
+names the minimum-coverage property while doing so.  The first comment states
+the criterion for its five as no coverage at all.  Both comments therefore
+describe a threshold-management measure: packages were listed here so that a
+bundle-scoped ratio rule would not fail the build on packages nobody had written
+tests for, against a minimum whose configured value is 0.02.  That is an
+explanation about measurement, written by whoever added the globs, and it is
+further evidence that execution was never in question.
+
+RECORDED, NOT CHANGED.  Nothing in this entry proposes editing the eight globs,
+adding a ninth, removing one, or moving the block.  They are pre-existing, they
+are unchanged by this migration, and under R-6 they are described here precisely
+so that no one has to guess at them later.
+
+================================================================================
+3. THE FALSE-PASS COUPLING — HOW THIS MEASUREMENT COULD REPORT SUCCESS WHILE
+   MEASURING NOTHING
+================================================================================
+
+This is the part of the note that is not about a wrong inference but about a
+real mechanism.  It is a coupling between two plugins that are edited for
+entirely unrelated reasons, in the same file, by the same change set.  Stated as
+a chain, because the danger is that any one link looks harmless on its own:
+
+  LINK 1.  The coverage agent's preparation goal at pom.xml:L449 does not set an
+  argument-line element of its own.  Its execution's whole configuration is one
+  element, the destFile at pom.xml:L452, and nothing else.  THIS IS VERIFIED BY
+  ABSENCE, which is a weaker kind of evidence than a positive reading and is
+  therefore given with its check rather than asserted:
+
+    git grep -n "argLine" c8f6226105 -- 'pom.xml' '*/pom.xml' | wc -l
+
+  The answer is 0.  The token does not occur once in any of the 145 POMs at the
+  base commit, so a fortiori there is no such element inside the coverage
+  plugin's configuration, inside any of its three executions, or anywhere else a
+  child module could inherit one from.  The reactor-wide form of the search is
+  used deliberately: a zero scoped only to the plugin block would leave open the
+  possibility of a declaration elsewhere that reaches the same fork.
+
+  LINK 2.  It therefore passes the agent to the forked test runner the only way
+  left to it: through the default argument-line property export.  The
+  preparation goal computes the agent's own command-line configuration and
+  exports it as a build property under the well-known default name, and the test
+  runner picks that property up when it builds the fork's command line.  That
+  indirection is the entire coupling.  There is no second channel in play here —
+  no agent configured on the runner directly, no wrapper script, no environment
+  variable.
+
+  LINK 3.  The migration adds a pinned unit-test-runner declaration to the same
+  file, for reasons that have nothing to do with coverage: making unit-test
+  execution reproducible on the new runtime instead of running on whatever
+  version the build tool implicitly binds, and creating one auditable location
+  where a baseline-failure exclusion could be recorded and reviewed.  At the
+  baseline no such declaration exists anywhere:
+
+    git grep -l "maven-surefire-plugin" c8f6226105 -- 'pom.xml' '*/pom.xml' | wc -l
+
+  The answer is 0 of 145.  This is genuinely new surface rather than an edit to
+  something already present, which matters twice over: a reviewer cannot compare
+  the new declaration against a previous one, and nobody who wrote the coverage
+  configuration ever had to think about a runner declaration coexisting with it.
+  The corroborating inventory for that zero — the complete set of plugins the
+  reactor declares, showing that the unit-test runner is absent from it — is in
+  the sibling note 04-no-flaky-test-tooling.txt and is not repeated here.
+
+  LINK 4.  If that new declaration sets a literal argument-line element, it
+  overwrites the export.  The property the coverage agent published is replaced
+  by the literal value, the fork starts without the agent attached, and NOTHING
+  REPORTS A PROBLEM.  There is no error, no warning, and no diagnostic anywhere
+  in the captured output: from the runner's point of view it was handed fork
+  arguments and it used them, and from the coverage plugin's point of view it
+  exported a property and something downstream was free to ignore it.  The
+  severing is silent, and silence is what makes the rest of the chain dangerous.
+
+  LINK 5.  The coverage data file at the configured location, pom.xml:L452, is
+  consequently empty.  Not missing — empty, or absent in a way the next goal
+  tolerates.  Nothing wrote execution data because nothing was instrumented.
+
+  LINK 6.  The check execution at pom.xml:L466-L488 then evaluates that empty
+  data set.  Its rule is bundle-scoped and counts lines, comparing a covered
+  ratio against the minimum at pom.xml:L481, whose value is 0.02 at
+  pom.xml:L152.  With no counters in the data set there is nothing for the rule
+  to measure and therefore nothing that can violate it, so the goal finds no
+  violation and REPORTS A PASS.  The build's coverage gate reports success over
+  a measurement that never happened.  That is the false pass, and it is the
+  conclusion this entry exists to state explicitly rather than leave to
+  inference.
+
+  LINK 7.  The danger is sharpened, not softened, by one detail of the existing
+  configuration.  At pom.xml:L473 the failure-halting override is COMMENTED OUT.
+  The line is present in the file as a comment, offering both the element and a
+  command-line property as ways to stop the check from breaking the build —
+  which means that in the configuration as it actually stands, the check is
+  hard-failing by default.  A reviewer therefore knows the coverage gate is
+  wired to break the build if the ratio is not met.  When such a gate reports
+  success, that success is far more convincing than a soft warning would be: the
+  very fact that the gate could have failed the build, and did not, is read as
+  evidence that it was satisfied.  A gate configured to be strict is the worst
+  possible place for a measurement to go silently blank.
+
+THE BINDING INSTRUCTION, which is what the chain above is for.  The new pinned
+unit-test-runner declaration must NOT set a literal argument-line element.  If
+fork arguments are ever genuinely required — and none is required by anything in
+this baseline — they must be APPENDED in a way that preserves the value the
+coverage agent exported, never substituted for it.  Appending keeps the agent
+attached; substituting removes it.  The distinction is one element's worth of
+configuration and the difference between a real measurement and a false green.
+
+TWO PRACTICAL NOTES ON CHECKING IT.  First, the check must distinguish an
+element from a comment: the token can legitimately appear in a comment that
+warns against the element, and a search that counts tokens rather than elements
+will report a hit where no element exists.  Read the declaration, not the grep
+count.  Second, this constraint is a constraint on a file being edited for an
+unrelated reason, which is exactly the class of coupling that gets missed — the
+person adding a runner declaration is thinking about test execution, and the
+coverage plugin is two hundred lines away in the same file.  Writing it down
+here is the cheapest available defence.
+
+RECORDED, NOT ACTED ON.  Under R-6 this entry documents a constraint; it changes
+nothing.  It does not uncomment the override at pom.xml:L473, does not add or
+remove an element in the coverage configuration, does not adjust the minimum,
+and does not propose a different coverage plugin or a different way of attaching
+the agent.  The configuration described in entry 1 is the configuration as
+found.
+
+================================================================================
+4. THE LIVENESS OBLIGATION — R-T7 APPLIED TO COVERAGE
+================================================================================
+
+Entry 3 describes a way the measurement could go blank without saying so.  The
+answer to it is not vigilance, it is a check.  R-T7 requires that validation
+assert on produced artefacts and captured output rather than on a process exit
+status, and applied to coverage it produces three obligations on the migrated
+build.  They are stated as obligations because each is checkable, and a
+checkable obligation is worth more than an intention:
+
+  OBLIGATION 1.  The coverage data file at the configured location must be
+  NON-EMPTY.  The location is the one at pom.xml:L452, written as the file
+  writes it — the build-output directory property, then the coverage report
+  path, then the data file name.  Emptiness is the observable symptom of a
+  severed agent, so a non-empty data file is the first thing that has to be seen
+  rather than assumed.
+
+  OBLIGATION 2.  The check goal must demonstrably have EVALUATED A REAL DATA
+  SET.  A non-empty file is necessary and not sufficient: what makes the gate
+  meaningful is that the rule had counters to compare.  The evidence for that is
+  a report with analysed classes in it, and a count of analysed classes that is
+  greater than zero, read out of the rendered report rather than out of a
+  summary line.  A report over nothing looks very much like a report over
+  something until it is opened.
+
+  OBLIGATION 3.  AN EMPTY DATA SET THAT PRODUCES A PASS IS A FAILURE OF THE
+  GATE, NOTWITHSTANDING A ZERO EXIT CODE.  This is the load-bearing sentence of
+  the entry.  It is not enough that the check goal did not fail; the check goal
+  must have been in a position to fail.  A build that exits zero having measured
+  nothing has not satisfied the coverage gate, it has bypassed it, and it must
+  be recorded as a failure of that gate however clean the exit was.
+
+WHY THIS MUST BE ASSERTED RATHER THAN ASSUMED, and the reason is a demonstrated
+fact about this repository rather than a general principle about exit codes.
+The frontend build in this same project is configured to force execution: a task
+can fail while the process still exits zero, and two defects in that pipeline
+are masked by exactly that mechanism today, both registered in
+docs/migration/pre-existing-defects.md.  So this is not a codebase where a zero
+exit can be treated as evidence by default — it is a codebase that already
+contains a worked example of a zero exit concealing a failure.  R-T7 is a
+response to something observed here, not a stylistic preference imported from
+elsewhere, and the coverage gate is the second place where the same shape of
+failure is available.
+
+WHAT THIS OBLIGATION DOES FOR R-7.  The coverage configuration recorded in entry
+1 is the BASELINE configuration, and it is the thing any later coverage claim is
+measured against.  That comparison is only meaningful if instrumentation was
+live on both sides.  If the migrated side measured nothing, then a comparison of
+the two ratios compares a number against an artefact of an empty data set, and
+the claim that coverage behaviour is unchanged becomes unfalsifiable in exactly
+the way R-7 exists to prevent.  Liveness is therefore a precondition of the
+tie-breaker working at all, not a refinement of it.
+
+================================================================================
+5. WHAT THIS NOTE IS NOT
+================================================================================
+
+Three boundaries, because a note about a measurement is easily mistaken for the
+measurement itself.
+
+  It is NOT a coverage report.  It records configuration and one coupling.  No
+  ratio, no per-module figure and no covered-line count appears anywhere in it,
+  and none should be read into it.
+
+  It is NOT a proposal.  It does not propose changing the coverage
+  configuration, the eight globs of entry 2, the minimum at pom.xml:L481 and its
+  property at pom.xml:L152, the commented-out override at pom.xml:L473, or the
+  coverage plugin itself.  Under R-1 a change needs a reason, and this note
+  advances none: everything it describes is recorded as found.
+
+  It does NOT establish which tests failed at the baseline.  That is the subject
+  of docs/migration/baseline-test-failures.md, which is the authoritative
+  register and derives its rows from the archived reports in ../surefire/,
+  informed by the sibling notes 03-environment-precondition.txt and
+  04-no-flaky-test-tooling.txt.  This note's contribution to that register is
+  purely negative: it rules a whole class of configuration out of contention as
+  a source of rows.
+
+================================================================================
+6. CROSS-REFERENCES
+================================================================================
+
+../surefire/
+  The archive whose interpretation this note constrains: per-module unit-test
+  reports from the JDK 8 baseline run.  Entry 2 is what stops a reader
+  concluding that eight packages were left out of it.
+
+docs/migration/baseline-test-failures.md
+  The register a valid exclusion must cite.  Entry 2 records that no coverage
+  glob is such a citation; entry 3 and entry 4 record the constraint and the
+  liveness obligation that apply to the declaration where an exclusion would be
+  written.
+
+docs/migration/pre-existing-defects.md
+  The register of defects that are documented rather than repaired, including
+  the declared-but-never-executed stylesheet pipeline and the forced-execution
+  behaviour of the frontend build that entry 4 relies on.  It carries the
+  authoritative count of registered entries and records that none of them is
+  repaired.
+
+03-environment-precondition.txt
+  The sibling note that bounds what this capture does not cover and names the
+  precondition the backend build depends on.
+
+04-no-flaky-test-tooling.txt
+  The sibling note that establishes that a failure recorded in ../surefire/ is a
+  real, reproducible failure rather than a flake, and that owns the reactor-wide
+  plugin inventory this note's LINK 3 cites.
+
+THE DIVISION OF LABOUR, in one sentence, because the three sibling notes are
+easy to conflate: note 03 says what is missing, note 04 says what is
+trustworthy, and note 05 says what is not a test exclusion and how the
+measurement could lie.
+
+================================================================================
+RULINGS APPLIED IN THIS NOTE
+================================================================================
+
+R-5 — no disabling of failing tests; exclusions limited to failures already
+  present at baseline.  This is the rule the note exists to protect, and it
+  lands here as two separate rulings rather than one.  First, and plainly: a
+  coverage glob is not a test exclusion.  It disables no test, so it needs no
+  baseline row, and it may never be cited to justify a test exclusion in
+  docs/migration/baseline-test-failures.md.  Entry 2 states that with the eight
+  globs in front of the reader so the ruling can be checked rather than
+  believed.  Second, and subtler: a false pass produced by severed
+  instrumentation violates R-5's intent even though no test has been formally
+  disabled.  Measuring nothing and reporting success is functionally
+  indistinguishable from switching the check off — the gate stops being able to
+  object, which is the outcome R-5 forbids whatever mechanism produces it.
+  Entry 3 is the mechanism and entry 4 is the defence.
+
+R-T7 — evidence over exit codes.  This is the rule that turns entry 3's coupling
+  from an observation into a validation obligation.  Entry 4 states that
+  obligation in three checkable parts, and its third part is the one that binds:
+  an empty data set that produces a pass is a FAILURE of the gate,
+  notwithstanding a zero exit code.  The same rule governs how this note
+  reports: every count in it is published with the command that produced it, and
+  every anchor with the reference it was read from, so a reviewer can re-derive
+  rather than trust.  The reason the rule applies with particular force in this
+  repository is recorded in entry 4 as a demonstrated fact — a build here
+  already exits zero while masking a failure — rather than as an appeal to
+  principle.
+
+R-6 — document discovered bugs, do not fix them.  Everything in this note is
+  described and nothing is edited.  The eight coverage globs stay exactly as
+  found, the commented-out failure-halting override at pom.xml:L473 is recorded
+  and left commented, and no element of the coverage configuration is added,
+  removed or re-pointed.  The change set as a whole invokes R-6's escape clause
+  exactly twice — tracking the frontend generated-configuration module, and
+  removing the unbuildable stylesheet-compiler toolchain — and NEITHER
+  INVOCATION IS IN THIS FOLDER.  Both belong to the frontend track, and both are
+  recorded, with the validation item each blocked, in
+  docs/migration/pre-existing-defects.md.  Two things about that accounting are
+  worth stating so neither is inferred wrongly.  The register, not this note,
+  carries the authoritative count of registered entries, and it records that
+  none of them is repaired.  And the two invocations must not be netted against
+  the register: neither of them repairs a registered entry, so subtracting two
+  from the count of entries to arrive at a number still outstanding is the wrong
+  arithmetic — the count of invocations and the count of unrepaired entries are
+  separate figures.  The declared-but-never-executed stylesheet pipeline is a
+  registered entry and is cited in entry 4 as an example of the same discipline:
+  it is explained, and left inert.
+
+R-7 — baseline behaviour is the tie-breaker.  The coverage configuration in
+  entry 1 is the baseline configuration, and any post-migration difference is
+  measured against it.  Entry 4 records the condition under which that
+  comparison means anything: instrumentation must have been live on both sides,
+  or a claim of unchanged coverage behaviour compares a real number against an
+  artefact of an empty data set.  The rule's own wording, and the substitution
+  disclosed under RULES PROVENANCE above, are stated there rather than repeated
+  here.
+
+R-1 — a change without a reason is out of scope.  This note records a
+  configuration and a coupling.  It recommends nothing: no coverage-threshold
+  adjustment, no new plugin, no additional or removed glob, no change to the
+  version property at pom.xml:L430 and no change to the way the agent is
+  attached.  Entry 5 states that boundary directly so it cannot be read past.
+
+R-2 — no reliance on JDK-internal access in production launch configuration.  It
+  reaches this note only through wording, and the risk is specific enough to
+  name: entry 3 discusses how a coverage agent's arguments reach a forked test
+  runner, and a module-access JVM argument that opens or exports an
+  otherwise-encapsulated JDK package would be the obvious illustration to reach
+  for.  None is named, none is proposed, and none is required by anything
+  described here.  Where the subject is unavoidable it is described in those
+  words rather than by writing an argument, and the register that would record
+  such an exception is referred to by its title — the register of JDK access
+  exceptions in production launch configuration — and not by its path.  That
+  register is delivered empty, which is consistent with what this note found:
+  every accessibility problem the migration measured was in a library, not in a
+  launch argument.
+
+R-4 — genuine execution on the new frontend runtime.  Wording only.  The
+  outgoing package manager appears nowhere in this note as a prerequisite, a
+  recommendation, or an instruction, and this note has no reason to mention it
+  at all.
+
+================================================================================
+MIRROR OBLIGATION
+================================================================================
+
+This directory is the reference shape the migrated capture must mirror.  A file
+of the identical name, notes/05-coverage-vs-test-exclusions.txt, must exist on
+the migrated side, so that a recursive diff of the two captures reveals a
+genuine change in a qualifying condition rather than a structural difference
+between two folders.  Three such qualifying changes are foreseeable and all
+three are findings worth surfacing: the appearance of the pinned
+unit-test-runner declaration that entry 3's LINK 3 records as absent at the
+baseline, any change to the coverage configuration recorded in entry 1 —
+including its version property, its minimum, its executions or its eight globs —
+and any change in the liveness evidence that entry 4 obliges the migrated build
+to produce.  A missing file on either side reads as a hole in the evidence; a
+present file whose findings differ reads as the finding it actually is.  Stating
+the obligation is this note's part in it: the migrated twin is not created from
+here, and this note makes no claim about the migrated side's configuration
+beyond the structural difference flagged in entry 1.
+
+NOT IN SCOPE HERE: any verdict on the coverage outcome.  This note establishes
+what the coverage configuration is, what its exclusions are not, and what has to
+be proved before its result may be believed.  Whether the migrated run's
+coverage result is acceptable is a question for the gate that entry 4 defines,
+answered with the evidence that gate demands, and recorded on the migrated side.

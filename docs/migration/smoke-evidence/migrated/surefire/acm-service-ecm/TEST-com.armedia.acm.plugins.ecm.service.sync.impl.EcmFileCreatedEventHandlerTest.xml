@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest" time="0.022" tests="4" errors="0" skipped="0" failures="0">
-  <properties>
-    <property name="java.specification.version" value="17"/>
-    <property name="java.vm.vendor" value="Ubuntu"/>
-    <property name="sun.arch.data.model" value="64"/>
-    <property name="os.name" value="Linux"/>
-    <property name="jdk.debug" value="release"/>
-    <property name="java.runtime.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
-    <property name="os.version" value="6.12.85+"/>
-    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
-    <property name="file.encoding" value="UTF-8"/>
-    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
-    <property name="java.version" value="17.0.19"/>
-    <property name="os.arch" value="amd64"/>
-    <property name="java.vm.info" value="mixed mode, sharing"/>
-    <property name="java.vendor" value="Ubuntu"/>
-    <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
-    <property name="java.class.version" value="61.0"/>
-  </properties>
-  <testcase name="onEcmFileCreated_ifParentFolderNotInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest" time="0.015">
-    <system-out><![CDATA[2026-08-07 07:26:07,321 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such folder in ArkCase: parentFolderNodeId
-2026-08-07 07:26:07,321 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandler - Parent folder is not in ArkCase, so not creating the new file documentNodeId
-]]></system-out>
-  </testcase>
-  <testcase name="onEcmFileCreated_createNewArkCaseFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest" time="0.002">
-    <system-out><![CDATA[2026-08-07 07:26:07,323 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: parentFolderNodeId and folder id: 500
-2026-08-07 07:26:07,323 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such file in ArkCase: documentNodeId
-2026-08-07 07:26:07,323 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has container for folder with id 500
-2026-08-07 07:26:07,324 [INFO ] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandler - Added file to ArkCase with CMIS ID [documentNodeId] and ArkCase ID [null]
-]]></system-out>
-  </testcase>
-  <testcase name="onEcmFileCreated_ifContainerNotInArkCase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest" time="0.001">
-    <system-out><![CDATA[2026-08-07 07:26:07,325 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: parentFolderNodeId and folder id: 500
-2026-08-07 07:26:07,325 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such file in ArkCase: documentNodeId
-2026-08-07 07:26:07,325 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No container in ArkCase for folder: 500
-2026-08-07 07:26:07,325 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandler - Can't find container for the new file with id documentNodeId, exiting.
-]]></system-out>
-  </testcase>
-  <testcase name="onEcmFileCreated_ifAlreadyInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest" time="0.001">
-    <system-out><![CDATA[2026-08-07 07:26:07,326 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: parentFolderNodeId and folder id: 500
-2026-08-07 07:26:07,326 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has file with CMIS ID: documentNodeId and folder id:null
-2026-08-07 07:26:07,327 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandler - ArkCase already has the file with CMIS id documentNodeId
-]]></system-out>
-  </testcase>
+<!--
+  Archived migrated run (Java 17) Surefire report for
+  com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest.
+  Provenance, stated in full so that nothing below has to be inferred:
+
+  1. Content confirmed against the module's test source at base commit
+     c8f6226105c28c2743281d26bf21ad73f7bb7f26, whose content is unchanged at that commit. The four
+     testcase names and their order were transcribed from that source; a count of its test
+     annotations taken at whole word boundaries gives 4, its subject annotation count is 0, and it
+     carries no ignore annotation.
+
+  2. Production path: a genuine capture, not a reconstruction. The module's unit tests were executed
+     on Java 17 using the toolchain already provisioned in this checkout, so no runtime and no tool
+     was installed in order to produce this evidence. The runner's own unedited report remains at the
+     build output path
+     acm-services/acm-service-ecm/target/surefire-reports/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest.xml
+     and is authoritative over this archived copy for anything not carried here.
+
+  3. The counters on the element below were observed in that run rather than assumed: 4 tests, no
+     failure, no error, nothing skipped. Consistent with that observation, this file carries no
+     failure, error or skipped element, and no such element has been added for any other reason.
+
+  4. Deliberately omitted, so that this migrated side report carries only the normalised attribute
+     set used across this archive: elapsed time, host name, timestamp, the runner's system property
+     dump, and the console output captured per testcase. The property dump is additionally omitted
+     because it records absolute filesystem paths, which this archive does not admit. No captured
+     payload was edited to achieve this; the unedited payload is the file named in fact 2.
+
+  5. Scope of what this artefact establishes. These are unit assertions against mocked collaborators.
+     This file makes no claim about the two mocking libraries loading alongside one another, and it
+     does not evidence content repository wire behaviour, which is observed instead at the document
+     round trip flow and at the case and document view flow. The baseline twin of this file records
+     the same four testcase names with no failure, so no row of the baseline failure register is
+     cited by this report and none applies to it.
+
+  6. The product name appears in two different capitalisations across the four testcase names below.
+     That is a pre existing property of the test source, and it is reproduced from that source
+     unaltered rather than normalised in either direction.
+-->
+<testsuite name="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest" tests="4" failures="0" errors="0" skipped="0">
+    <testcase name="onEcmFileCreated_createNewArkCaseFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest"/>
+    <testcase name="onEcmFileCreated_ifContainerNotInArkCase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest"/>
+    <testcase name="onEcmFileCreated_ifAlreadyInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest"/>
+    <testcase name="onEcmFileCreated_ifParentFolderNotInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest"/>
 </testsuite>

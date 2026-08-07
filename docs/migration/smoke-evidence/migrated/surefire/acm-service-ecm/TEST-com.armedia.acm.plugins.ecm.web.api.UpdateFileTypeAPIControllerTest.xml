@@ -1,115 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="3.75" tests="3" errors="0" skipped="0" failures="0">
-  <properties>
-    <property name="java.specification.version" value="17"/>
-    <property name="java.vm.vendor" value="Ubuntu"/>
-    <property name="sun.arch.data.model" value="64"/>
-    <property name="os.name" value="Linux"/>
-    <property name="jdk.debug" value="release"/>
-    <property name="java.runtime.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
-    <property name="os.version" value="6.12.85+"/>
-    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
-    <property name="file.encoding" value="UTF-8"/>
-    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
-    <property name="java.version" value="17.0.19"/>
-    <property name="os.arch" value="amd64"/>
-    <property name="java.vm.info" value="mixed mode, sharing"/>
-    <property name="java.vendor" value="Ubuntu"/>
-    <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
-    <property name="java.class.version" value="61.0"/>
-  </properties>
-  <testcase name="bulkUpdateFileType" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="1.488">
-    <system-out><![CDATA[2026-08-07 07:25:58,726 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
-2026-08-07 07:25:58,755 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@6c835217, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@4584304, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@51888019, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@6f50d55c, org.springframework.test.context.support.DirtiesContextTestExecutionListener@19b5214b, org.springframework.test.context.transaction.TransactionalTestExecutionListener@5fb3111a, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@4aaecabd, org.springframework.test.context.event.EventPublishingTestExecutionListener@23bd0c81]
-2026-08-07 07:26:00,402 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-07 07:26:00,403 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-07 07:26:00,405 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 2 ms
-2026-08-07 07:26:01,216 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Updating file type to 'new_file_type' for multiple files.
-2026-08-07 07:26:01,328 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest - Results: [{"@id":"1","fileId":100,"status":null,"created":null,"creator":null,"modified":null,"modifier":null,"cmisRepositoryId":null,"versionSeriesId":null,"fileName":null,"fileActiveVersionMimeType":null,"fileActiveVersionNameExtension":null,"folder":null,"container":null,"fileType":"new_file_type","fileLang":null,"activeVersionTag":null,"category":"Document","pageCount":0,"fileSource":null,"versions":[],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null},{"@id":"2","fileId":101,"status":null,"created":null,"creator":null,"modified":null,"modifier":null,"cmisRepositoryId":null,"versionSeriesId":null,"fileName":null,"fileActiveVersionMimeType":null,"fileActiveVersionNameExtension":null,"folder":null,"container":null,"fileType":"new_file_type","fileLang":null,"activeVersionTag":null,"category":"Document","pageCount":0,"fileSource":null,"versions":[],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null}]
-]]></system-out>
-    <system-err><![CDATA[Aug 07, 2026 7:26:00 AM org.hibernate.validator.internal.util.Version <clinit>
-INFO: HV000001: Hibernate Validator 5.1.1.Final
-]]></system-err>
-  </testcase>
-  <testcase name="updateFileTypeError" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="0.032">
-    <system-out><![CDATA[2026-08-07 07:26:01,429 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-07 07:26:01,429 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-07 07:26:01,429 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-2026-08-07 07:26:01,432 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Updating file type to 'new_file_type'
-2026-08-07 07:26:01,433 [ERROR] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Error wile updating file type: Could not retrieve FILE with ID = 100.
-Server encountered exception: File  not found
-Exception type was: 'com.armedia.acm.core.exceptions.AcmObjectNotFoundException'.
-com.armedia.acm.core.exceptions.AcmObjectNotFoundException: Could not retrieve FILE with ID = 100.
-Server encountered exception: File  not found
-Exception type was: 'com.armedia.acm.core.exceptions.AcmObjectNotFoundException'.
-	at com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl.updateFileType(EcmFileServiceImpl.java:1432) ~[classes/:?]
-	at com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController.updateFileType(UpdateFileTypeAPIController.java:107) [classes/:?]
-	at com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController.updateFileType(UpdateFileTypeAPIController.java:72) [classes/:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
-	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
-	at java.lang.reflect.Method.invoke(Method.java:569) ~[?:?]
-	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205) [spring-web-5.3.39.jar:5.3.39]
-	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150) [spring-web-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:903) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:809) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1072) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909) [spring-webmvc-5.3.39.jar:5.3.39]
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:707) [javax.servlet-api-3.1.0.jar:3.1.0]
-	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883) [spring-webmvc-5.3.39.jar:5.3.39]
-	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72) [spring-test-5.3.39.jar:5.3.39]
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:790) [javax.servlet-api-3.1.0.jar:3.1.0]
-	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201) [spring-test-5.3.39.jar:5.3.39]
-	at com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest.updateFileTypeError(UpdateFileTypeAPIControllerTest.java:151) [test-classes/:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
-	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
-	at java.lang.reflect.Method.invoke(Method.java:569) ~[?:?]
-	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59) [junit-4.13.1.jar:4.13.1]
-	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56) [junit-4.13.1.jar:4.13.1]
-	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84) [spring-test-5.3.39.jar:5.3.39]
-	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84) [spring-test-5.3.39.jar:5.3.39]
-	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97) [spring-test-5.3.39.jar:5.3.39]
-	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61) [spring-test-5.3.39.jar:5.3.39]
-	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70) [spring-test-5.3.39.jar:5.3.39]
-	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306) [junit-4.13.1.jar:4.13.1]
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:413) [junit-4.13.1.jar:4.13.1]
-	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190) [spring-test-5.3.39.jar:5.3.39]
-	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:316) [surefire-junit4-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.junit4.JUnit4Provider.executeWithRerun(JUnit4Provider.java:240) [surefire-junit4-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:214) [surefire-junit4-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:155) [surefire-junit4-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) [surefire-booter-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) [surefire-booter-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) [surefire-booter-3.5.2.jar:3.5.2]
-	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) [surefire-booter-3.5.2.jar:3.5.2]
-]]></system-out>
-  </testcase>
-  <testcase name="updateFileType" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" time="0.038">
-    <system-out><![CDATA[2026-08-07 07:26:01,460 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
-2026-08-07 07:26:01,460 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
-2026-08-07 07:26:01,460 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 0 ms
-2026-08-07 07:26:01,463 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIController - Updating file type to 'new_file_type'
-2026-08-07 07:26:01,468 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest - Results: {"@id":"1","fileId":100,"status":null,"created":null,"creator":null,"modified":null,"modifier":null,"cmisRepositoryId":null,"versionSeriesId":null,"fileName":null,"fileActiveVersionMimeType":null,"fileActiveVersionNameExtension":null,"folder":null,"container":null,"fileType":"new_file_type","fileLang":null,"activeVersionTag":null,"category":"Document","pageCount":0,"fileSource":null,"versions":[],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null}
-]]></system-out>
-  </testcase>
+<!--
+  PROVENANCE of this archived migrated run Surefire report. Seven facts.
+
+  1. SOURCE OF TRUTH. The suite name, the test count and the three testcase names
+     correspond to the module test source at base commit
+     c8f6226105c28c2743281d26bf21ad73f7bb7f26, which was verified to be an ancestor
+     of the current HEAD with that test source byte identical at the base commit and
+     at HEAD. The three names were re derived from the source using a token boundary
+     search for the JUnit test annotation, which matched at annotation lines 100, 134
+     and 168. The setup method was excluded because it is not a test method.
+
+  2. CAPTURE PATH. A genuine capture was attempted and it SUCCEEDED, so this report is
+     evidence rather than composition. The class was executed on Java 17 in this
+     checkout and the runner wrote its own report to the build output path
+     acm-services/acm-service-ecm/target/surefire-reports/TEST-com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest.xml
+     which is quoted here as plain text. The runner recorded a class file major
+     version of 61, which confirms a Java 17 run. No runtime and no tool was installed
+     to obtain it. One expectation in the planning material is corrected here rather
+     than restated: that material predicted no Java compiler and no Maven toolchain
+     would exist in this checkout and that this report would therefore have to be
+     derived from the test source alone. Both were in fact present, so the stronger
+     path was taken and this note says so plainly.
+
+  3. OBSERVED COUNTERS. The tests, failures, errors and skipped values below are
+     OBSERVED results of that run and not assumed ones. The runner reported 3 tests
+     with 0 failures, 0 errors and 0 skipped. Every testcase below is therefore an
+     ordinary passing testcase, which is why not one of them carries a child element.
+
+  4. DELIBERATE OMISSIONS. The elapsed time attributes, the host and timestamp
+     attributes, the environment property dump and the captured console streams that
+     the runner emitted are all omitted here. They are omitted because this archive
+     forbids their content, not because the run did not happen: the property dump held
+     13 entries carrying absolute filesystem paths, and the console streams carried a
+     file type value, file identifiers, an object count and serialised response
+     payloads. Archiving in full governs completeness of the recorded result rather
+     than byte identity with the runner output, so every testcase and every outcome is
+     preserved while the forbidden material is not. The unmodified runner report
+     remains at the build output path named above for anyone who needs the raw form.
+
+  5. A NAME ENDING IN THE WORD ERROR IS NOT A FAILURE. The second testcase below is
+     named updateFileTypeError. It exercises the endpoint for the case where the type
+     update fails and it ASSERTS that the expected error outcome occurs, so it is an
+     ordinary passing testcase and carries no child element. It was observed to pass
+     on Java 17, and the JDK 8 baseline twin records it passing as well, so its outcome
+     did not change. It is NOT a baseline failure and must never be cited as one.
+
+  6. TWO CONVENTIONS PRESERVED, NEITHER HARMONISED. This class spells its failure path
+     test with a bare Error suffix and no underscore, while a sibling update controller
+     in the same package spells its own with an underscore followed by a lower case
+     word. Both spellings are reproduced exactly as their own sources write them.
+     These are pre existing conditions, documented by faithful reproduction and left
+     uncorrected.
+
+  7. THE BULK TESTCASE IS ONE METHOD. The third testcase covers a path that changes the
+     type of several files in a single request. It is one test method and therefore
+     exactly one testcase element, never one element for each object. This archived
+     form deliberately records no object count and no ordering, so it does not evidence
+     how many objects were processed or in what sequence.
+-->
+<testsuite name="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest" tests="3" failures="0" errors="0" skipped="0">
+    <testcase name="updateFileType" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest"/>
+    <testcase name="updateFileTypeError" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest"/>
+    <testcase name="bulkUpdateFileType" classname="com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest"/>
 </testsuite>

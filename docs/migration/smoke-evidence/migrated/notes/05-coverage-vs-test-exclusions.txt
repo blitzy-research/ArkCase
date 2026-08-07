@@ -1,0 +1,470 @@
+coverage exclusions are not test exclusions — and the false-pass hazard behind
+them
+
+subject: the DISTINCTION between a coverage exclusion and a test exclusion, and
+  the silent-severance hazard that makes a reported coverage pass worthless
+  unless instrumentation liveness is measured
+RUNTIME: Java 17
+BASE-COMMIT: c8f6226105
+DELIVERED-REVISION: fc44276779.  Every delivered-tree anchor below was read from
+  that revision and is labelled as such.  Every base-commit anchor is given as
+  well, because those cannot move.
+MIRRORS: docs/migration/smoke-evidence/baseline/notes/05-coverage-vs-test-exclusions.txt
+  which answers for the JDK 8 run at the base commit
+POINTS-AT: ../jacoco-liveness.txt, the artefact that discharges the liveness
+  obligation this note states.  It is NAMED here and deliberately not
+  duplicated: the measurement lives there and nowhere else.
+COMPANIONS: 03-environment-precondition.txt, which bounds the COMPLETENESS of
+  the archive under ../surefire/, and 04-no-flaky-test-tooling.txt, which
+  establishes its SOUNDNESS.  This note completes the set by governing what may
+  be cited as a justification for excluding a test, and by naming the hazard
+  that would make a coverage pass mean nothing at all.
+ESTABLISHES: that no coverage exclusion in this reactor disables any test, and
+  that the coverage measured in the migrated run was real rather than empty
+
+the distinction, before any anchor detail
+=========================================
+A COVERAGE exclusion removes packages from the MEASUREMENT.  It disables no
+test, skips no test class, changes no assertion, and cannot alter what the suite
+runs.  A TEST exclusion is a different thing entirely: it stops a test from
+running.  The eight package globs in the root aggregator's coverage
+configuration are exclusively the first kind, and all eight predate this
+migration.
+
+THEY MAY NEVER BE CITED TO JUSTIFY THE SECOND KIND.  The only admissible
+justification for a test exclusion is a row in
+docs/migration/baseline-test-failures.md, cited BY CLASS AND BY METHOD, so that
+the citation resolves to one test method and one evidence file rather than to a
+module or to a package.  Nothing on this page proposes excluding anything, and
+nothing on this page is precedent for it.
+
+why this concern needs a file of its own
+========================================
+The globs LOOK exactly like test exclusions.  They are spelled as package paths,
+they sit in the root aggregator beside the test-phase bindings, and two in-file
+comments give each set a reason that reads like a reason for skipping something.
+A reviewer auditing whether this migration disabled a test will find them, and
+two wrong readings are available.  1) Concluding that tests were disabled:
+wrong, and refuted further down by measurement rather than by assurance.
+2) Treating them as PRECEDENT, and justifying a real test exclusion by pointing
+at them: worse, because it converts a measurement decision taken years ago into
+authority over the one rule this migration is least free to bend.  Only stating
+the distinction explicitly prevents either reading.
+
+The sharper concern is not about the globs at all.  Coverage instrumentation in
+this build is attached through a DEFAULT PROPERTY EXPORT, and this migration adds
+a unit-test-runner declaration to the very same file.  A single element in that
+new declaration would unhook instrumentation while every exit code stayed zero.
+That is the hazard this note exists to name, and it is the reason the sibling
+liveness record was captured at all.
+
+Both halves are kept out of the capture files on purpose.  A qualification
+written into a capture reads as observed output, and this one is an argument
+about what the evidence means rather than a part of the evidence.
+
+rules provenance — both facts, stated together
+==============================================
+There is NO on-disk user rules document for this project: the rules facility
+returns, in full, that no user rules were provided.  Rules are nonetheless
+present and binding: the requirements embed an explicit numbered block of seven
+rules together with seven transformation rules, fourteen constraints in all, and
+they govern this note exactly as an external document would.  Reporting only the
+first fact would imply that enterprise-standard best practice is the sole
+standard here, which is wrong.  Reporting only the second would misrepresent
+where the rules came from.  The identifiers R-1 to R-7 and R-T1 to R-T7 used
+below, and their descriptive labels, are the migration plan's OWN navigational
+convention rather than quoted titles.  No rule has been invented and none
+softened.
+
+The two that decide this page are R-5, which forbids disabling a failing test and
+confines exclusions to failures already present at the baseline, and R-T7, which
+puts the burden of proof on captured evidence and never on a process exit status.
+
+the coverage configuration, re-derived rather than copied
+========================================================
+R-7 makes baseline behaviour the tie-breaker, so every figure below was read out
+of the tree with the command printed beside it rather than taken from prose.
+Commands are written without a pipe and the counting step is named on the
+following line, so a reviewer can re-run either half on its own.  Base-commit
+figures were read out of the commit itself: substitute
+"git show c8f6226105:pom.xml" for a read of the working file, and
+"git grep <expression> c8f6226105 -- <pathspec>" for a recursive grep.  All
+commands are run from the repository root unless stated otherwise.
+
+command: git show c8f6226105:pom.xml, then sed -n '150,152p'
+observed-at-base-commit: the coverage plugin's version property at pom.xml:151
+  and the minimum-ratio property, named code.coverage.minimum, at pom.xml:152 —
+  adjacent, under a one-line comment at pom.xml:150 that names the block
+minimum-ratio-observed: 0.02
+migration-plan-figure: 0.02, confirmed exactly
+observed-in-the-delivered-tree: the same two properties at pom.xml:303 and
+  pom.xml:304.  The minimum ratio is UNCHANGED at 0.02, and this page proposes
+  no change to it.
+version-advance, classified honestly and NOT restated here: the plugin's own
+  version advance is a SUPPORTABILITY change rather than a fix for an observed
+  failure — the pre-migration version did complete instrumentation and reporting
+  against a class file at the new major version.  The aggregator says so in a
+  comment of its own at pom.xml:300-302, and the row in
+  docs/migration/dependency-change-inventory.md carries the same honest
+  classification under R-T4 for explicit pinning.  This page records the
+  classification and leaves the justification where it belongs.
+
+command: git show c8f6226105:pom.xml, then sed -n '427,490p'
+plugin-block-at-base-commit: pom.xml:427-490, with the version reference at
+  pom.xml:430
+report-level-excludes-block-at-base-commit: pom.xml:432-443
+migration-plan-figure: the plan cites this configuration as pom.xml:427-470.
+  Re-derived, the plugin element spans pom.xml:427-490 and the agent-preparation
+  execution alone spans pom.xml:446-454.  The plan's range ends inside the check
+  execution rather than at the plugin's close, so the wider bound is published
+  here and the plan's figure stated beside it.
+plugin-block-in-the-delivered-tree: pom.xml:586-663, with the version reference
+  at pom.xml:589 and the report-level excludes block at pom.xml:591-602
+offset-explanation: nothing about the block moved within the file's structure;
+  the property block and the plugin list above it grew.  Every element named on
+  this page is additionally identifiable by its execution identifier or by its
+  tag name, which no edit shifts, so an anchor that has drifted still resolves.
+delta-explanation: two sibling documents publish delivered-tree anchors for these
+  same elements that no longer match the current file, because each was measured
+  at an earlier revision of the aggregator.  04-no-flaky-test-tooling.txt places
+  the unit-test-runner declaration at pom.xml:391-395 with its version property
+  at pom.xml:173, which answers for revision 6f779b7fbc;
+  docs/migration/baseline-test-failures.md places the coverage plugin block at
+  pom.xml:489-552 with the agent-preparation execution at pom.xml:508-516, which
+  answers for revision 2e9618e005.  At the delivered revision named in the header
+  the declaration is at pom.xml:426-430 with its property at pom.xml:192, and the
+  coverage block is at pom.xml:586-663 with the agent-preparation execution at
+  pom.xml:605-627.  The BASE-COMMIT anchors in both of those documents agree with
+  the ones re-derived here exactly.  The difference is published rather than
+  smoothed over, as R-7 requires, and it changes nothing about either element.
+
+the eight report-level globs, and the two comments that group them
+=================================================================
+Eight globs, in two comment-introduced sets of five and three.  The grouping is
+itself evidence that these were MEASUREMENT decisions rather than test
+decisions: each comment states a coverage figure and nothing else, and neither
+mentions a test being skipped.  Base-commit anchor first, then the glob, then the
+area it covers.
+
+the first comment sits at pom.xml:433 and reads, verbatim, "with 0% test
+coverage".  It introduces five globs:
+  L434  **/com/armedia/acm/form/closecomplaint/**  the close-complaint form
+  L435  **/com/armedia/acm/tools/activemq/**       the ActiveMQ tools
+  L436  **/com/armedia/acm/crypto/**               the cryptography utilities
+  L437  **/com/armedia/acm/tool/zylab/**           the Zylab tool integration
+  L438  **/com/armedia/acm/data/**                 the data package
+
+the second comment sits at pom.xml:439 and reads, verbatim, "with < 2% (defined
+${code.coverage.minimum}) test coverage".  It introduces three globs:
+  L440  **/com/armedia/acm/calendar/**             the calendar service
+  L441  **/com/armedia/acm/plugins/admin/**        the administration plugin
+  L442  **/com/armedia/acm/service/outlook/**      the Outlook service
+
+count: 8, in a five-and-three grouping
+in-the-delivered-tree: the same eight, character for character, at
+  pom.xml:593-597 and pom.xml:599-601, under the same two comments at
+  pom.xml:592 and pom.xml:598
+unchanged-by-this-migration: yes.  This page proposes no change to any of them.
+  Narrowing or removing one would be a change with no compatibility reason, which
+  R-1 puts out of scope as firmly as it puts an unjustified omission.
+
+the three executions, and what the agent-preparation execution does NOT declare
+==============================================================================
+command: git show c8f6226105:pom.xml, then sed -n '445,489p'
+
+agent-preparation execution: pom.xml:446-454 at the base commit, with its
+  execution identifier at pom.xml:447 and a configuration holding exactly one
+  element, the destination file for coverage data, at pom.xml:452.  That
+  destination is a path beneath the module's build-output directory, inside a
+  coverage-reports folder — a detail that matters again further down, under
+  committed copies.  In the delivered tree the execution is at pom.xml:605-627,
+  its identifier at pom.xml:606 and its destination element at pom.xml:611.
+
+VERIFIED BY ABSENCE, and the whole hazard rests on this: that execution declares
+  NO property-name override and NO literal fork-argument element, on either
+  revision.  It therefore publishes the agent configuration through the DEFAULT
+  fork-argument property export, which the unit-test runner consumes when it
+  forks.
+command: grep -rn "propertyName" --include=pom.xml .
+counted-by: wc -l over that listing
+measured-property-name-overrides: 0
+verified-figure-at-base-commit: 0
+
+report execution: pom.xml:455-465 at the base commit, bound to the test phase,
+  writing its output directory beside the same data file it reads.  In the
+  delivered tree: pom.xml:628-638.
+
+check execution: pom.xml:466-488 at the base commit, bound to the test phase,
+  evaluating a bundle-scoped rule whose single limit counts lines and measures
+  covered ratio against the minimum-ratio property.  Its rule elements are at
+  pom.xml:476-481 and the data file it reads at pom.xml:486.  In the delivered
+  tree: pom.xml:639-661, rule elements at pom.xml:649-654, data file at
+  pom.xml:659.
+
+OBSERVATION ONLY, per R-6: the check execution's failure-halting override is
+  COMMENTED OUT — pom.xml:473 at the base commit, pom.xml:646 in the delivered
+  tree — so a coverage shortfall does not fail the build.  That is pre-existing
+  configuration and part of the baseline.  It is NOT uncommented here, no change
+  to it is recommended, and no increase to the minimum ratio is proposed.  R-6
+  makes a pre-existing condition a documentation event rather than a repair
+  event; the change set's escape clause for such conditions is invoked exactly
+  twice across the whole migration — the frontend profiles.js creation and the
+  Sass toolchain removal — and NEITHER invocation is in this folder.
+sharpening-effect, recorded with no change proposed: with failure-halting
+  inactive, a severed run described below is quieter still.  The interaction is
+  recorded because it explains why a reader cannot detect severance from the
+  build's own verdict, not because anything about it should change.
+
+the one exclusion this migration adds, and why it is also not a test exclusion
+=============================================================================
+command: grep -n "<excludes>" pom.xml
+counted-by: wc -l over that listing
+measured-excludes-blocks-in-the-root-aggregator: 2
+verified-figure-at-base-commit: 1
+what-changed: the migration adds ONE further excludes block, on the
+  agent-preparation execution alone, at pom.xml:623-625, holding a single pattern
+  that names the rule engine's generated lexer and parser package.  Its reason is
+  stated in the aggregator itself at pom.xml:612-622 and its row sits in
+  docs/migration/dependency-change-inventory.md.  Neither is restated here, which
+  is the scope fence R-1 imposes.
+why-it-is-not-a-test-exclusion: it is agent-scoped, so it suppresses PROBES on a
+  dependency's generated classes.  No test is skipped, and every test still runs
+  instrumented — which is precisely what the liveness record measures.
+notation, worth naming because the two blocks are spelled differently: the
+  report-level block above is matched as Ant-style paths against class files,
+  whereas the agent matches virtual-machine class names with its own wildcard
+  matcher, so its entries are dotted package patterns.  The eight report-level
+  globs therefore never applied to the agent, and this one never applies to
+  reporting.
+
+measured proof that none of these disables a test
+=================================================
+R-T7 puts the burden on captured evidence, so the claim is measured against the
+archive rather than argued from the configuration.  For each of the eight
+excluded packages, the archived reports whose test class sits under that package
+were counted, and each report's own suite counters were summed.  Run from this
+notes directory.
+
+command, once per package: find ../surefire -name "TEST-<package>.*.xml"
+counted-by: wc -l over that listing for the report count, and the tests,
+  failures, errors and skipped attributes of each report's suite element for the
+  rest.  "cases" below is that tests attribute, which counts a skipped case as
+  well as an executed one, so an executed figure is derived beside it as cases
+  minus skips rather than read directly.
+
+  the close-complaint form    reports 1  cases 1  skipped 1  executed 0
+  the ActiveMQ tools          reports 0  cases 0  skipped 0  executed 0
+  the cryptography utilities  reports 1  cases 1  skipped 1  executed 0
+  the Zylab tool integration  reports 1  cases 1  skipped 1  executed 0
+  the data package            reports 0  cases 0  skipped 0  executed 0
+  the calendar service        reports 2  cases 3  skipped 1  executed 2
+  the administration plugin   reports 3  cases 8  skipped 0  executed 8
+  the Outlook service         reports 1  cases 1  skipped 0  executed 1
+
+failures and errors: 0 in every one of the nine reports
+total-across-the-eight-excluded-packages: 9 reports, 15 recorded cases, 4 of
+  them skipped, so ELEVEN cases executed, with 0 failures and 0 errors
+reading: eleven test cases executed, and all fifteen were archived, inside
+  packages that the coverage configuration excludes from measurement.  That is
+  the distinction demonstrated rather than asserted — suppressing measurement
+  over a package plainly did not stop that package's tests from running.
+the four skips, named so the figure is auditable rather than asserted: one case
+  each in the close-complaint service test, the cryptography utilities test, the
+  Zylab production-file extractor test and the exchange calendar entity-handler
+  test.  Each is one of the inherited ignored tests analysed in
+  docs/migration/baseline-test-failures.md, which owns them and lists every
+  report carrying a skip.  A skipped test is not an excluded test, the inherited
+  count is unchanged from the baseline, and none of the four is attributable to
+  this migration.
+the honest qualification: in three of the eight packages the only recorded case
+  is one of those inherited skips, so the executed figure there is zero.  The
+  eleven executed cases sit in the calendar service, the administration plugin
+  and the Outlook service.  Stated this way round because "fifteen tests ran"
+  would have been the flattering reading and not the accurate one.
+the two packages with no report at all: the ActiveMQ tools and the data package
+  hold no test class in this archive.  Whether a module was uncovered as opposed
+  to passed or failed is the distinction 03-environment-precondition.txt owns,
+  and it is deliberately not adjudicated here.
+
+a related census, because measurement scope and archive scope are not the same
+set.  ../jacoco-liveness.txt lists 69 modules carrying execution data, while
+../surefire/ holds 67 module directories of archived reports.  Comparing the two
+listings gives 67 in common and exactly two modules with execution data but no
+archived report directory — the ActiveMQ configuration tool integration and the
+Spring data-source tool integration — each carrying the smallest execution data
+file in the list.  The agent attaches per module whether or not that module has
+tests to run.  So execution data existing is not by itself evidence that a test
+ran, and a module measured at zero is not a module whose tests were disabled.
+command: the module component of each path listed in ../jacoco-liveness.txt,
+  sorted, compared with a sorted listing of ../surefire using comm
+
+verified by absence — there is no fork-argument override anywhere
+================================================================
+command: grep -rn "argLine" --include=pom.xml .
+counted-by: wc -l over that listing
+verified-figure-at-base-commit: 0, across all 145 POMs
+migration-plan-figure: 0, confirmed exactly
+measured-in-the-delivered-tree: 1, and that one hit is PROSE.  It sits inside the
+  guardrail comment above the new unit-test-runner declaration, at pom.xml:423,
+  where the aggregator names in its own file the two things that must stay out of
+  that declaration.  It is not an element, and there is still no fork-argument
+  override anywhere in any of the 145 POMs.
+
+command: find . -name pom.xml -not -path "./.git/*"
+counted-by: wc -l over that listing
+measured-reactor-poms: 145
+verified-figure-at-base-commit: 145
+migration-plan-figure: 145
+note-for-a-built-tree: add -not -path "*/target/*".  Packaging copies three
+  standalone non-reactor build POMs beneath the build-output directory, and
+  04-no-flaky-test-tooling.txt records the unpruned form answering 148 there.
+  The clone this page was written from is unbuilt, so both forms answer 145.
+
+consequence: the coverage agent's configuration reaches the unit-test runner
+SOLELY through the default fork-argument property export.  There is no override
+anywhere today, which is exactly why introducing one would be so easy to do by
+accident and so hard to notice afterwards.
+
+the hazard is CREATED BY this migration rather than inherited from the baseline.
+command: grep -rln "maven-surefire-plugin" --include=pom.xml .
+counted-by: wc -l over that listing
+verified-figure-at-base-commit: 0 of 145
+measured-in-the-delivered-tree: 1, the root aggregator and nowhere else
+reading: at the base commit no POM declared the unit-test runner at all, so no
+  POM could have carried such an override.  This migration ADDS the one
+  declaration that could.  04-no-flaky-test-tooling.txt records the same two
+  figures together with the three justifications for the pin, and classifies it
+  honestly as not a hard blocker; that classification is not restated here.
+
+the severance hazard, stated in full
+====================================
+R-T7 is why this is worth a whole note rather than a sentence: the failure mode
+produces a green build.
+
+1) The agent-preparation execution publishes its agent configuration through the
+   default fork-argument property, and the unit-test runner consumes that
+   property when it forks.  There is no second route — the agent is passed no
+   other way.
+2) A unit-test-runner declaration that sets a LITERAL fork-argument override
+   REPLACES that exported value.  It does not append to it.
+3) The agent is then never attached.  Instrumentation is severed SILENTLY: no
+   warning, no error, no failed goal, no diagnostic of any kind.
+4) The coverage data file is consequently empty, or never written.
+5) The check execution evaluates that EMPTY data set against the minimum ratio.
+   An empty data set does not breach a covered-ratio limit.
+6) The check execution REPORTS A PASS.  The build states that coverage is
+   satisfied while having measured nothing whatsoever.
+
+AN EMPTY COVERAGE DATA SET PRODUCING A PASS IS A GATE FAILURE, NOTWITHSTANDING A
+ZERO EXIT CODE.
+
+That is also why this is an R-5 concern and not merely a tooling detail.  A false
+green violates R-5's intent even though no test was formally disabled.  Severance
+itself excludes nothing, disables nothing and skips nothing: every test still
+runs, and still passes or fails on its own merits.  The coverage claim beside
+them is nevertheless worthless, and a build that reports a satisfied threshold
+having measured nothing is exactly the kind of unfalsifiable green R-5 exists to
+prevent.
+
+the corollary constraint on this migration
+------------------------------------------
+The new unit-test-runner declaration MUST SET NO LITERAL FORK-ARGUMENT OVERRIDE.
+As delivered it sets none: at pom.xml:426-430 it carries a group identifier, an
+artifact identifier and a version reference and nothing else, with no
+configuration element at all and therefore no place for one.  This is a
+constraint on a file being edited for an entirely unrelated reason — the file is
+opened to pin a version, and the thing that must not happen to it concerns
+coverage — which is exactly the kind of coupling that gets missed.  If fork
+arguments are ever genuinely required later, they must be added in a way that
+PRESERVES the exported value rather than replacing it.
+
+Two further things sharpen the hazard rather than mitigate it, and both are
+recorded without any change being proposed.  The failure-halting override noted
+above is commented out, so a coverage shortfall would not have failed the build
+even had the data set been real.  And the repository's own coverage summary
+helper, jacoco-summary.sh at the repository root, aggregates the REPORT output
+rather than the execution data, so a severed run yields a summary that prints
+zeroes rather than printing nothing — one more reason a reader cannot tell a
+severed run from a real one by looking at what the build produced.  That helper
+is named in docs/migration/dependency-change-inventory.md as requiring no change,
+and it is unchanged.
+
+how the hazard is discharged, by evidence and not by assertion
+-------------------------------------------------------------
+../jacoco-liveness.txt is the discharge.  It records coverage data measured off
+disk per module: 69 execution data files found, 69 of them NON-EMPTY, 0 empty, a
+per-module path-and-bytes listing, a byte total, and a state of LIVE.  The data
+set the check execution evaluated was therefore a real one and not an empty one.
+That record is NAMED here and pointed at.  It is not duplicated, it is not
+summarised in place of itself, and no substitute for it was created.
+
+An illustration of the class of override that would cause the severance is left
+in words on purpose.  The obvious example is a module-access JVM argument that
+opens or exports an otherwise-encapsulated JDK package to the unnamed module.
+Its literal spellings are deliberately not written anywhere on this page, because
+the audit proving this migration's production launch configuration free of them
+is TEXTUAL, and writing one merely to illustrate a hazard would defeat that audit
+from a page that has nothing to do with launch configuration.  The register of
+such exceptions is referred to by its title only — the JDK access exceptions
+register — for the same reason, and it is delivered empty.
+
+why this evidence is a committed copy rather than a reference into build output
+==============================================================================
+Both the coverage data file and the per-module test reports are written beneath
+the module's build-output directory, whose bare name is a pattern in the
+repository-root ignore file matched AT ANY DEPTH.  Verified at line 6 of that
+file, alongside four further bare patterns and one trailing-slash pattern at
+lines 7, 24, 25, 26 and 40.  Nothing beneath it can be committed in place.
+
+That is why ../surefire/ holds an ARCHIVED COPY of the per-module reports and
+../jacoco-liveness.txt holds a RECORDED liveness finding, rather than either of
+them being a pointer into a build directory.  It is also why this evidence tree
+can be reviewed from a clean checkout at all: re-running the liveness finder on
+an unbuilt checkout finds no execution data and answers zero, which the baseline
+counterpart records verbatim as a not-measured state with the reason attached and
+with the explicit qualification that it is NOT evidence of severance.  The
+committed record is the evidence; the build directory is long gone.
+
+cross-references
+================
+docs/migration/baseline-test-failures.md — the ONLY admissible justification for
+  a test exclusion, cited by class and by method; also the owner of the
+  registered baseline failures and of the inherited ignored tests
+../jacoco-liveness.txt — the artefact discharging the liveness obligation stated
+  above; named and pointed at, never duplicated
+../surefire/ — the archived per-module test reports this page counts against,
+  together with its run-provenance.txt and its sha256-manifest.txt
+03-environment-precondition.txt — the COMPLETENESS bound on that archive, and the
+  owner of the uncovered-versus-passed-versus-failed distinction
+04-no-flaky-test-tooling.txt — the SOUNDNESS of that archive, and the note that
+  deferred the fork-argument constraint to this page
+docs/migration/dependency-change-inventory.md — the row for the coverage plugin's
+  version advance, the row for the pinned unit-test runner, and the row for the
+  single agent-scoped exclusion; every justification lives there and none is
+  restated here
+jacoco-summary.sh, at the repository root — the coverage summary helper named in
+  that inventory as requiring no change, and unchanged
+
+mirror obligation
+=================
+The counterpart to this page is required at the identical filename —
+05-coverage-vs-test-exclusions.txt, character for character — at the mirrored
+path under baseline/notes/, so that a recursive diff over the two trees is
+mechanical.  A CONTENT difference at this filename is expected and correct: the
+two sides state different runtimes, different anchors and, decisively, different
+liveness states.  A STRUCTURAL difference — this filename present on one side
+only — is not, and means the pair has been broken.
+observed-at-the-delivered-revision: this filename was absent from both folders,
+  so the pair is added on both sides together rather than one side gaining a file
+  the other lacks.
+
+NO SEVENTH NOTE was added to this folder.  The parent's jacoco-liveness.txt stays
+the file this page points at rather than something reproduced inside it.
+delta-explanation: the migration plan describes that parent liveness record as
+  the single documented deviation from the one-for-one mirror of the baseline
+  tree.  Re-derived, it is present on BOTH sides — the baseline copy recording a
+  not-measured state and the migrated copy a live one — so at the parent level
+  the mirror is intact rather than deviating.  The plan's characterisation is
+  stated beside the observation so the difference is visible.  Either way this
+  folder gains exactly one file, this one.
+
