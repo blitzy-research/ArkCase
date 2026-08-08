@@ -45,12 +45,30 @@ EQUIV="${HERE}/historical-frontend/artifact-equivalence.txt"
 ATTRIB="${HERE}/historical-frontend/minifier-engine-dependence.txt"
 ALLOW_DIRTY='no'
 
+# require_value — refuse an option that was given without its value.
+#
+# Every two-argument case below used to read its value as "${2:-}" and then `shift 2`.
+# With the option last on the command line $# is 1, `shift 2` fails without shifting, and
+# the loop re-reads the same argument forever: the producer hangs instead of failing, so a
+# caller that mistypes an invocation gets no evidence, no error and no exit. Validating the
+# arity before the shift turns that into one bounded refusal.
+require_value()
+{
+    if [ "$2" -lt 2 ]; then
+        printf 'compare-frontend-artifacts.sh: %s requires a value and none was given.\n' "$1" >&2
+        printf '  Refused rather than defaulted to an empty one: an empty path would send\n' >&2
+        printf '  this producer at the wrong target, and an empty selector would fall\n' >&2
+        printf '  through to a later check that cannot tell "absent" from "empty".\n' >&2
+        exit 2
+    fi
+}
+
 while [ $# -gt 0 ]; do
     case "$1" in
-        --baseline) BASE_DIR="${2:-}"; shift 2 ;;
-        --migrated) MIG_DIR="${2:-}"; shift 2 ;;
-        --equivalence) EQUIV="${2:-}"; shift 2 ;;
-        --attribution) ATTRIB="${2:-}"; shift 2 ;;
+        --baseline) require_value '--baseline' "$#"; BASE_DIR="$2"; shift 2 ;;
+        --migrated) require_value '--migrated' "$#"; MIG_DIR="$2"; shift 2 ;;
+        --equivalence) require_value '--equivalence' "$#"; EQUIV="$2"; shift 2 ;;
+        --attribution) require_value '--attribution' "$#"; ATTRIB="$2"; shift 2 ;;
         --allow-dirty) ALLOW_DIRTY='yes'; shift ;;
         -h|--help) sed -n '1,44p' "$0"; exit 0 ;;
         *) printf 'compare-frontend-artifacts.sh: unknown option %s\n' "$1" >&2; exit 2 ;;
@@ -125,8 +143,15 @@ eq_bytes()
 }
 
 OUT="${MIG_DIR}/artifacts/diff-result.txt"
-: > "$OUT" || exit 2
-w() { printf '%s\n' "$*" >> "$OUT"; }
+# Staged rather than written in place. This adjudication used to be produced by truncating
+# its own final path and then appending a line at a time, so a run that died partway left a
+# partial verdict behind that a reader could not distinguish from a complete one. Every write
+# now lands in a staging file beside the target and the target is replaced by a single rename
+# at the end, once the whole record exists.
+OUT_STAGE="${OUT}.$$.staging"
+rm -f -- "$OUT_STAGE"
+: > "$OUT_STAGE" || exit 2
+w() { printf '%s\n' "$*" >> "$OUT_STAGE"; }
 
 w 'the frontend byte-identity criterion, adjudicated from the recorded digests'
 w '=========================================================================='
@@ -142,7 +167,7 @@ if [ "$DIRTY_COUNT" -gt 0 ]; then
     w "worktree          : DIRTY at write time, ${DIRTY_COUNT} path(s) — recorded because"
     w '                    --allow-dirty was passed; the commit named above does not'
     w '                    contain every file this record describes'
-    printf '%s\n' "$PORCELAIN" | sed 's/^/                      /' >> "$OUT"
+    printf '%s\n' "$PORCELAIN" | sed 's/^/                      /' >> "$OUT_STAGE"
 else
     w 'worktree          : clean — git status --porcelain produced no output, so the'
     w '                    commit named above contains the files this record describes'
@@ -309,6 +334,23 @@ w 'SCOPE FENCE.  This record adds no tooling to the product, no build step and n
 w 'dependency.  It reads digest records, compares five pairs and states one verdict.'
 w 'Nothing in it may be read as a pass mark for anything beyond the individual rows it'
 w 'names.'
+
+# Publish once the whole record exists. The rename is within one directory, so a reader sees
+# either the previous adjudication or this one and never a half-written mixture. The verdict
+# below is reported only after publication succeeds; a failure to publish is itself a failure.
+if [ -L "$OUT" ] || { [ -e "$OUT" ] && [ ! -f "$OUT" ]; }; then
+    rm -f -- "$OUT_STAGE"
+    printf 'compare-frontend-artifacts.sh: refusing to publish over %s: it is not a plain file.\n' \
+        "$OUT" >&2
+    exit 2
+fi
+if ! mv -f -- "$OUT_STAGE" "$OUT"; then
+    rm -f -- "$OUT_STAGE"
+    printf 'compare-frontend-artifacts.sh: could not move the staged adjudication into place at %s.\n' \
+        "$OUT" >&2
+    printf '  The previous file, if any, is untouched.\n' >&2
+    exit 2
+fi
 
 if [ "$mismatch" -eq 0 ] && [ "$unavailable" -eq 0 ]; then exit 0; fi
 exit 1

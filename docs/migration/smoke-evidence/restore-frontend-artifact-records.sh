@@ -57,12 +57,30 @@ CAPTURE=''
 RUNTIME=''
 VERIFY_ONLY='no'
 
+# require_value — refuse an option that was given without its value.
+#
+# Every two-argument case below used to read its value as "${2:-}" and then `shift 2`.
+# With the option last on the command line $# is 1, `shift 2` fails without shifting, and
+# the loop re-reads the same argument forever: the producer hangs instead of failing, so a
+# caller that mistypes an invocation gets no evidence, no error and no exit. Validating the
+# arity before the shift turns that into one bounded refusal.
+require_value()
+{
+    if [ "$2" -lt 2 ]; then
+        printf 'restore-frontend-artifact-records.sh: %s requires a value and none was given.\n' "$1" >&2
+        printf '  Refused rather than defaulted to an empty one: an empty path would send\n' >&2
+        printf '  this producer at the wrong target, and an empty selector would fall\n' >&2
+        printf '  through to a later check that cannot tell "absent" from "empty".\n' >&2
+        exit 2
+    fi
+}
+
 while [ $# -gt 0 ]; do
     case "$1" in
-        --side) SIDE="${2:-}"; shift 2 ;;
-        --authority) AUTHORITY="${2:-}"; shift 2 ;;
-        --capture) CAPTURE="${2:-}"; shift 2 ;;
-        --runtime) RUNTIME="${2:-}"; shift 2 ;;
+        --side) require_value '--side' "$#"; SIDE="$2"; shift 2 ;;
+        --authority) require_value '--authority' "$#"; AUTHORITY="$2"; shift 2 ;;
+        --capture) require_value '--capture' "$#"; CAPTURE="$2"; shift 2 ;;
+        --runtime) require_value '--runtime' "$#"; RUNTIME="$2"; shift 2 ;;
         --verify-only) VERIFY_ONLY='yes'; shift ;;
         -h|--help) sed -n '1,52p' "$0"; exit 0 ;;
         *) printf 'restore-frontend-artifact-records.sh: unknown option %s\n' "$1" >&2; exit 2 ;;

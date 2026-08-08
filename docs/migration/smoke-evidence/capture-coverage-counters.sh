@@ -76,14 +76,73 @@ COMMAND_RECORD=''
 POM=''
 LABEL=''
 
+# require_value — refuse an option that was given without its value.
+#
+# Every two-argument case below used to read its value as "${2:-}" and then `shift 2`.
+# With the option last on the command line $# is 1, `shift 2` fails without shifting, and
+# the loop re-reads the same argument forever: the producer hangs instead of failing, so a
+# caller that mistypes an invocation gets no evidence, no error and no exit. Validating the
+# arity before the shift turns that into one bounded refusal.
+# publish_atomically — rename a fully written staging file over the target.
+#
+# The authority below used to be produced by redirecting a brace group straight at its
+# final path, which truncates that path before the first byte is written. A reader that
+# opened the file while the producer was still running, or after it died partway, saw a
+# half-written authority indistinguishable from a complete one. Staging beside the target
+# and renaming makes publication all-or-nothing: same directory, so the rename is atomic,
+# and on any failure the previous file is left exactly as it was. This is the idiom
+# capture-static-audit.sh already uses.
+publish_atomically()
+{
+    stage="$1"
+    target="$2"
+
+    if [ ! -f "$stage" ]; then
+        printf '%s: nothing was staged for %s, so nothing was published.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        return 1
+    fi
+    if [ -L "$target" ]; then
+        rm -f -- "$stage"
+        printf '%s: refusing to publish over %s: it is a symbolic link.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        return 1
+    fi
+    if [ -e "$target" ] && [ ! -f "$target" ]; then
+        rm -f -- "$stage"
+        printf '%s: refusing to publish over %s: it is not a plain file.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        return 1
+    fi
+    if ! mv -f -- "$stage" "$target"; then
+        rm -f -- "$stage"
+        printf '%s: could not move the staged record into place at %s.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        printf '  The previous file, if any, is untouched.\n' >&2
+        return 1
+    fi
+    return 0
+}
+
+require_value()
+{
+    if [ "$2" -lt 2 ]; then
+        printf 'capture-coverage-counters.sh: %s requires a value and none was given.\n' "$1" >&2
+        printf '  Refused rather than defaulted to an empty one: an empty path would send\n' >&2
+        printf '  this producer at the wrong target, and an empty selector would fall\n' >&2
+        printf '  through to a later check that cannot tell "absent" from "empty".\n' >&2
+        exit 2
+    fi
+}
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        --from) FROM="${2:-}"; shift 2 ;;
-        --out) OUT="${2:-}"; shift 2 ;;
-        --build-log) BUILD_LOG="${2:-}"; shift 2 ;;
-        --command-record) COMMAND_RECORD="${2:-}"; shift 2 ;;
-        --pom) POM="${2:-}"; shift 2 ;;
-        --label) LABEL="${2:-}"; shift 2 ;;
+        --from) require_value '--from' "$#"; FROM="$2"; shift 2 ;;
+        --out) require_value '--out' "$#"; OUT="$2"; shift 2 ;;
+        --build-log) require_value '--build-log' "$#"; BUILD_LOG="$2"; shift 2 ;;
+        --command-record) require_value '--command-record' "$#"; COMMAND_RECORD="$2"; shift 2 ;;
+        --pom) require_value '--pom' "$#"; POM="$2"; shift 2 ;;
+        --label) require_value '--label' "$#"; LABEL="$2"; shift 2 ;;
         -h|--help)
             printf 'usage: %s --from <reactor-root> --out <file> --build-log <file> --command-record <file> [--pom <root-pom>] [--label <text>]\n' "$0" >&2
             exit 2 ;;
@@ -356,7 +415,15 @@ ratio_of()
     fi
     printf '===== per-module counters, one block per module, sorted by module path =====\n'
     cat "${TMP}/rows"
-} > "$OUT"
+} > "${OUT}.$$.staging"
+publish_status=$?
+if [ "$publish_status" -ne 0 ]; then
+    rm -f -- "${OUT}.$$.staging"
+    printf '%s: the record was not written completely, so %s was left untouched.\n' \
+        "$(basename -- "$0")" "$OUT" >&2
+    exit "$publish_status"
+fi
+publish_atomically "${OUT}.$$.staging" "$OUT" || exit 1
 
 printf 'capture-coverage-counters.sh: wrote %s\n' "$OUT"
 printf '  execution data: %s found, %s non-empty, %s bytes\n' "$exec_total" "$exec_nonempty" "$exec_bytes_total"
@@ -364,3 +431,55 @@ printf '  aggregate LINE: missed=%s covered=%s ratio=%s against minimum %s\n' \
     "$sum_line_m" "$sum_line_c" "$(ratio_of "$sum_line_m" "$sum_line_c")" "$MINIMUM"
 printf '  modules below the configured minimum: %s\n' "$below_minimum"
 printf '  check goal: %s met, %s violated, %s failed\n' "$met_count" "$violated_count" "$failed_count"
+
+# ---------------------------------------------------------------------------
+# FAIL CLOSED ON THE THREE CONDITIONS THAT MAKE THIS RECORD UNUSABLE AS EVIDENCE.
+#
+# This producer used to end here, so it exited zero whatever it had found: an empty
+# execution-data set, a module whose data produced no report, and an invocation that
+# overrode the coverage check all left a written record and a success status. A record
+# that says "instrumentation was not live" while its producer reports success is worse
+# than no record, because a caller that only reads the exit status is told the opposite
+# of what the file says.
+#
+# The record is still written in every case - the measurements are what a reader needs -
+# and only the status changes. COVERAGE_EVIDENCE_ACCEPT_OVERRIDE=yes acknowledges the
+# third condition explicitly for a caller that genuinely wants counters from an
+# overridden run; it cannot suppress the first two, which are not a matter of intent.
+# ---------------------------------------------------------------------------
+evidence_status=0
+
+if [ "${exec_nonempty:-0}" -eq 0 ]; then
+    printf '%s: FAIL CLOSED -- no module produced non-empty coverage execution data,\n' \
+        "$(basename -- "$0")" >&2
+    printf '  so every counter in %s was computed over an empty data set.\n' "$OUT" >&2
+    evidence_status=1
+fi
+
+if [ "${reports_missing:-0}" -gt 0 ]; then
+    printf '%s: FAIL CLOSED -- %s module(s) produced coverage execution data but no\n' \
+        "$(basename -- "$0")" "$reports_missing" >&2
+    printf '  report, so the aggregate in %s describes fewer modules than the execution\n' "$OUT" >&2
+    printf '  data implies.  The affected modules are listed in the record.\n' >&2
+    evidence_status=1
+fi
+
+case "$halt_override" in
+    present*)
+        if [ "${COVERAGE_EVIDENCE_ACCEPT_OVERRIDE:-no}" = 'yes' ]; then
+            printf '%s: the invocation overrode the coverage check and the caller\n' \
+                "$(basename -- "$0")" >&2
+            printf '  acknowledged it with COVERAGE_EVIDENCE_ACCEPT_OVERRIDE=yes.  The override is\n' >&2
+            printf '  recorded in %s either way.\n' "$OUT" >&2
+        else
+            printf '%s: FAIL CLOSED -- %s\n' "$(basename -- "$0")" "$halt_override" >&2
+            printf '  A coverage verdict obtained under an override is a different claim from one\n' >&2
+            printf '  obtained under the configured behaviour, so this producer will not report\n' >&2
+            printf '  success for it.  Re-run the build without the override, or set\n' >&2
+            printf '  COVERAGE_EVIDENCE_ACCEPT_OVERRIDE=yes to acknowledge it deliberately.\n' >&2
+            evidence_status=1
+        fi
+        ;;
+esac
+
+exit "$evidence_status"

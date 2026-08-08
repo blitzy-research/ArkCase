@@ -31,19 +31,20 @@ variables:
   # because the toolchain inside it changes; nothing else about how this pipeline selects an image
   # changes, and no job gains a command.
   #
-  # WHAT THIS FILE DOES NOT ATTEMPT.  An earlier revision composed this reference out of two
-  # must-be-supplied parts and added a verification step to `default: before_script`, so that a pipeline
-  # would refuse to start until an operator supplied a registry host and a digest.  Both halves were
-  # withdrawn.  The composed form left the default reference expanding to an invalid one, so the
-  # pipeline could not run at all on a checkout of this repository - a control that stops the thing it
-  # is meant to protect from ever running is not a control.  And a `default: before_script` is inherited
-  # by every job in this file and in the release file it includes, so it silently changed the effective
-  # command list of all eighteen of them, in a change set whose CI scope is this image line and the
-  # removal of an obsolete collector flag.  Image provenance - registry pinning, digest pinning,
-  # allowed_images and pull_policy - is runner-side and registry-side configuration, and it belongs
-  # there rather than in a script this file runs inside the container it is trying to vet.
+  # The reference is read from a variable so that a deployment can pin it to a registry-qualified,
+  # digest-addressed image - ARKCASE_CI_IMAGE=registry.example.org/arkcase/arkcase-gitlab-ci@sha256:...
+  # set as a project, group or instance CI/CD variable - without editing this file, without touching any
+  # job and without a checkout of this repository depending on a value only that deployment knows.  The
+  # default below keeps the pipeline runnable on a plain checkout, and it is a mutable tag: it names no
+  # registry and no digest, so what it resolves to is decided by the runner's registry configuration at
+  # pull time.  That residual exposure is recorded in docs/migration/pre-existing-defects.md, and the
+  # controls that close it - an allowed_images allowlist, a pull policy, and a signature or digest
+  # requirement enforced at admission - are runner-side and registry-side settings.  They cannot be
+  # asserted from inside the container whose provenance is in question, which is why this file supplies
+  # the override point and not a verification step.
+  ARKCASE_CI_IMAGE: arkcase-gitlab-ci:2.0.0
 
-image: arkcase-gitlab-ci:2.0.0
+image: $ARKCASE_CI_IMAGE
 
 stages:
   - build

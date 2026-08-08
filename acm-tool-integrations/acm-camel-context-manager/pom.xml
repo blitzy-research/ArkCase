@@ -108,6 +108,19 @@
                     <groupId>com.sun.xml.bind</groupId>
                     <artifactId>jaxb-core</artifactId>
                 </exclusion>
+                <!-- asm:asm 3.3.1 arrives on the same cxf-rt-frontend-jaxws path and supplies 20 of the same
+                    org/objectweb/asm class names as the pinned org.ow2.asm:asm 9.8, so the provider a class loads
+                    from would be decided by jar order rather than by a pin - and 3.3.1 declares FieldVisitor,
+                    MethodVisitor and ClassVisitor as interfaces where ASM 4 made them classes, which fails a
+                    consumer with IncompatibleClassChangeError. This module is the wider of the two routes into the
+                    reactor: it reaches 45 modules through acm-service-ecm, including the deployed WAR. Excluded
+                    here rather than centrally for the same reason as jaxb-core above - this declaration overrides
+                    the managed exclusions rather than adding to them. The aggregator's managed client-impl entry
+                    carries the identical exclusion for the other route. -->
+                <exclusion>
+                    <groupId>asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -133,12 +146,17 @@
                     <artifactId>jaxb-impl</artifactId>
                 </exclusion>
                 <!-- kept in step with the same exclusion list in the aggregator's dependencyManagement: this
-                    declaration overrides the managed exclusions rather than adding to them, so jaxb-core has to be
-                    named here too or a 2.1 vintage copy of the XML binding implementation reappears in this module
-                    alongside the pinned jaxb-runtime 2.3.1 graph. -->
+                    declaration overrides the managed exclusions rather than adding to them, so jaxb-core and
+                    asm:asm have to be named here too or a 2.1 vintage copy of the XML binding implementation and a
+                    second provider of the org/objectweb/asm package reappear in this module alongside the pinned
+                    jaxb-runtime 2.3.1 graph and org.ow2.asm:asm 9.8. -->
                 <exclusion>
                     <groupId>com.sun.xml.bind</groupId>
                     <artifactId>jaxb-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>asm</groupId>
+                    <artifactId>asm</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

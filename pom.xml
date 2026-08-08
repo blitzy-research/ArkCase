@@ -191,6 +191,10 @@
         <magic.matcher.version>0.1.2</magic.matcher.version>
         <mariadb.jdbc.version>2.2.6</mariadb.jdbc.version>
         <maven.checkstyle.plugin.version>3.1.2</maven.checkstyle.plugin.version>
+        <!-- 3.1, the version the base commit used, predates the release parameter entirely and cannot express a
+            release-17 target. Declared as a property for the same reason every other pinned plugin version is:
+            one place to read the pin from, and no literal version left in a plugin declaration. -->
+        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
         <!-- shared by maven-surefire-plugin and maven-failsafe-plugin so unit and integration forking stay aligned -->
         <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
         <maven.build.timestamp.format>MMMM dd, yyyy</maven.build.timestamp.format>
@@ -495,8 +499,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <!-- 3.1 predates the release parameter entirely and cannot express a release-17 target -->
-                <version>3.13.0</version>
+                <!-- 3.1 predates the release parameter entirely and cannot express a release-17 target; the pin
+                    itself lives in the maven.compiler.plugin.version property beside the other plugin pins -->
+                <version>${maven.compiler.plugin.version}</version>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <release>${maven.compiler.release}</release>
@@ -1205,6 +1210,24 @@
                     <exclusion>
                         <groupId>com.sun.xml.bind</groupId>
                         <artifactId>jaxb-core</artifactId>
+                    </exclusion>
+                    <!-- asm:asm 3.3.1 arrives here through cxf-rt-frontend-jaxws and supplies 20 of the same
+                        org/objectweb/asm class names as the pinned org.ow2.asm:asm 9.8 - ClassReader, ClassWriter,
+                        FieldVisitor, MethodVisitor, Opcodes and Type among them - so which provider a class loads
+                        from is decided by jar order rather than by a pin. That is the same order-sensitive
+                        resolution the three exclusions above remove for the XML binding classes, and the same one
+                        the accessors-smart pin removes for the bundled ASM 4 copy. It matters here because ASM
+                        made FieldVisitor, MethodVisitor and ClassVisitor classes in 4 where 3.3.1 declares them
+                        interfaces, so a consumer that resolves the old copy fails with IncompatibleClassChangeError;
+                        accessors-smart 2.4.9 is such a consumer and reaches the deployed WAR under json-smart on
+                        the OAuth2 and JOSE path. Removing the old jar rather than the new one is safe and was
+                        measured: no ArkCase source file references org.objectweb.asm, the tree has no
+                        javax.xml.ws, javax.jws or javax.xml.soap occurrence so the CXF JAX-WS frontend is never
+                        exercised, and cxf-core reaches ASM only through its own reflective ASMHelper wrapper
+                        classes rather than binding to an ASM major at compile time. -->
+                    <exclusion>
+                        <groupId>asm</groupId>
+                        <artifactId>asm</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

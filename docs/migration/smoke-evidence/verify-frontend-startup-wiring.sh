@@ -81,9 +81,68 @@ SPRING_XML="$MODULE/src/main/resources/spring/spring-web-ark-angular-starter.xml
 RECORD="docs/migration/smoke-evidence/frontend-startup-wiring.txt"
 WRITE_RECORD=1
 
+# require_value — refuse an option that was given without its value.
+#
+# Every two-argument case below used to read its value as "${2:-}" and then `shift 2`.
+# With the option last on the command line $# is 1, `shift 2` fails without shifting, and
+# the loop re-reads the same argument forever: the producer hangs instead of failing, so a
+# caller that mistypes an invocation gets no evidence, no error and no exit. Validating the
+# arity before the shift turns that into one bounded refusal.
+# publish_atomically — rename a fully written staging file over the target.
+#
+# The authority below used to be produced by redirecting a brace group straight at its
+# final path, which truncates that path before the first byte is written. A reader that
+# opened the file while the producer was still running, or after it died partway, saw a
+# half-written authority indistinguishable from a complete one. Staging beside the target
+# and renaming makes publication all-or-nothing: same directory, so the rename is atomic,
+# and on any failure the previous file is left exactly as it was. This is the idiom
+# capture-static-audit.sh already uses.
+publish_atomically()
+{
+    stage="$1"
+    target="$2"
+
+    if [ ! -f "$stage" ]; then
+        printf '%s: nothing was staged for %s, so nothing was published.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        return 1
+    fi
+    if [ -L "$target" ]; then
+        rm -f -- "$stage"
+        printf '%s: refusing to publish over %s: it is a symbolic link.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        return 1
+    fi
+    if [ -e "$target" ] && [ ! -f "$target" ]; then
+        rm -f -- "$stage"
+        printf '%s: refusing to publish over %s: it is not a plain file.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        return 1
+    fi
+    if ! mv -f -- "$stage" "$target"; then
+        rm -f -- "$stage"
+        printf '%s: could not move the staged record into place at %s.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        printf '  The previous file, if any, is untouched.\n' >&2
+        return 1
+    fi
+    return 0
+}
+
+require_value()
+{
+    if [ "$2" -lt 2 ]; then
+        printf 'verify-frontend-startup-wiring.sh: %s requires a value and none was given.\n' "$1" >&2
+        printf '  Refused rather than defaulted to an empty one: an empty path would send\n' >&2
+        printf '  this producer at the wrong target, and an empty selector would fall\n' >&2
+        printf '  through to a later check that cannot tell "absent" from "empty".\n' >&2
+        exit 2
+    fi
+}
+
 while [ $# -gt 0 ]; do
     case "$1" in
-        --record)    RECORD="${2:-}"; shift 2 ;;
+        --record)    require_value '--record' "$#"; RECORD="$2"; shift 2 ;;
         --no-record) WRITE_RECORD=0; shift ;;
         -h|--help)   sed -n '1,/^set -u$/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *)           echo "unrecognised argument: $1" >&2; exit 2 ;;
@@ -473,7 +532,15 @@ mkdir -p "$(dirname "$RECORD")"
     echo "  * that a deployment logs any of this.  The external configuration pins this logger to"
     echo "    warn, which suppresses the INFO narrative; the failure paths throw, so they are"
     echo "    visible regardless."
-} > "$RECORD"
+} > "${RECORD}.$$.staging"
+publish_status=$?
+if [ "$publish_status" -ne 0 ]; then
+    rm -f -- "${RECORD}.$$.staging"
+    printf '%s: the record was not written completely, so %s was left untouched.\n' \
+        "$(basename -- "$0")" "$RECORD" >&2
+    exit "$publish_status"
+fi
+publish_atomically "${RECORD}.$$.staging" "$RECORD" || exit 1
 
 echo
 echo "record written: $RECORD"

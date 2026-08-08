@@ -60,14 +60,73 @@ OUT=''
 SUITE_MANIFEST=''
 BASE_COMMIT=''
 
+# require_value — refuse an option that was given without its value.
+#
+# Every two-argument case below used to read its value as "${2:-}" and then `shift 2`.
+# With the option last on the command line $# is 1, `shift 2` fails without shifting, and
+# the loop re-reads the same argument forever: the producer hangs instead of failing, so a
+# caller that mistypes an invocation gets no evidence, no error and no exit. Validating the
+# arity before the shift turns that into one bounded refusal.
+# publish_atomically — rename a fully written staging file over the target.
+#
+# The authority below used to be produced by redirecting a brace group straight at its
+# final path, which truncates that path before the first byte is written. A reader that
+# opened the file while the producer was still running, or after it died partway, saw a
+# half-written authority indistinguishable from a complete one. Staging beside the target
+# and renaming makes publication all-or-nothing: same directory, so the rename is atomic,
+# and on any failure the previous file is left exactly as it was. This is the idiom
+# capture-static-audit.sh already uses.
+publish_atomically()
+{
+    stage="$1"
+    target="$2"
+
+    if [ ! -f "$stage" ]; then
+        printf '%s: nothing was staged for %s, so nothing was published.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        return 1
+    fi
+    if [ -L "$target" ]; then
+        rm -f -- "$stage"
+        printf '%s: refusing to publish over %s: it is a symbolic link.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        return 1
+    fi
+    if [ -e "$target" ] && [ ! -f "$target" ]; then
+        rm -f -- "$stage"
+        printf '%s: refusing to publish over %s: it is not a plain file.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        return 1
+    fi
+    if ! mv -f -- "$stage" "$target"; then
+        rm -f -- "$stage"
+        printf '%s: could not move the staged record into place at %s.\n' \
+            "$(basename -- "$0")" "$target" >&2
+        printf '  The previous file, if any, is untouched.\n' >&2
+        return 1
+    fi
+    return 0
+}
+
+require_value()
+{
+    if [ "$2" -lt 2 ]; then
+        printf 'capture-report-inventory.sh: %s requires a value and none was given.\n' "$1" >&2
+        printf '  Refused rather than defaulted to an empty one: an empty path would send\n' >&2
+        printf '  this producer at the wrong target, and an empty selector would fall\n' >&2
+        printf '  through to a later check that cannot tell "absent" from "empty".\n' >&2
+        exit 2
+    fi
+}
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        --baseline) BASELINE="${2:-}"; shift 2 ;;
-        --migrated) MIGRATED="${2:-}"; shift 2 ;;
-        --repo) REPO="${2:-}"; shift 2 ;;
-        --out) OUT="${2:-}"; shift 2 ;;
-        --suite-manifest) SUITE_MANIFEST="${2:-}"; shift 2 ;;
-        --base-commit) BASE_COMMIT="${2:-}"; shift 2 ;;
+        --baseline) require_value '--baseline' "$#"; BASELINE="$2"; shift 2 ;;
+        --migrated) require_value '--migrated' "$#"; MIGRATED="$2"; shift 2 ;;
+        --repo) require_value '--repo' "$#"; REPO="$2"; shift 2 ;;
+        --out) require_value '--out' "$#"; OUT="$2"; shift 2 ;;
+        --suite-manifest) require_value '--suite-manifest' "$#"; SUITE_MANIFEST="$2"; shift 2 ;;
+        --base-commit) require_value '--base-commit' "$#"; BASE_COMMIT="$2"; shift 2 ;;
         -h|--help)
             printf 'usage: %s --baseline <dir> --migrated <dir> --repo <root> --out <file> [--suite-manifest <file>] [--base-commit <sha>]\n' "$0" >&2
             exit 2 ;;
@@ -386,7 +445,15 @@ m_rt="$(sed -n 's/.*runtimes=//p' "${TMP}/migrated.stats")"
     printf 'with its occurrence count now and at the base commit; an unchanged count means the setting\n'
     printf 'is inherited configuration and not a test bypass this migration added.\n'
     if [ -s "${TMP}/skiptests.detail" ]; then sed 's/^/  /' "${TMP}/skiptests.detail"; else printf '  (none)\n'; fi
-} > "$OUT"
+} > "${OUT}.$$.staging"
+publish_status=$?
+if [ "$publish_status" -ne 0 ]; then
+    rm -f -- "${OUT}.$$.staging"
+    printf '%s: the record was not written completely, so %s was left untouched.\n' \
+        "$(basename -- "$0")" "$OUT" >&2
+    exit "$publish_status"
+fi
+publish_atomically "${OUT}.$$.staging" "$OUT" || exit 1
 
 if [ -n "$SUITE_MANIFEST" ]; then
     {
@@ -395,7 +462,15 @@ if [ -n "$SUITE_MANIFEST" ]; then
         printf '# baseline: %s   migrated: %s   total: %s\n' "$b_suites" "$m_suites" "$((b_suites + m_suites))"
         sed "s|^|baseline/surefire/|" "${TMP}/baseline.suites"
         sed "s|^|migrated/surefire/|" "${TMP}/migrated.suites"
-    } > "$SUITE_MANIFEST"
+    } > "${SUITE_MANIFEST}.$$.staging"
+    manifest_status=$?
+    if [ "$manifest_status" -ne 0 ]; then
+        rm -f -- "${SUITE_MANIFEST}.$$.staging"
+        printf 'capture-report-inventory.sh: the manifest was not written completely, so %s was left untouched.\n' \
+            "$SUITE_MANIFEST" >&2
+        exit "$manifest_status"
+    fi
+    publish_atomically "${SUITE_MANIFEST}.$$.staging" "$SUITE_MANIFEST" || exit 1
     printf 'capture-report-inventory.sh: wrote %s (%s paths)\n' "$SUITE_MANIFEST" "$((b_suites + m_suites))"
 fi
 
