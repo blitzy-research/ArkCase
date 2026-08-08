@@ -1,0 +1,223 @@
+per-flow .status records, compared record by record
+===================================================
+
+GENERATED, NOT AUTHORED, by docs/migration/smoke-evidence/compare-flow-status.sh.
+Every row below is a comparison of two lines that exist in two files on disk at the
+moment of writing.  Nothing in it is transcribed and no verdict is asserted beyond
+the rows themselves.
+
+written-at              : 2026-08-08T15:37:48Z
+head-commit             : ef1bf27111b74656fc987d487809143a1a6b1f3c
+worktree-at-write-time  : 27 path(s) differ from that commit, so this record
+                          describes a working tree rather than a commit
+pre-migration side      : docs/migration/smoke-evidence/baseline
+post-migration side     : docs/migration/smoke-evidence/migrated
+
+WHY THIS RECORD EXISTS.  The whole-capture adjudication beside it reports one
+aggregate row per flow .status file, and its flow-1 row was computed against an
+earlier five-record capture: it reads "5 record(s) agree" for two files that now
+hold eleven records each and disagree on three.  The mode provided for recomputing
+it cannot run; the reasons are enumerated at the head of this script and registered
+as defects.  This record states the current per-record position instead of leaving
+the stale one as the only answer.
+
+A DIFFERENCE HERE IS NOT AUTOMATICALLY A MIGRATION REGRESSION, and this record does
+not claim it is.  It states what the two captures recorded.  Attribution -- whether
+a difference comes from the runtime under test or from the fixture the two runs were
+pointed at -- belongs in the ambiguity register, which cites this file.
+
+===== flow-1-login.status =====
+  AGREE             anonymous
+  AGREE             authenticated
+  AGREE             authenticated-identity
+  DIFFER            granted-authority-count
+                      baseline: 5
+                      migrated: 6
+  DIFFER            granted-authority-set-ordered
+                      baseline: ROLE_ADMINISTRATOR|ROLE_PRE_AUTHENTICATED|ARKCASE_ADMINISTRATOR@ARKCASE.ORG|ROLE_SUPERVISOR|ROLE_BILLING_QUEUE
+                      migrated: ARKCASE_SUPERVISOR@ARKCASE.ORG|ROLE_ADMINISTRATOR|ROLE_PRE_AUTHENTICATED|ARKCASE_ADMINISTRATOR@ARKCASE.ORG|ROLE_SUPERVISOR|ROLE_BILLING_QUEUE
+  DIFFER            granted-authority-set-sha256
+                      baseline: 77fbb81f8668d6993c0f1f80295b333c248ffd417085e562637cfbc2fdbd477d
+                      migrated: ec995b8723e19713b2e19f7bfeaaf93afb20f5f0fc2ae96fff9fcdb132c16285
+  AGREE             granted-privilege-count
+  AGREE             granted-privilege-set-ordered
+  AGREE             granted-privilege-set-sha256
+  AGREE             ldap-directories
+  AGREE             ldap-directory-registered
+
+===== flow-2-views.status =====
+  AGREE             app-shell
+  AGREE             case-detail
+  AGREE             case-discovery
+  AGREE             case-list
+  AGREE             document-discovery
+  AGREE             document-view
+  AGREE             legacy-document-viewer-page
+  AGREE             rendered-login-page
+  AGREE             rendered-shell-anonymous
+  AGREE             rendered-shell-authenticated
+  AGREE             served-application.js
+  AGREE             served-application.js-served-equals-recorded
+  AGREE             served-application.min.css
+  AGREE             served-application.min.css-served-equals-recorded
+  AGREE             served-application.min.js
+  AGREE             served-application.min.js-served-equals-recorded
+  AGREE             served-home.html
+  AGREE             served-home.html-served-equals-recorded
+  AGREE             served-vendors.min.js
+  AGREE             served-vendors.min.js-served-equals-recorded
+
+===== flow-3-alfresco-roundtrip.status =====
+  AGREE             download-document
+  AGREE             mime-declared-on-send
+  AGREE             mime-identity
+  AGREE             mime-recorded-by-application
+  AGREE             mime-resolution
+  AGREE             mime-resolved-on-download
+  AGREE             repository-reachability
+  AGREE             retrieve-leg
+  AGREE             retrieved-bytes-match
+  AGREE             roundtrip
+  AGREE             store-leg
+  AGREE             store-response-representation-type
+  AGREE             upload-document
+
+===== flow-4-solr-search.status =====
+  AGREE             RESULT_COUNT:
+  AGREE             5
+  AGREE             RESULT_COUNT_STABLE:
+  AGREE             yes
+  AGREE             RESULT_IDS_ORDERED:
+  AGREE             101-CASE_FILE,102-CASE_FILE,103-CASE_FILE,104-CASE_FILE,105-CASE_FILE
+  AGREE             SEARCH:
+  AGREE             200
+  AGREE             SOLR_PING:
+  AGREE             302
+  AGREE             search-engine-direct
+  AGREE             search-request-declaration
+  AGREE             search-through-application
+  AGREE             search-through-application-recheck-1
+
+===== flow-5-activemq-event.status =====
+  AGREE             broker-consumer-count
+  DIFFER            broker-dequeue-count
+                      baseline: 488
+                      migrated: 1644
+  AGREE             broker-destination
+  DIFFER            broker-dispatch-count
+                      baseline: 488
+                      migrated: 2423
+  DIFFER            broker-enqueue-count
+                      baseline: 488
+                      migrated: 1644
+  AGREE             broker-inflight-count
+  AGREE             broker-management-reported-status
+  AGREE             broker-queue-size
+  AGREE             broker-status
+  AGREE             broker-transit
+  AGREE             delivered
+  AGREE             delivery
+  AGREE             delivery-attempt-1
+  AGREE             destination-configured
+  AGREE             destination-reported-by-broker
+  AGREE             payload-match
+  AGREE             search-reported-match-count
+  AGREE             trigger
+
+===== flow-6-generated-number.status =====
+  AGREE             CREATE:
+  AGREE             200
+  AGREE             NUMBER_ASSIGNED:
+  AGREE             yes
+  AGREE             PRECONDITION_STATUS:
+  AGREE             200
+  AGREE             REASON:
+  AGREE             the
+  AGREE             creation
+  AGREE             was
+  AGREE             exercised
+  AGREE             and
+  AGREE             a
+  AGREE             generated
+  AGREE             number
+  AGREE             was
+  AGREE             observed;
+  AGREE             its
+  AGREE             value
+  AGREE             and
+  AGREE             format
+  AGREE             are
+  AGREE             recorded
+  AGREE             in
+  AGREE             the
+  AGREE             paired
+  AGREE             .out
+  AGREE             capture
+
+===== flow-7-workflow-start.status =====
+  AGREE             DEFINITIONS_LOADED:
+  AGREE             40
+  AGREE             DEFINITIONS_ON_DISK:
+  AGREE             36
+  AGREE             HEADLINE_STATUS:
+  AGREE             200
+  AGREE             PROCESS_DEFINITION_KEY:
+  AGREE             not-observed
+  AGREE             PROCESS_INSTANCE_ID:
+  AGREE             none
+  AGREE             PROCESS_INSTANTIATED:
+  AGREE             yes
+  AGREE             RESIDUAL_RISK:
+  AGREE             process-engine-observed-here-not-cleared
+  AGREE             START:
+  AGREE             200
+  AGREE             STARTUP_REGION_LINES:
+  AGREE             91
+  AGREE             TASK_ASSIGNED:
+  AGREE             yes
+  AGREE             TASK_ASSIGNEE:
+  AGREE             not-observed
+  AGREE             TASK_ID:
+  AGREE             <TASK-ID>
+  AGREE             TASK_NAME:
+  AGREE             not-observed
+  AGREE             complaint-approval-request
+  AGREE             document-discovery
+  AGREE             start-workflow
+  AGREE             task-list-after
+  AGREE             task-list-before
+  AGREE             task-list-settle-1
+  AGREE             task-list-settle-2
+  AGREE             task-list-settle-attempts
+
+===== flow-8-queue-transition.status =====
+  AGREE             FROM_QUEUE:
+  AGREE             none
+  AGREE             NEXT_QUEUES:
+  AGREE             none
+  AGREE             NEXT_QUEUES_COUNT:
+  AGREE             0
+  AGREE             OBJECT_ID:
+  AGREE             101
+  AGREE             OBJECT_NUMBER:
+  AGREE             none
+  AGREE             QUEUE_OBSERVED_AFTER_RESTORE:
+  AGREE             not-attempted
+  AGREE             QUEUE_OBSERVED_AFTER_TRANSITION:
+  AGREE             not-attempted
+  AGREE             TO_QUEUE:
+  AGREE             none
+  AGREE             TRANSITION:
+  AGREE             not-attempted-the-rules-computed-no-destination
+  AGREE             case-discovery
+  AGREE             next-possible-queues
+  AGREE             queue-definitions
+
+===== totals =====
+flow-status-files-compared : 8
+records-accounted-for      : 159
+records-agreeing           : 153
+records-differing          : 6
+records-only-in-migrated   : 0
+records-only-in-baseline   : 0
+accounting-adds-up         : yes

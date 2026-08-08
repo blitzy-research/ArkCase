@@ -14,6 +14,18 @@ fail()
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPOSITORY_ROOT=$(cd "$SCRIPT_DIR/../../../.." && pwd)
 BASELINE_DATE=${BASELINE_DATE:-2026-08-07}
+
+# --offline runs every check that needs no network: corpus integrity against the SHA-256
+# manifest, and the two triage producers whose published output the disclosure pages quote.
+# It exists because the full run re-queries the advisory services, so in an air-gapped
+# validation environment the triage consistency of the pages could not be checked at all --
+# and an unrunnable gate is indistinguishable from a passing one.
+OFFLINE_ONLY=no
+if [ "${1:-}" = '--offline' ]; then
+    OFFLINE_ONLY=yes
+    shift
+fi
+
 CURRENT_DIR=${1:-"$REPOSITORY_ROOT/target/advisory-corpus-current"}
 MANIFEST="$SCRIPT_DIR/${BASELINE_DATE}-sha256-manifest.txt"
 
@@ -25,6 +37,62 @@ MANIFEST="$SCRIPT_DIR/${BASELINE_DATE}-sha256-manifest.txt"
     cd "$SCRIPT_DIR"
     sha256sum --check "${BASELINE_DATE}-sha256-manifest.txt"
 )
+
+# The disclosure pages state derived figures -- advisory counts, carried/entered positions,
+# served-versus-build classification -- and each is published by a producer beside this
+# script.  Re-run both and require them to agree with what is committed.  A drifted triage is
+# a page making a claim the corpus no longer supports, which is the failure these gates exist
+# to catch, so the comparison is byte-for-byte against the committed authority.
+verify_triage()
+{
+    # $1 producer, $2 published authority, $3 extra producer args (may be empty)
+    local producer="$1" published="$2"
+    shift 2
+    [[ -x "$SCRIPT_DIR/$producer" ]] || fail "triage producer is missing or not executable: $producer"
+    [[ -f "$SCRIPT_DIR/$published" ]] || fail "published triage is missing: $published"
+
+    if ! "$SCRIPT_DIR/$producer" "$@" >/dev/null; then
+        fail "triage producer failed: $producer (see its own output for the reason)"
+    fi
+    printf 'Triage reproduced: %s\n' "$published"
+}
+
+# The two producers stamp the time they ran, under different key names, so the comparison is
+# over the substantive body with any stamp line removed.  Filtering only one key name silently
+# compared a stamp against a stamp and reported drift where there was none.
+triage_body()
+{
+    grep -vE '^(generated-at|written-at)' "$1"
+}
+
+TRIAGE_BACKUP_DIR="$(mktemp -d)"
+cp -- "$SCRIPT_DIR/advisory-triage.txt" "$TRIAGE_BACKUP_DIR/" 2>/dev/null || true
+cp -- "$SCRIPT_DIR/frontend-advisory-triage.txt" "$TRIAGE_BACKUP_DIR/" 2>/dev/null || true
+
+check_triage_body_unchanged()
+{
+    # $1 published file name.  Compares the committed body -- everything except the
+    # generation stamp -- against the body the producer has just written.
+    local name="$1"
+    if [[ -f "$TRIAGE_BACKUP_DIR/$name" ]]; then
+        if ! diff <(triage_body "$TRIAGE_BACKUP_DIR/$name") \
+                  <(triage_body "$SCRIPT_DIR/$name") >/dev/null; then
+            fail "regenerating $name changed its content: the disclosure pages quote figures the corpus no longer produces"
+        fi
+        printf 'Triage body unchanged on regeneration: %s\n' "$name"
+    fi
+}
+
+verify_triage triage-advisory-corpus.sh advisory-triage.txt
+check_triage_body_unchanged advisory-triage.txt
+verify_triage triage-frontend-corpus.sh frontend-advisory-triage.txt
+check_triage_body_unchanged frontend-advisory-triage.txt
+
+if [[ "$OFFLINE_ONLY" == yes ]]; then
+    printf 'Offline advisory verification passed at %s (corpus integrity and both triages).\n' \
+        "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    exit 0
+fi
 
 if [[ -e "$CURRENT_DIR" ]]; then
     [[ -d "$CURRENT_DIR" ]] ||

@@ -17,11 +17,11 @@ beside it. Nothing is quoted from a build log.
 |---|---|
 | Path | `acm-standard-applications/arkcase/target/arkcase-2021.03.war` |
 | Reactor coordinates | `com.armedia.acm.acm-standard-applications:arkcase:2021.03` |
-| Revision | `0e13c8620de59ca66bfe8d0e261c82f15acc9cfd` |
-| Size | 273,548,237 bytes |
-| SHA-256 | `d3cf6740a5e62ea408b2157b7f258d421791a7e4482fc18dade42523217a513c` |
-| Entries | 2,576 |
-| `WEB-INF/lib` jars | 635 |
+| Revision | `ef1bf27111` — the delivered tree, rebuilt after the duplicate ASM provider was removed |
+| Size | 273,507,914 bytes |
+| SHA-256 | `35f4d3b245edc9d47c388f4ea9346244a64b260333f680451d92bfe28a8a0522` |
+| Entries | 2,575 |
+| `WEB-INF/lib` jars | 634 |
 | Built with | OpenJDK 17.0.19, Apache Maven 3.8.7, `mvn -B -ntp -o -pl acm-standard-applications/arkcase -am -DskipTests clean package`, BUILD SUCCESS |
 
 ```bash
@@ -33,12 +33,15 @@ grep -c '^WEB-INF/lib/.*\.jar$' entries.txt
 
 ### The listing was taken from a clean source tree, and that is not a detail
 
-A first listing of this archive reported **34,115** entries, of which **31,527** were under
-`resources/node_modules/`. Those were not packaged by the build configuration; they were present
-because a frontend install had been run in the source tree beforehand and the WAR packaging swept the
-webapp directory as it found it. The archive above was rebuilt after removing the untracked frontend
-build output — `resources/node_modules`, `resources/assets/dist` and `resources/home.html` — and the
-entry count fell from 34,115 to 2,576.
+A listing of this archive taken with a frontend install present in the source tree reports **34,102**
+entries, of which **31,527** are under `resources/node_modules/`. Those are not packaged by the build
+configuration; they are there because a frontend install had been run in the source tree beforehand
+and the WAR packaging sweeps the webapp directory as it finds it. The archive above was rebuilt with
+the untracked frontend output — `resources/node_modules`, `resources/assets/dist` and
+`resources/home.html` — set aside, and the entry count falls to **2,575**. Both figures are stated
+because the difference is the whole point: the same reactor, at the same revision, produces two
+archives that differ by 31,527 entries and 72 megabytes depending only on whether a developer had run
+an install first.
 
 The clean tree is the correct frame, and the reason is architectural rather than tidiness. The
 frontend pipeline runs at **container startup**, not at Maven build time: no project file in the
@@ -208,44 +211,54 @@ Every one returns **0**. The mocking-stack changes — the removed framework, th
 extension, the advanced core and the added inline mock maker — are confined to test scope, which is
 where the accessibility failures that motivated them were.
 
-## An observed pre-existing condition, registered and not repaired
+## One provider of `org/objectweb/asm`, after an inherited duplication was removed
 
-**Two providers of the `org/objectweb/asm` package are on the deployed classpath**, and this page
-records it rather than leaving it to be found:
+The deployed classpath now carries exactly one provider of that package:
 
 ```bash
 grep 'asm' entries.txt | grep '\.jar$' | sort
 ```
 
 ```text
-WEB-INF/lib/asm-3.3.1.jar
 WEB-INF/lib/asm-9.8.jar
 WEB-INF/lib/org.eclipse.persistence.asm-9.8.0.jar
 WEB-INF/lib/subethasmtp-smtp-1.2.jar
 ```
 
-`asm-3.3.1.jar` is the old `asm:asm` coordinate and `asm-9.8.jar` is `org.ow2.asm:asm`. Extracting
-both and comparing their entries gives **20 overlapping class names**, `ClassReader` among them —
-and ASM 3.3.1 cannot read a class file at major version 61.
+`asm-9.8.jar` is `org.ow2.asm:asm`, the coordinate the reactor pins. The other two match the word
+`asm` and supply nothing under `org/objectweb/asm`: the persistence provider's companion carries its
+own relocated copy, and the mail-server test double is an unrelated artefact whose name happens to
+contain the letters.
 
-It is nonetheless **not a migration regression**, and that was established by measurement rather than
-by argument:
+**What this replaced.** Until the revision named at the head of this page, `asm-3.3.1.jar` — the old
+`asm:asm` coordinate — sat beside `asm-9.8.jar`, and the two supplied **20 of the same class names**:
+`ClassReader`, `ClassWriter`, `FieldVisitor`, `MethodVisitor`, `Opcodes` and `Type` among them. Which
+provider a class loaded from was therefore decided by jar order rather than by a pin. That mattered
+concretely, because ASM made `FieldVisitor`, `MethodVisitor` and `ClassVisitor` classes in version 4
+where 3.3.1 declares them interfaces, so a consumer that resolved the old copy fails with
+`IncompatibleClassChangeError` — and `accessors-smart-2.4.9`, which is such a consumer, is in this
+archive under `json-smart` on the OAuth2 and JOSE path.
 
-- The old coordinate arrives transitively and only transitively, through
-  `chemistry-opencmis-client-impl:1.1.0` → `cxf-rt-frontend-jaxws:3.0.12`. Neither of those versions
-  changed in this migration; the content-management client is explicitly out of scope for version
-  change.
-- **The same overlap existed at the base commit.** There the reactor pinned `org.ow2.asm:asm` at
-  5.0.3, and 5.0.3 against 3.3.1 overlaps **21** class names — one more than the pair overlaps today.
-- Neither the base project file nor the delivered one excludes `asm:asm` from that chain; the count
-  of that exclusion is identical in both, at two occurrences, and both belong to a different artefact
-  family.
+**Why it is gone rather than registered.** An earlier revision of this page argued the duplication was
+inherited, no worse than at the base commit, and therefore covered by the rule that a discovered
+pre-existing defect is documented rather than repaired. Two measurements moved it out of that
+category. First, the exclusion the change set already carried for this exact coordinate was scoped to
+`acm-personnel-security-plugin`, and that module is **not a dependency of this WAR** — so the
+mitigation on record did nothing for the deployed classpath, which is the classpath the application
+runs against. Second, the duplication is only load-bearing *because* of this migration: the consumer
+that fails on the old copy resolves at 2.4.9 only because this change set pinned it there, and the
+provider it needs is at 9.8 only because this change set advanced it. A condition whose severity is
+created by the change set is not an inherited one.
 
-So the condition is inherited, its severity did not increase, and the rule governing discovered
-pre-existing defects requires it to be documented rather than repaired. It is registered in
-[Pre-existing Defects](pre-existing-defects.md). What the migration *did* change on this path is
-strictly an improvement: the provider the reactor pins can now read the class files the reactor
-produces, where the version it replaced could not read them at all.
+The old coordinate arrived transitively through `cxf-rt-frontend-jaxws:3.0.12` under both OpenCMIS
+client artefacts and is excluded at each of those declarations. Removal was verified safe by
+measurement rather than by argument: **no** file in the reactor's own source references
+`org.objectweb.asm`; the tree contains **zero** `javax.xml.ws`, `javax.jws` and `javax.xml.soap`
+occurrences, so the CXF JAX-WS frontend that pulled ASM in is never exercised; and `cxf-core`
+reaches ASM only through its own reflective `ASMHelper` wrapper classes rather than binding to an ASM
+major at compile time. After the change, `asm:asm` resolves in **0** of the reactor's modules, down
+from **57**, and `WEB-INF/lib` holds **634** jars where it held 635 — the one removed jar being
+`asm-3.3.1.jar`.
 
 ## What this page does not claim
 

@@ -1,0 +1,446 @@
+complete per-advisory triage of the committed Maven advisory corpus
+=================================================================
+
+GENERATED, NOT AUTHORED, by docs/migration/smoke-evidence/advisory-corpus/triage-advisory-corpus.sh.
+Every field below is read out of the corpus JSON and, for the reachability column, out of
+the built archive.  Nothing is quoted from a vendor page and no risk judgement is made here.
+
+corpus            : 2026-08-07-maven-osv-advisories.json
+deployed archive  : arkcase-2021.03.war (634 WEB-INF/lib jars read)
+written-at        : 2026-08-08T15:37:34Z
+
+versions this migration moved between, per coordinate family:
+  com.fasterxml.jackson.core     2.10.3 -> 2.12.7
+  org.springframework            5.3.2 -> 5.3.39
+  org.springframework.ldap       2.3.3 -> 2.4.4
+  org.springframework.security   5.4.2 -> 5.8.16
+
+RANGE CONTAINMENT is computed by a component-wise numeric compare of the version against
+each affected range, with a pre-release qualifier sorting before the same numbers without
+one.  A range this comparison cannot order is reported as UNDETERMINED on that row rather
+than resolved by guessing.  Undetermined rows below: 0.
+
+===== totals =====
+advisories-in-corpus                       : 40
+advisories-whose-coordinate-is-in-the-war   : 40
+by-severity                                 : CRITICAL=2  HIGH=14  MODERATE=18  LOW=6  UNSPECIFIED=0
+position-carried-unchanged-across-migration : 39
+position-cleared-by-the-migration           : 0
+position-entered-by-the-migration           : 1
+undetermined-rows                           : 0
+entered-and-acknowledged                    : 1
+entered-and-NOT-acknowledged                : 0
+acknowledged-but-no-longer-entered          : 0
+
+ENTERED positions.  Each is a position the migration moved the deployed artifact INTO,
+so each is a regression rather than an inherited exposure, and each must be named in
+acknowledged-entered-advisories.txt with the AAP clause that bars its remedy:
+  GHSA-vxf7-qj7q-83fh      acknowledged and disclosed
+
+
+"carried" means the baseline version and the delivered version both fall inside an
+affected range, so the advance changed the version and not the advisory position.
+"entered" means the delivered version is affected where the baseline version was not, and
+is the column that would make a bump a regression.  It is 1.
+
+===== rows, severity then identifier =====
+
+CRITICAL GHSA-4wrc-f8pq-fpqp
+  summary        : Pivotal Spring Framework contains unsafe Java deserialization methods
+  cwe            : CWE-502
+  coordinates    : org.springframework:spring-web
+  in-deployed-war: org.springframework:spring-web
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.0.0
+
+CRITICAL GHSA-mf92-479x-3373
+  summary        : Spring Security HTTP Headers Are not Written Under Some Conditions
+  cwe            : CWE-425
+  coordinates    : org.springframework.security:spring-security-web
+  in-deployed-war: org.springframework.security:spring-security-web
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.5.9, 7.0.4
+
+HIGH     GHSA-3chg-m5w7-qfv5
+  summary        : Spring Framework Cross-site Scripting via JavaScriptUtils
+  cwe            : CWE-79
+  coordinates    : org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+HIGH     GHSA-775g-4xr8-78h8
+  summary        : Spring Framework Denial of Service via Integer Overflow in SpEL Expressions
+  cwe            : CWE-190
+  coordinates    : org.springframework:spring-expression
+  in-deployed-war: org.springframework:spring-expression
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: none published in this corpus
+
+HIGH     GHSA-cx7f-g6mp-7hqm
+  summary        : Path traversal vulnerability in functional web frameworks
+  cwe            : CWE-22
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.1.13
+
+HIGH     GHSA-g5vr-rgqm-vf78
+  summary        : Spring Framework Path Traversal vulnerability
+  cwe            : CWE-22
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.1.14
+
+HIGH     GHSA-h46c-h94j-95f3
+  summary        : jackson-core can throw a StackoverflowError when processing deeply nested data
+  cwe            : CWE-121
+  coordinates    : com.fasterxml.jackson.core:jackson-core
+  in-deployed-war: com.fasterxml.jackson.core:jackson-core
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.15.0
+
+HIGH     GHSA-j3rv-43j4-c7qm
+  summary        : jackson-databind has a PolymorphicTypeValidator bypass via generic type parameters that allows arbitrary class instantiation
+  cwe            : CWE-184,CWE-502
+  coordinates    : com.fasterxml.jackson.core:jackson-databind, tools.jackson.core:jackson-databind
+  in-deployed-war: com.fasterxml.jackson.core:jackson-databind, tools.jackson.core:jackson-databind
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.18.8, 2.21.4, 3.1.4
+
+HIGH     GHSA-jjjh-jjxp-wpff
+  summary        : Uncontrolled Resource Consumption in Jackson-databind
+  cwe            : CWE-400,CWE-502
+  coordinates    : com.fasterxml.jackson.core:jackson-databind
+  in-deployed-war: com.fasterxml.jackson.core:jackson-databind
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.12.7.1, 2.13.4.2
+
+HIGH     GHSA-jmp9-x22r-554x
+  summary        : Spring Framework annotation detection mechanism may result in improper authorization
+  cwe            : CWE-285,CWE-863
+  coordinates    : org.springframework:spring-core
+  in-deployed-war: org.springframework:spring-core
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.11
+
+HIGH     GHSA-jrv5-8w28-4265
+  summary        : Spring LDAP has Authentication Bypass with Empty Password
+  cwe            : CWE-287
+  coordinates    : org.springframework.ldap:spring-ldap-core
+  in-deployed-war: org.springframework.ldap:spring-ldap-core
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 3.3.8, 4.0.4
+
+HIGH     GHSA-r5w3-xv2f-j59q
+  summary        : Spring Framework Algorithmic Denial of Service via SpEL Expressions
+  cwe            : CWE-407
+  coordinates    : org.springframework:spring-expression
+  in-deployed-war: org.springframework:spring-expression
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+HIGH     GHSA-r7wm-3cxj-wff9
+  summary        : jackson-core: Async parser maxNumberLength bypass via chunked digit accumulation (incomplete fix for GHSA-72hv-8253-57qq)
+  cwe            : CWE-770
+  coordinates    : com.fasterxml.jackson.core:jackson-core, tools.jackson.core:jackson-core
+  in-deployed-war: com.fasterxml.jackson.core:jackson-core, tools.jackson.core:jackson-core
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.18.8, 2.21.4, 3.1.4
+
+HIGH     GHSA-rgv9-q543-rqg4
+  summary        : Uncontrolled Resource Consumption in FasterXML jackson-databind
+  cwe            : CWE-400,CWE-502
+  coordinates    : com.fasterxml.jackson.core:jackson-databind
+  in-deployed-war: com.fasterxml.jackson.core:jackson-databind
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.12.7.1, 2.13.4
+
+HIGH     GHSA-rmj7-2vxq-3g9f
+  summary        : jackson-databind has an array subtype allowlist bypass in BasicPolymorphicTypeValidator (allowIfSubTypeIsArray)
+  cwe            : CWE-184
+  coordinates    : com.fasterxml.jackson.core:jackson-databind, tools.jackson.core:jackson-databind
+  in-deployed-war: com.fasterxml.jackson.core:jackson-databind, tools.jackson.core:jackson-databind
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.18.8, 2.21.4, 3.1.4
+
+HIGH     GHSA-x23c-287f-qqv5
+  summary        : Spring Framework Denial of Service via Versioned Resources in Spring MVC and WebFlux
+  cwe            : CWE-400
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+MODERATE GHSA-293q-567p-wmwq
+  summary        : Spring Security Vulnerable to Unauthorized User Impersonation when Using X.509 Client Certificates
+  cwe            : CWE-287
+  coordinates    : org.springframework.security:spring-security-web
+  in-deployed-war: org.springframework.security:spring-security-web
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.5.11
+
+MODERATE GHSA-3wrr-7qpf-2prh
+  summary        : jackson-databind: Deeply nested JsonNode throws StackOverflowError for toString()
+  cwe            : CWE-400
+  coordinates    : com.fasterxml.jackson.core:jackson-databind
+  in-deployed-war: com.fasterxml.jackson.core:jackson-databind
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.14.0
+
+MODERATE GHSA-4773-3jfm-qmx3
+  summary        : Spring Framework Improper Path Limitation with Script View Templates
+  cwe            : CWE-22
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.17, 7.0.6
+
+MODERATE GHSA-4gc7-5j7h-4qph
+  summary        : Spring Framework DataBinder Case Sensitive Match Exception
+  cwe            : CWE-178
+  coordinates    : org.springframework:spring-context, org.springframework:spring-web
+  in-deployed-war: org.springframework:spring-context, org.springframework:spring-web
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.1.14
+
+MODERATE GHSA-5jmj-h7xm-6q6v
+  summary        : jackson-databind has case-insensitive deserialization bypasses per-property @JsonIgnoreProperties
+  cwe            : CWE-915
+  coordinates    : com.fasterxml.jackson.core:jackson-databind, tools.jackson.core:jackson-databind
+  in-deployed-war: com.fasterxml.jackson.core:jackson-databind, tools.jackson.core:jackson-databind
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.18.9, 2.21.5, 2.22.1, 3.1.4
+
+MODERATE GHSA-6p4f-wcwh-5vvm
+  summary        : Spring MVC and WebFlux applications are vulnerable to Denial of Service attacks when resolving static resources
+  cwe            : CWE-400
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.18, 7.0.7
+
+MODERATE GHSA-72pg-x5f8-j25j
+  summary        : Spring Framework Path Traversal via Versioned Static Resources in Spring MVC and WebFlux
+  cwe            : CWE-22
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+MODERATE GHSA-7fch-4f2f-jcgm
+  summary        : Spring Framework STOMP over WebSocket applications may allow attackers to send unauthorized messages
+  cwe            : CWE-352
+  coordinates    : org.springframework:spring-websocket
+  in-deployed-war: org.springframework:spring-websocket
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.12
+
+MODERATE GHSA-957g-f97v-vppc
+  summary        : Spring Framework Cross-site Scripting via JSP Form Tags
+  cwe            : CWE-79
+  coordinates    : org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+MODERATE GHSA-cjpg-rgq5-fr37
+  summary        : Spring Framework Multipart Request Smuggling in Spring MVC and WebFlux
+  cwe            : CWE-444
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+MODERATE GHSA-h3qp-gqrc-q736
+  summary        : Spring Framework Open Redirect in Spring MVC and WebFlux
+  cwe            : CWE-601
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+MODERATE GHSA-hgj6-7826-r7m5
+  summary        : jackson-databind: InetSocketAddress deserialization triggers eager DNS resolution (SSRF)
+  cwe            : CWE-918
+  coordinates    : com.fasterxml.jackson.core:jackson-databind, tools.jackson.core:jackson-databind
+  in-deployed-war: com.fasterxml.jackson.core:jackson-databind, tools.jackson.core:jackson-databind
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.18.8, 2.21.4, 3.1.4
+
+MODERATE GHSA-mq64-j8f9-9gcj
+  summary        : Spring Framework Information Disclosure via Static Resource Cache in Spring MVC and WebFlux
+  cwe            : CWE-524
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+MODERATE GHSA-q723-847q-5g8g
+  summary        : Spring Framework Predictable Session ID in WebSocket Module
+  cwe            : CWE-330
+  coordinates    : org.springframework:spring-websocket
+  in-deployed-war: org.springframework:spring-websocket
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+MODERATE GHSA-r936-gwx5-v52f
+  summary        : Spring Framework MVC Applications Path Traversal Vulnerability
+  cwe            : CWE-22
+  coordinates    : org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.10
+
+MODERATE GHSA-w3c8-7r8f-9jp8
+  summary        : Spring MVC controller vulnerable to a DoS attack
+  cwe            : CWE-400
+  coordinates    : org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 5.3.42
+
+MODERATE GHSA-wf8f-6423-gfxg
+  summary        : Jackson-core Vulnerable to Memory Disclosure via Source Snippet in JsonLocation
+  cwe            : CWE-209
+  coordinates    : com.fasterxml.jackson.core:jackson-core
+  in-deployed-war: com.fasterxml.jackson.core:jackson-core
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 2.13.0
+
+MODERATE GHSA-wxpp-56q6-5pcg
+  summary        : Spring Framework Denial of Service via Unbounded Cache in SpEL
+  cwe            : CWE-770
+  coordinates    : org.springframework:spring-expression
+  in-deployed-war: org.springframework:spring-expression
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+LOW      GHSA-4wp7-92pw-q264
+  summary        : Spring Framework DataBinder Case Sensitive Match Exception
+  cwe            : CWE-20
+  coordinates    : org.springframework:spring-context
+  in-deployed-war: org.springframework:spring-context
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.1.20, 6.2.7
+
+LOW      GHSA-659m-px2c-25wj
+  summary        : Spring Framework Denial of Service via AntPathMatcher
+  cwe            : CWE-1333
+  coordinates    : org.springframework:spring-core
+  in-deployed-war: org.springframework:spring-core
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+LOW      GHSA-6hcq-hmm3-jj3c
+  summary        : Spring MVC and WebFlux has Server Sent Event stream corruption
+  cwe            : CWE-667
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.17, 7.0.6
+
+LOW      GHSA-9f52-rjqv-25qv
+  summary        : Spring Framework Arbitrary Method Invocation in SpEL Expressions
+  cwe            : CWE-863
+  coordinates    : org.springframework:spring-expression
+  in-deployed-war: org.springframework:spring-expression
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.19, 7.0.8
+
+LOW      GHSA-vxf7-qj7q-83fh
+  summary        : Spring Security Vulnerable to User Attribute Enumeration when Using DaoAuthenticationProvider
+  cwe            : CWE-208
+  coordinates    : org.springframework.security:spring-security-core
+  in-deployed-war: org.springframework.security:spring-security-core
+  baseline-affected : no
+  delivered-affected: yes
+  migration-effect  : ENTERED by the migration
+  fixed-versions-published: 6.5.10, 7.0.5
+
+LOW      GHSA-wg35-8jpf-2xv3
+  summary        : Spring MVC and WebFlux applications are vulnerable to cache poisoning when resolving static resources.
+  cwe            : CWE-524
+  coordinates    : org.springframework:spring-webflux, org.springframework:spring-webmvc
+  in-deployed-war: org.springframework:spring-webmvc
+  baseline-affected : yes
+  delivered-affected: yes
+  migration-effect  : carried unchanged
+  fixed-versions-published: 6.2.18, 7.0.7

@@ -18,16 +18,21 @@ Measured against the committed lockfile, SHA-256 `6506f9b84d8000f9a349c4ebb87bbb
 
 | | Committed graph |
 | --- | ---: |
-| Critical advisories | **30** |
-| High | **36** |
-| Moderate | **31** |
-| Low | **4** |
-| **Total advisories** | **101** |
+| **Packages carrying at least one advisory** | **101** |
+| — of which Critical / High / Moderate / Low | **30** / **36** / **31** / **4** |
+| **Distinct advisories across those packages** | **122** |
+| — of which Critical / High / Moderate / Low | **14** / **38** / **60** / **10** |
+| Packages for which npm reports **no** fix at any version | **27** |
+| Packages for which npm reports a fix | **74** |
 | Installed packages (production) | **780** |
 | Installed packages (all scopes) | **801** |
 | Lockfile package entries | **802** |
 | Direct dependencies carrying an advisory | **40** |
 | Direct dependencies declared | **105** production, **1** development |
+
+**Two counts, not one, and an earlier revision of this page reported only the first while calling it the second.** That revision gave a single figure of **101 "advisories"** with the 30/36/31/4 split beneath it. Both numbers are right and the label was wrong: `101` is npm's `metadata.vulnerabilities.total`, which counts **vulnerable package nodes**, and the 30/36/31/4 split is per package. The number of **distinct advisories** is `122`, obtained by counting unique advisory source identifiers across every package's `via` list, and its severity split is different — `14` Critical rather than `30`, `60` Moderate rather than `31`.
+
+The two differ for a structural reason worth stating, because it is the difference between the numbers rather than a discrepancy in them. npm propagates a severity up the dependency chain: a package is marked Critical when something it depends on is Critical, so one Critical advisory deep in the graph can mark a dozen packages Critical. That is why there are 30 Critical packages but only 14 Critical advisories. Neither figure is the "real" one — the package count is what an operator inventories, the advisory count is what a vendor publishes — so this page now reports both and labels each.
 
 This is a large number and the page does not soften it. What matters for reading it correctly is that it is almost entirely **inherited**, not created: the graph is the base commit's graph with three packages removed, and the removals are the three the migration plan authorises. There is no version in this table that the migration chose; every version is the one Yarn had already resolved, now pinned to the commit that Yarn resolved it to.
 
@@ -101,9 +106,11 @@ Measured at the working tree rather than assumed:
 - **Dependency keys are preserved.** Every key `config/env/all.js` resolves a path under is present and unrenamed, and the install topology is unflattened — which is what **R-T6** protects. Measured in the committed file: **87** literal `node_modules/` path references resolving under **65** distinct package roots.
 - **The runtime contract is declared.** `engines` is `{"node": ">=20 <21", "npm": ">=10 <11"}` and `scripts.build` is `grunt`, so `npm ci && npm run build` is the documented and working entry point.
 
-## What remains: 101 advisories, triaged
+## What remains: 101 vulnerable packages, 122 advisories, triaged
 
-The remaining advisories fall into two groups that need to be read differently.
+The remaining exposure falls into two groups that need to be read differently. The dividing question is not severity but **whether the browser receives the package**, because that is what determines whether upgrading it changes application behaviour and the built bundles.
+
+The complete Critical and High enumeration is in [Every Critical and High package](#every-critical-and-high-package) below — all 66 of them, generated rather than transcribed. The two groups that follow give the reasoning; the enumeration guarantees nothing is omitted from it.
 
 ### Group A — libraries the browser receives (behaviour-bearing)
 
@@ -114,8 +121,10 @@ These are concatenated into `vendors.min.js` or loaded directly by the applicati
 | Critical | `crypto-js` | 3.1.9 | npm's advisory is about PBKDF2 (CWE-327, CWE-328, CWE-916, CVSS 9.1). The path this application actually reaches is **not** PBKDF2 — see below | none for this line; fixed in 4.2.0 |
 | Critical | `sockjs-client` | 1.1.2 | advisory covers 1.0.0-beta.4 – 1.1.5 | none published for this line |
 | Critical | `lodash` — the **served** copy at `@bower_components/lodash` | 3.10.1 | Prototype pollution rated critical, plus command injection and ReDoS rated high. The advisory range is `<=4.17.23`, so the pinned 3.10.1 is inside it. **This copy is concatenated into `vendors.min.js`** — see the correction immediately below | `lodash@4.17.24`; npm reports a fix as available for this package, unlike the two rows above |
-| High | `handsontable`, `chart.js`, `angular-chart.js`, `moment`, `angular-moment` | as pinned | ReDoS, prototype pollution, path traversal in `moment.locale` | none published |
-| Moderate | `angular`, `angular-sanitize`, `angular-cache`, `angular-ui-bootstrap`, `angular-ui-grid`, `angular-ui-scroll`, `angular-xeditable`, `angular-moment-picker`, `jquery`, `bootstrap`, `bootbox`, `ngbootbox`, `summernote`, `videogular` and its four companion packages | as pinned | predominantly XSS and prototype pollution (CWE-79, CWE-1321) | **AngularJS 1.x is end-of-life; `angular` reports the advisory range as `*`, meaning no fixed version exists at all** |
+| High | `angular`, `handsontable`, `chart.js`, `angular-chart.js`, `moment`, `angular-moment` | as pinned | ReDoS, prototype pollution, path traversal in `moment.locale`, and for `angular` itself **cross-site scripting via JSONP** | none published |
+| Moderate | `angular-sanitize`, `angular-cache`, `angular-ui-bootstrap`, `angular-ui-grid`, `angular-ui-scroll`, `angular-xeditable`, `angular-moment-picker`, `jquery`, `bootstrap`, `bootbox`, `ngbootbox`, `summernote`, `videogular` and its four companion packages | as pinned | predominantly XSS and prototype pollution (CWE-79, CWE-1321) | **AngularJS 1.x is end-of-life; `angular` reports the advisory range as `*`, meaning no fixed version exists at all** |
+
+**`angular` was in the Moderate row of an earlier revision and npm rates it High.** The correction is not cosmetic: the package carries advisories at three severities — a **High** cross-site scripting issue via JSONP, plus Moderate and Low ReDoS issues — and npm's package-level rating is the maximum, which is High. It is also the row where remediation is most firmly impossible: the reported affected range is `*`, meaning **no fixed version exists at any release**, because AngularJS 1.x is end-of-life. Understating its severity while it is both served to the browser and unfixable was the least defensible number on this page.
 
 **THREE** of these are reachable in ordinary use and are named explicitly rather than left implicit: the `crypto-js` encryption path, the SockJS WebSocket connection, and the served `lodash`.
 
@@ -183,6 +192,96 @@ The measured detail, so the boundary of the claim is exact:
 What was done about it. The hooks were removed and the directory restored to the sample-only state git ships, verified by listing it. The capture harness now points the startup build's package cache at a path **outside** any checkout, which removes the vector entirely for that build, because there is then no `.git` above the clone for the install script to find. No application, build or configuration file in the repository was changed for this: the vector is not in the delivered code, and inventing a fix for it in the copier would be exactly the unreviewed scope extension the programme below exists to avoid.
 
 What a deploying operator should take from it, stated plainly because the recommendation is not obvious from the defect: **the startup build's `HOME` must not be inside a source checkout.** That is good practice independently of this incident — a deployment writes tens of thousands of generated files under that `HOME` — and it is the single setting that turns this class of script from a repository-modifying event into a contained one. The architectural fix remains the one recorded with entry 58 of [Pre-existing Defects](pre-existing-defects.md): move the install and the pipeline out of Tomcat startup and into the Maven build, where the cache location and the script policy are the build's to set.
+
+## Every Critical and High package
+
+All 66 packages that npm rates Critical or High in the committed graph. The two groups above explain the reasoning; this table exists so that the reasoning cannot be mistaken for a selection. It is **generated** by `smoke-evidence/advisory-corpus/triage-frontend-corpus.sh`, which reads the committed audit at `smoke-evidence/advisory-corpus/2026-08-07-npm-audit.json` and the frozen asset contract at `config/env/all.js` and writes `smoke-evidence/advisory-corpus/frontend-advisory-triage.txt`. The rows below are that output rendered as a table, and the producer fails closed rather than publishing a partial triage: it refuses to write unless the rows it emitted account for every vulnerable package the audit reports. Regenerating it is a single command, given in [Reproducing every figure and gate](#reproducing-every-figure-and-gate).
+
+The column that matters most is **"Reaches the browser?"**, and it is derived rather than judged. A package is recorded as served when the audit places it under `node_modules/@bower_components/` **and** the directory name from that install path appears in one of the 56 literal `node_modules/...` paths that `config/env/all.js` resolves. The comparison is deliberately on the **install directory** taken from the audit's own node paths, not on the npm package name: the two differ for at least one package, and matching on the name misclassified a served library — see the correction beneath the table. Anything else is build-time only: it executes under Node during assembly and is never sent to a client.
+
+| # | Severity | Package | Affected range npm reports | Reaches the browser? | Upstream fix |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Critical | `argparse` | `<=0.1.16` | build-time only | available |
+| 2 | Critical | `chokidar` | `0.8.0 - 1.0.6 || 1.3.0 - 2.1.8` | build-time only | available |
+| 3 | Critical | `config-cache` | `>=1.3.0` | build-time only | available |
+| 4 | Critical | `crypto-js` *(direct)* | `<4.2.0` | served to the browser | **none published** |
+| 5 | Critical | `defaults-deep` | `*` | build-time only | available |
+| 6 | Critical | `eventsource` | `<1.1.1` | build-time only | **none published** |
+| 7 | Critical | `expander` | `*` | build-time only | available |
+| 8 | Critical | `fsevents` | `<=1.2.10` | build-time only | available |
+| 9 | Critical | `getobject` | `0.1.0` | build-time only | available |
+| 10 | Critical | `grunt` *(direct)* | `<=1.6.1` | build-time only | available |
+| 11 | Critical | `grunt-karma` *(direct)* | `<=4.0.1` | build-time only | available |
+| 12 | Critical | `grunt-legacy-util` | `<=2.0.0` | build-time only | available |
+| 13 | Critical | `grunt-ng-annotate` *(direct)* | `*` | build-time only | available |
+| 14 | Critical | `karma` *(direct)* | `<=6.3.15` | build-time only | available |
+| 15 | Critical | `load-templates` | `0.8.0 - 0.8.9` | build-time only | available |
+| 16 | Critical | `lodash` *(direct)* | `<=4.17.23` | served to the browser | available |
+| 17 | Critical | `minimist` | `<=0.2.3 || 1.0.0 - 1.2.5` | build-time only | available |
+| 18 | Critical | `ng-annotate` | `*` | build-time only | available |
+| 19 | Critical | `nunjucks` *(direct)* | `<=3.2.3` | build-time only | available |
+| 20 | Critical | `optimist` | `>=0.6.0` | build-time only | available |
+| 21 | Critical | `option-cache` | `>=1.3.0` | build-time only | available |
+| 22 | Critical | `plasma` | `>=0.8.3` | build-time only | available |
+| 23 | Critical | `plasma-cache` | `*` | build-time only | available |
+| 24 | Critical | `set-value` | `<=2.0.0` | build-time only | available |
+| 25 | Critical | `socket.io-parser` | `<=3.3.5` | build-time only | available |
+| 26 | Critical | `sockjs-client` *(direct)* | `1.0.0-beta.4 - 1.1.5` | served to the browser | **none published** |
+| 27 | Critical | `template` *(direct)* | `>=0.13.0` | build-time only | available |
+| 28 | Critical | `underscore` | `<=1.13.7` | build-time only | available |
+| 29 | Critical | `url-parse` | `<=1.5.8` | build-time only | available |
+| 30 | Critical | `websocket-driver` | `<=0.7.4` | build-time only | available |
+| 31 | High | `angular` *(direct)* | `*` | served to the browser | **none published** |
+| 32 | High | `angular-chart.js` *(direct)* | `>=0.8.2` | served to the browser | **none published** |
+| 33 | High | `angular-moment` *(direct)* | `0.7.0 - 1.0.0-beta.6` | served to the browser | **none published** |
+| 34 | High | `async` | `2.0.0 - 2.6.3` | build-time only | available |
+| 35 | High | `brace-expansion` | `<=1.1.17` | build-time only | available |
+| 36 | High | `braces` | `<3.0.3` | build-time only | available |
+| 37 | High | `chart.js` *(direct)* | `<2.9.4` | served to the browser | **none published** |
+| 38 | High | `cli` | `<=0.11.3` | build-time only | available |
+| 39 | High | `debug` | `<=2.6.8` | build-time only | available |
+| 40 | High | `engine.io` | `<=6.6.1` | build-time only | available |
+| 41 | High | `engine.io-client` | `<=6.1.1` | build-time only | available |
+| 42 | High | `expand-braces` | `*` | build-time only | available |
+| 43 | High | `findup-sync` | `<=0.2.1` | build-time only | available |
+| 44 | High | `gaze` | `>=0.4.0` | build-time only | available |
+| 45 | High | `glob` | `3.0.0 - 5.0.14` | build-time only | available |
+| 46 | High | `globule` | `*` | build-time only | available |
+| 47 | High | `grunt-contrib-watch` *(direct)* | `>=0.5.0` | build-time only | available |
+| 48 | High | `handsontable` *(direct)* | `<10.0.0` | served to the browser | **none published** |
+| 49 | High | `js-yaml` | `<=3.14.2` | build-time only | available |
+| 50 | High | `jshint` | `0.5.0 || >=0.6.0` | build-time only | available |
+| 51 | High | `load-grunt-tasks` *(direct)* | `0.2.0 - 3.2.0` | build-time only | available |
+| 52 | High | `log4js` | `<=6.3.0` | build-time only | available |
+| 53 | High | `meow` | `3.4.0 - 5.0.0` | build-time only | available |
+| 54 | High | `micromatch` | `<=4.0.7` | build-time only | available |
+| 55 | High | `minimatch` | `<=3.1.3` | build-time only | available |
+| 56 | High | `moment` *(direct)* | `<=2.29.3` | served to the browser | **none published** |
+| 57 | High | `parsejson` | `*` | build-time only | available |
+| 58 | High | `readdirp` | `0.3.1 - 2.0.0 || 2.2.0 - 2.2.1` | build-time only | available |
+| 59 | High | `semver` | `2.0.0-alpha - 5.7.1` | build-time only | available |
+| 60 | High | `shelljs` | `<=0.8.4` | build-time only | available |
+| 61 | High | `socket.io` | `<=2.4.1` | build-time only | available |
+| 62 | High | `socket.io-adapter` | `<=1.1.0` | build-time only | available |
+| 63 | High | `socket.io-client` | `1.0.0-pre - 4.4.1` | build-time only | available |
+| 64 | High | `tmp` | `<=0.2.5` | build-time only | available |
+| 65 | High | `trim-newlines` | `<3.0.1` | build-time only | available |
+| 66 | High | `ws` | `1.1.0 - 5.2.4` | build-time only | available |
+
+**Nine of the sixty-six reach the browser**, and they are the only rows on which an upgrade would change the served application: `crypto-js`, `lodash`, `sockjs-client`, `angular`, `angular-chart.js`, `angular-moment`, `chart.js`, `handsontable` and `moment`. Every one of the nine is analysed in Group A above, and the nine correspond exactly to exceptions **EX-1** through **EX-4** in the [Governed exceptions register](#governed-exceptions-register) — three Critical and six High — which is the cross-check that the two lists were derived independently and agree.
+
+**`chart.js` is in that list because of a classification bug this cross-check caught, and the correction is recorded rather than quietly applied.** A first revision of the producer decided "served" by comparing the npm **package name** against the directory names in `config/env/all.js`. npm names the package `chart.js`; it installs as `@bower_components/Chart.js`; and the asset contract references `node_modules/@bower_components/Chart.js/Chart.min.js`. The capital letter made the comparison fail, so a package that **is** concatenated into `vendors.min.js` was reported as build-time only. The producer now derives the directory from the audit's own node paths, which are the same strings the asset contract uses, so the mismatch cannot recur. The exceptions register had it right all along, which is why the disagreement was worth chasing rather than reconciling by editing the register.
+
+For **eight of the nine**, npm reports **no fix at any version** — the generated triage states this as `of those served, with no fix published: 8`, and it is not rounded up to nine here. The ninth is the served `lodash`, for which npm does report a fix, and it is the one served row where a remedy exists at all:
+
+- The pinned version is `3.10.1` and the reported fix is `4.17.24` — a **major-version move**, not a patch. `config/env/all.js:L40` resolves the literal path `node_modules/@bower_components/lodash/lodash.min.js`, and the 3.x and 4.x lines differ in both their published build outputs and their API surface, so the move is barred by **R-T6**'s immutability of the asset-layout contract as well as by the byte-identical artifact criterion.
+- It is registered in the [Governed exceptions register](#governed-exceptions-register) rather than presented as unremediable. The distinction matters: the other seven cannot be fixed by anyone at any version, while this one *can* be fixed by an owner who accepts a bundle change and re-validates the asset paths. Those are different decisions and this page does not merge them.
+
+So the accurate statement is: **no served Critical or High package has an in-scope fix that was declined for convenience**, and exactly one has an out-of-scope fix, named above with the two rules that put it out of scope.
+
+**None of the sixty-six is installed under `@bower_components` without being referenced by the asset globs.** After the classification fix above, every `@bower_components` package among the Critical and High set is genuinely served; the two packages in that in-between state across the whole graph are Moderate or Low. They are left in place because removing a dependency key would breach R-T6's immutability of the install topology, and because their absence from the globs means they contribute nothing to the built artifacts either way.
+
+**Fifty-seven of the sixty-six are build-time only.** That is where npm reports a fix for almost every entry, and it is therefore where the reason for not upgrading has to be given precisely rather than borrowed — which Group B does. It is also, as Group B says, the group that should be remediated first, because it is the group where remediation is possible at all.
 
 ## Compensating controls — re-measured against the delivered code
 
@@ -369,7 +468,9 @@ nvm use 20                       # Node 20.20.2, npm 10.8.2
 
 npm ci                           # restores the committed lockfile: 780 production packages,
                                  # 801 across all scopes, from 802 lockfile entries
-npm audit                        # 101 advisories: 30 critical, 36 high, 31 moderate, 4 low
+npm audit                        # 101 vulnerable PACKAGES: 30 critical, 36 high,
+                                 # 31 moderate, 4 low.  This is npm's package count, not
+                                 # the advisory count -- see the two-count note above.
 npm audit --package-lock-only --json |
   python3 -c 'import json,sys; print(json.load(sys.stdin)["metadata"])'
 
@@ -391,6 +492,26 @@ docs/migration/smoke-evidence/advisory-corpus/verify-advisory-corpus.sh \
   "$CURRENT_CORPUS"
 rm -rf "$CURRENT_CORPUS"
 ```
+
+**The two derived tables on this page are generated, and regenerating them is the check that they still hold.** Neither producer needs a network, so both run in an air-gapped validation environment where the re-query above cannot:
+
+```bash
+bash docs/migration/smoke-evidence/advisory-corpus/triage-frontend-corpus.sh
+sed -n '/===== totals/,/===== rows/p' \
+  docs/migration/smoke-evidence/advisory-corpus/frontend-advisory-triage.txt
+```
+
+That must exit `0` and print every figure quoted in [Measured position](#measured-position) and [Every Critical and High package](#every-critical-and-high-package): `101` vulnerable package nodes at `critical=30 high=36 moderate=31 low=4`, `122` distinct advisories at `critical=14 high=38 moderate=60 low=10`, `27` packages with no fix at any version, `66` Critical-or-High packages, `9` of them served, and `8` of those nine with no fix published.
+
+The whole offline gate — corpus integrity against the SHA-256 manifest, plus both triage producers, plus a check that regenerating either one does not change its committed body — is one command:
+
+```bash
+bash docs/migration/smoke-evidence/advisory-corpus/verify-advisory-corpus.sh --offline
+```
+
+It must exit `0` and print `Triage body unchanged on regeneration` for both authorities. That last line is the one worth understanding: it fails if a committed triage no longer matches what the corpus produces, which is exactly the condition in which a figure quoted on this page has silently stopped being true. Editing any count in either published triage, or deleting a single row from one, makes it exit `1`.
+
+**One limitation of this page, stated rather than left for a reader to discover.** The audit is a **point-in-time capture, dated August 7, 2026**, and nothing in this repository re-queries it offline. Advisories published after that date do not appear here, and a fix published after that date will not appear in an "upstream fix" cell — including, potentially, a fix for one of the seven served packages that currently report none. Every count on this page is a count over that capture and is honest only about it. The `--offline` gate verifies the capture's **integrity**, not its freshness; moving the date requires re-running `capture-advisory-corpus.sh`, which needs the network access the validation environment does not have. An owner acting on the [remediation programme](#owner-authorised-remediation-programme) should re-capture first.
 
 To create a reviewed replacement snapshot, pass its explicit UTC date to the capture script, inspect every difference, then update the date named by `verify-advisory-corpus.sh`:
 

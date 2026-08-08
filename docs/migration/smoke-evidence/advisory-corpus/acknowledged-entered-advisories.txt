@@ -1,0 +1,25 @@
+# Advisory positions this migration ENTERS rather than carries, acknowledged and disclosed.
+#
+# An advisory is "entered" when the baseline version sat outside every affected range and
+# the delivered version sits inside one -- that is, the migration's own version advance
+# moved the deployed artifact INTO the advisory.  That is a regression, not an inherited
+# exposure, so triage-advisory-corpus.sh fails unless the entered set is exactly the set
+# named here.  Listing an identifier is an assertion that
+#   (a) docs/migration/backend-dependency-security.md discloses it, with the specific
+#       Agent Action Plan clause that bars the remedy, and
+#   (b) a human decision is recorded against it.
+#
+# The gate is set EQUALITY, deliberately, and in both directions.  A newly entered
+# advisory is not silenced by this file, because it would not appear here.  An identifier
+# that stops being entered also fails, because a stale acknowledgement is a claim about
+# the build that is no longer true.  One line per identifier; # begins a comment.
+#
+# GHSA-vxf7-qj7q-83fh -- LOW, CWE-208, user attribute enumeration through
+# DaoAuthenticationProvider.  Baseline spring-security-core 5.4.2 is in no affected range;
+# delivered 5.8.16 is inside 5.8.0 <= v <= 5.8.24.  Published fixes are 6.5.10 and 7.0.5
+# only, both on jakarta-namespace lines that AAP section 0.2.2 "Excluded By Directive"
+# forbids ("no source import, no artifact whose classes live under jakarta/"; "Spring
+# Framework remains on the 5.3 line and Spring Security on the line that pairs with it").
+# The 5.8 line has no fixed release, so no in-scope remedy exists.  Disclosed in
+# docs/migration/backend-dependency-security.md.
+GHSA-vxf7-qj7q-83fh

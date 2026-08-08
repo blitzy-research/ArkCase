@@ -1,0 +1,551 @@
+complete frontend advisory triage of the committed npm audit
+===========================================================
+
+GENERATED, NOT AUTHORED, by docs/migration/smoke-evidence/advisory-corpus/triage-frontend-corpus.sh.
+Inputs are the committed audit and the frozen asset contract config/env/all.js.  No network
+query is made and no risk judgement is recorded here.
+
+generated-at (UTC) : 2026-08-08T15:37:34Z
+
+===== totals =====
+vulnerable-package-nodes                    : 101
+  by-severity                               : critical=30 high=36 moderate=31 low=4
+distinct-advisories                         : 122
+  by-severity                               : critical=14 high=38 moderate=60 low=10
+packages-with-no-fix-at-any-version         : 27
+packages-with-a-fix-reported                : 74
+reaches-the-browser (served)                : 24
+build-time-only                             : 75
+installed-under-bower-not-referenced        : 2
+
+npm's own metadata.vulnerabilities.total    : 101
+
+The first count and the third are different measures and are both reported because an
+earlier revision of the disclosure page reported the first while labelling it the second.
+npm propagates severity up the dependency chain, so one Critical advisory deep in the
+graph marks every package above it Critical -- which is why there are more Critical
+packages than Critical advisories.
+
+critical-or-high-packages                   : 66
+  of those, served to the browser           : 9
+  of those served, with no fix published    : 8
+
+SERVED Critical/High packages -- the only rows where an upgrade changes the served
+application and therefore the built bundles:
+  critical  crypto-js              range=<4.2.0                   fix=none published
+  critical  lodash                 range=<=4.17.23                fix=available
+  critical  sockjs-client          range=1.0.0-beta.4 - 1.1.5     fix=none published
+  high      angular                range=*                        fix=none published
+  high      angular-chart.js       range=>=0.8.2                  fix=none published
+  high      angular-moment         range=0.7.0 - 1.0.0-beta.6     fix=none published
+  high      chart.js               range=<2.9.4                   fix=none published
+  high      handsontable           range=<10.0.0                  fix=none published
+  high      moment                 range=<=2.29.3                 fix=none published
+
+===== rows, severity then name =====
+
+critical  argparse
+  affected-range   : <=0.1.16
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  chokidar
+  affected-range   : 0.8.0 - 1.0.6 || 1.3.0 - 2.1.8
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  config-cache
+  affected-range   : >=1.3.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  crypto-js  (direct dependency)
+  affected-range   : <4.2.0
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+critical  defaults-deep
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  eventsource
+  affected-range   : <1.1.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : none published
+
+critical  expander
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  fsevents
+  affected-range   : <=1.2.10
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  getobject
+  affected-range   : 0.1.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  grunt  (direct dependency)
+  affected-range   : <=1.6.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  grunt-karma  (direct dependency)
+  affected-range   : <=4.0.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  grunt-legacy-util
+  affected-range   : <=2.0.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  grunt-ng-annotate  (direct dependency)
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  karma  (direct dependency)
+  affected-range   : <=6.3.15
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  load-templates
+  affected-range   : 0.8.0 - 0.8.9
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  lodash  (direct dependency)
+  affected-range   : <=4.17.23
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : available
+
+critical  minimist
+  affected-range   : <=0.2.3 || 1.0.0 - 1.2.5
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  ng-annotate
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  nunjucks  (direct dependency)
+  affected-range   : <=3.2.3
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  optimist
+  affected-range   : >=0.6.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  option-cache
+  affected-range   : >=1.3.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  plasma
+  affected-range   : >=0.8.3
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  plasma-cache
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  set-value
+  affected-range   : <=2.0.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  socket.io-parser
+  affected-range   : <=3.3.5
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  sockjs-client  (direct dependency)
+  affected-range   : 1.0.0-beta.4 - 1.1.5
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+critical  template  (direct dependency)
+  affected-range   : >=0.13.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  underscore
+  affected-range   : <=1.13.7
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  url-parse
+  affected-range   : <=1.5.8
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+critical  websocket-driver
+  affected-range   : <=0.7.4
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      angular  (direct dependency)
+  affected-range   : *
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+high      angular-chart.js  (direct dependency)
+  affected-range   : >=0.8.2
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+high      angular-moment  (direct dependency)
+  affected-range   : 0.7.0 - 1.0.0-beta.6
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+high      async
+  affected-range   : 2.0.0 - 2.6.3
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      brace-expansion
+  affected-range   : <=1.1.17
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      braces
+  affected-range   : <3.0.3
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      chart.js  (direct dependency)
+  affected-range   : <2.9.4
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+high      cli
+  affected-range   : <=0.11.3
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      debug
+  affected-range   : <=2.6.8
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      engine.io
+  affected-range   : <=6.6.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      engine.io-client
+  affected-range   : <=6.1.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      expand-braces
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      findup-sync
+  affected-range   : <=0.2.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      gaze
+  affected-range   : >=0.4.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      glob
+  affected-range   : 3.0.0 - 5.0.14
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      globule
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      grunt-contrib-watch  (direct dependency)
+  affected-range   : >=0.5.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      handsontable  (direct dependency)
+  affected-range   : <10.0.0
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+high      js-yaml
+  affected-range   : <=3.14.2
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      jshint
+  affected-range   : 0.5.0 || >=0.6.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      load-grunt-tasks  (direct dependency)
+  affected-range   : 0.2.0 - 3.2.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      log4js
+  affected-range   : <=6.3.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      meow
+  affected-range   : 3.4.0 - 5.0.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      micromatch
+  affected-range   : <=4.0.7
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      minimatch
+  affected-range   : <=3.1.3
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      moment  (direct dependency)
+  affected-range   : <=2.29.3
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+high      parsejson
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      readdirp
+  affected-range   : 0.3.1 - 2.0.0 || 2.2.0 - 2.2.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      semver
+  affected-range   : 2.0.0-alpha - 5.7.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      shelljs
+  affected-range   : <=0.8.4
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      socket.io
+  affected-range   : <=2.4.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      socket.io-adapter
+  affected-range   : <=1.1.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      socket.io-client
+  affected-range   : 1.0.0-pre - 4.4.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      tmp
+  affected-range   : <=0.2.5
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      trim-newlines
+  affected-range   : <3.0.1
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+high      ws
+  affected-range   : 1.1.0 - 5.2.4
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  angular-cache  (direct dependency)
+  affected-range   : >=4.0.0
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  angular-moment-picker  (direct dependency)
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : none published
+
+moderate  angular-sanitize  (direct dependency)
+  affected-range   : >=1.3.1
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  angular-ui-bootstrap  (direct dependency)
+  affected-range   : <=0.14.3
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  angular-ui-grid  (direct dependency)
+  affected-range   : >=3.0.0-rc.22
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  angular-ui-scroll  (direct dependency)
+  affected-range   : >=1.8.1
+  reaches-browser  : no -- under @bower_components but not in the asset globs
+  upstream-fix     : none published
+
+moderate  angular-xeditable  (direct dependency)
+  affected-range   : >=0.1.12
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  anymatch
+  affected-range   : 1.2.0 - 2.0.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  bootbox  (direct dependency)
+  affected-range   : <=6.0.0
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  bootstrap  (direct dependency)
+  affected-range   : <=3.4.1
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  grunt-cli  (direct dependency)
+  affected-range   : <=0.1.13
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  grunt-contrib-csslint  (direct dependency)
+  affected-range   : 0.3.0 - 1.0.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  grunt-contrib-jshint  (direct dependency)
+  affected-range   : 0.11.3
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  grunt-contrib-uglify  (direct dependency)
+  affected-range   : 0.5.0 - 0.11.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  grunt-legacy-log
+  affected-range   : <=1.0.2
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  grunt-legacy-log-utils
+  affected-range   : <=1.0.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  hosted-git-info
+  affected-range   : <2.8.9
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  jquery  (direct dependency)
+  affected-range   : <=3.4.1
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  ms
+  affected-range   : <2.0.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  ngbootbox  (direct dependency)
+  affected-range   : *
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  parseuri
+  affected-range   : <2.0.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  path-parse
+  affected-range   : <1.0.7
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  summernote  (direct dependency)
+  affected-range   : <=0.8.20
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  underscore.string
+  affected-range   : <3.3.5
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  useragent
+  affected-range   : *
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+moderate  videogular  (direct dependency)
+  affected-range   : 1.3.1 || >=1.4.4
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  videogular-buffering  (direct dependency)
+  affected-range   : >=1.4.4
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  videogular-controls  (direct dependency)
+  affected-range   : >=1.4.4
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  videogular-overlay-play  (direct dependency)
+  affected-range   : >=1.4.4
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  videogular-poster  (direct dependency)
+  affected-range   : >=1.4.4
+  reaches-browser  : yes -- named in config/env/all.js
+  upstream-fix     : none published
+
+moderate  videogular-themes-default  (direct dependency)
+  affected-range   : >=1.4.4
+  reaches-browser  : no -- under @bower_components but not in the asset globs
+  upstream-fix     : none published
+
+low       clean-css
+  affected-range   : <4.1.11
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+low       cookie
+  affected-range   : <0.7.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+low       es5-ext
+  affected-range   : 0.10.1 - 0.10.62
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
+low       grunt-contrib-cssmin  (direct dependency)
+  affected-range   : <=2.1.0
+  reaches-browser  : no -- build-time only
+  upstream-fix     : available
+
