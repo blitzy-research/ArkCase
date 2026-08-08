@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.pdf.service.PdfServiceImplTest" time="2.254" tests="4" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.pdf.service.PdfServiceImplTest" time="1.636" tests="4" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,7 +18,7 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="mergeDocuments" classname="com.armedia.acm.pdf.service.PdfServiceImplTest" time="0.239">
+  <testcase name="mergeDocuments" classname="com.armedia.acm.pdf.service.PdfServiceImplTest" time="0.153">
     <system-out><![CDATA[[INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
 [INFO ] [main] org.springframework.test.context.support.DefaultTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@3050ac2f, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@265bd546, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@1937eaff, org.springframework.test.context.support.DirtiesContextTestExecutionListener@7e0bc8a3, org.springframework.test.context.event.EventPublishingTestExecutionListener@4b0f2299]
 [DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImplTest - Number of pages in Abstract document [1]
@@ -30,7 +30,7 @@
 [DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImplTest - /tmp/multipageImage.tif
 ]]></system-out>
   </testcase>
-  <testcase name="failPageExtraction" classname="com.armedia.acm.pdf.service.PdfServiceImplTest" time="0.075">
+  <testcase name="failPageExtraction" classname="com.armedia.acm.pdf.service.PdfServiceImplTest" time="0.032">
     <system-out><![CDATA[[ERROR] [main] com.armedia.acm.pdf.service.PdfServiceImpl - Unable to extract pages from [multipage_document.pdf]
 java.lang.IndexOutOfBoundsException: 1-based index out of bounds: 9
 	at org.apache.pdfbox.pdmodel.PDPageTree.get(PDPageTree.java:325) ~[pdfbox-2.0.22.jar:2.0.22]
@@ -78,7 +78,7 @@ java.lang.IndexOutOfBoundsException: 1-based index out of bounds: 9
 [DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImplTest - /tmp/multipageImage.tif
 ]]></system-out>
   </testcase>
-  <testcase name="generateMultiPageTiffFromPdf" classname="com.armedia.acm.pdf.service.PdfServiceImplTest" time="0.834">
+  <testcase name="generateMultiPageTiffFromPdf" classname="com.armedia.acm.pdf.service.PdfServiceImplTest" time="0.53">
     <system-out><![CDATA[[DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImplTest - file length is 0
 [DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImpl - Reading pdf from file path /tmp/multipageImage.tif
 [DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImpl - Preparing to generate multi image tiff.
@@ -95,7 +95,7 @@ java.lang.IndexOutOfBoundsException: 1-based index out of bounds: 9
 [DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImplTest - /tmp/multipageImage.tif
 ]]></system-out>
   </testcase>
-  <testcase name="extractPages" classname="com.armedia.acm.pdf.service.PdfServiceImplTest" time="0.013">
+  <testcase name="extractPages" classname="com.armedia.acm.pdf.service.PdfServiceImplTest" time="0.014">
     <system-out><![CDATA[[DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImpl - Successfully extracted pages from [multipage_document.pdf]
 [DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImplTest - Number of pages in extracted document [3]
 [DEBUG] [main] com.armedia.acm.pdf.service.PdfServiceImplTest - /tmp/multipageImage.tif

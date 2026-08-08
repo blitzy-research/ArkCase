@@ -127,17 +127,41 @@ state of the archive after the restoration, measured
   SUPERSEDED SIZE, and only the size.  Five reports were withdrawn from this archive
   after the measurement above was taken, because the five test classes that produced
   them were withdrawn from the change set: the four Active Directory context-source
-  tests and the angular-starter wiring test.  Measured over the directory as it now
-  stands:
+  tests and the angular-starter wiring test.  None of the ten files this note is about
+  is among the five, so nothing the restoration established is weakened by the removal,
+  and the four failure and error rows are the same four.
+
+  THE ARCHIVE HAS SINCE BEEN RE-HARVESTED, AND THAT SUPERSEDES BOTH FIGURES ABOVE.
+  A code review found the archive described as evidence about the delivered code while
+  its provenance named an earlier commit -- and by then four processed test classes had
+  been edited and two main-source files changed after the harvest ran, so the
+  description was not true of the archive that was there.  The archive was therefore
+  re-harvested from the runner's own output at the DELIVERED commit, on a clean
+  working tree, by the same install-surefire-evidence.sh committed beside it.  Measured
+  over the directory as it now stands:
       reports in this archive                                  279
       reports carrying a native java.runtime.version           279
       reports carrying a native java.class.version             279
       reports carrying any XML comment                            0
       prose bytes ahead of any testsuite element                  0
       aggregate over the archive  suites=279 tests=893 failures=3 errors=1 skipped=21
-  None of the ten files this note is about is among the five, so nothing the restoration
-  established is weakened by the removal, and the four failure and error rows are the
-  same four.  run-provenance.txt beside this note carries the withdrawal in full.
+
+  TWO THINGS THE RE-HARVEST SETTLED THAT THE WITHDRAWAL COULD NOT.
+  First, the withdrawal is no longer a post-harvest amendment to anything: the five
+  test classes do not exist in the delivered tree, so a fresh harvest simply does not
+  produce their reports, and run-provenance.txt beside this note carries no withdrawal
+  block because there is nothing to withdraw.  The 284/933 figures above are therefore
+  historical in full rather than merely reduced.  Second, the provenance now names a
+  commit that resolves, on a branch it is reachable from, with git status --porcelain
+  empty at the moment of harvest -- so the archive and the delivered tree agree at
+  279/893 BY CONSTRUCTION rather than by comparison.
+
+  WHAT DID NOT CHANGE, and it is the point of saying so: every outcome.  Each of the
+  279 reports was compared against its committed predecessor on the four runner
+  counters and on its full set of test-method names, and the differences number ZERO.
+  The re-harvest corrected which commit the evidence is attributed to; it did not
+  produce a different result anywhere, and the three failures and one error are the
+  same four registered rows.
 
 The aggregate is unchanged by the restoration.  That is the invariance witness: a text
 transformation that leaves the four runner counters untouched has demonstrably not altered

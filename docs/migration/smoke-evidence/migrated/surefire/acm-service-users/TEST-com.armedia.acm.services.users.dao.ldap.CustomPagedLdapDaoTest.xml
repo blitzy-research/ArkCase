@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDaoTest" time="0.148" tests="4" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDaoTest" time="0.168" tests="4" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,56 +18,56 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="findGroupsPaged_lastGroupFallsOnPageBoundary" classname="com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDaoTest" time="0.132">
-    <system-out><![CDATA[&amp#27;[36m2026-08-07 21:35:26,413 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [groupSearchFilter]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,413 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [3]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,413 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [groupSearchPageFilter eagles]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,413 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [3]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,414 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [groupSearchPageFilter cream]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,414 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [0]
-&amp#27;[m&amp#27;[32m2026-08-07 21:35:26,414 [INFO ] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - LDAP sync number of groups: [5]
+  <testcase name="findGroupsPaged_lastGroupFallsOnPageBoundary" classname="com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDaoTest" time="0.151">
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,877 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [groupSearchFilter]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,878 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [3]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,878 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [groupSearchPageFilter eagles]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,878 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [3]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,878 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [groupSearchPageFilter cream]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,879 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [0]
+&amp#27;[m&amp#27;[32m2026-08-08 11:46:00,879 [INFO ] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - LDAP sync number of groups: [5]
 &amp#27;[m]]></system-out>
   </testcase>
   <testcase name="findChangedGroupsPaged_searchFiltersTest" classname="com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDaoTest" time="0.005">
-    <system-out><![CDATA[&amp#27;[36m2026-08-07 21:35:26,418 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [(&(objectclass=group)(modifyTimestamp>=20260806213526Z))]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,418 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [3]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,419 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [(&(objectclass=group)(gidNumber>=eagles)(modifyTimestamp>=20260806213526Z))]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,419 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [3]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,419 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [(&(objectclass=group)(gidNumber>=pink floyd)(modifyTimestamp>=20260806213526Z))]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,419 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [0]
-&amp#27;[m&amp#27;[32m2026-08-07 21:35:26,419 [INFO ] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - LDAP sync number of groups: [5]
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,883 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [(&(objectclass=group)(modifyTimestamp>=20260807114600Z))]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,884 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [3]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,884 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [(&(objectclass=group)(gidNumber>=eagles)(modifyTimestamp>=20260807114600Z))]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,884 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [3]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,885 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - search filter: [(&(objectclass=group)(gidNumber>=pink floyd)(modifyTimestamp>=20260807114600Z))]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,885 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Groups found: [0]
+&amp#27;[m&amp#27;[32m2026-08-08 11:46:00,885 [INFO ] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - LDAP sync number of groups: [5]
 &amp#27;[m]]></system-out>
   </testcase>
   <testcase name="findUsersPaged_lastUserFallsOnPageBoundary" classname="com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDaoTest" time="0.008">
-    <system-out><![CDATA[&amp#27;[36m2026-08-07 21:35:26,425 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [allUsersFilter]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,425 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [3]. DNs: [dn: jgarcia
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,890 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [allUsersFilter]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,891 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [3]. DNs: [dn: jgarcia
 dn: bweir
 dn: plesh]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,426 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter now: [allUsersPageFilter plesh]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,426 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [allUsersPageFilter plesh]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,426 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [3]. DNs: [dn: plesh
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,891 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter now: [allUsersPageFilter plesh]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,891 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [allUsersPageFilter plesh]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,891 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [3]. DNs: [dn: plesh
 dn: bkreutzmann
 dn: rmckernan]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,426 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter now: [allUsersPageFilter rmckernan]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,426 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [allUsersPageFilter rmckernan]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,426 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [0]. DNs: []
-&amp#27;[m&amp#27;[32m2026-08-07 21:35:26,427 [INFO ] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - LDAP sync number of enabled users: [5]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,891 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter now: [allUsersPageFilter rmckernan]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,892 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [allUsersPageFilter rmckernan]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,892 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [0]. DNs: []
+&amp#27;[m&amp#27;[32m2026-08-08 11:46:00,892 [INFO ] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - LDAP sync number of enabled users: [5]
 &amp#27;[m]]></system-out>
   </testcase>
   <testcase name="findChangedUsersPaged_searchFiltersTest" classname="com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDaoTest" time="0.002">
-    <system-out><![CDATA[&amp#27;[36m2026-08-07 21:35:26,428 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [(&(objectclass=user)(modifyTimestamp>=20260806213526Z))]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,428 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [3]. DNs: [dn: axlrose
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,894 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [(&(objectclass=user)(modifyTimestamp>=20260807114600Z))]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,894 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [3]. DNs: [dn: axlrose
 dn: kurtcobain
 dn: plesh]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,429 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter now: [(&(objectclass=user)(uidNumber>=plesh)(modifyTimestamp>=20260806213526Z))]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,429 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [(&(objectclass=user)(uidNumber>=plesh)(modifyTimestamp>=20260806213526Z))]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,429 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [3]. DNs: [dn: plesh
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,894 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter now: [(&(objectclass=user)(uidNumber>=plesh)(modifyTimestamp>=20260807114600Z))]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,894 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [(&(objectclass=user)(uidNumber>=plesh)(modifyTimestamp>=20260807114600Z))]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,894 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [3]. DNs: [dn: plesh
 dn: bkreutzmann
 dn: davidgilmour]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,429 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter now: [(&(objectclass=user)(uidNumber>=davidgilmour)(modifyTimestamp>=20260806213526Z))]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,429 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [(&(objectclass=user)(uidNumber>=davidgilmour)(modifyTimestamp>=20260806213526Z))]
-&amp#27;[m&amp#27;[36m2026-08-07 21:35:26,429 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [0]. DNs: []
-&amp#27;[m&amp#27;[32m2026-08-07 21:35:26,429 [INFO ] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - LDAP sync number of enabled users: [5]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,894 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter now: [(&(objectclass=user)(uidNumber>=davidgilmour)(modifyTimestamp>=20260807114600Z))]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,894 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Search filter: [(&(objectclass=user)(uidNumber>=davidgilmour)(modifyTimestamp>=20260807114600Z))]
+&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,894 [DEBUG] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - Users found: [0]. DNs: []
+&amp#27;[m&amp#27;[32m2026-08-08 11:46:00,895 [INFO ] [main] com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDao - LDAP sync number of enabled users: [5]
 &amp#27;[m]]></system-out>
   </testcase>
 </testsuite>

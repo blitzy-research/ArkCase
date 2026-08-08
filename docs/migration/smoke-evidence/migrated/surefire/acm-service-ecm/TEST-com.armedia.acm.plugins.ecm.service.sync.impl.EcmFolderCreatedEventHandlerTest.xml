@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandlerTest" time="0.004" tests="3" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandlerTest" time="0.001" tests="3" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,18 +18,18 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="onEcmFolderCreated_createNewArkCaseFolder" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandlerTest" time="0.001">
-    <system-out><![CDATA[2026-08-07 21:36:34,654 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Handling new folder folderNodeId
-2026-08-07 21:36:34,655 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Finished creating new folder with node id folderNodeId, ArkCase id null
+  <testcase name="onEcmFolderCreated_createNewArkCaseFolder" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandlerTest" time="0.0">
+    <system-out><![CDATA[2026-08-08 11:46:47,365 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Handling new folder folderNodeId
+2026-08-08 11:46:47,365 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Finished creating new folder with node id folderNodeId, ArkCase id null
 ]]></system-out>
   </testcase>
-  <testcase name="onEcmFolderCreated_ifAlreadyInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandlerTest" time="0.0">
-    <system-out><![CDATA[2026-08-07 21:36:34,655 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Handling new folder folderNodeId
+  <testcase name="onEcmFolderCreated_ifAlreadyInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandlerTest" time="0.001">
+    <system-out><![CDATA[2026-08-08 11:46:47,366 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Handling new folder folderNodeId
 ]]></system-out>
   </testcase>
-  <testcase name="onEcmFolderCreated_ifParentFolderNotInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandlerTest" time="0.003">
-    <system-out><![CDATA[2026-08-07 21:36:34,655 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Handling new folder folderNodeId
-2026-08-07 21:36:34,656 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Parent folder is not in ArkCase, so not creating the new folder folderNodeId
+  <testcase name="onEcmFolderCreated_ifParentFolderNotInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandlerTest" time="0.0">
+    <system-out><![CDATA[2026-08-08 11:46:47,366 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Handling new folder folderNodeId
+2026-08-08 11:46:47,366 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandler - Parent folder is not in ArkCase, so not creating the new folder folderNodeId
 ]]></system-out>
   </testcase>
 </testsuite>

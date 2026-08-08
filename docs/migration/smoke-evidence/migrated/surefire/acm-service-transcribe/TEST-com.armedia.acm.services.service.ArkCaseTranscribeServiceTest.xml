@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.355" tests="15" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.213" tests="15" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,52 +18,52 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="isMediaDurationAllowed_true" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.239"/>
-  <testcase name="create_By_Version_Pipeline_Exception" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.015"/>
+  <testcase name="isMediaDurationAllowed_true" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.135"/>
+  <testcase name="create_By_Version_Pipeline_Exception" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.008"/>
   <testcase name="create_By_Version_File_Not_Media" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.001">
-    <system-out><![CDATA[2026-08-07 21:38:55,167 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - The media file is not transcribable. Automatic Transcription will be terminated.
+    <system-out><![CDATA[2026-08-08 11:48:24,237 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - The media file is not transcribable. Automatic Transcription will be terminated.
 ]]></system-out>
   </testcase>
   <testcase name="isAudioOrVideo_false" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.001">
-    <system-out><![CDATA[2026-08-07 21:38:55,168 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - The media file is not transcribable. Automatic Transcription will be terminated.
+    <system-out><![CDATA[2026-08-08 11:48:24,238 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - The media file is not transcribable. Automatic Transcription will be terminated.
 ]]></system-out>
   </testcase>
-  <testcase name="create_By_Version_Automatic_Not_Allowed" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.002"/>
-  <testcase name="create_By_Version" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.002"/>
-  <testcase name="isAudioOrVideo_true" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.001"/>
+  <testcase name="create_By_Version_Automatic_Not_Allowed" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.001"/>
+  <testcase name="create_By_Version" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.003"/>
+  <testcase name="isAudioOrVideo_true" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.0"/>
   <testcase name="isMediaDurationAllowed_false" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.001">
-    <system-out><![CDATA[2026-08-07 21:38:55,174 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - The duration of the media file [1000000.0] is more than allowed [7200] seconds. Automatic Transcription will be terminated.
+    <system-out><![CDATA[2026-08-08 11:48:24,243 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - The duration of the media file [1000000.0] is more than allowed [7200] seconds. Automatic Transcription will be terminated.
 ]]></system-out>
   </testcase>
   <testcase name="create_By_Version_Transcribe_Not_Allowed" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.001">
-    <system-out><![CDATA[2026-08-07 21:38:55,175 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Required service not enabled. It will be terminated.
+    <system-out><![CDATA[2026-08-08 11:48:24,244 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Required service not enabled. It will be terminated.
 ]]></system-out>
   </testcase>
   <testcase name="create_By_Version_Media_More_Than_2_Hours" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.001">
-    <system-out><![CDATA[2026-08-07 21:38:55,176 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - The duration of the media file [1000000.0] is more than allowed [7200] seconds. Automatic Transcription will be terminated.
+    <system-out><![CDATA[2026-08-08 11:48:24,245 [WARN ] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - The duration of the media file [1000000.0] is more than allowed [7200] seconds. Automatic Transcription will be terminated.
 ]]></system-out>
   </testcase>
-  <testcase name="startBusinessProcess_Start_true" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.039">
-    <system-out><![CDATA[2026-08-07 21:38:55,209 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Checking if starting business process is allowed for [TRANSCRIBE] Object [com.armedia.acm.services.transcribe.model.Transcribe@2c9fafbc]
-2026-08-07 21:38:55,210 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Executing Drools Business rules for [AUTOMATIC] [TRANSCRIBE] with ID=[102], MEDIA_FILE_ID=[103] and MEDIA_FILE_VERSION_ID=[101]
-2026-08-07 21:38:55,210 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Start business process: [true]
-2026-08-07 21:38:55,214 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - There is no [TRANSCRIBE] Object. It's [com.armedia.acm.services.transcribe.model.Transcribe@2c9fafbc]
+  <testcase name="startBusinessProcess_Start_true" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.047">
+    <system-out><![CDATA[2026-08-08 11:48:24,287 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Checking if starting business process is allowed for [TRANSCRIBE] Object [com.armedia.acm.services.transcribe.model.Transcribe@2c9fafbc]
+2026-08-08 11:48:24,287 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Executing Drools Business rules for [AUTOMATIC] [TRANSCRIBE] with ID=[102], MEDIA_FILE_ID=[103] and MEDIA_FILE_VERSION_ID=[101]
+2026-08-08 11:48:24,287 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Start business process: [true]
+2026-08-08 11:48:24,292 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - There is no [TRANSCRIBE] Object. It's [com.armedia.acm.services.transcribe.model.Transcribe@2c9fafbc]
 ]]></system-out>
   </testcase>
-  <testcase name="startBusinessProcess_Start_true_Existing_Process" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.036">
-    <system-out><![CDATA[2026-08-07 21:38:55,217 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Checking if starting business process is allowed for [TRANSCRIBE] Object [com.armedia.acm.services.transcribe.model.Transcribe@95acffa]
-2026-08-07 21:38:55,217 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Executing Drools Business rules for [AUTOMATIC] [TRANSCRIBE] with ID=[102], MEDIA_FILE_ID=[103] and MEDIA_FILE_VERSION_ID=[101]
-2026-08-07 21:38:55,217 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Start business process: [true]
-2026-08-07 21:38:55,217 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - There is no [TRANSCRIBE] Object. It's [com.armedia.acm.services.transcribe.model.Transcribe@95acffa]
+  <testcase name="startBusinessProcess_Start_true_Existing_Process" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.003">
+    <system-out><![CDATA[2026-08-08 11:48:24,295 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Checking if starting business process is allowed for [TRANSCRIBE] Object [com.armedia.acm.services.transcribe.model.Transcribe@95acffa]
+2026-08-08 11:48:24,295 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Executing Drools Business rules for [AUTOMATIC] [TRANSCRIBE] with ID=[102], MEDIA_FILE_ID=[103] and MEDIA_FILE_VERSION_ID=[101]
+2026-08-08 11:48:24,296 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Start business process: [true]
+2026-08-08 11:48:24,296 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - There is no [TRANSCRIBE] Object. It's [com.armedia.acm.services.transcribe.model.Transcribe@95acffa]
 ]]></system-out>
   </testcase>
-  <testcase name="create_By_Version_Already_Exist" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.001"/>
-  <testcase name="startBusinessProcess_Start_false" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.009">
-    <system-out><![CDATA[2026-08-07 21:38:55,261 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Checking if starting business process is allowed for [TRANSCRIBE] Object [com.armedia.acm.services.transcribe.model.Transcribe@77ce229]
-2026-08-07 21:38:55,261 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Executing Drools Business rules for [AUTOMATIC] [TRANSCRIBE] with ID=[102], MEDIA_FILE_ID=[103] and MEDIA_FILE_VERSION_ID=[101]
-2026-08-07 21:38:55,261 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Start business process: [false]
-2026-08-07 21:38:55,261 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - There is no [TRANSCRIBE] Object. It's [com.armedia.acm.services.transcribe.model.Transcribe@77ce229]
+  <testcase name="create_By_Version_Already_Exist" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.002"/>
+  <testcase name="startBusinessProcess_Start_false" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.002">
+    <system-out><![CDATA[2026-08-08 11:48:24,300 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Checking if starting business process is allowed for [TRANSCRIBE] Object [com.armedia.acm.services.transcribe.model.Transcribe@77ce229]
+2026-08-08 11:48:24,300 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Executing Drools Business rules for [AUTOMATIC] [TRANSCRIBE] with ID=[102], MEDIA_FILE_ID=[103] and MEDIA_FILE_VERSION_ID=[101]
+2026-08-08 11:48:24,300 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - Start business process: [false]
+2026-08-08 11:48:24,300 [DEBUG] [main] com.armedia.acm.services.transcribe.service.ArkCaseTranscribeServiceImpl - There is no [TRANSCRIBE] Object. It's [com.armedia.acm.services.transcribe.model.Transcribe@77ce229]
 ]]></system-out>
   </testcase>
-  <testcase name="create_By_Version_Id" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.002"/>
+  <testcase name="create_By_Version_Id" classname="com.armedia.acm.services.service.ArkCaseTranscribeServiceTest" time="0.003"/>
 </testsuite>
