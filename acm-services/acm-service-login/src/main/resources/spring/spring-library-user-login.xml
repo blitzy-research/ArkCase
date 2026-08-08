@@ -114,31 +114,29 @@
         <property name="userDao" ref="userJpaDao"/>
     </bean>
 
-    <!-- The two LDAP JNDI values, and the injection contract that delivers them.
-         A deployment-specific JNDI setting belongs in configuration, so both values are held here and
-         nowhere in Java: com.armedia.acm.auth.ad.ActiveDirectoryAbstractContextSource carries no default
-         for either and rejects a missing or blank one by name in afterPropertiesSet().
-         Single source of truth: this is the only place in the repository either value appears.
+    <!-- The two LDAP JNDI values, exposed to bean definitions from the configuration source that owns them.
+         A deployment-specific JNDI setting belongs in configuration, so it is held there and not in Java.
+         Single source of truth: the values themselves live in spring/ldap-jndi.properties, loaded below.
+         ActiveDirectoryAbstractContextSource reads that same file for its own defaults, so the values
+         cannot drift between the two consumers and each value appears exactly once in the repository.
          Fidelity: both values must be carried exactly and must never be altered, shortened or assembled
          from fragments. JNDI matches the initial context factory by exact class name and the connection
-         pooling flag by exact property key, and recognises no variation of either. Both are byte-identical
-         to the values the class held before they were moved out of src/main/java.
-         Contract, not a value holder: this is an abstract bean definition, so nothing instantiates it and
-         no context pays for it, but a concrete ActiveDirectoryContextSource definition - in this
-         repository or in the external .arkcase configuration repository - inherits both properties by
-         naming it as its parent:
-             <bean id="..." class="com.armedia.acm.auth.ad.ActiveDirectoryContextSource"
-                   parent="activeDirectoryContextSourceJndi"> ... </bean>
-         A definition that prefers to be explicit sets contextFactory and connectionPoolFlag itself and
-         overrides what it inherits, because a child definition's own property values win over the parent's.
-         Scope: declared at the top level of this file, deliberately outside every nested beans profile
-         block, so it resolves under any active Spring profile. The deployed default is the ldap profile,
-         declared as spring.profiles.default in the ArkCase web.xml. It reads no resource, contacts no host
-         and needs no placeholder, so it also parses identically in the profile-free contexts of the
-         integration tests that import this file. -->
-    <bean id="activeDirectoryContextSourceJndi" abstract="true">
-        <property name="contextFactory" value="com.sun.jndi.ldap.LdapCtxFactory"/>
-        <property name="connectionPoolFlag" value="com.sun.jndi.ldap.connect.pool"/>
+         pooling flag by exact property key, and recognises no variation of either.
+         Scope: this bean is declared at the top level of this file, deliberately outside every nested
+         beans profile block, so the values resolve under any active Spring profile. The deployed default
+         is the ldap profile, declared as spring.profiles.default in the ArkCase web.xml. The bean reads
+         only a classpath resource packaged in this module's own jar, contacts no host and needs no
+         placeholder, so it also initialises identically in the profile-free contexts of the integration
+         tests that import this file.
+         Consumers: an ActiveDirectoryContextSource bean definition, whether declared in this repository
+         or in the external .arkcase configuration repository, does NOT have to wire either value - the
+         class defaults both from the same file, so a definition that names neither property needs no edit.
+         A definition that prefers to be explicit may wire contextFactory and connectionPoolFlag from this
+         bean, and injected values win over the defaults because Spring setter injection runs before
+         afterPropertiesSet(). A blank value is rejected there with a message naming the property. -->
+    <bean id="ldapJndiProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="location" value="classpath:spring/ldap-jndi.properties"/>
+        <property name="ignoreResourceNotFound" value="false"/>
     </bean>
 
     <beans profile="ldap,kerberos,externalAuth,mfa-okta">

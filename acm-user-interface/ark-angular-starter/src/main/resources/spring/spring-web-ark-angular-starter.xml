@@ -4,6 +4,22 @@
     <bean id="osProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
         <property name="properties">
             <props>
+                <!-- The suffix for a launcher this project invokes BY AN EXPLICIT PATH, which on Windows
+                     means naming the batch wrapper `npm ci` writes rather than the extension-less sibling
+                     beside it.  It applies to the Grunt CLI and to nothing else: the two Grunt commands
+                     below are resolved through $[frontEndCommandPath], and a path-qualified name is not
+                     subject to the PATHEXT search that would otherwise supply the extension.
+
+                     It deliberately does NOT apply to the two launchers invoked by name - `npm` and
+                     `node`.  A bare name under the `cmd /C` prefix is completed by cmd itself through
+                     PATHEXT, so `npm` reaches npm.cmd and `node` reaches node.exe with no suffix at all;
+                     and for Node there is no suffixed form to reach, because the Node distribution ships
+                     node.exe on Windows and node elsewhere and no node.cmd on either.  Appending this
+                     suffix to the Node probe made it ask `cmd /C node.cmd` for its version, which cmd
+                     cannot resolve, and the probe runs BEFORE the install - so the Windows startup build
+                     failed before a single package was fetched.  Keeping the two probes suffix-free makes
+                     each measure the SAME resolution its own build step will use, which is the whole
+                     point of probing. -->
                 <prop key="frontEndCommandSuffix">
                     #{ systemProperties['os.name'].startsWith('Windows') ? '.cmd' : '' }
                 </prop>
@@ -62,13 +78,15 @@
              and was produced by npm 10 on Node 20, and the frontend package.json engines block declares both
              majors; declaring a runtime does not make a deployment use it, so the launchers are asked for their
              own versions before anything is installed and the build refuses to start on a wrong major.  The two
-             probe commands carry the same platform prefix as the install command, so the probe measures the
-             launcher the install will actually use rather than a differently-resolved one. -->
+             probe commands carry the same platform prefix as the install command, and the same absence of a
+             launcher suffix, so each probe measures the launcher its own build step will actually resolve
+             rather than a differently-resolved one.  Both OS branches of both commands are tabulated in
+             docs/migration/dependency-change-inventory.md. -->
         <property name="nodeVersionCommand">
-            <value>$[frontEndCommandPrefix]node$[frontEndCommandSuffix] --version</value>
+            <value>$[frontEndCommandPrefix]node --version</value>
         </property>
         <property name="npmVersionCommand">
-            <value>$[frontEndCommandPrefix]npm$[frontEndCommandSuffix] --version</value>
+            <value>$[frontEndCommandPrefix]npm --version</value>
         </property>
         <property name="requiredNodeMajorVersion" value="20"/>
         <property name="requiredNpmMajorVersion" value="10"/>

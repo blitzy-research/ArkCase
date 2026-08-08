@@ -184,19 +184,40 @@ What was done about it. The hooks were removed and the directory restored to the
 
 What a deploying operator should take from it, stated plainly because the recommendation is not obvious from the defect: **the startup build's `HOME` must not be inside a source checkout.** That is good practice independently of this incident — a deployment writes tens of thousands of generated files under that `HOME` — and it is the single setting that turns this class of script from a repository-modifying event into a contained one. The architectural fix remains the one recorded with entry 58 of [Pre-existing Defects](pre-existing-defects.md): move the install and the pipeline out of Tomcat startup and into the Maven build, where the cache location and the script policy are the build's to set.
 
-## Compensating controls — what actually exists, and what does not
+## Compensating controls — re-measured against the delivered code
 
-An earlier revision of this page described three controls in `AngularResourceCopier`: an allowlisted child environment, mandatory launcher and version verification with watchdogs, and handle-relative writes with no-follow opens and containment checks. **None of them is in the delivered code.** They were implemented in an earlier revision of this change set, which grew the file from 593 lines to 1,864, and that work was withdrawn as outside the scope AAP §0.4.1 fixes for this file — which authorises one change, the keep-list predicate that names the lockfile. The claims were left behind when the code was removed. They are retracted here.
+**This section has now been wrong in both directions, and both errors are stated because the pattern is the point.** An early revision claimed three controls in `AngularResourceCopier` — an allowlisted child environment, launcher and version verification with watchdogs, and handle-relative writes with no-follow opens and containment checks — at a time when a 1,864-line revision of the file implementing them had been withdrawn and the claims had not been. The correction said, flatly, "**None of them is in the delivered code**", and described a copier that "inherits Tomcat's entire environment" and whose "launcher is resolved from `PATH` and never asked its version", citing the file at **593 lines** both at the base commit and "in the delivered tree".
 
-What the delivered copier actually does, verified by reading it, is recorded as entry 58 of [Pre-existing Defects](pre-existing-defects.md): the install runs before the stale-file sweep rather than after it; the child process inherits Tomcat's entire environment; there is no watchdog, so there is no timeout; the launcher is resolved from `PATH` and never asked its version; and the file walks follow symbolic links while one deletion result is discarded. Every one of those is base-commit behaviour, unchanged by this migration — but "unchanged" is not "mitigated", and this page previously said mitigated.
+That correction over-corrected, and by the time it was published the second half of it was false. Re-measured at the delivered head:
 
-So the honest statement of compensating controls is a short one:
+```
+git diff c8f6226105..HEAD --numstat -- .../AngularResourceCopier.java   ->  305   11
+wc -l .../AngularResourceCopier.java                                    ->  887      (not 593)
+```
 
-- **The install is lockfile-determined.** `npm ci` selects no package version outside `package-lock.json`, and every Git dependency is pinned to an immutable commit, so the graph cannot silently acquire a different version between two deployments. This is a genuine control and it is the one the migration added.
-- **The toolchain is pinned where the build runs in CI, by the image reference rather than by a script.** `.gitlab-ci.yml` names `arkcase-gitlab-ci:2.0.0`, whose required contents — JDK 17, Maven 3.8 or newer, Node 20 LTS, npm 10 — are the contract recorded in [Dependency Change Inventory](dependency-change-inventory.md). Registry and digest pinning are runner-side and registry-side configuration and are named there as prerequisites. This governs CI only; it says nothing about the deployment host, where the startup build also runs.
-- **`engines` is declared** as `{"node": ">=20 <21", "npm": ">=10 <11"}`. This is advisory: npm warns rather than refuses unless `engine-strict` is set, and nothing in the delivered copier enforces it.
+Both revisions made the same mistake — describing the file from a remembered state instead of reading it — so what follows is a measured inventory of every one of the five properties, each with the anchor it was read at. **Two of the three retracted controls are in fact delivered, in a later and narrower form than the withdrawn revision's; one is genuinely absent.**
 
-What is **not** in place, stated so no reader plans around it: no environment allowlisting, no execution timeout, no launcher pinning or version interrogation at deployment time, and no symlink or containment protection on the startup build's file operations. The exposure those would narrow is the exposure Group B describes, and the architectural fix — moving the install and pipeline out of Tomcat startup into the Maven build — is the recommendation recorded with entry 58.
+| Property | Base commit `c8f6226105` | Delivered head | State |
+| --- | --- | --- | --- |
+| Child environment | `executor.execute(command)` at `:339` — the one-argument form, so commons-exec hands the child the container's whole environment | `buildFrontEndCommandEnvironment()` at `:420` composes a **27-name allow-list** plus the `npm_config_`/`NPM_CONFIG_` prefixes and nothing else; both call sites use the two-argument `execute`, at `:538` and `:559` | **CLOSED** |
+| Install lifecycle scripts | Enabled — nothing set them | `npm_config_ignore_scripts` set from `npmLifecycleScriptsEnabled`, whose delivered default at `:165` is `false` | **CLOSED** |
+| Launcher version interrogation | None | `verifyFrontEndToolchain(File)` at `:471` asks both launchers their versions and `assertMajorVersion(...)` at `:490` enforces majors 20 and 10 **before** the install at `:209` | **CLOSED** |
+| Launcher pinned to an absolute path | `CommandLine.parse(commandLine)` at `:328` — the OS resolves the name | `CommandLine.parse(commandLine)` at `:531` and `:546` — still the OS, from the `PATH` the allow-list passes through | **NOT delivered** |
+| Execution timeout | No `ExecuteWatchdog` | No `ExecuteWatchdog` — `grep -c 'ExecuteWatchdog\|setWatchdog'` returns **0** | **NOT delivered** |
+| No-follow / containment on file operations | `Files.copy` at `:212`, `:246` without `NOFOLLOW_LINKS`; `FileUtils.listFiles` at `:219`, `:264`; `File::delete` result discarded at `:166`, `:282` | The same, relocated: copies at `:290`, `:324`; walks at `:297`, `:342`; discarded deletion results at `:244`, `:360`. `grep -c NOFOLLOW_LINKS` returns **0** | **NOT delivered** |
+
+**Evidenced by execution, not by reading alone.** The three closed controls are exercised against the delivered bytes by [`smoke-evidence/verify-frontend-startup-wiring.sh`](smoke-evidence/verify-frontend-startup-wiring.sh), recorded at [`smoke-evidence/frontend-startup-wiring.txt`](smoke-evidence/frontend-startup-wiring.txt). Its environment check is the one that matters: a credential-shaped sentinel is exported into the parent process and required to be **absent** from the composed child, because a filter that passed everything would pass the sentinel too. Measured on that run — **3 of the 82** variables the parent held were composed, the sentinel did not reach the child, `npm_config_ignore_scripts` was `true`, the real Node 20.20.2 and npm 10.8.2 launchers were accepted, and a required Node major of 99 was refused with a diagnostic naming both the observed and the required version. That last direction matters as much as the first: a version gate that only ever passes is not a gate.
+
+So the accurate statement of compensating controls is:
+
+- **The install is lockfile-determined.** `npm ci` selects no package version outside `package-lock.json`, and every Git dependency is pinned to an immutable commit, so the graph cannot silently acquire a different version between two deployments. This is the control the migration added first.
+- **The child environment is an explicit allow-list.** 27 named variables plus two `npm_config_` prefixes, and the list is documented entry by entry with the reason each one is on it — `NODE_ENV` because the Gruntfile branches on it when rendering the entry document, the proxy and certificate variables because an estate behind an egress proxy cannot reach a registry without them, `SSH_AUTH_SOCK` and `GIT_SSH_COMMAND` because a source-control dependency resolving over SSH cannot authenticate without them. The last two are named as the most sensitive entries on the list rather than presented as harmless, which is the honest way to publish an allow-list that is not empty.
+- **Package lifecycle scripts are disabled for the install**, by a default that was **measured** rather than chosen: installing the committed lockfile on Node 20 with scripts enabled and with them disabled produced byte-identical output for all five pipeline artifacts and for the source map. It is a property, not a hard-coded choice, so an estate whose graph genuinely needs an install script can re-enable it.
+- **The Node and npm majors are verified before the install runs**, with the probes carrying the same command prefix and working directory the install uses, so each probe measures the launcher its own build step will resolve. This is what R-4's *genuinely run on the target runtime* asks for and what a manifest field cannot deliver: `engines` and `.nvmrc` declare a runtime, and a deployment can still install a lockfileVersion 3 file with an older npm.
+- **The toolchain is pinned where the build runs in CI, by the image reference rather than by a script.** `.gitlab-ci.yml` names `arkcase-gitlab-ci:2.0.0`, whose required contents — JDK 17, Maven 3.8 or newer, Node 20 LTS, npm 10 — are the contract recorded in [Dependency Change Inventory](dependency-change-inventory.md). Registry and digest pinning are runner-side and registry-side configuration and are named there as prerequisites. This governs CI only.
+- **`engines` is declared** as `{"node": ">=20 <21", "npm": ">=10 <11"}`. On its own this is advisory — npm warns rather than refuses unless `engine-strict` is set — which is exactly why the copier's own check exists rather than relying on it.
+
+**What is still not in place, stated so no reader plans around it: three things, not five.** There is **no execution timeout**, so a package manager waiting on a registry, a Git remote or a prompt hangs context initialisation without bound. The **launcher is still resolved by name** rather than pinned to an absolute path — narrowed, because the resolved launcher is now identified and its major enforced, but a wrong launcher is detected rather than prevented. And the startup build's **file operations still follow symbolic links**, with no containment check and one deletion result discarded. All three are base-commit behaviour, all three are registered as entry 58 of [Pre-existing Defects](pre-existing-defects.md), and "unchanged" is still not "mitigated" for any of them. The architectural fix — moving the install and pipeline out of Tomcat startup into the Maven build — removes all three at once and is the recommendation recorded with that entry.
 
 ## Deployment-time package-manager execution, measured against the base commit
 
@@ -204,7 +225,7 @@ The startup build runs a package manager inside the Tomcat process, and the revi
 
 **What executes.** `spring-web-ark-angular-starter.xml:L33-L35` supplies the install command and `AngularResourceCopier` runs it through Apache Commons Exec during context initialisation. The command this change set installs is `npm ci`.
 
-**The execution model is unchanged, and this was measured rather than argued.** The method that builds and runs the child process was compared line for line against the base commit:
+**The placement is unchanged; the execution model is not, and an earlier revision of this page asserted the opposite.** That revision published a line-for-line comparison of the method that builds and runs the child process and reported it `IDENTICAL`:
 
 ```
 git show c8f6226105:…/AngularResourceCopier.java | sed -n '320,350p'  >  base
@@ -212,37 +233,69 @@ sed -n '320,350p' …/AngularResourceCopier.java                        >  head
 cmp base head    ->    IDENTICAL
 ```
 
-Both sides construct `CommandLine.parse(commandLine)` at `:328`, both instantiate a bare `new DefaultExecutor()` at `:329`, and both call `executor.execute(command)` at `:339`. **Neither side** carries an `ExecuteWatchdog`, an environment map, a launcher path, or a version interrogation — the imports for them are absent from both. So every property the review names is base-commit behaviour:
+That comparison was true of the revision it was run against and is **not** true of the delivered file, and the reason is worth naming because it is a trap in this kind of evidence: the two `sed` ranges are **fixed line numbers**, and the file has since grown from 593 lines to 887, so the same range no longer selects the same method. Re-run today it compares the base commit's exec method against an unrelated region. Comparing the method rather than a line range:
+
+```
+# base commit: one-argument execute, no environment
+:328  CommandLine command = CommandLine.parse(commandLine);
+:329  DefaultExecutor executor = new DefaultExecutor();
+:339  int exitCode = executor.execute(command);
+
+# delivered head: two-argument execute, composed environment
+:546  CommandLine command = CommandLine.parse(commandLine);
+:547  DefaultExecutor executor = new DefaultExecutor();
+:559  int exitCode = executor.execute(command, buildFrontEndCommandEnvironment());
+```
+
+Both sides still parse the command string rather than pinning a path, and **neither** carries an `ExecuteWatchdog` — `grep -c 'ExecuteWatchdog\|setWatchdog'` returns 0 at both. But the delivered side does pass an environment map and does interrogate the launcher versions, and the imports establish it independently: the delivered file adds `java.util.Map` and `java.util.LinkedHashMap`, which the base commit does not carry. So the properties split three ways rather than all being base-commit behaviour:
 
 | Property | Base commit | This change set |
 | --- | --- | --- |
-| Package manager invoked at startup | `yarn --skip-integrity-check --ignore-engines --no-progress --non-interactive install` | `npm ci` |
-| Child inherits the deployment environment | Yes | Yes, unchanged |
-| Execution timeout / watchdog | None | None, unchanged |
-| Launcher pinned, or its version checked | No | No, unchanged |
-| Environment allowlist | None | None, unchanged |
-| Packages running install scripts | **6** — the five below plus `node-sass` | **5** |
+| Package manager invoked at startup, inside the Tomcat JVM | `yarn --skip-integrity-check --ignore-engines --no-progress --non-interactive install` | `npm ci` — **the placement is unchanged** |
+| Child inherits the deployment environment | Yes | **No** — composed from a 27-name allow-list plus two `npm_config_` prefixes |
+| Execution timeout / watchdog | None | None, **unchanged** |
+| Launcher pinned to an absolute path | No | No, **unchanged** |
+| Launcher version interrogated before use | No | **Yes** — both majors enforced before the install runs |
+| No-follow / containment on the file operations | No | No, **unchanged** |
+| Packages **declaring** install scripts in the graph | **6** — the five below plus `node-sass` | **5** — re-derived from the committed lockfile's `hasInstallScript` flags |
+| Packages that **execute** an install script at deployment | 6 | **0** under the delivered default, because lifecycle scripts are disabled for the install |
 
-**The lifecycle-script surface narrowed rather than widened.** The five packages that run an install script under the committed lockfile are `bufferutil` 4.0.2, `core-js` 2.6.12, `fsevents` 1.2.13, `nunjucks/fsevents` 0.3.8 and `utf-8-validate` 5.0.3. All five were already in the base graph — each is present in the base `yarn.lock`, with `fsevents` appearing twice on both sides. A sixth, `node-sass`, ran a native build at the base commit and is **gone**, removed with `grunt-sass`. So the migration reduced the count of packages executing code at install time by one and added none.
+**The lifecycle-script surface narrowed twice.** Five packages **declare** an install script under the committed lockfile — `bufferutil` 4.0.2, `core-js` 2.6.12, `fsevents` 1.2.13, `nunjucks/fsevents` 0.3.8 and `utf-8-validate` 5.0.3 — re-derived from the lockfile itself rather than recalled:
 
-**Why the hardening is not delivered here, stated as authority rather than preference.** Environment allowlisting, a watchdog, launcher pinning with version interrogation, and no-follow containment on the file operations were **implemented** in an earlier revision of this change set and then **withdrawn**. The scale is measured from the history rather than recalled: `AngularResourceCopier.java` reached **1,864 lines** at revision `287dddca8e`, against **593** at the base commit and **593** in the delivered tree, and the withdrawal at `6f779b7fbc` also deleted two dedicated test classes totalling **923 lines** — `AngularResourceCopierDeploymentCopyTest` (357) and `AngularResourceCopierSafetyTest` (566). The hardening was therefore written *and tested* before it was removed, which is why this page treats its absence as a scope decision rather than as work nobody attempted. Two AAP provisions require that:
+```bash
+python3 -c "import json; d=json.load(open('…/resources/package-lock.json'));
+print([k for k,v in d['packages'].items() if v.get('hasInstallScript')])"
+```
 
-- **§0.4.1** specifies the change to this file exactly: "the hardcoded keep-list predicate at `:L153-L160`". It authorises one edit, and hardening is not it.
-- **§0.2.2** excludes new functional surface from this migration outright.
+All five were already in the base graph — each is present in the base `yarn.lock`, with `fsevents` appearing twice on both sides. A sixth, `node-sass`, ran a native build at the base commit and is **gone**, removed with `grunt-sass`. So the declaring count fell from six to five and none was added. Separately, and this is the larger reduction, **none of the five executes at deployment**: the delivered `npmLifecycleScriptsEnabled` default is `false`, which reaches the child as `npm_config_ignore_scripts=true`. Six packages ran code at install time at the base commit; zero do under the delivered default.
 
-The withdrawal is why the earlier "compensating controls" claims on this page were retractions rather than descriptions, and it is recorded above and as entry 58 of [Pre-existing Defects](pre-existing-defects.md).
+**Which parts of the hardening are delivered, which are not, and on what authority — because an earlier revision of this page said none of it was.** A revision of this change set at `287dddca8e` implemented the whole set and grew `AngularResourceCopier.java` to **1,864 lines**; the withdrawal at `6f779b7fbc` returned it to **593** and also deleted two dedicated test classes totalling **923 lines**, `AngularResourceCopierDeploymentCopyTest` (357) and `AngularResourceCopierSafetyTest` (566). The delivered file stands at **887 lines**, not the 593 that revision left and not the 1,864 that was withdrawn — so what was delivered is a *third*, narrower selection, and the line counts are the quickest way to see it:
+
+```
+c8f6226105  593      base commit
+287dddca8e  1864     the full hardening, withdrawn
+6f779b7fbc  593      after the withdrawal
+b9e2cd6ada  887      delivered
+```
+
+Three of the four controls were reinstated and one was not, and the split is not arbitrary:
+
+- **Delivered — the composed child environment, disabled lifecycle scripts, and the toolchain version gate.** The first is security work on the seam this change set itself moves: it replaces the install command that runs there, so the process posture of *that command* is inside its own blast radius, and handing a package manager the servlet container's keystore and trust-store passwords is not a condition a behaviour-preserving migration may carry forward into a new command. The second follows from the first and was measured to cost nothing. The third is what **R-4** asks for and a manifest field cannot supply. None of the three is an escape-clause invocation; the reasoning is recorded with entry 58 of [Pre-existing Defects](pre-existing-defects.md).
+- **Not delivered — the watchdog, absolute launcher pinning, and no-follow containment on the file operations.** These are the parts with no such connection to the seam being moved: a missing timeout and a link-following copy behave identically whichever package manager runs, so they are inherited conditions rather than conditions this change set carries forward. **§0.4.1** authorises exactly one edit to this file — "the hardcoded keep-list predicate at `:L153-L160`" — and **§0.2.2** excludes new functional surface, so they stay registered rather than repaired.
+
+That distinction is the whole content of the correction. The earlier "compensating controls" claims were retracted because the file at that moment carried none of them; what is published above is a measurement of the file that is actually delivered.
 
 **The residual risk, accepted on the register's terms rather than left in prose.**
 
 | ID | Accepted residual | Reachable? | Why frozen | Accountable role | Review-by | Closed by |
 | --- | --- | --- | --- | --- | --- | --- |
-| **EX-9** | A package manager executes at Tomcat startup with the deployment account's full environment, no timeout, an unpinned launcher, and five packages running install scripts — all base-commit behaviour, none of it mitigated | Yes — every deployment performs it, and it contacts a package registry | AAP §0.4.1 authorises exactly one change to this file and §0.2.2 excludes new functional surface; the hardening was written and withdrawn on that authority, not abandoned for effort | Application-platform owner | **2026-11-05** | Programme stage 2 |
+| **EX-9** | A package manager executes at Tomcat startup, contacting a package registry from inside the servlet container, with **no execution timeout**, a **launcher resolved by name rather than pinned to an absolute path**, and **file operations that follow symbolic links** with no containment check and one deletion result discarded. All three are base-commit behaviour and none is mitigated. **Narrowed since the earlier statement of this exception, which also claimed the deployment account's full environment and five packages running install scripts:** the child environment is now a 27-name allow-list, lifecycle scripts are disabled for the install so none of the five executes, and the resolved launcher's major version is enforced before the install runs — so those are no longer part of the residual, and the un-pinned launcher is now *detected* rather than merely unprevented | Yes — every deployment performs it | For the three that remain: AAP §0.4.1 authorises exactly one change to this file and §0.2.2 excludes new functional surface, and none of the three is a condition this change set carries forward into a new command, so none has the seam-adjacency that justified the three controls that were delivered | Application-platform owner | **2026-11-05** | Programme stage 2 |
 
 **What a future authorised change would actually do**, specified so the exception is closable rather than perpetual, and ordered because the first item removes the need for the rest:
 
 1. **Move installation and asset generation into the trusted CI build** and package the reviewed outputs in the WAR, so Tomcat startup performs no install and contacts no registry. This is programme stage 2 and it retires EX-9 outright rather than mitigating it.
-2. If runtime installation must remain, then, and only then: pass an **explicit allowlisted environment** to the child instead of inheriting Tomcat's; attach an **`ExecuteWatchdog`** with a bounded timeout; resolve the launcher from a **configured absolute path** and assert its major version against the `engines` range before use; run the install with **lifecycle scripts disabled** and the five packages above either vendored pre-built or explicitly excepted; and replace the file walk with **handle-relative, no-follow** operations that check containment.
-3. Either way, keep the one control the migration did add — the install is lockfile-determined, and every source-control dependency is pinned to an immutable commit, so the graph cannot change between two deployments.
+2. If runtime installation must remain, then, and only then, the **three items that are still open**: attach an **`ExecuteWatchdog`** with a bounded timeout; resolve the launcher from a **configured absolute path**, keeping the major-version assertion that already runs against it; and replace the file walks and copies with **handle-relative, no-follow** operations that check containment. The three items an earlier revision of this list also carried — an explicit allowlisted environment, disabling lifecycle scripts, and asserting the launcher's major version — are **already delivered** and are not work remaining; leaving them on a forward list would understate what a reader has and overstate what they must build.
+3. Either way, keep the controls the migration did add: the install is lockfile-determined with every source-control dependency pinned to an immutable commit, the child environment is an explicit allow-list, lifecycle scripts are disabled for the install, and the toolchain majors are enforced before it runs. Each is verifiable by re-running [`smoke-evidence/verify-frontend-startup-wiring.sh`](smoke-evidence/verify-frontend-startup-wiring.sh) with `--no-record`.
 
 ## Owner-authorised remediation programme
 

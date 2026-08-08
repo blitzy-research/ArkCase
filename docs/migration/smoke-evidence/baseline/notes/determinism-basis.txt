@@ -1,0 +1,49 @@
+why the five frontend artifact digests are a valid behavioural comparison
+
+produced-by: docs/migration/smoke-evidence/restore-frontend-artifact-records.sh
+written-at: 2026-08-08T11:09:52Z
+measured-from: acm-standard-applications/arkcase/src/main/webapp/resources/Gruntfile.js and config/env/all.js in the working tree at the moment of writing.  Every
+  line number below was located by searching those files, not transcribed, so a
+  reader who finds a different line has found a changed pipeline rather than a
+  stale note.  Both files are frozen contract files in this change set.
+
+compared artifacts, each traced to the Grunt target that produces it:
+  application.js       ngAnnotate target,        Gruntfile.js:66
+  application.min.js   uglify target,            Gruntfile.js:48
+  vendors.min.js       concat target,            Gruntfile.js:73
+  application.min.css  cssmin target,            Gruntfile.js:59
+  home.html            renderHome (config/env/all.js:22) then rewritten in
+                       place by cacheBust,       Gruntfile.js:79
+
+determinism basis:
+  cache busting is content-hash based (Gruntfile.js:79) with no timestamp,
+    banner or date injection
+  minification runs with identifier mangling disabled (Gruntfile.js:51)
+  the dist directory is wiped first (Gruntfile.js:131), so a stale artefact
+    cannot masquerade as a match
+  the task graph is unchanged (Gruntfile.js:376), so both runs produce the same
+    five artifact names by construction
+
+honest caveat: source-map generation is enabled (Gruntfile.js:52) and a source
+  map embeds file paths, so the comparison build must run from the same relative
+  path.  If it cannot, application.min.js.map differs while the JavaScript
+  bundles do not; the map is then excluded from the byte comparison and the five
+  artifacts above remain in scope.  The map is digested anyway, and its value is
+  carried in the adjudication record, so the caveat can be checked rather than
+  trusted.
+
+why this comparison carries so much weight: the frontend tree contains no spec
+  files at all, so there is no automated behavioural test to fall back on.  These
+  digests are the strongest available evidence, which is also why exit codes of
+  the BUILD cannot be relied on: the build is configured to force its way past
+  task failures (Gruntfile.js:144), so a broken build can exit zero.
+
+and why an ABSENT digest is a failure rather than a row.  The four dist artifacts
+  and home.html are build outputs and are not tracked in version control, so a
+  capture taken without a completed frontend build has nothing to digest.  Two
+  such captures compare byte-identical and the comparison then reports the
+  frontend unchanged when it was never built.  Identical absence is not identity
+  of behaviour.  The program that wrote these records cannot record ABSENT at
+  all: it resolves every required digest before writing anything and stops with a
+  non-zero status if one is missing.  Re-check at any time with
+    restore-frontend-artifact-records.sh --side baseline --verify-only

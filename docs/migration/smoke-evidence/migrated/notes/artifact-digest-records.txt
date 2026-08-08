@@ -1,0 +1,46 @@
+digest record schema validation
+
+records-checked: 6
+records-wellformed: 6
+records-absent-but-wellformed: 0
+records-malformed: 0
+
+produced-by: docs/migration/smoke-evidence/restore-frontend-artifact-records.sh
+written-at: 2026-08-08T11:09:52Z
+authority: migrated/summary.txt
+authority-sha256: e94d337092042ba43b08e443df74d325b1ac09d0c8126a61de34724909cd16a4
+authority-measured-on: Node 20.20.2 with npm 10.8.2, npm ci from the committed lockfile
+
+required schema, one line per file, two spaces between the fields:
+  <64 lower-case hex>  followed by the artifact KEY, which is the record
+  file name with ".sha256" removed.  No path, no third field, no second line.
+  This program cannot write any other value: a digest it cannot resolve stops
+  the run with a non-zero status and leaves every record untouched.
+
+per-record outcome, read back off disk after writing:
+  OK         artifacts/application.js.sha256  3c0aeb4d2b02dc740e733e5ed89c87bf0d229cc19489ee0f023c04af611391b8
+  OK         artifacts/application.min.js.sha256  c1a4cb56e4b644c4d6e356698a222f9de2b57dc0114eec86d93323e0a9b41dc2
+  OK         artifacts/vendors.min.js.sha256  70187246b480eebb6f920732ce84356fb719b2db9694c10ed20388ff6f5e3be4
+  OK         artifacts/application.min.css.sha256  04228704205f51db7eac073b0001c87e54473f372865a031b910b989c8891ea1
+  OK         artifacts/home.html.sha256  43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9
+  OK         artifacts/application.min.js.map.sha256  84a7efde28457effd813db74a816936d6c0b434196f79d1eec6c4aaa0697c2b8
+
+the advisory source map is RECORDED like the other five but is NOT one of the
+  compared five and is not counted in the verdict, because it embeds file paths and
+  is only comparable when both sides build from the same relative path.  It is
+  recorded so that the adjudication record can print its measured digest, which is
+  what lets a reader CHECK that scoping decision instead of taking it on trust:
+  84a7efde28457effd813db74a816936d6c0b434196f79d1eec6c4aaa0697c2b8  application.min.js.map
+
+why the schema is validated on READ-BACK rather than trusted at the point of
+  writing.  Records committed by an earlier revision of this deliverable carried
+  a path-qualified label that no producer could emit, which proved they had been
+  edited after capture, and nothing in the reader looked at the label at all.
+  Two captures whose records label the same artefact differently cannot be
+  compared by key.  The label is now asserted, so an edited record is a
+  detected condition instead of an invisible one.
+
+a malformed record is NOT the same as an absent one: absence means the artefact
+  was not built and the remedy is to build it, whereas malformation means the
+  record cannot be trusted and the remedy is to re-capture it.  This program
+  refuses both.

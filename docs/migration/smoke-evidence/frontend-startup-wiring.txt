@@ -1,0 +1,93 @@
+===== startup frontend-build seam: executed observation =====
+
+WHAT THIS IS.  The output of verify-frontend-startup-wiring.sh, which loads the delivered
+Spring document, instantiates the delivered AngularResourceCopier, and executes three
+behaviours of the startup frontend-build seam.  It exists because the JUnit class those
+behaviours were previously claimed to be covered by, AngularResourceCopierWiringTest, was
+withdrawn with the other unauthorised test files, and because the committed startup logs
+were taken from a deployment built before the seam carried any of this behaviour -- grep
+the migrated capture for the composed-environment line and it returns nothing.  Without
+this record three delivered behaviours have no evidence at all.
+
+REGENERATE IT:  docs/migration/smoke-evidence/verify-frontend-startup-wiring.sh
+CHECK WITHOUT WRITING:  the same command with --no-record
+
+----- what was executed -----
+spring-document        : acm-user-interface/ark-angular-starter/src/main/resources/spring/spring-web-ark-angular-starter.xml
+spring-document-sha256 : dc70069e959894032b4587b83ac771c2c3183d3b9d1ff2c8bef441f4456f526d
+java-source            : acm-user-interface/ark-angular-starter/src/main/java/com/armedia/acm/userinterface/angular/AngularResourceCopier.java
+java-source-sha256     : cef34572a3f8c41b47cbd6012f4eaeec714901738ae4e7874e8368f3e8a0bc9d
+producer               : docs/migration/smoke-evidence/verify-frontend-startup-wiring.sh
+producer-sha256        : e5a9c7b9d2bf9289d9a36b64ed8d5fe96bb14e6f23b738ec8dbe61b5668e48a7
+head-commit            : b9e2cd6ada5018f454c71d845bcd0c00f21bf4b3
+worktree-modified-paths: 23
+host-java              : openjdk version "17.0.19" 2026-04-21
+host-node              : v20.20.2
+host-npm               : 10.8.2
+
+The two sha256 values are the identities that matter: the record describes THOSE bytes.
+If either file changes, re-run this rather than reading the record as current.
+
+----- observed -----
+===== A. PLATFORM RESOLUTION =====
+os.name = Linux
+  nodeVersionCommand      : node --version
+  npmVersionCommand       : npm --version
+  install (yarnInstall*)  : npm ci
+  gruntDefaultCommand     : node_modules/.bin/grunt --no-color
+  mergeConfigFrontendTask : node_modules/.bin/grunt updateModulesConfig --no-color
+os.name = Mac OS X
+  nodeVersionCommand      : node --version
+  npmVersionCommand       : npm --version
+  install (yarnInstall*)  : npm ci
+  gruntDefaultCommand     : node_modules/.bin/grunt --no-color
+  mergeConfigFrontendTask : node_modules/.bin/grunt updateModulesConfig --no-color
+os.name = Windows 11
+  nodeVersionCommand      : cmd /C node --version
+  npmVersionCommand       : cmd /C npm --version
+  install (yarnInstall*)  : cmd /C npm ci
+  gruntDefaultCommand     : cmd /C node_modules\\.bin\\grunt.cmd --no-color
+  mergeConfigFrontendTask : cmd /C node_modules\\.bin\\grunt.cmd updateModulesConfig --no-color
+
+===== B. CHILD-ENVIRONMENT COMPOSITION =====
+  variables this process holds : 82
+  variables composed for child : 3
+  composed keys                : [PATH, HOME, npm_config_ignore_scripts]
+  sentinel present in parent   : true
+  sentinel present in child    : false
+  npm_config_ignore_scripts    : true
+
+===== C. TOOLCHAIN VERIFICATION =====
+  requiredNodeMajorVersion : 20
+  requiredNpmMajorVersion  : 10
+  real launchers           : ACCEPTED
+  wrong required major     : REFUSED — The front-end build cannot start: Node.js major version 20 is on the path, but the committed package-lock.json was produced with Node.js 99 and the frontend package.json engines block requires it. [node --version] reported [v20.20.2]. Install the required version, or - if this estate has verified another one - set the angularResourceCopier bean's requiredNodeMajorVersion property.
+
+VERDICT: PASSED — all checks
+
+----- what this does and does not establish -----
+ESTABLISHES, by execution:
+  * the Windows branch resolves a launchable Node probe.  The suffix that names a batch
+    wrapper reaches the path-qualified Grunt CLI and reaches neither bare-name launcher,
+    so 'cmd /C node.cmd --version' -- which cmd cannot resolve, and which ran BEFORE the
+    install -- is gone.  The Linux and macOS branches resolve exactly what they resolved
+    before, which is why the captures taken on Linux remain comparable.
+  * the child environment is composed rather than inherited.  A variable exported into
+    the parent and needed by no build step does not reach the child.
+  * package lifecycle scripts are disabled for the install by the delivered default.
+  * the toolchain majors are enforced in both directions: this host's real launchers are
+    accepted, and a required major this host cannot satisfy is refused with a diagnostic
+    naming it.
+
+DOES NOT ESTABLISH:
+  * anything about a real Windows host.  os.name is simulated, so what is verified is the
+    COMMAND each branch resolves, not its execution on Windows.  That is the whole of the
+    defect that was found and fixed, and it is as far as this can go from Linux.
+  * that the residual weaknesses of this seam are mitigated.  They are not: there is no
+    execution timeout, the launcher is still resolved by name rather than pinned to an
+    absolute path, the file operations still follow symbolic links, and one deletion
+    result is still discarded.  All four are base-commit behaviour and all four are
+    registered as entry 58 of ../pre-existing-defects.md.
+  * that a deployment logs any of this.  The external configuration pins this logger to
+    warn, which suppresses the INFO narrative; the failure paths throw, so they are
+    visible regardless.

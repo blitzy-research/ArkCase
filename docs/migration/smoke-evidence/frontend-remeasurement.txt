@@ -1,0 +1,134 @@
+the migrated frontend build, RE-MEASURED, and what the re-measurement settles
+=============================================================================
+
+GENERATED FROM MEASUREMENT.  Every digest, filename and status below was copied out of the
+output of capture-frontend-artifacts.sh, which sits beside this file, by the command recorded
+under HOW TO REPRODUCE.  Nothing in it was transcribed by hand.
+
+WHY IT EXISTS.  The ten per-side digest records in baseline/artifacts/ and migrated/artifacts/
+were overwritten with the token ABSENT by a consolidation run of the capture producer taken
+against a tree whose build outputs had been cleaned.  Restoring them from a committed
+measurement is one thing; showing that the measurement still holds is another, and only the
+migrated side can be shown that way - the pre-migration side was built on the historical Node
+line against a deployment that cannot be rebuilt from this tree.  So the migrated side was
+rebuilt from scratch and re-digested, and this file is that result.
+
+HOW THE BUILD WAS TAKEN
+  === runtime this capture built on ===
+  requested-node-line: 20
+  v20.20.2
+  10.8.2
+  tree-built: b9e2cd6ada5018f454c71d845bcd0c00f21bf4b3
+  package-manager: npm, restoring from the committed lockfile
+  worktree-at-measurement: 21 path(s) modified or untracked relative to the head above
+  frontend-tree-at-measurement: unmodified relative to that head, so the extraction and the
+    working tree hold the same frontend inputs
+  extraction: git archive, which cannot retain an untracked file, so profiles.js and
+    package-lock.json had to be TRACKED for the build to start at all - and the script
+    asserts both rather than creating them
+  install: npm ci, exit 0
+  build:   npm run build, exit 0
+  the two exit statuses are recorded and are NOT the result: the pipeline forces past task
+    failures, and this build did hit one - the final task raised ENOENT on
+    modules_config/config/modules.json and the run continued under --force.  That is
+    registered pre-existing defect 49 and it contributes to none of the five artifacts.
+
+WHAT THE BUILD PRODUCED
+  === artifact digests, committed tree built with npm ci on the Node 20 line ===
+  3c0aeb4d2b02dc740e733e5ed89c87bf0d229cc19489ee0f023c04af611391b8  assets/dist/application.js
+  c1a4cb56e4b644c4d6e356698a222f9de2b57dc0114eec86d93323e0a9b41dc2  assets/dist/application.min.js
+  70187246b480eebb6f920732ce84356fb719b2db9694c10ed20388ff6f5e3be4  assets/dist/vendors.min.js
+  04228704205f51db7eac073b0001c87e54473f372865a031b910b989c8891ea1  assets/dist/application.min.css
+  43c5eb7d7735fc2894f0665cf0238cbf3e097baeb1b13c6c39fc5a1078b7c7a9  home.html
+  === the advisory source map, digested but outside the five ===
+  84a7efde28457effd813db74a816936d6c0b434196f79d1eec6c4aaa0697c2b8  assets/dist/application.min.js.map
+  === cache-busted names produced ===
+  application.ef1612bbd7993382.js
+  application.js
+  application.min.1ae47d39c0d9d836.css
+  application.min.2fa1cd12f2c4077f.js
+  application.min.css
+  application.min.js
+  application.min.js.56da89159ec1b11a.map
+  application.min.js.map
+  vendors.min.59439035604af96f.js
+  vendors.min.js
+
+WHAT IT AGREES WITH, CHECKED RATHER THAN ASSERTED
+  Four committed records were compared against the re-measurement, key by key:
+    historical-frontend/artifact-digests-node20.txt   the committed migrated measurement
+                                                      5 of 5 compared artifacts agree; it
+                                                      records no source-map digest
+    migrated/summary.txt                              that capture own digest ledger
+                                                      5 of 5 agree, and the source map agrees
+    migrated/artifacts/*.sha256                        the restored per-side records
+                                                      6 of 6 agree, the source map included
+    provisioned-stack/artifacts/*.sha256               a third, independent capture
+                                                      5 of 5 agree, and the source map agrees
+  There is no disagreement anywhere in that table.  That is what makes the restored records a
+  recovered MEASUREMENT rather than a transcription: the same values are now attested by a
+  build taken after the records were restored, by two earlier builds, and by three separate
+  capture ledgers, and every one of those attestations was checked rather than cited.
+
+WHAT IT DOES NOT SETTLE.  It says nothing about the pre-migration side and therefore nothing
+  about the byte-identity criterion, which compares the two.  That verdict is computed by
+  compare-frontend-artifacts.sh and stated in migrated/artifacts/diff-result.txt, and it
+  remains a FAIL on two of the five rows.  Re-measuring the migrated side cannot move it,
+  because the difference is produced by the runtime move itself.
+
+WHAT WAS RESTORED, AND WHAT THE CAPTURE MANIFESTS DO AND DO NOT COUNT
+  Restored by restore-frontend-artifact-records.sh, per side:
+    artifacts/application.js.sha256        rewritten from the token ABSENT to the measured digest
+    artifacts/application.min.js.sha256    rewritten from the token ABSENT to the measured digest
+    artifacts/vendors.min.js.sha256        rewritten from the token ABSENT to the measured digest
+    artifacts/application.min.css.sha256   rewritten from the token ABSENT to the measured digest
+    artifacts/home.html.sha256             rewritten from the token ABSENT to the measured digest
+    artifacts/application.min.js.map.sha256 re-created; deleted outright by the consolidation run
+    notes/artifact-digest-records.txt      re-created; the per-record outcome the gate note points at
+    notes/determinism-basis.txt            re-created; measured from the frozen pipeline configuration
+  Both notes are referenced BY NAME from notes/artifact-gate.txt, from
+  notes/01-artifact-comparison-scope.txt and from migrated/artifacts/diff-result.txt, and both had
+  been deleted while every one of those references was left in place.
+
+  THE SOURCE-MAP RECORD NEEDS ITS OWN WORD, because a first pass of this restoration deliberately
+  left it out and that was wrong.  The map is NOT one of the compared five and is not counted in the
+  verdict - it embeds file paths, so it is only comparable when both sides build from the same
+  relative path - and the first pass read that scoping decision as a reason to withhold the record
+  too.  The consequence was visible in the output it produced: the adjudication record's advisory
+  paragraph says the map is reported there "so that scoping decision can be checked rather than
+  trusted", and with no record on either side it printed RECORD-ABSENT twice, so the single thing
+  that paragraph exists to let a reader check was the one thing they could not.  Excluding an
+  artifact from a comparison is a scoping decision; declining to record its measured digest is an
+  evidence gap wearing that decision's clothes.  Both sides carried the record before the
+  consolidation run deleted it, the digests are measured and corroborated - pre-migration
+  60ea8616dfa29ed8cc57910a838024d3172be23693d378b2610adcde68159762 and post-migration
+  84a7efde28457effd813db74a816936d6c0b434196f79d1eec6c4aaa0697c2b8, both byte-identical to the
+  records committed at 0e13c8620d, and the post-migration value reproduced by the re-measurement
+  above and by historical-frontend/artifact-digests-node20-basecommit-yarn.txt - so it is restored
+  with the other five and marked advisory rather than omitted.  The adjudication record now prints
+  both values and reports "differs - advisory scope, not counted in the verdict", which is the
+  checkable form of the same scoping decision.
+
+  NOT touched, deliberately: notes/artifact-gate.txt, notes/completeness.txt, notes/manifest.txt and
+  comparison.txt.  Each of them makes a statement ABOUT the digests - the gate counts five produced
+  and none failed, completeness counts zero absent, the comparison lists the five pairs - and every
+  one of those statements was TRUE when the run wrote it.  They became false only because the records
+  beneath them were later overwritten.  Restoring the records makes them true again, and editing a
+  measured observation to agree with a later state of the tree is the authenticity defect this
+  evidence set has already had to remove once.  So they were left exactly as their runs computed
+  them, and re-checked afterwards: both gate notes read state PASSED with 5 required, 5 produced and
+  0 failed, both completeness verdicts read zero absent digests, and comparison.txt lists the same
+  five pairs the adjudication record now reads off disk.
+
+  One caveat about those files, stated rather than corrected.  Each notes/manifest.txt reports the
+  path count of the run that wrote it - baseline 73, migrated 75 - and the capture directories
+  now hold 83 and 87 non-report files respectively.  The difference is post-run additions by
+  other producers, of which this restoration contributes exactly three files per side: the two notes
+  named above and the re-created source-map record.
+  The counters are left as measured because they are a record of a run, not a live inventory; the
+  live check is restore-frontend-artifact-records.sh --verify-only, which reads the records
+  themselves and fails closed.
+
+HOW TO REPRODUCE
+  ./docs/migration/smoke-evidence/capture-frontend-artifacts.sh <staging-dir>
+  ./docs/migration/smoke-evidence/restore-frontend-artifact-records.sh --side migrated --verify-only

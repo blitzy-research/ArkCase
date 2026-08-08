@@ -47,37 +47,57 @@ import javax.naming.OperationNotSupportedException;
 import javax.naming.directory.DirContext;
 import javax.naming.ldap.LdapName;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Properties;
 
 public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPathContextSource, InitializingBean
 {
+    /**
+     * Classpath location of the login library configuration file that holds the two LDAP JNDI
+     * values. It is the single textual home for both of them; the {@code ldapJndiProperties} bean
+     * in {@code spring/spring-library-user-login.xml} loads the same file, so a bean definition
+     * that wires the values explicitly and one that relies on the defaults below resolve to
+     * identical strings.
+     */
+    static final String LDAP_JNDI_PROPERTIES_LOCATION = "/spring/ldap-jndi.properties";
+
+    /**
+     * Configuration key naming the JNDI initial context factory class.
+     */
+    static final String INITIAL_CONTEXT_FACTORY_PROPERTY = "ldap.jndi.initialContextFactory";
+
+    /**
+     * Configuration key naming the JNDI connection pooling environment property.
+     */
+    static final String CONNECTION_POOL_FLAG_PROPERTY = "ldap.jndi.connectionPoolFlag";
+
     private static final Class DEFAULT_DIR_OBJECT_FACTORY = DefaultDirObjectFactory.class;
     private static final boolean DONT_DISABLE_POOLING = false;
     private static final boolean EXPLICITLY_DISABLE_POOLING = true;
     private static final Logger LOGGER = LoggerFactory.getLogger(ActiveDirectoryAbstractContextSource.class);
     private static final String JDK_142 = "1.4.2";
 
+    /**
+     * The two LDAP JNDI values, read once from {@link #LDAP_JNDI_PROPERTIES_LOCATION}. A
+     * deployment-specific JNDI setting belongs in configuration, so the file that ships in this
+     * module's jar is the authoritative source of both.
+     * <p>
+     * They are read at class initialization so that every instance of this context source carries
+     * the configured defaults whether or not anything sets them. That matters because bean
+     * definitions for this class also live in the external ArkCase configuration repository, where
+     * they name neither property: such a definition inherits both defaults and needs no edit.
+     */
+    private static final Properties LDAP_JNDI_DEFAULTS = loadLdapJndiDefaults();
+
     protected static MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
     protected String userDn = "";
     protected String password = "";
     private Class dirObjectFactory = DEFAULT_DIR_OBJECT_FACTORY;
-
-    /**
-     * Fully qualified class name of the JNDI initial context factory, supplied by configuration.
-     * <p>
-     * A deployment-specific JNDI setting belongs in configuration rather than in Java, so this class
-     * holds no default for it: the value is injected, and the bean definition template
-     * {@code activeDirectoryContextSourceJndi} in {@code spring/spring-library-user-login.xml} carries
-     * it. {@link #afterPropertiesSet()} rejects a missing or blank value by name.
-     */
-    private String contextFactory;
-
-    /**
-     * JNDI environment property key that requests LDAP connection pooling, supplied by configuration
-     * on the same terms, and validated on the same terms, as {@link #contextFactory}.
-     */
-    private String connectionPoolFlag;
+    private String contextFactory = LDAP_JNDI_DEFAULTS.getProperty(INITIAL_CONTEXT_FACTORY_PROPERTY);
+    private String connectionPoolFlag = LDAP_JNDI_DEFAULTS.getProperty(CONNECTION_POOL_FLAG_PROPERTY);
     private DistinguishedName base = DistinguishedName.EMPTY_PATH;
     private String[] urls;
     private boolean pooled = false;
@@ -88,6 +108,43 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     private boolean anonymousReadOnly = false;
     private String referral = null;
     private DirContextAuthenticationStrategy authenticationStrategy = new SimpleDirContextAuthenticationStrategy();
+
+    /**
+     * Read the LDAP JNDI values from the login library configuration file on the classpath.
+     * <p>
+     * The file ships inside this module's jar, so it is always present alongside this class. A
+     * missing or unreadable file is therefore a packaging fault rather than a configuration
+     * choice, and it is reported as such: an empty result is returned here and
+     * {@link #afterPropertiesSet()} refuses to build a JNDI environment from it, naming the file
+     * and the missing key. Failing there rather than here keeps the diagnosis attached to the bean
+     * that needs the value, and avoids turning a packaging fault into a class initialization error
+     * that no stack trace explains.
+     *
+     * @return the configured LDAP JNDI values, never {@code null}.
+     */
+    private static Properties loadLdapJndiDefaults()
+    {
+        Properties defaults = new Properties();
+
+        try (InputStream configuration = ActiveDirectoryAbstractContextSource.class
+                .getResourceAsStream(LDAP_JNDI_PROPERTIES_LOCATION))
+        {
+            if (configuration == null)
+            {
+                LOGGER.error("LDAP JNDI configuration [{}] is not on the classpath; every context source bean must "
+                        + "then supply both the initial context factory and the connection pooling flag itself.",
+                        LDAP_JNDI_PROPERTIES_LOCATION);
+                return defaults;
+            }
+            defaults.load(configuration);
+        }
+        catch (IOException e)
+        {
+            LOGGER.error("LDAP JNDI configuration [{}] could not be read: {}", LDAP_JNDI_PROPERTIES_LOCATION, e.getMessage(), e);
+        }
+
+        return defaults;
+    }
 
     @Override
     public DirContext getContext(String principal, String credentials)
@@ -351,8 +408,9 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     /**
      * Set the context factory, as the fully qualified name of the JNDI initial
      * context factory class. JNDI resolves the class by name at run time, so the
-     * value must match the provider class name exactly. There is no default in
-     * Java: the value comes from configuration, and leaving it unset or blank is
+     * value must match the provider class name exactly. The default comes from the
+     * login library configuration file, so a bean definition that leaves this
+     * property unset keeps the configured default. Setting it to a blank value is
      * rejected when the context source initializes.
      *
      * @param contextFactory
@@ -412,22 +470,23 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
 
         // Both JNDI values are required to build an environment at all: the factory name is the
         // environment value JNDI resolves the LDAP provider from, and the pooling flag is the
-        // environment key pooling is requested under. Neither has a default in Java, so reaching
-        // either branch below means the bean definition supplied no value or a blank one. Checking
-        // here reports that as a named, actionable failure instead of a bare NullPointerException
+        // environment key pooling is requested under. They default from the login library
+        // configuration file, so reaching either branch below means the default was overridden
+        // with a blank value or the configuration file is missing from the jar. Checking here
+        // reports that as a named, actionable failure instead of a bare NullPointerException
         // raised several frames deeper inside the JNDI environment table.
         if (StringUtils.isBlank(contextFactory))
         {
-            throw new IllegalArgumentException("The 'contextFactory' property must be set to the LDAP initial context "
-                    + "factory class name; inherit it from the 'activeDirectoryContextSourceJndi' bean definition "
-                    + "template in spring/spring-library-user-login.xml, or set it explicitly on this bean");
+            throw new IllegalArgumentException("The LDAP initial context factory class name must be set; it defaults from '"
+                    + INITIAL_CONTEXT_FACTORY_PROPERTY + "' in " + LDAP_JNDI_PROPERTIES_LOCATION
+                    + " and may be overridden by the 'contextFactory' property of this bean");
         }
 
         if (StringUtils.isBlank(connectionPoolFlag))
         {
-            throw new IllegalArgumentException("The 'connectionPoolFlag' property must be set to the JNDI connection "
-                    + "pooling environment key; inherit it from the 'activeDirectoryContextSourceJndi' bean definition "
-                    + "template in spring/spring-library-user-login.xml, or set it explicitly on this bean");
+            throw new IllegalArgumentException("The LDAP connection pooling flag key must be set; it defaults from '"
+                    + CONNECTION_POOL_FLAG_PROPERTY + "' in " + LDAP_JNDI_PROPERTIES_LOCATION
+                    + " and may be overridden by the 'connectionPoolFlag' property of this bean");
         }
 
         if (authenticationSource == null)
@@ -583,8 +642,10 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     /**
      * Set the JNDI environment property key that carries the LDAP connection
      * pooling flag. JNDI matches the key exactly and recognizes no variation of
-     * it. There is no default in Java: the value comes from configuration, and
-     * leaving it unset or blank is rejected when the context source initializes.
+     * it. The default comes from the login library configuration file, so a bean
+     * definition that leaves this property unset keeps the configured default.
+     * Setting it to a blank value is rejected when the context source
+     * initializes.
      *
      * @param connectionPoolFlag
      *            the JNDI environment property key used to request pooling.
