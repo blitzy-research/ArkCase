@@ -4522,6 +4522,17 @@ fi
 # between the two IS the evidence that the basis matters.
 SMOKE_TRACKED_PATH_LIST=''
 
+# THE PRUNED SET IS DECLARED HERE, BEFORE ITS FIRST USE, AND NOT ONLY WHERE IT IS
+# EXPLAINED.  Its explanation lives beside the corpus census far below, and the
+# assignment used to live there with it -- roughly six thousand lines after the line
+# that interpolates it.  This file runs under `set -u`, so reaching this point raised
+# "SMOKE_CORPUS_PRUNED: unbound variable" and the run died before writing anything.
+# That is why every derived-record mode was unusable, and therefore why a stale
+# adjudication could not be recomputed by the one mechanism provided for recomputing
+# it.  Declared once here; the explanation below re-states the same literal so the
+# reasoning stays next to the census it governs, and the two are asserted equal.
+SMOKE_CORPUS_PRUNED='target node_modules .git blitzy_adhoc_test_*'
+
 SMOKE_CORPUS_BASIS="working-tree walk pruning ${SMOKE_CORPUS_PRUNED} by directory name; git metadata was unavailable, so an untracked tree beneath the root is counted"
 
 # tracked_paths_matching — the tracked paths whose BASE NAME matches a glob,
@@ -10772,7 +10783,19 @@ capture_toolchain()
 #                     repository
 # The pruned set is printed into the note beside every figure, so the reader is
 # told what was excluded rather than having to infer it from a suspicious total.
-SMOKE_CORPUS_PRUNED='target node_modules .git blitzy_adhoc_test_*'
+# The same literal as the declaration far above, restated here beside the reasoning that
+# chooses it and then ASSERTED equal to it, so the two cannot drift into disagreement
+# without the run failing.
+SMOKE_CORPUS_PRUNED_EXPLAINED='target node_modules .git blitzy_adhoc_test_*'
+if [ "$SMOKE_CORPUS_PRUNED" != "$SMOKE_CORPUS_PRUNED_EXPLAINED" ]; then
+    printf 'smoke-checks.sh: the pruned set declared before its first use and the one\n' >&2
+    printf '  explained beside the corpus census disagree:\n' >&2
+    printf '    declared:  %s\n' "$SMOKE_CORPUS_PRUNED" >&2
+    printf '    explained: %s\n' "$SMOKE_CORPUS_PRUNED_EXPLAINED" >&2
+    printf '  Every corpus figure below is computed with the declared set, so a reader\n' >&2
+    printf '  told the explained set would be told the wrong thing.  Reconcile them.\n' >&2
+    exit 2
+fi
 
 # count_register_entries — the number of rows in the pre-existing-defects register,
 # measured rather than hardcoded.  A register row is discriminated by its Fixed
