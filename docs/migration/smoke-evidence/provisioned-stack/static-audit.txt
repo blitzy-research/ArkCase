@@ -1,0 +1,43 @@
+static audit gate — captured output
+
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_static_audit
+authoritative-presentation: docs/migration/static-audit-output.md
+gate-state: PASSED
+
+search-root: <REPO-ROOT>
+search-pattern: sun.misc\|com.sun.
+search-include: *.java
+search-pruned-directories: target, node_modules, .git, blitzy_adhoc_test_*
+tool: grep (GNU grep) 3.11
+java-files-searched: 3465
+
+command, reproducible verbatim from the repository root:
+  grep -rn -e 'sun.misc\|com.sun.' --include='*.java' --exclude-dir=target \
+      --exclude-dir=node_modules --exclude-dir=.git . \
+      | grep -F '/src/main/java/' | LC_ALL=C sort
+  and the same with /src/test/java/ for the test-source count.
+
+hits-whole-tree: 0
+hits-main-source: 0
+hits-test-source: 0
+
+grep exit-status semantics, stated because they are inverted for this
+gate: grep exits 0 when it MATCHES and 1 when it does not, so for a gate
+that must find nothing, exit 1 is the passing outcome and exit 0 the
+failing one.  Every count above was read back from the captured output
+file rather than inferred from any exit status, which is the only way an
+empty result and a failed search can be told apart.
+
+----- main-source hits, sorted -----
+(no output: the search emitted no main-source line, and that emptiness
+between these markers is the evidence)
+----- end main-source hits -----
+
+----- test-source hits, sorted -----
+(no output: test source carried zero hits at the base commit and carries
+zero here, so nothing was introduced while rewriting the mocking-framework
+test classes)
+----- end test-source hits -----
+
+per-file tally, main source:
+  (none)

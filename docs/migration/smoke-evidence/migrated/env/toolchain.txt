@@ -1,18 +1,45 @@
 toolchain provenance, captured verbatim from each tool
-capture-directory: <CAPTURE-DIR>
+capture-directory: docs/migration/smoke-evidence/migrated
+
+===== producer provenance =====
+producer: docs/migration/smoke-evidence/smoke-checks.sh
+producer-sha256: 28633c4f1cdefe1b01c971976c53920334922fe4c81668693b18c9947eecdacf
+producer-invoked-as: ./docs/migration/smoke-evidence/smoke-checks.sh
+repository-head: 0e13c8620de59ca66bfe8d0e261c82f15acc9cfd
+repository-head-short: 0e13c8620d
+repository-branch: blitzy-<UUID>-w-054
+repository-tree-state: dirty: 150 path(s) modified or untracked relative to 0e13c8620d
+declared-base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
+declared-capture-side: migrated
+declared-side-versus-observed-head: consistent: the capture declares the migrated side and HEAD 0e13c8620d is not the base commit
+
+HOW TO USE THE DIGEST.  The comparison this deliverable exists to support
+rests on both captures having been written by the same program.  Compare
+the producer-sha256 row in the two env/toolchain.txt files: equal digests
+mean the same bytes of program wrote both, and unequal digests mean they did
+not, whatever either capture says in prose about it.  A previously committed
+pair of trees was assembled by three different generations of this script
+while both asserted the producer was identical, which is precisely the
+failure a digest makes impossible to repeat unnoticed.
+
+A dirty repository-tree-state means this capture cannot be reproduced from
+any commit alone: the tree it ran against differed from the head it names.
+That is recorded rather than prevented, because capturing from a working
+tree is the ordinary case while the change set is being developed.
 
 ===== run posture =====
 transport-trust-mode: verify-default-trust-store
 transport-trust-degraded: no
 certificate-authority-bundle-supplied: no
 public-key-pin-supplied: no
-credential-source: file
+credential-source: environment
 credential-value-recorded: never
-state-mutation-permitted: yes
+state-mutation-permitted: no
+state-mutation-refused-because: ALLOW_SMOKE_MUTATIONS is not set to 1
 body-capture-cap-bytes: 262144
 header-capture-cap-bytes: 16384
 diagnostic-capture-cap-bytes: 8192
-log-region-cap-lines: 2000
+log-region-cap-lines: 8000
 
 ===== java -version =====
 openjdk version "17.0.19" 2026-04-21

@@ -1,0 +1,116 @@
+effective-schema model verification against a live deployed database
+
+WHY THIS FILE EXISTS
+  measure.py builds a model of the schema that RESULTS from running the Liquibase
+  graph.  A model is an assertion until it is checked against the thing it models,
+  and the previous revision of this measurement was faulted precisely for reporting
+  figures its implementation could not support.  So the model was checked against
+  the database the migrated deployment actually runs on, and the check is recorded
+  here with the commands that produce it rather than summarised.
+
+WHAT WAS COMPARED
+  The model was built with --roots core, which is the single root the core
+  application wires (spring-library-data-source.xml:164-166,
+  changeLog=classpath:/ddl/acm-database-changelog.xml).  The two extension roots
+  are wired by their own SpringLiquibase beans in the FOIA and privacy extension
+  libraries, and this deployment loads neither, so the core-only model is the one
+  that should correspond to this database.
+
+RESULT
+  core-model tables live at the end of the graph      186
+  database base tables                                222
+  core-model tables ABSENT from the database            0
+  database tables ABSENT from the core model           36
+  tables where the modelled column count equals the
+    database column count                             186 of 186
+  tables where the two counts disagree                  0
+
+  Every one of the 186 modelled tables exists in the database, and every one of
+  them carries exactly the number of columns the model derives.  That is the whole
+  claim this file makes, and it is a strong one: the model is not a union of
+  everything ever declared -- a union produces 20 extra tables and over 500 extra
+  columns -- it is the result of applying creates, adds, modifies, renames and
+  drops in graph order with the dbms filter applied.
+
+THE 36 DATABASE TABLES THE MODEL DOES NOT CONTAIN, FULLY ACCOUNTED FOR
+  activiti engine tables, act_*                        23
+  quartz scheduler tables, qrtz_*                      11
+  liquibase's own bookkeeping, DATABASECHANGELOG(LOCK)  2
+  unexplained                                           0
+
+  None of these is created by an ArkCase changelog: the process engine and the
+  scheduler create their own schemas at startup, and Liquibase creates its own two
+  tables.  The model therefore does not omit them by accident -- there is nothing
+  in the graph that would produce them.
+
+THE 9 TABLES THE FULL THREE-ROOT MODEL ADDS OVER THE CORE-ONLY MODEL
+  acm_disposition_reason              acm_disposition_reason_id
+  acm_foia_portal_registration        acm_foia_portal_registration_id
+  acm_foia_portal_reset               acm_foia_portal_reset_id
+  acm_response_installment            acm_response_installment_id
+  foia_file_exemption_code
+
+  These are the extension surface.  They are absent from this database for the
+  stated reason that this deployment loads no extension root, and their presence in
+  the default (three-root) model is why measurement.txt reports 195 live tables
+  while this database holds 186 of them.  Both figures are correct for what they
+  describe, and reporting only one of them would leave a reader unable to reconcile
+  the other.
+
+HOW TO REPRODUCE
+  # the model, restricted to the root the core application wires
+  python3 docs/migration/smoke-evidence/orm-ddl/measure.py . /tmp/core.json \
+      --roots core > /tmp/core.txt
+
+  # the database, from information_schema
+  mysql -N -B -e "SELECT LOWER(table_name) FROM information_schema.tables \
+      WHERE table_schema='<schema>' AND table_type='BASE TABLE' ORDER BY 1;"
+  mysql -N -B -e "SELECT LOWER(table_name), COUNT(*) FROM information_schema.columns \
+      WHERE table_schema='<schema>' GROUP BY 1 ORDER BY 1;"
+
+  # then compare the table sets and the per-table column counts between
+  # /tmp/core.json divergence.perTable[*].ddlColumns and the second query
+
+SECOND VERIFICATION: THE MODEL PREDICTS THE TWO failOnError="false" FAILURES THE
+STARTUP CAPTURES RECORD, WITHOUT HAVING SEEN THEM
+  The archived jpa-init region on both capture sides records exactly two changeSets
+  failing under failOnError="false".  The model, built from the sources alone,
+  independently produces the reason for each:
+
+  1. com/armedia/acm/dml/update/file-db-update-1.0.xml
+       ::files-09-rename-acm-container-folder::dmiller
+     runtime error: Table 'acm_container_folder' doesn't exist
+     model:  renameTable is recorded under "operations naming a table the model
+             does not hold", because the SAME rename already ran earlier in graph
+             order from com/armedia/acm/ddl/tables/file/file-db-tables-1.0.xml under
+             the same changeSet id -- the table's provenance in the model reads
+             "(renamed from acm_container_folder)".  The second attempt therefore
+             has nothing left to rename.
+
+  2. com/armedia/acm/dml/update/file-db-update-1.0.xml
+       ::files-23-unique-key-on-file-and-folder::dmiller
+     runtime error: Can't DROP INDEX `uk_version_series_id`
+     model:  the changeSet drops constraint uk_version_series_id and adds
+             uk_file_folder.  In the model acm_file carries uk_file_folder_link over
+             (cm_version_series_id, cm_folder_id, cm_file_is_link) and uk_file_folder
+             over (cm_version_series_id, cm_folder_id), and NO constraint named
+             uk_version_series_id at all.  The drop has nothing to drop and the add
+             is already present.
+
+  Why this matters beyond the model's own credibility: the two failures are the
+  only DDL-modifying attempts either capture records, and the model shows that
+  neither changes the resulting schema -- the first is a repeat of a rename already
+  applied, the second removes a constraint that is not there and adds one that is.
+  That is a statement about THESE two changeSets against THIS graph.  It is not a
+  substitute for the before-and-after schema comparison the startup evidence needs,
+  because 103 opaque <sql> blocks remain un-modelled and could modify DDL in ways
+  no static model sees.
+
+WHAT THIS VERIFICATION DOES NOT ESTABLISH
+  It compares table existence and column CARDINALITY.  It does not compare column
+  types, nullability, keys, indexes or constraints against the database, so it
+  establishes that the model builds the right shape rather than that every attribute
+  within that shape is right.  The attribute-level comparison this deliverable
+  actually needs is the ORM-versus-DDL one in measurement.txt, which is made
+  against the changelogs -- the authoritative source for what the schema is
+  supposed to be -- rather than against one database instance that may have drifted.

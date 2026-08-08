@@ -9,7 +9,7 @@ RUNTIME-COMMIT: Java 17, the migrated head, the change set applied on top of bas
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  frontend-runtime-designation: Node 20.20.2 with npm 10.8.2
+  frontend-runtime-designation: Node 20 LTS with npm 10
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
@@ -51,7 +51,7 @@ OBSERVATION:
     - directory configuration request observed: 200 content-type application/json;charset=UTF-8
     - configured directory named in that response: yes (directory: arkcase)
     - per-directory registry endpoint observed: 200 (resolved by the registry: yes)
-    - directory-service startup region matched lines: 29 (startup/ldap-context-source.log)
+    - directory-service startup region matched lines: 28 (startup/ldap-context-source.log)
     - externalised JNDI initial context factory observed: com.sun.jndi.ldap.LdapCtxFactory
     - externalised JNDI connection pooling key observed: com.sun.jndi.ldap.connect.pool
     - directory-service evidence ledger: notes/ldap-jndi-environment.txt
@@ -267,7 +267,7 @@ observations:
   - directory configuration request observed: 200 content-type application/json;charset=UTF-8
   - configured directory named in that response: yes (directory: arkcase)
   - per-directory registry endpoint observed: 200 (resolved by the registry: yes)
-  - directory-service startup region matched lines: 29 (startup/ldap-context-source.log)
+  - directory-service startup region matched lines: 28 (startup/ldap-context-source.log)
   - externalised JNDI initial context factory observed: com.sun.jndi.ldap.LdapCtxFactory
   - externalised JNDI connection pooling key observed: com.sun.jndi.ldap.connect.pool
   - directory-service evidence ledger: notes/ldap-jndi-environment.txt
@@ -318,7 +318,17 @@ assertion-basis: derived by reading flow-1-login.status and
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this
-  script already normalises.  Compare with:
+  script already normalises AND values a record explicitly enumerates as
+  environment-scoped rather than behaviour-bearing.  The second allowance is
+  named here rather than left implicit because it is real and small: where
+  the two sides are separate deployments -- separate databases, separate
+  brokers, separate search cores, which is what isolation between the two
+  captures requires -- a cumulative broker counter and an ambient inventory
+  count cannot be equal, and a record that demanded equality of them would
+  be demanding something no correct migration could deliver.  Every such
+  value is listed, with its reason, in the record that carries it; a row NOT
+  listed there and NOT normalised must be identical between the two sides.
+  Compare with:
   diff -r <baseline-dir> <migrated-dir>
 
 MIRROR OBLIGATION

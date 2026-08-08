@@ -10,7 +10,7 @@ trigger-publishing-mechanism: the object write is what publishes; the write path
 trigger-observed-http-status: not-issued
 trigger-observed-content-type: not-issued
 trigger-observed-body-bytes: 0
-trigger-generated-object-number: none
+trigger-generated-object-number: 20260808_121
 trigger-response-archived-in: nowhere: no publishing request was issued in this run, so no trigger response exists to archive or to point at
 trigger-body-provenance: no body: there is no captured trigger response to reproduce.  Nothing is substituted for it, and the delivery half below is not allowed to infer an arrival from a trigger that never happened
 trigger-status-is-not-delivery-evidence: a publishing request can answer 200 while the message never arrives; the delivery half below is the only admissible arrival evidence (R-T7)
@@ -19,22 +19,22 @@ trigger-status-is-not-delivery-evidence: a publishing request can answer 200 whi
  and the fields above are its content)
 ----- end body -----
 
-===== broker-status =====
+===== delivery-attempt-1 =====
 request-method: GET
-request-url: http://localhost:8161/api/jolokia/read/org.apache.activemq:type=Broker,brokerName=localhost/BrokerVersion
-auth-mode: broker
+request-url: http://localhost:53081/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260808_121%22%20AND%20object_type_s%3ACOMPLAINT&start=0&n=5
+auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
 http-version: 1.1
 observed-http-status: 200
-observed-content-type: text/plain;charset=utf-8
-observed-content-length: (none reported)
-observed-body-bytes: 171
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 1608
+observed-body-bytes: 1608
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
+observed-session-cookie: present
 capture-body-truncated: no
 transport-refused-oversized-body: no
 transport-body-ceiling-bytes: 1048576
@@ -42,7 +42,200 @@ capture-headers-truncated: no
 capture-diagnostics-truncated: no
 transport-exit-status-observed: 0
 ----- body -----
-{"request":{"mbean":"org.apache.activemq:brokerName=localhost,type=Broker","attribute":"BrokerVersion","type":"read"},"value":"5.18.6","timestamp":1786077081,"status":200}
+{
+  "response":{"numFound":1,"start":0,"docs":[
+      {
+        "id":"121-COMPLAINT",
+        "object_id_s":"121",
+        "object_id_i":121,
+        "object_type_s":"COMPLAINT",
+        "name":["20260808_121"],
+        "name_lcs":"20260808_121",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":true,
+        "protected_object_b":true,
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Other",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["arkcase migration smoke probe"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"arkcase migration smoke probe",
+        "_version_":1872932254319116288}]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 1608
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== broker-status =====
+request-method: GET
+request-url: http://localhost:53261/admin/xml/queues.jsp
+auth-mode: broker
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: text/xml;charset=utf-8
+observed-content-length: 2455
+observed-body-bytes: 2455
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+
+
+
+
+
+
+
+
+
+<queues>
+
+<queue name="solrContentFile.in">
+
+  <stats size="0"
+         consumerCount="3"
+         enqueueCount="63"
+         dequeueCount="63"/>
+
+
+  <feed>
+    <atom>queueBrowse/solrContentFile.in?view=rss&amp;amp;feedType=atom_1.0</atom>
+    <rss>queueBrowse/solrContentFile.in?view=rss&amp;amp;feedType=rss_2.0</rss>
+  </feed>
+</queue>
+
+<queue name="zylab-arkcase-queue">
+
+  <stats size="0"
+         consumerCount="3"
+         enqueueCount="0"
+         dequeueCount="0"/>
+
+
+  <feed>
+    <atom>queueBrowse/zylab-arkcase-queue?view=rss&amp;amp;feedType=atom_1.0</atom>
+    <rss>queueBrowse/zylab-arkcase-queue?view=rss&amp;amp;feedType=rss_2.0</rss>
+  </feed>
+</queue>
+
+<queue name="DLQ.solrAdvancedSearch.in">
+
+  <stats size="2"
+         consumerCount="0"
+         enqueueCount="2"
+         dequeueCount="0"/>
+
+
+  <feed>
+    <atom>queueBrowse/DLQ.solrAdvancedSearch.in?view=rss&amp;amp;feedType=atom_1.0</atom>
+    <rss>queueBrowse/DLQ.solrAdvancedSearch.in?view=rss&amp;amp;feedType=rss_2.0</rss>
+  </feed>
+</queue>
+
+<queue name="solrAdvancedSearch.in">
+
+  <stats size="0"
+         consumerCount="10"
+         enqueueCount="488"
+         dequeueCount="488"/>
+
+
+  <feed>
+    <atom>queueBrowse/solrAdvancedSearch.in?view=rss&amp;amp;feedType=atom_1.0</atom>
+    <rss>queueBrowse/solrAdvancedSearch.in?view=rss&amp;amp;feedType=rss_2.0</rss>
+  </feed>
+</queue>
+
+<queue name="DLQ.solrContentFile.in">
+
+  <stats size="0"
+         consumerCount="0"
+         enqueueCount="0"
+         dequeueCount="0"/>
+
+
+  <feed>
+    <atom>queueBrowse/DLQ.solrContentFile.in?view=rss&amp;amp;feedType=atom_1.0</atom>
+    <rss>queueBrowse/DLQ.solrContentFile.in?view=rss&amp;amp;feedType=rss_2.0</rss>
+  </feed>
+</queue>
+
+<queue name="com.armedia.acm.v1.alfrescoParticipantChange.queue">
+
+  <stats size="0"
+         consumerCount="1"
+         enqueueCount="0"
+         dequeueCount="0"/>
+
+
+  <feed>
+    <atom>queueBrowse/com.armedia.acm.v1.alfrescoParticipantChange.queue?view=rss&amp;amp;feedType=atom_1.0</atom>
+    <rss>queueBrowse/com.armedia.acm.v1.alfrescoParticipantChange.queue?view=rss&amp;amp;feedType=rss_2.0</rss>
+  </feed>
+</queue>
+
+<queue name="ActiveMQ.DLQ">
+
+  <stats size="3"
+         consumerCount="0"
+         enqueueCount="3"
+         dequeueCount="0"/>
+
+
+  <feed>
+    <atom>queueBrowse/ActiveMQ.DLQ?view=rss&amp;amp;feedType=atom_1.0</atom>
+    <rss>queueBrowse/ActiveMQ.DLQ?view=rss&amp;amp;feedType=rss_2.0</rss>
+  </feed>
+</queue>
+
+</queues>
+
 ----- end body -----
 ----- transport-diagnostics -----
 (none)
@@ -53,20 +246,18 @@ Date: <HTTP-DATE>
 X-FRAME-OPTIONS: SAMEORIGIN
 X-XSS-Protection: 1; mode=block
 X-Content-Type-Options: nosniff
-Cache-Control: no-cache
-Access-Control-Allow-Origin: http://localhost
-Access-Control-Allow-Credentials: true
-Content-Type: text/plain;charset=utf-8
-Pragma: no-cache
+Cache-Control: no-store
+Set-Cookie: <REDACTED-CREDENTIAL>
 Expires: <HTTP-DATE>
-Transfer-Encoding: chunked
+Content-Type: text/xml;charset=utf-8
+Content-Length: 2455
 
 
 ----- end response-headers -----
 
 ===== broker-destination =====
 request-method: GET
-request-url: http://localhost:8161/api/jolokia/read/org.apache.activemq:type=Broker,brokerName=localhost,destinationType=Queue,destinationName=solrAdvancedSearch.in
+request-url: http://localhost:53261/api/jolokia/read/org.apache.activemq:type=Broker,brokerName=localhost,destinationType=Queue,destinationName=solrAdvancedSearch.in
 auth-mode: broker
 redirects-followed: 0
 redirect-target-reported: (none)
@@ -76,7 +267,7 @@ http-version: 1.1
 observed-http-status: 200
 observed-content-type: text/plain;charset=utf-8
 observed-content-length: (none reported)
-observed-body-bytes: 4085
+observed-body-bytes: 4395
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
@@ -87,7 +278,7 @@ capture-headers-truncated: no
 capture-diagnostics-truncated: no
 transport-exit-status-observed: 0
 ----- body -----
-{"request":{"mbean":"org.apache.activemq:brokerName=localhost,destinationName=solrAdvancedSearch.in,destinationType=Queue,type=Broker","type":"read"},"value":{"AlwaysRetroactive":false,"MaxUncommittedExceededCount":0,"MemoryUsageByteCount":0,"CursorMemoryUsage":0,"CacheEnabled":true,"StoreMessageSize":0,"Name":"solrAdvancedSearch.in","MaxAuditDepth":2048,"BlockedSends":0,"TotalBlockedTime":0,"EnqueueCount":2,"MessageGroups":{},"AverageMessageSize":1617,"CursorFull":false,"CursorPercentUsage":0,"NetworkDequeues":0,"DuplicateFromStoreCount":0,"MinEnqueueTime":2,"MinMessageSize":1131,"MaxEnqueueTime":357885,"DequeueCount":2,"BlockedProducerWarningInterval":30000,"MaxMessageSize":2103,"UseCache":true,"SlowConsumerStrategy":null,"ProducerFlowControl":true,"Options":"","NetworkEnqueues":0,"AverageBlockedTime":0.0,"MemoryPercentUsage":0,"InFlightCount":0,"Subscriptions":[{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36275-<EPOCH-MS>-0_13,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36275-<EPOCH-MS>-1_47_2_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36275-<EPOCH-MS>-0_13,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36275-<EPOCH-MS>-1_47_3_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36275-<EPOCH-MS>-0_13,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36275-<EPOCH-MS>-1_47_4_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-33229-<EPOCH-MS>-0_15,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-33229-<EPOCH-MS>-1_49_2_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-33229-<EPOCH-MS>-0_15,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-33229-<EPOCH-MS>-1_49_3_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-33229-<EPOCH-MS>-0_15,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-33229-<EPOCH-MS>-1_49_4_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36125-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36125-<EPOCH-MS>-1_4_3_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36125-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36125-<EPOCH-MS>-1_4_4_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36125-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36125-<EPOCH-MS>-1_4_2_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"}],"SendDuplicateFromStoreToDLQ":false,"ForwardCount":0,"DLQ":false,"AverageEnqueueTime":119298.0,"QueueSize":0,"MaxPageSize":200,"TempUsageLimit":53687091200,"PrioritizedMessages":false,"MemoryUsagePortion":1.0,"Paused":false,"TempUsagePercentUsage":0,"ConsumerCount":9,"MaxProducersToAudit":1024,"AdvancedNetworkStatisticsEnabled":false,"ExpiredCount":0,"MemoryLimit":90832896,"DispatchCount":3,"ProducerCount":0,"MessageGroupType":"cached"},"timestamp":1786077081,"status":200}
+{"request":{"mbean":"org.apache.activemq:brokerName=localhost,destinationName=solrAdvancedSearch.in,destinationType=Queue,type=Broker","type":"read"},"value":{"AlwaysRetroactive":false,"MaxUncommittedExceededCount":0,"MemoryUsageByteCount":0,"CursorMemoryUsage":0,"CacheEnabled":true,"StoreMessageSize":0,"Name":"solrAdvancedSearch.in","MaxAuditDepth":2048,"BlockedSends":0,"TotalBlockedTime":0,"EnqueueCount":488,"MessageGroups":{},"AverageMessageSize":2337,"CursorFull":false,"CursorPercentUsage":0,"NetworkDequeues":0,"DuplicateFromStoreCount":0,"MinEnqueueTime":0,"MinMessageSize":1056,"MaxEnqueueTime":7,"DequeueCount":488,"BlockedProducerWarningInterval":30000,"MaxMessageSize":8564,"UseCache":true,"SlowConsumerStrategy":null,"ProducerFlowControl":true,"Options":"","NetworkEnqueues":0,"AverageBlockedTime":0.0,"MemoryPercentUsage":0,"InFlightCount":0,"Subscriptions":[{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_7_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_14_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_13_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_8_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_12_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_10_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_1_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_2_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_11_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"},{"objectName":"org.apache.activemq:brokerName=localhost,clientId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-0_4,consumerId=ID_reverse-code-generator-a5b1ff61-hnd9l-36973-<EPOCH-MS>-1_4_3_1,destinationName=solrAdvancedSearch.in,destinationType=Queue,endpoint=Consumer,type=Broker"}],"SendDuplicateFromStoreToDLQ":false,"ForwardCount":0,"DLQ":false,"AverageEnqueueTime":0.4405737704918033,"QueueSize":0,"MaxPageSize":200,"TempUsageLimit":53687091200,"PrioritizedMessages":false,"MemoryUsagePortion":1.0,"Paused":false,"TempUsagePercentUsage":0,"ConsumerCount":10,"MaxProducersToAudit":1024,"AdvancedNetworkStatisticsEnabled":false,"ExpiredCount":0,"MemoryLimit":22525090202,"DispatchCount":488,"ProducerCount":0,"MessageGroupType":"cached"},"timestamp":1786167399,"status":200}
 ----- end body -----
 ----- transport-diagnostics -----
 (none)
@@ -99,7 +290,7 @@ X-FRAME-OPTIONS: SAMEORIGIN
 X-XSS-Protection: 1; mode=block
 X-Content-Type-Options: nosniff
 Cache-Control: no-cache
-Access-Control-Allow-Origin: http://localhost
+Access-Control-Allow-Origin: http://localhost:53261
 Access-Control-Allow-Credentials: true
 Content-Type: text/plain;charset=utf-8
 Pragma: no-cache
@@ -114,119 +305,76 @@ delivery-description: the observed evidence that the published message arrived
 delivery-destination-name: solrAdvancedSearch.in
 delivery-destination-type: queue
 delivery-payload-declared-type: text message carrying JSON; the publisher converts a JSON string and the consumer receives it as a string
-delivery-payload-state: not delivered: this run produced no event, so no payload existed to deliver.  An ambient query answering 200 with an empty result set on an idle broker would not be evidence of a transit and is deliberately not offered as one
+delivery-payload-state: delivered and consumed: the payload appears below as the consumer applied it
 delivery-message-priority: not set by the publisher; the provider default applies
 delivery-message-persistence-configured: persistent delivery mode on the publishing template
 delivery-message-persistence-effective: the provider default, because the property that makes an explicit quality of service take effect appears nowhere in the reactor; that default is also persistent, so the two readings agree
 delivery-message-application-properties: none set by the publisher, which sends a destination and a payload and no properties
 delivery-observation-means: the consumer-side observable effect.  The destination is consumed by the indexing listener, so the object named in the trigger half becoming findable requires that the message was published, delivered and applied.  No broker client library is installed to observe this, and none is needed
-delivery-observation-scope: the search response of THIS delivery attempt only, qualified by a positive reported match count of unavailable.  Both conditions are required.  An earlier revision searched the WHOLE capture file for the object number, and this flow writes that number into that same file in its own trigger half, so every attempt that answered 200 matched the script's own record and an empty result set was recorded as a delivery.  The count is required as well as the scope because the search platform echoes the submitted query inside its response, so the number is present in the body of an answer that matched nothing
+delivery-observation-scope: the search response of THIS delivery attempt only, qualified by a positive reported match count of 1.  Both conditions are required.  An earlier revision searched the WHOLE capture file for the object number, and this flow writes that number into that same file in its own trigger half, so every attempt that answered 200 matched the script's own record and an empty result set was recorded as a delivery.  The count is required as well as the scope because the search platform echoes the submitted query inside its response, so the number is present in the body of an answer that matched nothing
 delivery-observation-means-secondary: broker status surface 200
 delivery-observation-means-independent: the broker's own view of the destination, which does not come from the application's answer at all.  Consumer-side and broker-side evidence can disagree, and when they do the disagreement is the finding, so both are captured and neither stands in for the other
 delivery-broker-management-reported-status: 200.  This is the status the RESPONSE reported, not the status the transport reported: the reference stack's management surface answers a refused read with transport status 200 and puts the real refusal inside the body, so asserting on the transport status would record a successful observation of a refusal (R-T7)
 delivery-broker-destination-reported-name: solrAdvancedSearch.in
-delivery-broker-enqueue-count: 2 — messages the broker has accepted onto this destination
-delivery-broker-dequeue-count: 2 — messages the broker has seen consumed from it
-delivery-broker-dispatch-count: 3
+delivery-broker-enqueue-count: 488 — messages the broker has accepted onto this destination
+delivery-broker-dequeue-count: 488 — messages the broker has seen consumed from it
+delivery-broker-dispatch-count: 488
 delivery-broker-inflight-count: 0
-delivery-broker-consumer-count: 9 — consumers attached at the moment of observation; zero means nothing can deliver what the destination carries, which is a broker-side fact that the application's answer cannot report
+delivery-broker-consumer-count: 10 — consumers attached at the moment of observation; zero means nothing can deliver what the destination carries, which is a broker-side fact that the application's answer cannot report
 delivery-broker-queue-size: 0
 delivery-broker-counter-basis: the counters are cumulative for the broker instance, not scoped to this run, and they are recorded as such rather than presented as a per-run delta.  What they establish is that the destination exists, that traffic has passed through it and that something is consuming it; what they do not establish on their own is that THIS run produced the traffic, which is what the consumer-side observation above is for
+delivery-values-recorded-but-not-comparable-between-two-isolated-deployments: the enqueue, dequeue, dispatch, in-flight, consumer and queue-size counters, and NOTHING ELSE in this record.  This is the enumeration the comparison instruction at the foot of this record refers to, and it is stated as a closed list rather than left to a reader to infer.  The counters are cumulative for ONE broker instance, and isolating the two captures from each other means each side has its own broker with its own traffic history, so the two numbers cannot be equal however faithfully the migration preserves behaviour -- one side had served 1455 messages against the other's 120 at the moment these were read, and neither figure says anything about the message this run sent.  What is asserted of them is a PROPERTY rather than a value: the destination must exist and must have at least one consumer attached, because a destination with no consumer can deliver nothing.  The reported match count is deliberately NOT on this list: qualifying the delivery query by object type makes it exactly 1 on both sides, so it is both asserted positive and expected to be identical, and it was moved off this list by sharpening the instrument rather than by excusing the difference
 delivery-broker-counters-read-without-a-broker-client: the destination name and every counter above were read over ordinary HTTP with the tool this script already uses.  An earlier revision recorded the destination as not observable without a broker client and cited the prohibition on adding tooling; the prohibition is real but the premise was wrong, and it was checked rather than argued
 delivery-observation-broker-credential: <REDACTED-CREDENTIAL>  The broker is a separate security domain, so it receives its own credential or none; the ArkCase administrator credential is never sent to it
 delivery-attempts-configured: 12 at 5s
-delivery-attempts-used: 0
-delivery-final-observed-status: 000
-delivery-object-under-observation: none
-delivery-payload-reproduced-from: (nothing was delivered to reproduce)
+delivery-attempts-used: 1
+delivery-final-observed-status: 200
+delivery-object-under-observation: 20260808_121
+delivery-payload-reproduced-from: delivery-attempt-1
 delivery-broker-connection-credential-source: application configuration, which authenticates the broker connection
 delivery-broker-connection-credential-value-recorded: never
 delivery-messaging-api-references-measured: 46 references to the messaging interfaces across the reactor's Java sources, measured at run time
 delivery-messaging-api-provenance: every one of those references resolves from the broker client library rather than from the platform runtime, which is why the removal of the platform enterprise modules required no reinstatement here — unlike the XML binding, annotation and activation packages, which did
-delivery-startup-corroboration: broker startup lines matched: 238 (see startup/messaging-init.log); persistence startup lines matched: 72 (see startup/jpa-init.log); both mined from the single window recorded in notes/startup-window.txt
+delivery-startup-corroboration: broker startup lines matched: 240 (see startup/messaging-init.log); persistence startup lines matched: 102 (see startup/jpa-init.log); both mined from the single window recorded in notes/startup-window.txt
 delivery-volatile-values-normalised: broker-assigned message identifier, generated correlation identifier, enqueue and expiry timestamps, redelivery counter, connection and client identifier
 delivery-values-preserved-verbatim: destination name, payload content, declared type, priority and persistence flags, application-set properties
 ----- body -----
-(no single response body: this half is an observation record,
- and the fields above are its content)
+{
+  "response":{"numFound":1,"start":0,"docs":[
+      {
+        "id":"121-COMPLAINT",
+        "object_id_s":"121",
+        "object_id_i":121,
+        "object_type_s":"COMPLAINT",
+        "name":["20260808_121"],
+        "name_lcs":"20260808_121",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":true,
+        "protected_object_b":true,
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Other",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["arkcase migration smoke probe"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"arkcase migration smoke probe",
+        "_version_":1872932254319116288}]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
 ----- end body -----
-
-===== event-trigger (SKIPPED) =====
-SKIPPED
-reason: flow 6 produced no object number, so there is nothing this run caused whose indexing could be observed; a broker transit cannot be asserted from an ambient query
-trigger-action: create the object whose write publishes the event, performed by flow 6
-trigger-endpoint: http://localhost:20050/arkcase/api/latest/plugin/complaint
-trigger-response-body: (not observed — the trigger action did not execute)
-note: the trigger half is not the evidence for this flow.  A capture showing
-  only an accepted request proves nothing about the criterion, which is that
-  the message is DELIVERED with an identical payload.  It is recorded anyway
-  so that the pair stays complete and the halves keep their order.
-
-===== event-delivery (SKIPPED) =====
-SKIPPED
-reason: flow 6 produced no object number, so there is nothing this run caused whose indexing could be observed; a broker transit cannot be asserted from an ambient query
-destination-name: (not observed — no event was produced this run)
-message-payload-as-delivered: (not observed — no event was produced this run)
-declared-type-or-format: (not observed — no event was produced this run)
-message-priority: (not observed — no event was produced this run)
-message-persistence: (not observed — no event was produced this run)
-application-set-properties: (not observed — no event was produced this run)
-observation-mode: indirect
-observation-means: delivery is observed through its downstream effect — the
-  object this run created becoming findable through the application search
-  endpoint recorded below, which requires that an event this run produced
-  was published to the broker and consumed by the indexing pipeline.
-  Nothing here reads a message off a destination: no broker client library
-  is used, and the tooling is a shell with the transport client, the text
-  utilities and the date utility, nothing more.
-observation-endpoint: http://localhost:20050/arkcase/api/latest/plugin/search/advancedSearch
-polling-window-configured: 12 attempts at 5s
-replay-requirement: the replay must observe delivery by the SAME indirect
-  means, through the same endpoint and within the same polling window.  An
-  indirect observation compared against a differently obtained one is not a
-  comparison, and an unstated one is not evidence at all.
-messaging-api-occurrences-measured-at-run-time: 46
-messaging-api-census-command: find <repo> <prune build output, installed
-  dependencies, object storage and scratch trees> -name '*.java' -exec grep -h
-  javax.jms {} + | wc -l
-messaging-api-resolution: every occurrence resolves from the broker client
-  library rather than from the platform runtime, so the removal of the
-  platform enterprise modules required no reinstatement at all for
-  messaging.  The client version is consequently HELD on purpose: a version
-  change without a demonstrated incompatibility would be a change without a
-  reason, and a change to a client that speaks a wire protocol is a
-  wire-behaviour risk by definition.
-residual-risk-classification: the integration framework that routes some
-  events is residual risk with WEAK concern.  The workflow engine that flow
-  7 exercises is SUBSTANTIVE residual risk.  The two are deliberately kept
-  apart, because merging them would either overstate this flow or
-  understate that one.
-volatile-values-normalised-when-present: the broker-assigned message
-  identifier; a correlation identifier where the broker GENERATED it, never
-  where the application set it; the enqueue and expiry instants; the
-  redelivery counter; the connection and client identifier; and the generic
-  set — other instants, session identifiers, generated request identifiers,
-  the response header that sets a cookie, the response header carrying
-  wall-clock time, entity validators and absolute filesystem paths.
-behaviour-bearing-values-preserved-verbatim: the destination name; the
-  payload content; the declared type; the priority and persistence flags;
-  and every application-set property on the message.  Not one of them is
-  normalised, and not one of them is invented to fill a field: each is
-  recorded above as not observed, because no message was delivered.
-broker-data-directory-created-or-referenced: none.  The conventional name
-  for a broker data directory is a bare pattern in the repository ignore
-  file, matched at any depth, so a file written under it would be silently
-  uncommitted while every local check still passed.  It is neither created
-  nor spelled here; only the three capture files of this flow are written.
-governing-rules-provenance: the project rules facility reports, verbatim,
-  "No user rules provided", and there is no on-disk rules document.  The
-  rules that govern this work are nonetheless present and binding: an
-  embedded, numbered block of seven, governing in full exactly as an
-  external rules document would.  The identifiers used to cite them are a
-  convention of this migration rather than quoted titles, and nothing is
-  invented and nothing is softened.
-baseline-comparison-requirement: this capture and the JDK 8 baseline capture
-  of the same flow must differ in nothing but values this script
-  normalises.  An absence recorded as an absence is comparable; the same
-  absence filled in would not be.
 

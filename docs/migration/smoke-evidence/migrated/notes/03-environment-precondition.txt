@@ -1,0 +1,162 @@
+what this capture does not cover — the completeness bound on the archived unit-test evidence, and the build precondition
+
+subject: the COMPLETENESS of the archived unit-test evidence under ../surefire/,
+  and the environment precondition the backend build depends on
+RUNTIME: Java 17.  Runtime of record in the archived reports on this side: 17.0.19+10-1-25.10.2-Ubuntu.
+BASE-COMMIT: c8f6226105
+MIRRORS: docs/migration/smoke-evidence/baseline/notes/03-environment-precondition.txt
+ESTABLISHES: which modules were observed AT ALL, and therefore owns the
+  distinction between UNCOVERED, PASSED and FAILED — a distinction no sibling
+  note may make and none of them does
+COMPANIONS: 04-no-flaky-test-tooling.txt, which establishes the SOUNDNESS of
+  the same archive; 05-coverage-vs-test-exclusions.txt, which governs what may
+  be excluded from it.  The three are complementary and must not be conflated:
+  this note says what was looked at, 04 says that what was seen can be trusted,
+  05 says what may be left out.
+
+why the completeness bound needs a file of its own
+==================================================
+An archive of green reports invites one specific misreading: that everything is
+green.  It is not the same claim.  A module with no report in this archive has
+not passed and has not failed — it was not observed by the runner that produced
+the archive, and the honest word for it is UNCOVERED.  Collapsing UNCOVERED
+into PASSED is the single easiest way for a migration to look better than it is,
+and it needs no dishonest sentence anywhere to happen: it happens by a reader
+counting failures, finding none, and stopping.
+
+This note exists so that count has a denominator.
+
+the bound, measured from the reactor and the archive rather than stated
+======================================================================
+  <module> declarations across the reactor's POMs           141
+  modules carrying a src/test/java tree                      76
+  module directories present in ../surefire/                  66
+  archived reports on this side                              279
+  modules with a test tree and NO archived report             10
+  archived directories with no matching test tree              0
+
+The last row matters as much as the others: every directory in the archive
+corresponds to a module that really has a test tree, so the archive contains no
+invented module.
+
+the ten uncovered modules, named, and the ONE mechanical reason all ten are
+uncovered
+==========================================================================
+  acm-activemq-configuration        acm-service-protect-url
+  acm-category-plugin               acm-service-sequence-manager
+  acm-ephesoft                      acm-spring-context-holder
+  acm-files-property-file-manager   acm-spring-data-source
+  acm-service-participants          arkcase
+
+They are not uncovered because a test was disabled, excluded, or failed to be
+collected.  Measured across all ten together:
+
+  classes named *Test.java                                    0
+  classes named *Tests.java                                   0
+  classes named *IT.java                                     14
+  other .java classes in those test trees                     5
+
+Every test class in all ten is an INTEGRATION test by filename.  The unit-test
+runner's default selection is Test*.java, *Test.java, *Tests.java and
+*TestCase.java; *IT.java matches none of them and belongs to the integration
+runner instead.  So the ten are absent from a UNIT-test archive by construction,
+and their absence says nothing whatever about their outcome.
+
+the five remaining classes, checked rather than assumed
+=======================================================
+All five of the other classes are named TestDeleteListener, TestEntity,
+TestInsertListener, TestQueueListener and TestUpdateListener — and every one of
+those names MATCHES the Test*.java selection pattern, which would make the
+paragraph above wrong if the names were the whole story.  They were therefore
+opened:
+
+  TestDeleteListener   implements AcmBeforeDeleteListener   @Test methods: 0
+  TestEntity           a persistent entity fixture          @Test methods: 0
+  TestInsertListener   implements AcmBeforeInsertListener    @Test methods: 0
+  TestQueueListener    implements MessageListener            @Test methods: 0
+  TestUpdateListener   implements AcmBeforeUpdateListener    @Test methods: 0
+
+None imports the test framework at all.  They are fixtures that a real test
+wires up, so the runner selects them by name and then discards them for having
+no runnable method, which is why no report exists for them.  The reason the ten
+are uncovered survives the check.
+
+the environment precondition the backend build depends on
+=========================================================
+The migration plan records that three artifacts do not resolve from the public
+repository and are expected from a local file-backed repository that may not
+exist on a given host, and that this blocks a full reactor build.  The condition
+is runtime-independent — it is identical at the base commit — so it is a
+precondition to be satisfied, never a migration defect and never something to
+be worked around by deleting a module or a dependency.
+
+Measured on the host that produced this capture:
+
+  com.touchnet:tlink-client:1.0                tlink-client-1.0.jar      PRESENT
+  org.eclipse.persistence:logging-slf4j:1.0.1  logging-slf4j-1.0.1.jar   PRESENT
+
+Both are real dependencies of the reactor rather than merely managed versions:
+the first is managed in the root POM and declared by the billing service, the
+second is declared in the root POM's own dependency block at runtime scope.  The
+precondition is therefore SATISFIED here, which is why an archive exists at all
+— and it is stated as a measured local fact rather than a general one, because
+on a host where it is not satisfied the archive under ../surefire/ could not
+have been produced and its absence would be a precondition failure rather than
+a test failure.  A reader who cannot reproduce this archive should check this
+row before concluding anything about the tests.
+
+this capture's own manifest DOES name every file in this directory, which is a
+difference from the mirrored side worth stating
+==============================================================================
+The accounting at manifest.txt covers this directory completely, and that is
+measurable rather than asserted: it records 73 produced paths outside the report
+subtree, and this directory holds exactly 73 files outside that subtree.  It
+closes because the capture script names the authored files explicitly in a
+COMPANION tier of its manifest and copies them into the staging tree before
+anything measures it, so the eight files it does not itself write are still
+accounted for by name:
+
+  authored-companion-paths-named                          8
+  authored-companion-paths-carried-into-this-capture       8
+  authored-companion-paths-absent-from-the-destination     0
+  authored-companion-paths-that-could-not-be-carried       0
+
+The mirrored note on the pre-migration side carries the opposite reading — eight
+authored files that its own manifest does not name — and the asymmetry is not an
+inconsistency between the two sides.  It is a consequence of WHEN each side was
+captured.  The companion tier and the carry step were added to the capture script
+after the pre-migration side had already been captured and frozen, and that side
+cannot be re-captured because it required a live deployment of the base commit on
+the older runtime.  So this side gets the mechanical accounting and that side gets
+a written reconciliation, and both close their arithmetic.
+
+what else this capture does not cover
+=====================================
+Named here so the boundary is one paragraph rather than an inference across ten
+files.  The reference stack this capture ran against does not include every
+service the deployment integrates with, and the flows that depend on an absent
+service are recorded as NOT EXERCISED with the reason attached, in their own
+flow files and in the run-level summary.  Those recorded gaps are the other half
+of this note's subject: this note bounds the unit-test evidence, and the flow
+files bound the runtime evidence.  Neither may be read as covering the other.
+
+read this note together with
+============================
+../surefire/ — the archive whose completeness this note bounds, together with
+  its run-provenance.txt and its sha256-manifest.txt
+04-no-flaky-test-tooling.txt — the SOUNDNESS of the same archive
+05-coverage-vs-test-exclusions.txt — what may be excluded from it, and the
+  fork-argument constraint that keeps coverage instrumentation alive
+docs/migration/baseline-test-failures.md — the authoritative register any
+  exclusion must cite
+../summary.txt — the run-level completeness verdict and the recorded reasons
+02-node-env.txt — the interpreter of record for this side
+
+mirror obligation
+=================
+The baseline counterpart carries this exact filename — 03-environment-precondition.txt, character
+for character — at the mirrored path under baseline/notes/, so that diff -r over
+the two trees is mechanical.  A CONTENT difference at this filename is expected
+and correct: the two sides state different runtimes, different interpreters and
+different measured figures.  A STRUCTURAL difference — this file present on one
+side only — is not, and means the mirror has been broken.

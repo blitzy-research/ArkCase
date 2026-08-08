@@ -3,14 +3,21 @@ capture manifest accounting
 produced-by: docs/migration/smoke-evidence/smoke-checks.sh, validate_manifest
 manifest-state: COMPLETE-AND-EXACT
 staged-then-published: yes
-published-to: docs/migration/smoke-evidence/baseline
+published-to: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-053_196589/docs/migration/smoke-evidence/baseline
 
-required-paths: 51
-produced-paths-excluding-the-archived-report-subtree: 63
+required-paths: 54
+produced-paths-excluding-the-archived-report-subtree: 73
 required-but-missing: 0
 produced-but-not-in-the-manifest: 0
 required-and-present-but-empty: 0
 both-startup-tiers-present: no
+
+carried-in-from-the-published-capture:
+  archived-report-subtree: verified: every digest in the archive own manifest matches the carried copy, so the archive published with this capture is byte-identical to the installed one
+  coverage-counters.txt: verified: the carried copy is byte-identical to the installed record
+  artifacts/diff-result.txt: absent: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-053_196589/docs/migration/smoke-evidence/baseline/artifacts/diff-result.txt does not exist, so there was nothing to carry
+  startup/error-scan.txt + startup/startup.status: verified: 2 of 2 installed startup-gate record(s) carried byte-identically.  They describe the PREVIOUS capture's regions; re-run capture-startup-adjudication.sh to adjudicate this one
+  notes/04-no-flaky-test-tooling.txt + notes/05-coverage-vs-test-exclusions.txt: verified: 2 of 2 installed archive-analysis note(s) carried byte-identically.  They describe the archive under surefire/, which is carried with them, so the two stay consistent
 
 required but missing:
   (none)
@@ -50,10 +57,11 @@ different runs.
 these paths are written after this accounting is computed, so they are
 counted as produced here and asserted separately once they exist; the
 outcome of that assertion is appended to the end of this file:
-  notes/manifest.txt notes/completeness.txt summary.txt
+  notes/manifest.txt notes/completeness.txt summary.txt smoke-run-summary.txt
 
 deferred-entry assertion, run after the three files above were written:
   OK       notes/manifest.txt
   OK       notes/completeness.txt
   OK       summary.txt
+  OK       smoke-run-summary.txt
 deferred-entries-not-usable: 0

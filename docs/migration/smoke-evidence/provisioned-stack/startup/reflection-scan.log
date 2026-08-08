@@ -1,0 +1,45 @@
+startup-log-region: reflection-scan.log
+region-describes: reflection-based classpath scanning, the observable side of leaving the reflection library unchanged
+region-mandatory: yes
+region-pattern: reflections|classpath scan|ClassPathScanning|component scan|scanning for|AcmObjectUtils|PermissionEvaluator|ArkPermission
+region-pattern-flags: grep -E -i, applied to the extracted window only
+window-source: /opt/tomcat/current/logs/catalina.out
+window-source-sha256: 1581c892796e20ced0c0794c820691c049f388b1289efa0819de6ce73f15f0c1
+window-boots-present-in-source: 1
+window-sha256: 62917e5d4a84290b6d2ebb6c2eea2a399794d09108320f9fe43b47104c9bf731
+window-start-line: 1
+window-end-line: 32062
+window-start-byte-offset: 0
+window-end-byte-offset: 9273924
+window-lines: 32062
+matched-lines: 26
+line-cap: 2000
+capture-truncated: no
+----- region -----
+[m[32m<TIMESTAMP>,485 [INFO ] [main] org.reflections.Reflections - Reflections took 296 ms to scan 128 urls, producing 42 keys and 2681 values 
+[m[36m<TIMESTAMP>,967 [DEBUG] [main] com.armedia.acm.data.converter.ConverterScanPostProcessor - Scanning for converter classes
+[m[36m<TIMESTAMP>,203 [DEBUG] [main] com.armedia.acm.data.converter.ConverterScanPostProcessor - Scanning for converter classes
+[m[32m<TIMESTAMP>,409 [INFO ] [main] org.reflections.Reflections - Reflections took 2 ms to scan 1 urls, producing 2 keys and 16 values 
+[m[32m<TIMESTAMP>,491 [INFO ] [main] org.reflections.Reflections - Reflections took 1 ms to scan 1 urls, producing 1 keys and 15 values 
+[m[32m<TIMESTAMP>,489 [INFO ] [main] org.reflections.Reflections - Reflections took 226 ms to scan 128 urls, producing 502 keys and 3225 values 
+[m[36m<TIMESTAMP>,497 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [DefendantPerson]
+[m[36m<TIMESTAMP>,497 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [Complaint]
+[m[36m<TIMESTAMP>,497 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [BusinessProcess]
+[m[36m<TIMESTAMP>,497 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [GeneralOrganization]
+[m[36m<TIMESTAMP>,497 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [AcmCostsheet]
+[m[36m<TIMESTAMP>,497 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [Organization]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [Person]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [EcmFile]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [AcmTask]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [PeopleOrganization]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [PeoplePerson]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [Consultation]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [DocumentRepository]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [AcmFolder]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [InitiatorOrganization]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [CaseFile]
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.services.dataaccess.service.impl.ArkPermissionEvaluator - Found assigned object [InitiatorPerson]
+[m[32m<TIMESTAMP>,056 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
+[m[32m<TIMESTAMP>,132 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Done scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
+[m[32m<TIMESTAMP>,167 [INFO ] [QuartzScheduler_arkcase-scheduler-reverse-code-generator-a5b1ff61-hnd9l<EPOCH-MS>_ClusterManager] org.springframework.scheduling.quartz.LocalDataSourceJobStore - ClusterManager: Scanning for instance "reverse-code-generator-a5b1ff61-hnd9l<EPOCH-MS>"'s failed in-progress jobs.
+----- end region -----

@@ -6,7 +6,14 @@ WHAT THIS DIRECTORY PROVES
 personnelSecurityBackgroundInvestigation_v11.bpmn20.xml drives seven complete-event
 ScriptTaskListener blocks whose language field is javascript, at lines 48, 68, 88, 110, 121,
 144 and 155. Those listeners executed at the base commit on JDK 8, where the Nashorn engine
-shipped inside rt.jar. JEP 372 removed the engine from the JDK in 15 while javax.script stayed
+shipped as the installed extension jre/lib/ext/nashorn.jar, loaded by the extension class loader.
+It was NOT in rt.jar, and the difference is checkable rather than a nicety: rt.jar carries ZERO
+jdk/nashorn entries, while the extension jar carries 940 of them including
+jdk/nashorn/api/scripting/NashornScriptEngineFactory.class. An earlier revision of this note said
+rt.jar, which would have made the engine part of the platform class library; it was a separately
+installed extension artifact, which is why reinstating it as a Maven dependency restores the
+base-commit arrangement rather than introducing a library the base commit did not have.
+JEP 372 removed the engine from the JDK in 15 while javax.script stayed
 behind in java.scripting, so on Java 17 the request compiled, returned null, and failed on the
 next dereference.
 
@@ -23,6 +30,67 @@ JavaScriptEvaluatingPredicate call sites it analyses. Those remain unreachable, 
 functional by this change, and stay registered as a defect in pre-existing-defects.md. AAP 0.6.5's
 assertion that the BPMN corpus contains "zero script tasks and zero script-format declarations" is
 true of script *tasks* and false of *task listeners*, which is why these seven were missed.
+
+CAPTURE IDENTITIES — which commit each half was taken at, and which one HEAD carries
+----------------------------------------------------------------------------------
+A before-and-after pair names TWO revisions by construction, and the earlier one is
+superseded ON PURPOSE: that is what makes it a "before". Both are given in full so a
+reader is never left to infer which state a number came from.
+
+  BEFORE  6f779b7fbc50f44e63d90b33b9d6748a6f54cfc6
+          the revision at which no script engine was on this module's graph. It is an
+          ancestor of the current head and resolves in this repository. It differs from
+          the head in five non-documentation files, and one of them is this module's own
+          pom.xml -- which is precisely the difference the pair exists to show. Reading
+          the BEFORE numbers as though they described the delivered tree would be a
+          mistake, and this row exists so that mistake is not available.
+
+  AFTER   6a2ee4ec677bb2dd60543ab55d141ed22f92e747
+          ("Restore the BPMN script engine and the sole JSR-250 provider, and make
+          every migration register match HEAD")
+          the revision that declared org.openjdk.nashorn:nashorn-core 15.4 at runtime
+          scope. Both files the experiment depends on are BYTE-IDENTICAL at that revision
+          and at the current head:
+            pom.xml                                        blob 3cb4d926e8fb63f7014009a086de5cb53f0d35f4
+            .../acm-personnel-security-plugin/pom.xml       blob fd7b5e296a6b4127f5055432eca1c5c567b3f87e
+          The only non-documentation file differing between the AFTER revision and the
+          head is mkdocs.yml, the documentation navigation index, which no test reads.
+
+  BASE    c8f6226105c28c2743281d26bf21ad73f7bb7f26
+          the pre-migration commit, cited above for the JDK 8 behaviour of these seven
+          listeners. It is neither of the two capture identities and is not used as one.
+
+THE AFTER EVIDENCE WAS RE-RUN AT THE HEAD RATHER THAN LEFT ON ITS ORIGINAL CAPTURE, so
+that the claim "this is fixed" answers for the delivered tree and not only for the commit
+that fixed it. The reproduction command below, run unchanged at the head, reported:
+
+  Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+    -- in com.armedia.acm.plugins.personnelsecurity.service.BackgroundInvestigationBusinessProcessIT
+  BUILD SUCCESS
+
+which is the same outcome the AFTER capture records. The archived after-*.xml is therefore
+current, not historical.
+
+WHAT THIS DIRECTORY DOES NOT PROVE, AND MUST NOT BE READ AS PROVING
+------------------------------------------------------------------
+It does not authorise the dependency. The paragraphs above set out why the change was made and the
+two captures below measure that it works; neither fact creates authority to make it, and a reader
+must not take an evidence directory for a ratification.
+
+The engine artifact is one of TEN delivered dependency changes the frozen plan does not name. Its
+row, together with the ASM 3 exclusion that lets it initialise and the two net.minidev pins that
+stop a bundled ASM 4 from shadowing it, is in the Deviations From the Frozen Plan section of
+docs/migration/dependency-change-inventory.md, marked DELIVERED AND UNRATIFIED with the consequence
+of reverting it stated per row.
+
+A code review of this checkpoint recorded exactly that: technical reasons do not authorise a
+deviation from a frozen plan, and the remedy is an owner-approved plan revision or an alignment to
+the plan. Remediation has supplied NEITHER — an agent cannot ratify a plan on an owner's behalf, and
+reverting the engine reopens a regression AAP 0.1.1, 0.9.2, R-5 and R-7 all require closed. So the
+decision remains open, and it is an owner's to take. Re-derive the count from the register rather
+than from this note:
+
+  grep -c 'Status: DELIVERED AND UNRATIFIED' docs/migration/dependency-change-inventory.md   # 10
 
 REPRODUCTION COMMAND (identical for both captures)
 --------------------------------------------------

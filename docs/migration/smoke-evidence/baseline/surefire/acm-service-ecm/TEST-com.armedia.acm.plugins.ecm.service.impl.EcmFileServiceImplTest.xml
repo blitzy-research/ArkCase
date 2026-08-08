@@ -1,99 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--
-  PROVENANCE OF THIS REPORT. Read this before citing it.
-
-  WHAT IT IS. An EXECUTED unit-test report for
-  com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest, written by the test
-  runner itself and archived unchanged. It was captured on JDK 8 at base commit
-  c8f6226105c28c2743281d26bf21ad73f7bb7f26, before any migration edit, which is the only
-  state that can serve as a baseline. The runner already names its output
-  TEST-{fully qualified class name}.xml, so this file was RELOCATED into the archive and
-  NEVER RENAMED.
-
-  THIS COMMENT IS THE ONLY THING ADDED. Everything below it, the testsuite element, all 15
-  properties and all 8 testcase elements, is BYTE-IDENTICAL to the installed report. No
-  counter, name, time, outcome, ordering or property was altered to produce this file.
-
-  THE RUNTIME IS EVIDENCED BY THE REPORT, NOT BY THIS COMMENT. The properties below are
-  native, exactly as the runner wrote them: java.runtime.version 1.8.0_492,
-  java.vm.version 25.492-b09, java.class.version 52.0, java.specification.version 1.8.
-  A comment is precisely what an authored report can fake, and a native class-file version
-  of 52.0 is precisely what it cannot. Confirm the runtime from those properties rather
-  than from this prose.
-
-  NO RUNTIME WAS INSTALLED to produce this file, and none was needed. This checkout
-  already carries a toolchain, so an earlier standing note that a genuine capture was
-  impossible here no longer holds, and it is corrected rather than repeated. Re-running the
-  suite from the present tree would NOT yield a baseline, because the tree now carries the
-  migrated build configuration and any run of it describes the migrated side. That is why
-  the executed base-commit report is preserved rather than regenerated.
-
-  WHAT THE ZERO COUNTERS MEAN. tests 8, failures 0, errors 0 and skipped 0 are the counters
-  the runner wrote for a run that actually happened, and the absence of failure, error and
-  skipped elements is an OBSERVED result rather than an assumption or a tidied one. No pass
-  or fail claim is made here beyond what the runner recorded. Had any of these eight tests
-  failed at the base commit, its failure body and full stack trace would stand below
-  verbatim, because a baseline failure is archived AS FAILING and is the only thing that can
-  ever justify a test exclusion. That this archive does exactly that is checkable rather
-  than promised: a sibling report in this same module folder carries failures 3 of tests 4
-  with all three failure bodies and their stack traces intact. Nothing here was fixed,
-  skipped or reordered, and the eight testcase elements stand in the order the runner
-  emitted them, which is the reflection order of the run and deliberately not the order the
-  methods occupy in source.
-
-  WHAT THE INSTALL STEP NORMALISED, EXHAUSTIVELY. Two things, neither inside a testsuite,
-  testcase, failure, error, skipped or system-out element:
-    1. The system property dump was reduced to an allowlist answering the one question the
-       dump is evidence for, which runtime produced this report. The 15 properties that
-       remain are native and unaltered.
-    2. Absolute machine paths were replaced by stable placeholders, because the baseline ran
-       from a throwaway checkout whose directory no longer exists. The two properties that
-       carried one, named here rather than quoted, are the reactor root and the local
-       artifact repository; both fell outside the allowlist and were dropped outright, so NO
-       absolute path and NO placeholder token survives in this report, and nothing of that
-       kind is left here to log.
-
-  ONE PRE-EXISTING CONDITION, DOCUMENTED HERE AND DELIBERATELY NOT FIXED. The properties
-  block contains one orphaned fragment: a line holding only the tail of a property element.
-  Its cause is known. The dropped line.separator property has a line feed for its value, so
-  the runner emitted that property across two physical lines, and the line-oriented filter
-  that applies the allowlist matched only the first of the two; the surviving second line is
-  the fragment. It is present in every archived report of this capture, on both sides, and
-  the filter that produces it still behaves this way. It is left exactly as it stands
-  because it changes no counter, no test name, no outcome and no message, and because it
-  does not block any check: this file parses as well-formed XML with the fragment in place,
-  which is the property that matters. Removing it here would make this one report differ in
-  shape from every other report in the archive and from what a re-run of the install step
-  would produce, which is a worse outcome than recording it.
-
-  IF THIS SUITE IS EVER RE-HARVESTED, replace this file with the unmodified installed report
-  rather than editing this one in place.
-
-  WHAT IS DELIBERATELY ABSENT. This report covers unit tests only. The module's seven
-  integration-test classes produce no report in this archive by design, not by omission: the
-  integration runner binds its integration-test and verify goals with no explicit phase, so
-  both default to phases after test, and a run that stops at test never reaches them.
-  EcmFileDaoIT and EcmFileVersionDaoIT exercise the same file and version domain as this
-  suite, and their absence is still by design. For the same reason the single pre-existing
-  ignore annotation in this module, which sits on an integration-test class, is not
-  representable here and no skipped element is invented for it: an absent integration test
-  is neither a pass nor a failure, and it can never justify an exclusion. The module's
-  non-test helper class is absent for its own reason, matching none of the runner include
-  patterns. This suite name and its counters are cited by the baseline test-failures
-  register, referred to here by title only.
-
-  WHY THIS SUITE IS WORTH A BASELINE. It is the module core file-service suite: deletion of
-  one version that must leave the other versions intact, deletion of all versions, the
-  record-status guard that must throw, the single-version edge case, and then move, folder
-  creation, metadata update and the update failure path. It is one of the 19 unit-test files
-  in this module that exercise the class-proxying mocking library whose floor advance has
-  the widest build-configuration footprint of the migration, so this report is part of the
-  before-picture for that change. Its delete, move and create outcomes also underwrite the
-  document round-trip smoke flow, where a difference would be a wire-behaviour regression
-  rather than a cosmetic one. Every assertion in the suite is unmodified by the migration,
-  and the class keeps its javax.persistence import unchanged.
--->
-<testsuite tests="8" failures="0" name="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.025" errors="0" skipped="0">
+<testsuite tests="8" failures="0" name="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.023" errors="0" skipped="0">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="java.vm.version" value="25.492-b09"/>
@@ -113,11 +19,11 @@
     <property name="java.vendor" value="Private Build"/>
   </properties>
   <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="deleteFile_oneVersion_butFileOnlyHasOneVersion_shouldDeleteFile" time="0.01"/>
-  <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="updateFile" time="0.004"/>
-  <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="deleteFile_oneVersion_shouldNotRemoveOtherVersions" time="0"/>
-  <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="moveFile" time="0.006"/>
+  <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="updateFile" time="0.003"/>
+  <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="deleteFile_oneVersion_shouldNotRemoveOtherVersions" time="0.001"/>
+  <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="moveFile" time="0.005"/>
   <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="deleteFile_allVersions_shouldDeleteFile" time="0.001"/>
   <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="createFolder" time="0.003"/>
   <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="deleteFile_Record_shouldThrow" time="0"/>
-  <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="updateFile_exception" time="0.001"/>
+  <testcase classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" name="updateFile_exception" time="0"/>
 </testsuite>

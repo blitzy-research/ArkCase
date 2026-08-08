@@ -1,6 +1,6 @@
 ArkCase migration smoke evidence — cross-capture comparison
 this-capture: <CAPTURE-DIR>
-other-capture: docs/migration/smoke-evidence/baseline
+other-capture: <REPO-ROOT>/docs/migration/smoke-evidence/baseline
 
 Computed by reading both captures back off disk at the end of this run.
 Not authored.  Every row below is a comparison of two files that exist.
@@ -19,39 +19,64 @@ differs between two runs of the same suite:
 response bodies, transport diagnostics and response headers are not
 projected: a body carries generated identifiers by construction.  What
 makes a body assertable is a NAMED CHECK over it, and every such check
-lands in the .status file, which is compared here in full.
+lands in the .status file, which is compared here in full -- less the
+sections named next, and nothing else.
+
+these probe sections are excluded from BOTH projections, by prefix,
+because their CARDINALITY is set by the environment and not by
+behaviour:
+  task-list-settle
+one instrument produces them: an index-settle poll, which repeats until
+the search index exposes what the run just created.  How many times it
+has to ask is a property of how quickly THAT deployment index caught up,
+and two isolated search cores answer at their own speed.  Observed: one
+side needed a second poll and the other did not, which made twelve
+record lines and one status key differ for a flow whose every
+behavioural observation agreed.  Every attempt is still recorded in
+full in the capture, with its own status, content type and body; what
+is excluded is only the counting of the count as a difference.
 
   DIFFER   flow-1-login verdict: this=OBSERVED-AUTHENTICATED-AND-IDENTITY-CONFIRMED other=OBSERVED-INCOMPLETE-1-REQUIREMENTS-UNMET
   match    flow-1-login.status: 5 record(s) agree
   match    flow-1-login.out (projected): 60 record(s) agree
 
-  match    flow-2-views verdict: this=OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET other=OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
-  match    flow-2-views.status: 19 record(s) agree
-  match    flow-2-views.out (projected): 153 record(s) agree
+  match    flow-2-views verdict: this=OBSERVED-RENDERED-AND-ASSETS-DIGESTED other=OBSERVED-RENDERED-AND-ASSETS-DIGESTED
+  match    flow-2-views.status: 20 record(s) agree
+  match    flow-2-views.out (projected): 181 record(s) agree
 
-  match    flow-3-alfresco-roundtrip verdict: this=NOT-EXERCISED-NO-FIXTURE-OBJECT other=NOT-EXERCISED-NO-FIXTURE-OBJECT
-  match    flow-3-alfresco-roundtrip.status: 14 record(s) agree
-  match    flow-3-alfresco-roundtrip.out (projected): 32 record(s) agree
+  match    flow-3-alfresco-roundtrip verdict: this=OBSERVED-ROUNDTRIP-COMPLETED other=OBSERVED-ROUNDTRIP-COMPLETED
+  match    flow-3-alfresco-roundtrip.status: 13 record(s) agree
+  match    flow-3-alfresco-roundtrip.out (projected): 54 record(s) agree
 
-  match    flow-4-solr-search verdict: this=OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET other=OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET
-  match    flow-4-solr-search.status: 8 record(s) agree
-  match    flow-4-solr-search.out (projected): 26 record(s) agree
+  match    flow-4-solr-search verdict: this=OBSERVED-SEARCH-ANSWERED other=OBSERVED-SEARCH-ANSWERED
+  match    flow-4-solr-search.status: 9 record(s) agree
+  match    flow-4-solr-search.out (projected): 38 record(s) agree
 
-  match    flow-5-activemq-event verdict: this=NOT-EXERCISED-NO-EVENT-PRODUCED other=NOT-EXERCISED-NO-EVENT-PRODUCED
-  match    flow-5-activemq-event.status: 19 record(s) agree
-  match    flow-5-activemq-event.out (projected): 28 record(s) agree
+  match    flow-5-activemq-event verdict: this=OBSERVED-EVENT-TRANSITED-AND-INDEXED other=OBSERVED-EVENT-TRANSITED-AND-INDEXED
+  DIFFER   flow-5-activemq-event.status
+            this-capture records:  18
+            other-capture records: 18
+            differing lines: 6
+            "<" is the OTHER capture, ">" is THIS capture:
+              < broker-dequeue-count=465
+              > broker-dequeue-count=1644
+              < broker-dispatch-count=465
+              < broker-enqueue-count=465
+              > broker-dispatch-count=2423
+              > broker-enqueue-count=1644
+  match    flow-5-activemq-event.out (projected): 38 record(s) agree
 
-  match    flow-6-generated-number verdict: this=OBSERVED-INCOMPLETE-4-REQUIREMENTS-UNMET other=OBSERVED-INCOMPLETE-4-REQUIREMENTS-UNMET
+  match    flow-6-generated-number verdict: this=OBSERVED-NUMBER-GENERATED other=OBSERVED-NUMBER-GENERATED
   match    flow-6-generated-number.status: 4 record(s) agree
-  match    flow-6-generated-number.out (projected): 38 record(s) agree
+  match    flow-6-generated-number.out (projected): 37 record(s) agree
 
-  match    flow-7-workflow-start verdict: this=NOT-EXERCISED-WORKFLOW-NOT-STARTED other=NOT-EXERCISED-WORKFLOW-NOT-STARTED
+  match    flow-7-workflow-start verdict: this=OBSERVED-WORKFLOW-STARTED-AND-TASK-ASSIGNED other=OBSERVED-WORKFLOW-STARTED-AND-TASK-ASSIGNED
   match    flow-7-workflow-start.status: 18 record(s) agree
-  match    flow-7-workflow-start.out (projected): 20 record(s) agree
+  match    flow-7-workflow-start.out (projected): 62 record(s) agree
 
-  match    flow-8-queue-transition verdict: this=NOT-EXERCISED-NO-CASE-FILE-AVAILABLE other=NOT-EXERCISED-NO-CASE-FILE-AVAILABLE
+  match    flow-8-queue-transition verdict: this=OBSERVED-QUEUE-ROUTING-EVALUATED-NOT-APPLIED other=OBSERVED-QUEUE-ROUTING-EVALUATED-NOT-APPLIED
   match    flow-8-queue-transition.status: 12 record(s) agree
-  match    flow-8-queue-transition.out (projected): 24 record(s) agree
+  match    flow-8-queue-transition.out (projected): 36 record(s) agree
 
 REQUIRED comparison — reference-stack probe outcomes:
   match    notes/reference-stack.status: 9 record(s) agree
@@ -79,21 +104,21 @@ ADVISORY comparison — startup region evidence volumes:
   different numbers of lines, so a difference here is not counted.  What
   IS actionable is a region that is empty on one side and populated on
   the other, and that is called out explicitly below.
-  counts   startup/catalina.out.log: this=4933 other=4874
+  counts   startup/catalina.out.log: this=2802 other=2731
   counts   startup/spring-context.log: this=4 other=4
-  counts   startup/jpa-init.log: this=81 other=72
-  counts   startup/reflection-scan.log: this=25 other=25
-  counts   startup/workflow-engine-init.log: this=41 other=41
-  counts   startup/messaging-init.log: this=245 other=238
-  counts   startup/ldap-context-source.log: this=29 other=28
-  counts   startup/frontend-build.log: this=31 other=1
+  counts   startup/jpa-init.log: this=106 other=102
+  counts   startup/reflection-scan.log: this=26 other=26
+  counts   startup/workflow-engine-init.log: this=91 other=91
+  counts   startup/messaging-init.log: this=239 other=240
+  counts   startup/ldap-context-source.log: this=28 other=28
+  counts   startup/frontend-build.log: this=301 other=237
   counts   startup/readiness-poll.log: this=5 other=5
-  counts   startup/errors.log: this=215 other=202
+  counts   startup/errors.log: this=29 other=33
 
 REQUIRED comparison — archived unit-test suites:
-  suites-in-this-capture: 286
+  suites-in-this-capture: 284
   suites-in-other-capture: 278
-  present-here-only: 8
+  present-here-only: 6
   present-there-only: 0
   The per-suite accounting, and which of the two reasons applies to
   each unpaired suite, is in notes/surefire-pairing.txt and in
@@ -127,7 +152,7 @@ differed by two lines and the comparison reported the flow as a match.
 The .status record sets and the projected .out record sets are therefore
 REQUIRED rows now, and a difference in either is counted.
 
-REQUIRED-DIFFERENCES: 3
+REQUIRED-DIFFERENCES: 4
 
 How to read that number.  Zero means the two captures agree on every
 required row.  Non-zero does NOT by itself mean a regression: it means

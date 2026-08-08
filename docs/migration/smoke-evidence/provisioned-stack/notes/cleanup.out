@@ -1,0 +1,47 @@
+===== cleanup-1 =====
+request-method: DELETE
+request-url: http://localhost:8080/arkcase/api/latest/service/ecm/id/134
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 500
+observed-content-type: text/plain;charset=UTF-8
+observed-content-length: 111
+observed-body-bytes: 111
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+Cannot invoke "com.armedia.acm.plugins.ecm.model.EcmFileVersion.getFileHash()" because "ecmFileVersion" is null
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 500 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 111
+Date: <HTTP-DATE>
+Connection: close
+
+
+----- end response-headers -----
+

@@ -96,22 +96,25 @@
             claimed output was simply "unaffected" and that claim was too strong. The harness introspects the
             ordered serialisation property model of every project class under each version, using the mapper
             configuration of the sourceObjectMapper bean and the module jars of each version's own era, and runs
-            six trials per version so that run-to-run variation can be told apart from version behaviour. Over
-            2136 comparable classes the measured result is:
-              - 2 classes have a stable order that genuinely changed: PurgeOptionsDeserializer and
-                ZonedDateTimeDeserializer. Both are JsonDeserializer implementations, and the change is that
-                2.12 added getNullAccessPattern and getEmptyAccessPattern to JsonDeserializer. Neither is ever
-                serialised - each is referenced only as a @JsonDeserialize(using = ...) handler on
-                AcmCalendarEvent, RecurrenceDetails and PurgeOptions - so no response body is affected.
-              - 13 classes have NO stable order at either version: their order varies between runs of the same
+            six trials per version so that run-to-run variation can be told apart from version behaviour. The
+            comparison is 2.10.3 against 2.12.7 - 2.10.3 is what the base commit pins, and an earlier revision
+            of this comment reported a measurement taken against 2.7.2, a version this project never declared;
+            that measurement is withdrawn. Over 2305 comparable classes the measured result is:
+              - 0 classes have a stable order that differs between the two versions. Not one, and that includes
+                every REST response type, every persisted document type and every message payload type.
+              - 16 classes have NO stable order at EITHER version: their order varies between runs of the same
                 version because Jackson collects getter-only properties in Class.getDeclaredMethods order, which
-                the JVM does not guarantee. This is a pre-existing property that held at the base commit too,
-                not something the upgrade introduced, and it is registered in
-                docs/migration/pre-existing-defects.md.
+                the JVM does not guarantee. 11 of the 16 vary at 2.10.3, so this is a pre-existing property that
+                held at the base commit too, not something the upgrade introduced, and it is registered as entry
+                67 of docs/migration/pre-existing-defects.md. None of the 16 is a REST response type.
               - every other class, including gov.privacy.model.SubjectAccessRequest, produced a byte-identical
                 ordered property model in all twelve trials.
-            No REST response type changes its stable serialisation order, so the contract-preservation
-            requirement holds. Captures and the analysis script are committed under
+              - the withdrawn 2.7.2 measurement had blamed PurgeOptionsDeserializer and ZonedDateTimeDeserializer
+                on the upgrade. Against the real baseline both are unstable at 2.10.3 as well, so they are noise
+                on both sides and there is nothing to attribute; 2.10.3 already carries the 2.12 accessor
+                additions the earlier reading turned on.
+            No type changes its stable serialisation order, so the contract-preservation requirement holds.
+            Captures, the harness and the analysis script are committed under
             docs/migration/smoke-evidence/jackson-order/.
             This property drives jackson-core, jackson-databind, jackson-annotations, jackson-datatype-jsr310,
             jackson-module-jsonSchema and jackson-datatype-hibernate5, all of which publish 2.12.7. The
@@ -204,7 +207,13 @@
             java.scripting - so a request for it compiles, returns null at run time, and fails on the next
             dereference. personnelSecurityBackgroundInvestigation_v11.bpmn20.xml asks Activiti for the
             'javascript' engine from seven complete-event ScriptTaskListener blocks that executed at the base
-            commit on Java 8, where the engine shipped inside rt.jar. Leaving it unpinned is therefore not a
+            commit on Java 8, where the engine shipped as the installed extension jre/lib/ext/nashorn.jar and
+            was loaded by the extension class loader. It was NOT in rt.jar: rt.jar carries zero jdk/nashorn
+            entries, and the 940 that make up the engine, NashornScriptEngineFactory among them, are all in
+            that extension jar. The distinction matters because an extension jar is a separately installable
+            artifact rather than part of the platform class library, which is precisely why reinstating it as a
+            Maven dependency restores the base-commit arrangement rather than adding something new. Leaving it
+            unpinned is therefore not a
             latent defect but a live behavioural regression introduced by the runtime move, which AAP 0.1.1,
             0.9.2, R-5 and R-7 all forbid: BackgroundInvestigationBusinessProcessIT errored 2/2 with "Can't
             find scripting engine for 'javascript'" against no baseline row. The engine is reinstated as a
@@ -739,7 +748,7 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
-                    <!-- milton-server-ce » milton-mail-api drags in the 1.1 activation jar. Under Java 8 that jar was
+                    <!-- milton-server-ent » milton-mail-api drags in the 1.1 activation jar. Under Java 8 that jar was
                         shadowed by rt.jar and never loaded; now that the activation framework is supplied explicitly it
                         would be a second provider for the javax.activation package, and its META-INF/mimetypes.default
                         differs from the reference implementation's, so MIME resolution would depend on classpath order.
@@ -800,17 +809,29 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- exclude the mail.jar 1.4 from the war file -->
+            <!-- Hold the legacy mail jars out of the war file. Both entries carried the floating range
+                (,1.5) at the base commit, which is not a version but an instruction to the resolver to pick
+                the newest release below 1.5 that a remote repository happens to publish. Two checkouts of the
+                same commit can therefore resolve differently, which is the condition R-T4 exists to remove,
+                and the range is also easy to misread: (,1.5) admits 1.5.0-b01, because a qualifier sorts
+                BEFORE the release it qualifies, so mail resolved one line above the version the original
+                comment says it excludes.
+
+                Each is now pinned to the exact coordinate the range resolved to, measured with
+                mvn dependency:tree rather than assumed - mail to 1.5.0-b01 and mailapi to 1.4.3 - so the
+                resolved graph is byte-identical to the base commit while ceasing to depend on remote
+                metadata. Neither is a version ADVANCE: it is the same jar, named instead of searched for.
+                Both stay at provided scope, and mailapi keeps its activation exclusion. -->
             <dependency>
                 <groupId>javax.mail</groupId>
                 <artifactId>mail</artifactId>
-                <version>(,1.5)</version>
+                <version>1.5.0-b01</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>javax.mail</groupId>
                 <artifactId>mailapi</artifactId>
-                <version>(,1.5)</version>
+                <version>1.4.3</version>
                 <scope>provided</scope>
                 <exclusions>
                     <!-- mailapi reaches the reactor through com.github.fge:json-schema-validator and declares the same

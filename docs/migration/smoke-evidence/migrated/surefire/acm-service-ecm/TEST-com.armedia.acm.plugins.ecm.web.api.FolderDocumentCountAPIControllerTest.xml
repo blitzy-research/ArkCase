@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIControllerTest" time="0.041" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIControllerTest" time="0.045" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,5 +18,15 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="listFileFolderByCategory_success" classname="com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIControllerTest" time="0.04"/>
+  <testcase name="listFileFolderByCategory_success" classname="com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIControllerTest" time="0.044">
+    <system-out><![CDATA[2026-08-07 21:36:28,437 [INFO ] [main] org.springframework.mock.web.MockServletContext - Initializing Spring TestDispatcherServlet ''
+2026-08-07 21:36:28,437 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Initializing Servlet ''
+2026-08-07 21:36:28,438 [INFO ] [main] org.springframework.test.web.servlet.TestDispatcherServlet - Completed initialization in 1 ms
+2026-08-07 21:36:28,438 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIControllerTest - Rest endpoint : /api/v1/service/ecm/folder/counts/CASE_FILE/234
+2026-08-07 21:36:28,440 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIController - Solr topLevelFilesAndFolders: mockTopLevelSearchResult
+2026-08-07 21:36:28,440 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIController - Solr topLevelFolders: mockTopLevelFolderResult
+2026-08-07 21:36:28,440 [DEBUG] [main] com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIController - Solr folderFacetResults: mockSubFolderSearchResult
+2026-08-07 21:36:28,454 [INFO ] [main] com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIControllerTest - results: {"Folder One":45,"base":5}
+]]></system-out>
+  </testcase>
 </testsuite>

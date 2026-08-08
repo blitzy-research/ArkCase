@@ -1,0 +1,79 @@
+which commit this capture describes
+
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh, record_capture_provenance
+
+provenance-measured-in-tree: <REPO-ROOT>
+capture-commit: d9f40089eb97b16ac2cc0c199f1083bb1b4e789e
+capture-branch: blitzy-<UUID>-w-053
+commit-resolves-in-this-repository: yes -- d9f40089eb97b16ac2cc0c199f1083bb1b4e789e resolves to a commit object in this repository
+commit-reachable-from-branch: yes -- reachable from blitzy-<UUID>-w-053
+worktree-outside-this-capture: clean -- every path outside this capture directory is tracked and unmodified, so the commit named above contains the tree this capture was taken from
+git-status-porcelain-outside-this-capture: empty -- git status --porcelain reported no line outside this capture directory
+dirty-worktree-override-requested: 0
+
+what the commit field means, stated because it is easy to over-read: it is the
+  commit whose CONTENT this capture was taken from -- the application deployed
+  here was built from it, and this script was read from it.  The capture files
+  themselves are necessarily written afterwards and therefore land in a
+  SUCCESSOR commit; a file cannot contain the hash of the commit that contains
+  it.  The clean-worktree line above is what makes the pair meaningful, because
+  it says the tree this run read was the tree that commit holds.
+
+WHICH TREE THE THREE ROWS ABOVE DESCRIBE, named because the two sides answer
+  differently and a reader must not have to guess.  They describe the tree named
+  on the provenance-measured-in-tree row, which is the tree this capture READ for
+  every repository observation it made -- the static audit gate, the externalised
+  JNDI properties file, the tracked corpus figures.  On the post-migration side
+  that is the working clone, so the rows also describe the tree the capture was
+  written into.  On the PRE-MIGRATION side it is a detached worktree of the base
+  commit, because a capture of the base commit that read repository state from the
+  changed tree would be describing the change set it exists to be compared
+  against; the capture detects that mismatch itself and says CONTRADICTED on the
+  declared-side-against-observed-head row of every flow record.  There the rows
+  above describe the base worktree, and the capture is written into the clone.
+
+why the measurement excludes this capture directory: the destination is inside
+  the repository and this run rewrites it wholesale, so counting it would make
+  the number self-referential -- the check would be reporting the files the run
+  is in the middle of producing.  The staging directory is excluded for the same
+  reason: it exists only while the run is in flight.  Everything else in the
+  repository is in scope, and a single differing path outside this directory
+  stops the run by default.
+
+read this together with:
+  env/toolchain.txt              the toolchain this capture ran on, captured
+                                 from the tools themselves
+  notes/manifest.txt             what this capture produced, against what it
+                                 declared it would produce
+  surefire/run-provenance.txt    the commit the archived unit-test reports were
+                                 harvested at, which is a separate producer and
+                                 says so
+  startup/startup.status         the commit the startup regions were
+                                 adjudicated from, likewise
+  artifacts/diff-result.txt      the commit the frontend byte-identity criterion
+                                 was adjudicated at.  Post-migration side only,
+                                 because it is one statement about the PAIR
+
+FOUR PRODUCERS, FOUR COMMITS, ONE STATE OF THE REPOSITORY.  The records above
+  can name different commits without contradiction, and a reader should expect
+  them to: each names the commit ITS OWN producer ran at, and they run at
+  different times because two of them need BOTH capture sides on disk before
+  they can run at all.  Four commits are not four captures.  What must hold
+  across them is that no non-documentation content differed between any two,
+  which is one command per pair and is the check to make rather than to trust:
+    git diff --name-only <one-commit> <other-commit> -- ":!docs"
+  An empty result means the two commits describe the same application, the same
+  build files and the same producers, differing only in the evidence written
+  between them -- which is exactly what a sequence of evidence commits should
+  differ in.  A non-empty result would mean the application changed underneath
+  the evidence, and no amount of prose could repair that.
+
+ONE OF THE SIX IDENTITIES IS DELIBERATELY NOT LIKE THE OTHERS, and it is named
+  here so it is not read as a fault.  The PRE-MIGRATION capture names the base
+  commit, and the check above run against it does NOT come back empty: it lists
+  the change set, which is the whole point of a pre-migration side.  That side
+  reads the base commit because its repository observations -- the static audit
+  gate, the externalised JNDI properties file, the tracked corpus figures -- are
+  claims about the tree BEFORE the change set, and reading them from the changed
+  tree would describe the thing it exists to be compared against.  Its own
+  provenance-measured-in-tree row says which tree it read.

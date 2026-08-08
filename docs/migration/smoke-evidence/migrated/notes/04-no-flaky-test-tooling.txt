@@ -193,14 +193,14 @@ archived-skipped-elements: 21 in this archive and 21 in the baseline archive.
   Every one is a genuine inherited ignored test rather than a retry artefact.
   The analysis of those 21 belongs to
   docs/migration/baseline-test-failures.md and is not restated here.
-aggregate-recorded-in-this-archive: suites=284 tests=933 failures=3 errors=1
+aggregate-recorded-in-this-archive: suites=284 tests=937 failures=3 errors=1
   skipped=21
 aggregate-recorded-in-the-baseline-archive: suites=278 tests=892 failures=3
   errors=1 skipped=21
 reproduction, which is the claim itself rather than a proxy for it: the suite
   was run again on Java 17 from the delivered tree, independently of the
   harvest that produced this archive, and the aggregate came back
-  tests=933 failures=3 errors=1 skipped=21 — identical in every field.  The
+  tests=937 failures=3 errors=1 skipped=21 — identical in every field.  The
   reds were the same four, in the same two classes and the same four methods
   the register already carries, with the same outcome kinds.  Nothing became
   green, nothing new went red, and the skip count did not move, so the 26
@@ -385,4 +385,3 @@ CONTENT difference at this filename is expected and correct: the two sides
 state different runtimes, different archive sizes and a different
 unit-test-runner version.  A STRUCTURAL difference — this file present on one
 side only — is not, and means the mirror has been broken.
-

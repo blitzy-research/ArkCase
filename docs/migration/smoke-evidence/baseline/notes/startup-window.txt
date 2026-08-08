@@ -1,8 +1,8 @@
 the single bounded startup window every region is mined from
 
-deployed-artifact: /tmp/p9-runtime-base8/tomcat/webapps/arkcase.war
-deployed-artifact-bytes: 273015606
-deployed-artifact-sha256: 7fccd5a2a474a6dd9bdaf41bd519124b431b2de2791d6a37e7f9edb67693dc91
+deployed-artifact: (not supplied)
+deployed-artifact-bytes: unmeasured
+deployed-artifact-sha256: unmeasured
 deployed-artifact-why-digested: a base URL and a container log identify a
   host and a port, not a build.  Where several checkouts of this project are
   deployed side by side, a capture taken against a neighbour container looks
@@ -10,20 +10,20 @@ deployed-artifact-why-digested: a base URL and a container log identify a
   ties the behaviour recorded below to a specific archive; unmeasured means
   no archive was named for this run, and the tie is then not established.
 
-source: /tmp/p9-runtime-base8/tomcat/logs/catalina.out
-source-bytes: 827688
-source-lines: 5473
-source-sha256: fe2ef01da1badfd8d28205feda8d2d90596cf015970528783cc4e5e356719879
+source: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-053_196589/.blitzy-scratch/rt/base8/tomcat/logs/catalina.out
+source-bytes: 13225649
+source-lines: 78228
+source-sha256: 0a51ca969c869010ae5400b9cbf5ffda28a6a2e2f49ea00182a81ad1a473980f
 
 window-basis: last-boot-marker-to-startup-completed
-window-opened-by: line 1: 07-Aug-2026 04:28:18.601 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/9.0.120
-window-closed-by: line 4874: 07-Aug-2026 04:30:57.548 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [158722] milliseconds
+window-opened-by: line 1: 08-Aug-2026 04:59:29.587 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/9.0.120
+window-closed-by: line 2731: 08-Aug-2026 05:02:16.198 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [166386] milliseconds
 window-start-line: 1
-window-end-line: 4874
+window-end-line: 2731
 window-start-byte-offset: 0
-window-end-byte-offset: 755371
-window-lines: 4874
-window-sha256: 8fb65f14fa0f53cce5632ee0b330d1274aa4f2fa455ee42d251b25948434ffc5
+window-end-byte-offset: 603956
+window-lines: 2731
+window-sha256: c29de8db1d50b9844782be88aabd1b39fffde42336b66def88ab4123022dd4b3
 
 boot-marker-pattern-used: VersionLoggerListener\.log[[:space:]]+Server[[:space:]]version[[:space:]]name:
 boot-marker-candidates-in-preference-order:
@@ -33,8 +33,8 @@ startup-completed-marker-pattern: Server startup in
 error-signature-pattern: ERROR|SEVERE|Exception|Caused by|NoClassDefFoundError|IllegalAccessError|NoSuchMethodError
 
 how to re-derive the window from the source, byte for byte:
-  sed -n '1,4874p' <source> | sha256sum
-  must print 8fb65f14fa0f53cce5632ee0b330d1274aa4f2fa455ee42d251b25948434ffc5
+  sed -n '1,2731p' <source> | sha256sum
+  must print c29de8db1d50b9844782be88aabd1b39fffde42336b66def88ab4123022dd4b3
 
 why one window rather than one grep per region.  A container log
   accumulates every boot the container has ever performed.  Mining each

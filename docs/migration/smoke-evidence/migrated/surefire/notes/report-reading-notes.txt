@@ -1,0 +1,249 @@
+per-report reading notes — migrated half (Java 17)
+
+scope of this note: nine of the 284 archived migrated Surefire reports in the
+sibling module directories.  It records the per-report disclosures that a reader
+needs in order to cite those seven correctly.  It changes no evidence: not one
+counter, testcase, method name, elapsed time, property or captured console byte
+in any report was altered to produce this file.
+
+
+WHY THESE DISCLOSURES LIVE HERE AND NOT INSIDE THE REPORTS
+
+The reports are machine output.  This archive's design is that each report
+carries its provenance NATIVELY — it states its own java.runtime.version and
+java.class.version in the properties the runner wrote, which is the one form an
+authored report cannot fake — and that no prose sits ahead of any <testsuite>
+element.  A comment is precisely what an authored report can fake; a native
+class-file version of 61.0 is precisely what it cannot.
+
+An earlier revision of this archive prepended an XML comment to every report and
+that form was withdrawn for exactly that reason.  The withdrawal was incomplete:
+eight migrated reports and one baseline report were left carrying 45,396 bytes of
+authored narrative between their XML declaration and their root element, which
+contradicted three published checks over this archive —
+
+  surefire-evidence-archive.md, re-runnable check 3:
+    grep -rl '<!--' docs/migration/smoke-evidence/*/surefire \
+      --include='TEST-*.xml' | wc -l          # expect 0, actually returned 9
+  surefire-evidence-archive.md, baseline bullet:
+    "Zero XML comments and zero prose bytes ahead of any <testsuite> element"
+  baseline-test-failures.md:
+    "Each report carries its provenance natively rather than in a comment ahead
+     of its root element"
+
+The nine comments have been removed and the disclosures they carried that are
+not recorded elsewhere are reproduced below, so the conversion the documentation
+already described is now actually complete.  Nothing was discarded to reach that
+state: authored narrative was relocated, and no runner output was touched.
+
+why the author put them there in the first place, recorded because the reason is
+sound and the fix is not to repeat it: a module directory admits report XML and
+nothing else — no index, no summary, no notes file — so there was no room beside
+the report for a companion.  The prose home is one level up, beside
+run-provenance.txt and sha256-manifest.txt, which is where this file sits.
+
+what this file is NOT: it is not digest-bound.  sha256-manifest.txt covers the
+284 reports and run-provenance.txt, and it deliberately does not cover this
+note, exactly as it does not cover the baseline half's sibling note.  The
+reports are the evidence and they are tamper-evident; this file is reading
+guidance about them and carries no figure that is not re-derivable from them.
+
+
+1. acm-service-ecm / UpdateFileTypeAPIControllerTest
+
+A NAME ENDING IN THE WORD ERROR IS NOT A FAILURE.  The suite's second testcase
+is named updateFileTypeError.  It exercises the endpoint for the case where the
+type update fails and it ASSERTS that the expected error outcome occurs, so it
+is an ordinary PASSING testcase: the report carries neither a failure element
+nor an error element for it, and the suite's counters are tests=3 failures=0
+errors=0 skipped=0.  Its captured standard output DOES contain an ERROR line,
+the AcmObjectNotFoundException class name, that exception's message and the full
+stack trace beneath it, because provoking precisely that logged error is the
+behaviour under test.  That diagnostic is the evidence the error branch was
+taken.  It must never be cited as a baseline failure, and the baseline register
+carries no row for it; its JDK 8 twin records it passing as well, so its outcome
+did not change.
+
+THE BULK TESTCASE IS ONE METHOD.  The third testcase covers a path that changes
+the type of several files in a single request.  It is one test method and
+therefore exactly one testcase element, never one element per object.  Its
+captured console output records the serialised result the controller returned,
+which shows two file objects, in the order the response listed them, each
+carrying the updated type.  That is a record of what this one run processed, not
+a contract about what any run must process.
+
+TWO CONVENTIONS PRESERVED, NEITHER HARMONISED.  This class spells its failure
+path test with a bare Error suffix and no underscore, while a sibling update
+controller in the same package spells its own with an underscore followed by a
+lower case word.  Both spellings are reproduced exactly as their own sources
+write them.  These are pre-existing conditions, documented by faithful
+reproduction and left uncorrected.
+
+
+2. the seven audit-response-reader reports that share one method name
+
+SHARED METHOD NAME, disclosed so that none of the seven is mistaken for a
+duplicate.  Seven reports in acm-service-ecm each record a single test method
+named readResponse:
+
+  AlfrescoCopyServiceCopyAuditResponseReaderTest
+  AlfrescoFileFolderServiceCreateAuditResponseReaderTest
+  AlfrescoFileFolderServiceMoveAuditResponseReaderTest
+  AlfrescoFileFolderServiceRenameAuditResponseReaderTest
+  AlfrescoNodeServiceCreateNodeAuditResponseReaderTest
+  AlfrescoNodeServiceDeleteNodeAuditResponseReaderTest
+  AlfrescoNodeServiceUpdateMetadataAuditResponseReaderTest
+
+That collision is a property of the module test source.  It is neither a
+duplication nor a derivation error: the classname attribute and the file name
+distinguish them, and all seven reports are required.  None may be merged,
+renamed or dropped.  In particular the node-service create reader and the
+file-folder-service create reader are distinct classes, distinguished by the
+node-service segment and the create-node verb in both class name and file name.
+
+ALL SEVEN declare their test class in the parent sync package
+com.armedia.acm.plugins.ecm.service.sync while the class each one tests lives one
+level down in ...service.sync.impl.  The package recorded in each report is
+therefore the TEST class package, which is what the runner writes and what the
+archive requires.  An earlier revision of this disclosure said the split applied
+to two of the seven; it was measured against the source tree and applies to all
+seven.
+
+Each of these classes also declares a fixture method that loads a classpath JSON
+document.  A fixture method is not a test method, so it correctly contributes no
+testcase element.
+
+
+3. acm-service-ecm / EcmNodeDeletedEventHandlerTest
+
+NON-COLLAPSE DISCLOSURE.  This suite holds two testcases whose names differ by a
+single two-character token, File against Folder, and which are otherwise
+character-identical across the onEcmNodeDeleted_if prefix, the
+IsDeletedInContentRepository middle clause and the _thenDeleteItFromArkcase
+suffix.  Both describe destructive behaviour, on two distinct object kinds, so
+neither is a redundant duplicate of the other and neither may be dropped.  Both
+were compared character by character to confirm they had not been collapsed into
+a single entry, and an independent re-derivation of the test-method count from
+the module test source returned two, matching the report's tests attribute.
+
+NODE IDENTIFIERS ARE NOT PATHS.  The content-repository node identifiers of the
+workspace://SpacesStore form that appear in this report are opaque repository
+identifiers, not filesystem paths, and are preserved verbatim.  The archive's
+prohibition is on absolute machine paths; these are neither.
+
+SCOPE.  These are unit assertions against mocked collaborators.  Nothing was
+deleted in a real content repository or in a real database, and this report makes
+no claim about the effective schema of the persistence layer.
+
+
+4. acm-service-email-smtp / SmtpServiceTest
+
+NO FIXTURE CREDENTIAL REACHES THE ARCHIVE.  The module test fixture sets a host,
+a port, a user name, a password and a from-address, and the test source carries
+mailbox literals.  None of those values appears anywhere in the archived report.
+The property allowlist is what keeps it that way, and the point is sharper in a
+mail-transport module than elsewhere: a host name in a mail module reads as
+configuration rather than as build metadata, so a reader could mistake a
+fabricated one for a deployment setting.  No host-name attribute and no
+timestamp attribute appears in the report, and the runner emitted neither.
+
+STRICT RUNNER CAVEAT, disclosed as neither observed nor ruled out.  The class is
+driven by the strict Mockito JUnit 4 runner, declared on the class and imported
+in the test source.  That runner is the strict one both in the incumbent Mockito
+line and in the 4.11.0 line this migration advances to, so an unnecessary-stubbing
+condition would surface as a class-level failure rather than as a single failing
+method.  No such condition is asserted to have occurred, and no claim is made
+that its absence was measured.
+
+REPRODUCED RATHER THAN OBSERVED ONCE.  The counts and the outcome this report
+records were reproduced by a second execution of the same suite on the same
+runtime.
+
+NOT A LICENCE TO NARROW THE SUITE.  The zero failures and zero errors are a
+recorded observation about those runs.  The baseline register carries no row for
+this module and none for this class, and the migrated build declares no exclusion
+naming it.  Should a later run produce a failure or an error here, that failure
+must map to a row in docs/migration/baseline-test-failures.md; a failure matching
+no row is a migration regression, not an accepted baseline condition.  It could
+not be dismissed as a flake either: no rerun count and no retry plugin is
+configured anywhere in the reactor, so an observed failure is real and
+reproducible.
+
+
+5. acm-service-ecm / EcmFileJsonSchemaValidTest
+
+The eight testcase entries correspond one-to-one with the eight test methods
+declared in the class source, and their order is the order the runner emitted,
+which matches the baseline counterpart.  No test in this class is ignored,
+excluded or disabled, so nothing here needs to cite a baseline-failure register
+row.
+
+
+6. the five reports whose console output and property block were restored
+
+Four migrated reports in acm-service-ecm lost content in a revision of this
+change set that has since been corrected, and a fifth lost part of it.  The loss
+and the restoration are recorded here because an error that is gone from the
+committed evidence is indistinguishable from an error that never occurred.
+
+what was lost, per report:
+
+  AlfrescoNodeServiceCreateNodeAuditResponseReaderTest   properties, suite time
+  AlfrescoNodeServiceUpdateMetadataAuditResponseReaderTest properties, suite time
+  EcmFileCreatedEventHandlerTest        properties, suite time, 4 system-out
+  FolderDocumentCountAPIControllerTest  1 system-out
+  UpdateFileTypeAPIControllerTest       properties, suite time, 3 system-out,
+                                        1 system-err
+
+The property block matters because it carries java.class.version 61.0 and
+java.runtime.version 17, which are the positive evidence that these are migrated
+reports at all.  The console output mattered more: between them the four
+system-out blocks of EcmFileCreatedEventHandlerTest carry four WARN lines
+reporting objects absent from the application together with the INFO and DEBUG
+routing observations that show which branch each of its four testcases took, and
+UpdateFileTypeAPIControllerTest carries a real ERROR line, an exception class and
+message, 61 stack frames and a serialised response payload.
+
+Deleting a diagnostic is not sanitising it.  Sanitisation removes
+environment-specific values; it does not remove observations.  All of it was
+restored from the runner output, unedited, and the restoration was verified
+rather than assumed: for each of the five reports the tests/failures/errors/
+skipped tuple and the testcase name set are identical to the state before the
+restoration, no child element was removed anywhere, and every report parses as
+well-formed XML.  The five affected rows of sha256-manifest.txt were recomputed
+in place, leaving row order and the path column byte-for-byte unchanged, and the
+manifest verifies.
+
+CURATION, AND ITS PRECISE EXTENT, for these five reports and for every other
+report in this half.  Two transformations were applied and nothing else.  First,
+the runner's raw system-property dump was reduced to the sixteen Java and
+operating-system identity properties every report in this half carries, because
+the raw dump embeds absolute filesystem paths, a volatile temporary booter jar
+name and a full resolved classpath, none of which may enter version control; the
+retained sixteen are byte-identical in content and order across the half, so a
+reader can diff them.  Second, the host name and timestamp attributes the runner
+emitted were dropped, for the same reason.  NOTHING ELSE WAS REMOVED — every
+counter, every testcase, every method name, every elapsed time and every byte of
+captured console output is carried verbatim, including severity markers, logger
+names, exception class names, exception messages, stack frames and response
+payloads.  run-provenance.txt beside this file states the same contract for the
+half as a whole.
+
+one consequence of carrying console output verbatim, stated so it is not read as
+an error: Mockito's mock class names carry a per-JVM random suffix, so a name of
+the form FolderAndFilesUtils$MockitoMock$pWbVUaRP appears exactly as the runner
+wrote it and would differ in a re-harvest.  It is not normalised, because
+normalising it would contradict the sentence above.
+
+
+WHAT IS NOT CLAIMED HERE
+
+Captured console output is not a comparable field between the two halves of this
+archive, and no comparison in this tree treats it as one.  The baseline runner
+attaches captured output to a testcase only when that testcase went red and
+produced output, while the pinned runner on this side attaches it to green
+testcases too — 1 report of 278 against 151 of 284.  That asymmetry is a change
+in what the RUNNER writes, not in what the tests do, and it is characterised in
+full in docs/migration/baseline-test-failures.md.  Equivalence between the halves
+is judged on testcase presence, testcase outcome and failure-message content,
+never on byte identity and never on output volume.

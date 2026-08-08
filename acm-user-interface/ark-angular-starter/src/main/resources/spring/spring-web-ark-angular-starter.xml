@@ -10,6 +10,25 @@
                 <prop key="frontEndCommandPrefix">
                     #{ systemProperties['os.name'].startsWith('Windows') ? 'cmd /C ' : '' }
                 </prop>
+                <!-- Where the task-runner executable is resolved from.
+
+                     By default it is resolved from the installed tree, node_modules/.bin, which is the copy
+                     `npm ci` just installed from the committed lockfile and therefore the only copy whose
+                     version this project has verified. That is the intended configuration and no deployment
+                     needs to change it.
+
+                     The system property arkcase.external.bower-grunt=true blanks this prefix, so the task
+                     runner is resolved from PATH instead - an ambient copy at whatever version the host
+                     happens to carry, which can produce different assets from the same sources. It exists for
+                     a development host that deliberately runs a globally installed task runner, it is
+                     documented here because an undocumented switch that changes which executable runs is worse
+                     than the switch itself, and it should not be set on a deployment.
+
+                     Two things bound what it can reach. The task runner is only ever invoked by name, so this
+                     prefix is the whole of the difference between the two sources - nothing else about the
+                     command changes. And AngularResourceCopier now composes the child environment explicitly
+                     rather than inheriting Tomcat's, so the PATH a blanked prefix searches is the one that
+                     class passes through, not whatever else the container happened to hold. -->
                 <prop key="frontEndCommandPath">
                     #{ 'true'.equals(systemProperties['arkcase.external.bower-grunt']) ? ''
                       : systemProperties['os.name'].startsWith('Windows') ? 'node_modules\\.bin\\' : 'node_modules/.bin/' }
@@ -39,6 +58,28 @@
         <property name="gruntDefaultCommand">
             <value>$[frontEndCommandPrefix]$[frontEndCommandPath]grunt$[frontEndCommandSuffix] --no-color</value>
         </property>
+        <!-- Toolchain enforcement at deployment time.  The committed package-lock.json is at lockfileVersion 3
+             and was produced by npm 10 on Node 20, and the frontend package.json engines block declares both
+             majors; declaring a runtime does not make a deployment use it, so the launchers are asked for their
+             own versions before anything is installed and the build refuses to start on a wrong major.  The two
+             probe commands carry the same platform prefix as the install command, so the probe measures the
+             launcher the install will actually use rather than a differently-resolved one. -->
+        <property name="nodeVersionCommand">
+            <value>$[frontEndCommandPrefix]node$[frontEndCommandSuffix] --version</value>
+        </property>
+        <property name="npmVersionCommand">
+            <value>$[frontEndCommandPrefix]npm$[frontEndCommandSuffix] --version</value>
+        </property>
+        <property name="requiredNodeMajorVersion" value="20"/>
+        <property name="requiredNpmMajorVersion" value="10"/>
+        <!-- Package lifecycle scripts for the install step.  Disabled, because an install of this graph is
+             otherwise an arbitrary-code-execution surface: five packages in the committed lockfile declare
+             install scripts and every source-control dependency may declare a prepare script.  The default was
+             measured, not assumed - installing the committed lockfile on Node 20 with scripts enabled and with
+             them disabled produced byte-identical output for all five pipeline artifacts and for the source map
+             - so nothing is given up by disabling them.  Set to true only for an estate whose graph genuinely
+             needs an install script to run. -->
+        <property name="npmLifecycleScriptsEnabled" value="false"/>
         <property name="resourceFoldersToCopyFromArchive">
             <list>
                 <value>assets</value>

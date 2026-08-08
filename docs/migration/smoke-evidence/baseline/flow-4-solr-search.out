@@ -4,25 +4,25 @@ title: search round-trip through the search engine
 
 ===== search-request-declaration =====
 OBSERVED
-search-query-submitted: object_type_s%3ACOMPLAINT
+search-query-submitted: object_type_s%3ACASE_FILE
 search-rows-requested: 5 from offset 0
 search-sort-declared: create_date_tdt%20asc
-search-request-path-used: /api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
+search-request-path-used: /api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=5&s=create_date_tdt%20asc
 why-the-sort-is-declared: an undeclared order is not a stable order, and a difference in recorded ordering that came from the absence of a sort would be reported as a behavioural difference when nothing had changed.  A capture that manufactures false differences is as useless as one that misses real ones
 
 ===== search-through-application =====
 request-method: GET
-request-url: http://localhost:20050/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
+request-url: http://localhost:53081/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=5&s=create_date_tdt%20asc
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
 http-version: 1.1
-observed-http-status: 500
-observed-content-type: text/plain;charset=UTF-8
-observed-content-length: 37
-observed-body-bytes: 37
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 8139
+observed-body-bytes: 8139
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: present
@@ -33,13 +33,182 @@ capture-headers-truncated: no
 capture-diagnostics-truncated: no
 transport-exit-status-observed: 0
 ----- body -----
-Unable to process query, server error
+{
+  "response":{"numFound":5,"start":0,"docs":[
+      {
+        "id":"101-CASE_FILE",
+        "object_id_s":"101",
+        "object_id_i":101,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_101"],
+        "name_lcs":"20260808_101",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108627046400},
+      {
+        "id":"102-CASE_FILE",
+        "object_id_s":"102",
+        "object_id_i":102,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_102"],
+        "name_lcs":"20260808_102",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108629143552},
+      {
+        "id":"103-CASE_FILE",
+        "object_id_s":"103",
+        "object_id_i":103,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_103"],
+        "name_lcs":"20260808_103",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108630192128},
+      {
+        "id":"104-CASE_FILE",
+        "object_id_s":"104",
+        "object_id_i":104,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_104"],
+        "name_lcs":"20260808_104",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108631240704},
+      {
+        "id":"105-CASE_FILE",
+        "object_id_s":"105",
+        "object_id_i":105,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_105"],
+        "name_lcs":"20260808_105",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108631240705}]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
 ----- end body -----
 ----- transport-diagnostics -----
 (none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-HTTP/1.1 500 
+HTTP/1.1 200 
 Set-Cookie: <REDACTED-CREDENTIAL>
 Set-Cookie: <REDACTED-CREDENTIAL>
 Set-Cookie: <REDACTED-CREDENTIAL>
@@ -49,26 +218,25 @@ Expires: <HTTP-DATE>
 X-XSS-Protection: 1; mode=block
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Content-Type: text/plain;charset=UTF-8
-Content-Length: 37
+Content-Type: application/json;charset=UTF-8
+Content-Length: 8139
 Date: <HTTP-DATE>
-Connection: close
 
 
 ----- end response-headers -----
 
 ===== search-engine-direct =====
 request-method: GET
-request-url: https://arkcase-ce.local/solr
+request-url: http://localhost:53984/solr
 auth-mode: anon
 redirects-followed: 0
-redirect-target-reported: (none)
+redirect-target-reported: http://localhost:53984/solr/
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
+http-version: 1.1
+observed-http-status: 302
 observed-content-type: unknown
-observed-content-length: (none reported)
+observed-content-length: 0
 observed-body-bytes: 0
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
@@ -78,16 +246,234 @@ transport-refused-oversized-body: no
 transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 7
+transport-exit-status-observed: 0
 ----- body -----
 (empty)
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
+HTTP/1.1 302 Found
+Location: http://localhost:53984/solr/
+Content-Length: 0
+
+
+----- end response-headers -----
+
+===== search-through-application-recheck-1 =====
+request-method: GET
+request-url: http://localhost:53081/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=5&s=create_date_tdt%20asc
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 8139
+observed-body-bytes: 8139
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":5,"start":0,"docs":[
+      {
+        "id":"101-CASE_FILE",
+        "object_id_s":"101",
+        "object_id_i":101,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_101"],
+        "name_lcs":"20260808_101",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108627046400},
+      {
+        "id":"102-CASE_FILE",
+        "object_id_s":"102",
+        "object_id_i":102,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_102"],
+        "name_lcs":"20260808_102",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108629143552},
+      {
+        "id":"103-CASE_FILE",
+        "object_id_s":"103",
+        "object_id_i":103,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_103"],
+        "name_lcs":"20260808_103",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108630192128},
+      {
+        "id":"104-CASE_FILE",
+        "object_id_s":"104",
+        "object_id_i":104,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_104"],
+        "name_lcs":"20260808_104",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108631240704},
+      {
+        "id":"105-CASE_FILE",
+        "object_id_s":"105",
+        "object_id_i":105,
+        "object_type_s":"CASE_FILE",
+        "name":["20260808_105"],
+        "name_lcs":"20260808_105",
+        "create_date_tdt":["<TIMESTAMP>"],
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":false,
+        "protected_object_b":true,
+        "allow_group_ls":[103],
+        "allow_user_ls":[101],
+        "dueDate_tdt":["<TIMESTAMP>"],
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "description_no_html_tags_parseable":["seeded so the case-file flows have an object to observe"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Order",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["Smoke seed case"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "priority_lcs":"Medium",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"Smoke seed case",
+        "_version_":1872925108631240705}]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
 (none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 8139
+Date: <HTTP-DATE>
+
+
 ----- end response-headers -----
 
 ===== search-result-set =====
@@ -95,16 +481,16 @@ transcribed-from: search-through-application recorded body, re-read from this ca
 extraction-tooling: grep, sed and awk only; no JSON processor and no
   search-client library, because adding tooling without a compatibility
   reason is out of scope (R-1)
-request-url-transcribed-from: http://localhost:20050/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
+request-url-transcribed-from: http://localhost:53081/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=5&s=create_date_tdt%20asc
 source-body-truncated: no
 engine-response-header-status: (not exposed)
-total-match-count: (not exposed)
-RESULT_COUNT: unknown
-hits-listed-below: 0
+total-match-count: 5
+RESULT_COUNT: 5
+hits-listed-below: 5
 relevance-scores-exposed: no
 relevance-scores-listed: 0
 max-score-reported: (not exposed)
-index-readiness: not established: the response exposes no total-match figure, so this capture cannot say whether the index was populated (search engine reached directly: no, observed 000)
+index-readiness: not established: the search response header reported status (absent) rather than 0, so a low or zero count here may be an engine condition rather than an index state (search engine reached directly: yes, observed 302)
 page-window: fixed by the request URL above and therefore identical in the
   replay; the engine returns one page, so hits-listed-below may be smaller
   than total-match-count without anything having been dropped here
@@ -121,6 +507,11 @@ score-absence-note: the request URL above does not ask the engine for a
   The RETURNED ORDER below is then the whole of the ranking evidence,
   which is why it is transcribed verbatim.
 ----- ordered result set -----
-(no matched document identifier is exposed by the recorded body)
+rank   identifier                                               score
+1      101-CASE_FILE                                            (not exposed)
+2      102-CASE_FILE                                            (not exposed)
+3      103-CASE_FILE                                            (not exposed)
+4      104-CASE_FILE                                            (not exposed)
+5      105-CASE_FILE                                            (not exposed)
 ----- end ordered result set -----
 

@@ -1,0 +1,226 @@
+flow: 6
+slug: 6-generated-number
+title: create an object that receives a generated number
+
+===== numbering-precondition =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&s=create_date_tdt+DESC&start=0&n=1
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 1610
+observed-body-bytes: 1610
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":5,"start":0,"docs":[
+      {
+        "id":"179-COMPLAINT",
+        "object_id_s":"179",
+        "object_id_i":179,
+        "object_type_s":"COMPLAINT",
+        "name":["20260807_179"],
+        "name_lcs":"20260807_179",
+        "create_date_tdt":"<TIMESTAMP>",
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":"<TIMESTAMP>",
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":true,
+        "protected_object_b":true,
+        "dueDate_tdt":"<TIMESTAMP>",
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Other",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["blitzy_adhoc_test_tls_index_probe"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"blitzy_adhoc_test_tls_index_probe",
+        "_version_":1872909315400007680}]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 1610
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== create-object =====
+request-method: POST
+request-url: http://localhost:8080/arkcase/api/latest/plugin/complaint
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: (none reported)
+observed-body-bytes: 9006
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{"@id":"1","complaintId":180,"personAssociations":[],"originator":null,"complaintNumber":"20260807_180","complaintType":"Other","priority":null,"complaintTitle":"arkcase migration smoke probe","details":null,"incidentDate":null,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","status":"DRAFT","ecmFolderPath":"/Sites/acm/documentLibrary/Complaints/","container":{"@id":"2","id":184,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","containerObjectType":"COMPLAINT","containerObjectId":180,"containerObjectTitle":"20260807_180","folder":{"@id":"3","id":124,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","name":"ROOT","cmisRepositoryId":"alfresco","cmisFolderId":"workspace://SpacesStore/<UUID>","parentFolder":null,"status":"ACTIVE","participants":[{"@id":"4","id":368,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":124,"participantType":"*","participantLdapId":"*","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"5","id":717,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":true,"deletable":true},{"@id":"6","id":369,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":124,"participantType":"group-write","participantLdapId":"ARKCASE_SUPERVISOR@ARKCASE.ORG","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"7","id":718,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"},{"@id":"8","id":719,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"write","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":true,"deletable":true},{"@id":"9","id":370,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":124,"participantType":"read","participantLdapId":"arkcase-admin@arkcase.org","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"10","id":722,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":true,"deletable":true}],"restricted":false,"link":false},"attachmentFolder":{"@ref":"3"},"calendarFolderId":null,"calendarFolderRecreated":false,"cmisRepositoryId":"alfresco"},"childObjects":[],"approvers":null,"organizationAssociations":[],"participants":[{"@id":"11","id":371,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"COMPLAINT","objectId":180,"participantType":"assignee","participantLdapId":"","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"12","id":704,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"},{"@id":"13","id":705,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"add file","accessType":"grant","accessReason":"policy"},{"@id":"14","id":706,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"save","accessType":"grant","accessReason":"policy"},{"@id":"15","id":707,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"uploadOrReplaceFile","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":false,"deletable":false},{"@id":"16","id":372,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"COMPLAINT","objectId":180,"participantType":"*","participantLdapId":"*","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"17","id":708,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"},{"@id":"18","id":709,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"uploadOrReplaceFile","accessType":"grant","accessReason":"policy"},{"@id":"19","id":710,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"addComment","accessType":"grant","accessReason":"policy"},{"@id":"20","id":711,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"subscribe","accessType":"grant","accessReason":"policy"},{"@id":"21","id":712,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"addTag","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":false,"deletable":false},{"@id":"22","id":373,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"COMPLAINT","objectId":180,"participantType":"owning group","participantLdapId":"ARKCASE_SUPERVISOR@ARKCASE.ORG","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"23","id":713,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"add file","accessType":"grant","accessReason":"policy"},{"@id":"24","id":714,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"save","accessType":"grant","accessReason":"policy"},{"@id":"25","id":715,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"uploadOrReplaceFile","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":false,"deletable":false},{"@id":"26","id":374,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"COMPLAINT","objectId":180,"participantType":"reader","participantLdapId":"arkcase-admin@arkcase.org","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"27","id":716,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"uploadOrReplaceFile","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":false,"editableType":false,"deletable":false}],"dueDate":"<TIMESTAMP>","tag":null,"frequency":null,"addresses":[],"disposition":null,"restricted":false,"className":"com.armedia.acm.plugins.complaint.model.Complaint","legacySystemId":null,"defaultAddress":null,"acmObjectNumber":"20260807_180","acmObjectOriginator":null}
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== numbering-progression =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&s=create_date_tdt+DESC&start=0&n=1
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 1610
+observed-body-bytes: 1610
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":5,"start":0,"docs":[
+      {
+        "id":"179-COMPLAINT",
+        "object_id_s":"179",
+        "object_id_i":179,
+        "object_type_s":"COMPLAINT",
+        "name":["20260807_179"],
+        "name_lcs":"20260807_179",
+        "create_date_tdt":"<TIMESTAMP>",
+        "author":["arkcase-admin@arkcase.org"],
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "modified_date_tdt":"<TIMESTAMP>",
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "public_doc_b":true,
+        "protected_object_b":true,
+        "dueDate_tdt":"<TIMESTAMP>",
+        "status_lcs":"DRAFT",
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "hidden_b":false,
+        "incident_type_lcs":"Other",
+        "assignee_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "adhocTask_b":false,
+        "title_parseable":["blitzy_adhoc_test_tls_index_probe"],
+        "acm_participants_lcs":"[{\"ldapId\":\"\", \"type\":\"assignee\"},{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"owning group\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"reader\"}]",
+        "owning_group_id_s":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "owning_group_id_lcs":"ARKCASE_SUPERVISOR@ARKCASE.ORG",
+        "title_parseable_lcs":"blitzy_adhoc_test_tls_index_probe",
+        "_version_":1872909315400007680}]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 1610
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== numbering-progression-observed =====
+OBSERVED
+numbering-format-observed: 99999999_999
+numbering-format-expected: 99999999_999
+numbering-format-basis: the number with every digit replaced by 9 and every letter by A, separators kept verbatim.  This is the ONLY part of a generated number that two captures can compare, because the number itself advances between runs by construction
+numbering-count-before-creation: 5
+numbering-count-after-creation: 5
+numbering-progression-basis: the identical query issued before and after the creation, so the advance is observed rather than assumed from the presence of a number
+generated-number-recorded-verbatim-in: the create-object section of this capture; it is NOT reduced or normalised, because it is behaviour-bearing
+

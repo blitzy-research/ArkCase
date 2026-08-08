@@ -9,8 +9,9 @@ them gone.  This script does not retire them itself: the only supported path
 submits a disposition and starts an approval process, which would leave more
 state behind than it removed.
 
-residue-entries: 0
+residue-entries: 1
 
 ----- entries -----
-  (none: this run created no object that it could not remove)
+  COMPLAINT 121
+    created by flow 6 to observe generated numbering; the complaint plugin exposes no removal endpoint, so this object stays.  Retire it through the application's own close-with-disposition path if the deployment requires it — this script deliberately does not, because submitting a disposition starts an approval process and would leave more state behind than it removed
 ----- end entries -----

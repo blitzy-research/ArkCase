@@ -4,7 +4,7 @@ title: queue transition on a case or complaint
 
 ===== queue-definitions =====
 request-method: GET
-request-url: http://localhost:20040/arkcase/api/latest/plugin/queues
+request-url: http://localhost:53080/arkcase/api/latest/plugin/queues
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
@@ -50,17 +50,17 @@ Date: <HTTP-DATE>
 
 ===== case-discovery =====
 request-method: GET
-request-url: http://localhost:20040/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname
+request-url: http://localhost:53080/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
 http-version: 1.1
-observed-http-status: 500
-observed-content-type: text/plain;charset=UTF-8
-observed-content-length: 37
-observed-body-bytes: 37
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 265
+observed-body-bytes: 265
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: present
@@ -71,13 +71,25 @@ capture-headers-truncated: no
 capture-diagnostics-truncated: no
 transport-exit-status-observed: 0
 ----- body -----
-Unable to process query, server error
+{
+  "response":{"numFound":5,"start":0,"docs":[
+      {
+        "object_id_s":"101",
+        "name":["20260808_101"]}]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
 ----- end body -----
 ----- transport-diagnostics -----
 (none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-HTTP/1.1 500 
+HTTP/1.1 200 
 Set-Cookie: <REDACTED-CREDENTIAL>
 Set-Cookie: <REDACTED-CREDENTIAL>
 Set-Cookie: <REDACTED-CREDENTIAL>
@@ -87,10 +99,55 @@ Expires: <HTTP-DATE>
 X-XSS-Protection: 1; mode=block
 X-Frame-Options: SAMEORIGIN
 X-Content-Type-Options: nosniff
-Content-Type: text/plain;charset=UTF-8
-Content-Length: 37
+Content-Type: application/json;charset=UTF-8
+Content-Length: 265
 Date: <HTTP-DATE>
-Connection: close
+
+
+----- end response-headers -----
+
+===== next-possible-queues =====
+request-method: GET
+request-url: http://localhost:53080/arkcase/api/latest/plugin/casefile/nextPossibleQueues/101
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: (none reported)
+observed-body-bytes: 99
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{"defaultNextQueue":null,"defaultReturnQueue":null,"defaultDenyQueue":null,"nextPossibleQueues":[]}
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
 
 
 ----- end response-headers -----

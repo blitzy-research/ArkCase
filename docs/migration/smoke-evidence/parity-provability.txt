@@ -3,83 +3,195 @@ WHICH FLOWS HAVE PROVABLE BASELINE PARITY, AND WHICH CANNOT
 
 Why this file exists
 --------------------
-migrated/comparison.txt reports "match" or "DIFFER" per flow, and a reader can take a page of "match"
-rows as a page of demonstrated equivalence. For four of these eight flows that reading is
-wrong, and the distinction is not visible from the word "match" alone. Two captures that both
-failed to exercise a flow agree perfectly about having observed nothing. That is agreement
-WITHOUT EVIDENCE, and it is a different thing from agreement with evidence.
+migrated/comparison.txt reports "match" or "DIFFER" per row, and neither word means what a
+reader is likely to assume. A page of "match" rows can be a page of agreement WITHOUT
+evidence - two captures that both failed to exercise a flow agree perfectly about having
+observed nothing. A page of "DIFFER" rows can equally be a page in which one capture simply
+saw MORE than the other, which is not a regression either.
 
-This file separates the two, so that no downstream summary can convert the second into the
-first. It asserts nothing new: every classification below is read off the committed .status
-files and migrated/comparison.txt.
+This file separates those readings so that no downstream summary can convert any of them
+into "parity demonstrated". It asserts nothing new: every classification below is read off
+the committed .status files and .out transcripts. Where migrated/comparison.txt is quoted it
+is quoted as a subject, not relied on as a source - one of its rows predates the file it
+describes, and that is recorded here and in <side>/notes/07-post-capture-supersession.txt
+rather than inherited.
 
-Tier 1 — parity DEMONSTRATED, both captures observed the behaviour and agreed
-----------------------------------------------------------------------------
-  flow-2-views              .status 19 records agree, .out 153 projected records agree
-  flow-4-solr-search        .status  8 records agree, .out  26 projected records agree
-  flow-6-generated-number   .status  4 records agree, .out  38 projected records agree
+What the two captures actually recorded
+---------------------------------------
+Every figure below was re-derived from the committed .status files and .out transcripts, in
+the state they are committed in. It is NOT taken from the flow result records, and it is not
+taken from migrated/comparison.txt where that file predates what it describes: three result
+records and one comparison row belong to earlier runs, and every one of them is enumerated
+with its measurement in the capture notes at <side>/notes/07-post-capture-supersession.txt.
+An earlier revision of this page described a materially different situation - four flows
+unexercised on both sides, three required differences, every one of the eight verdicts
+differing - and that description is wrong in every one of those particulars against the
+capture committed here. The corrections are stated as corrections rather than substituted
+quietly, because a reviewer holding the earlier revision needs to know which document moved.
 
-  These three reached the application, exercised the path and recorded observations that the
-  cross-capture comparison then matched record for record. Their verdicts are
-  OBSERVED-INCOMPLETE-n-REQUIREMENTS-UNMET rather than a clean pass, and that qualifier is
-  load-bearing: what is demonstrated is that the two runtimes behave the SAME, including in
-  the requirements they both leave unmet. Parity is proven; completeness is not claimed.
+Verdicts as recorded, migrated side first, read from the two .result.txt records and the
+.status files beneath them:
 
-  flow-6 is the one that matters most for the runtime migration, because generated numbering
-  runs through the 43 live .xlsx decision tables and therefore through MVEL, the highest-impact
-  library change in the backend. Its agreement is evidence that the MVEL advance did not change
-  numbering behaviour.
+  flow-1-login              OBSERVED-AUTHENTICATED-AND-IDENTITY-CONFIRMED
+                            vs OBSERVED-INCOMPLETE-1-REQUIREMENTS-UNMET
+  flow-2-views              OBSERVED-RENDERED-AND-ASSETS-DIGESTED          both sides
+  flow-3-alfresco-roundtrip OBSERVED-ROUNDTRIP-COMPLETED                   both sides
+  flow-4-solr-search        OBSERVED-SEARCH-ANSWERED                       both sides
+  flow-5-activemq-event     OBSERVED-EVENT-TRANSITED-AND-INDEXED           both sides
+  flow-6-generated-number   OBSERVED-NUMBER-GENERATED                      both sides
+  flow-7-workflow-start     OBSERVED-WORKFLOW-STARTED-AND-TASK-ASSIGNED    both sides
+  flow-8-queue-transition   OBSERVED-QUEUE-ROUTING-EVALUATED-NOT-APPLIED   both sides
 
-Tier 2 — parity NOT provable, the baseline never exercised the flow
+SEVEN OF THE EIGHT VERDICTS AGREE, and all eight flows executed on both sides. No flow in
+this pair is unexercised. That is the single most important fact on this page and it is also
+the fact an earlier revision got backwards, so it is stated before any tier.
+
+  THE TWO SIDES DID PROBE TWO RUNTIMES, and one provenance caveat sits beside that rather
+  than against it. Read from the committed startup regions, the DEPLOYED SERVER on each side
+  is what the side label says it is:
+
+      baseline/startup   JVM Version: 1.8.0_492-8u492-ga~us2-0ubuntu1~25.10.1-b09
+                         Apache Tomcat/9.0.120, Server startup in [166386] milliseconds
+      migrated/startup   JVM Version: 17.0.19+10-1-25.10.2-Ubuntu
+                         Apache Tomcat/9.0.120, Server startup in [162514] milliseconds
+
+  So this pair IS cross-runtime, and the agreement below is agreement between a JDK 8
+  deployment and a Java 17 deployment of the two trees.
+
+  The caveat is about the CAPTURE HOST rather than the server. env/toolchain.txt records the
+  tools of the machine that ran the producer, and on BOTH sides those are openjdk 17.0.19,
+  Maven 3.8.7, node v20.20.2 and npm 10.8.2, with git HEAD 0e13c8620d. The pre-migration
+  capture therefore records, in field position:
+
+      declared-side-versus-observed-head: CONTRADICTED: the capture declares the
+      pre-migration side and the base commit c8f6226105, but HEAD is 0e13c8620d.
+      The observed head is the fact; the side label is a declaration.
+
+  That says the pre-migration side was captured FROM the migrated tree while probing a
+  base-commit deployment, so the producer, the probe definitions and the host tooling were
+  the migrated ones on both sides. That is what makes the two comparable at all; it is also
+  why the side designations inside the records are labels, and why the runtime of record for
+  either side is read from the startup region above rather than from a designation.
+
+  A THIRD capture exists and is one-sided: provisioned-stack/, taken later against the same
+  deployed artifact with a content repository and a search core provisioned. It exercises all
+  eight flows and its flow 3 completes its round trip with retrieved-bytes-match=yes and
+  mime-identity=yes. It has no counterpart and cannot acquire one, so what it establishes is
+  that those behaviours FUNCTION on the target runtime - not that they are UNCHANGED. Those
+  are different claims and only the second is parity.
+
+Tier 1 - the two captures agree on every required record
+--------------------------------------------------------
+  flow-2-views               .status 20 of 20 agree    .out 181 projected records agree
+  flow-3-alfresco-roundtrip  .status 13 of 13 agree    .out  54 projected records agree
+  flow-4-solr-search         .status  9 of  9 agree    .out  38 projected records agree
+  flow-6-generated-number    .status  4 of  4 agree    .out  37 projected records agree
+  flow-7-workflow-start      .status 21 of 21 agree    .out  62 projected records agree
+  flow-8-queue-transition    .status 12 of 12 agree    .out  36 projected records agree
+
+  Six flows, agreeing on the verdict and on every record beneath it. The comparison reports
+  flow 7 as 18 records rather than 21 because its projection drops the three
+  task-list-settle keys by declared prefix: how many times an index-settle poll has to ask
+  is a property of the deployment's index, not of behaviour.
+
+  These six agree across a JDK 8 deployment and a Java 17 deployment, which is the
+  comparison this deliverable exists to make, and they include all four integration flows -
+  the content repository, the message broker, the workflow engine and queue routing. What
+  they do not become is a general clearance: each is ONE observation of the flow, taken once
+  per side, and flow 7 records its own RESIDUAL_RISK token saying so.
+
+Tier 2 - the captures differ, and each difference is accounted for
 ------------------------------------------------------------------
-  flow-3-alfresco-roundtrip NOT-EXERCISED-NO-FIXTURE-OBJECT       (both captures)
-  flow-5-activemq-event     NOT-EXERCISED-NO-EVENT-PRODUCED       (both captures)
-  flow-7-workflow-start     NOT-EXERCISED-WORKFLOW-NOT-STARTED    (both captures)
-  flow-8-queue-transition   NOT-EXERCISED-NO-CASE-FILE-AVAILABLE  (both captures)
+  flow-1-login   verdict DIFFERS, and 3 of its 11 status records differ
+      this  OBSERVED-AUTHENTICATED-AND-IDENTITY-CONFIRMED
+      other OBSERVED-INCOMPLETE-1-REQUIREMENTS-UNMET
 
-  For these four, migrated/comparison.txt's "match" means the two captures agree that neither of them
-  observed the behaviour. Nothing about Alfresco document round-tripping, ActiveMQ delivery,
-  process instantiation or queue transition is demonstrated by this evidence, in either
-  direction. Stating that they "match" without stating this would be the single most misleading
-  sentence available in this archive.
+      Two separate things differ and they must not be read as one.
 
-  The cause is a fixture chain, not a runtime fault, and it is the same chain in all four:
-  no case-file object could be created, so there was nothing to attach a document to, nothing
-  to generate an event about, nothing to start a workflow on and nothing to move between
-  queues. flow-7 additionally records DEFINITIONS_LOADED: 34 against DEFINITIONS_ON_DISK: 36
-  and RESIDUAL_RISK: process-engine-observed-here-not-cleared, which is the honest form of the
-  Activiti residual risk: the engine loaded definitions, and no process was instantiated.
+      The VERDICT differs in the migrated side's favour. The unmet requirement on the other
+      side reads delivered configuration that the migrated side has and the pre-migration
+      label does not, so it is a difference in what the CAPTURE reached rather than in what
+      the application did. Resolved at ../ambiguity-resolutions.md entry 21.
 
-  This cannot be repaired by re-running the migrated capture. The baseline was taken on JDK 8
-  at the base commit and is not reproducible now — the runtime, the deployed build and the
-  fixture state have all moved — so a richer migrated capture would have nothing to be
-  compared against. Any future closure has to re-establish both halves together.
+      The AUTHORIZATION RESULT also differs, and this one is a difference in what the
+      application returned: granted-authority-count 5 against 6, with the migrated side
+      additionally holding the directory group ARKCASE_SUPERVISOR@ARKCASE.ORG, so
+      granted-authority-set-ordered and granted-authority-set-sha256 differ with it.
+      Everything the effective authorization is made of agrees exactly - the same principal,
+      the same four ROLE_ authorities including ROLE_SUPERVISOR, the same 106 privileges, and
+      the same digest over the sorted privilege list,
+      bcf3ed0bd9a2b2318f541badabf338c5621fe12383a7b15f024cb648c9e5f782, on both sides. The
+      cause was traced to directory content rather than to the runtime and it is resolved at
+      ../ambiguity-resolutions.md entry 22 with the measurements.
 
-Tier 3 — the captures DIFFER, and the migrated side is the stronger one
-----------------------------------------------------------------------
-  flow-1-login  this=OBSERVED-AUTHENTICATED-AND-IDENTITY-CONFIRMED
-                other=OBSERVED-INCOMPLETE-1-REQUIREMENTS-UNMET
+      So on the literal form of the Gate-4 criterion for this flow - identical outcome AND
+      identical authorization result - parity is NOT demonstrated. On the effective form, the
+      roles held and the privileges granted, it is. Both are stated, because this file exists
+      to stop the second from being read as the first.
 
-  The verdict differs while all 5 .status records and all 60 projected .out records agree. The
-  migrated capture authenticated and confirmed the identity; the baseline capture did not get
-  that far. This is a difference in what the CAPTURE achieved, not in what the application did:
-  the underlying records the two share are identical. It is counted as a required difference
-  rather than waved through, and it is the one difference in this archive where the migrated
-  side observed more rather than less.
+      migrated/comparison.txt reports this status file as a MATCH over 5 records. That row
+      predates the six authorization records: it counted the five transport records, which do
+      agree. Counting the status file as committed makes the required-difference total FIVE
+      rather than the four the comparison prints, and the fifth is this one - already
+      adjudicated, never uncounted twice.
 
-The two artifact differences are not in this accounting
-------------------------------------------------------
-REQUIRED-DIFFERENCES: 3 counts flow-1's verdict plus the two frontend artifact digests,
-application.min.js and application.min.css. Those two are a separate subject with their own
-record: ../ambiguity-resolutions.md §6a characterises both to the byte and states what the
-comparison does and does not establish, and ../pre-existing-defects.md entry 13 registers them as
-an accepted deviation. Neither is a flow.
+  flow-5-activemq-event   verdict AGREES, 3 of its 18 status records differ
+      broker-dequeue-count 465 against 1644, broker-dispatch-count 465 against 2423 and
+      broker-enqueue-count 465 against 1644. These are the broker's own lifetime counters on
+      a shared broker, so they count every message the broker has carried since it started
+      and not the messages this flow produced. The flow's behavioural observations - that the
+      event transited and was indexed - agree, as do all 38 projected .out records.
+
+Tier 3 - required differences that are not flows
+------------------------------------------------
+  application.min.js and application.min.css digests differ between the two captures. They
+  are a separate subject with their own record: ../ambiguity-resolutions.md 6a characterises
+  both to the byte and states what the comparison does and does not establish, and
+  ../pre-existing-defects.md entry 13 registers them as an UNMET Gate-2 criterion rather than
+  as an accepted deviation. Neither is a flow.
+
+  The other three pipeline artifacts agree exactly: application.js, vendors.min.js and
+  home.html, the last of which is the cache-busted page and therefore the strongest single
+  artifact row in the set.
 
 The honest summary, in one line
 -------------------------------
-Three of eight flows demonstrate baseline parity on observed behaviour; one differs in the
-capture's favour with identical underlying records; four are unexercised on both sides and
-therefore prove nothing about the integrations they are named for. The four unexercised flows
-are exactly the ones covering Alfresco, ActiveMQ, the workflow engine and queue routing, and
-their integration behaviour on the target runtime rests on the deployment reaching ready state
-with a clean startup log rather than on this archive.
+Six of eight flows agree with their counterpart on the verdict and on every compared record;
+one differs in the capture's favour and, separately, in three authorization records traced to
+directory content; one agrees on its verdict and every behavioural record while three broker
+lifetime counters differ. The two sides probed a JDK 8 deployment and a Java 17 deployment, so
+this is a cross-runtime comparison and the agreement is the evidence it was taken for.
+
+What it is still not is a clearance. Every row is ONE observation per side rather than a
+repeated measurement; the four integration flows are exercised once each and flow 7 carries its
+own RESIDUAL_RISK token saying the process engine is observed here and not cleared; and the
+provenance caveat above means the producer and probe definitions on both sides came from the
+migrated tree. Two supporting bodies of evidence sit beside the pair rather than inside it: the
+deployment reaching ready state with its startup ERROR census reconciled, and the one-sided
+provisioned-stack/ capture taken with a content repository and a search core provisioned. Both
+are weaker than a matched row and neither is offered as one.
+
+The producer digest, and why it does not match the committed script
+------------------------------------------------------------------
+Both captures record the same producer-sha256 in env/toolchain.txt, and that row is the whole
+basis for reading the two side by side: equal digests mean one program wrote both, whatever
+either capture says in prose. That property holds, and a reader checks it by diffing the two
+rows against each other.
+
+What the row does NOT claim is that it is the digest of smoke-checks.sh as committed here. It is
+the digest of the producer AT THE MOMENT THE TWO CAPTURES RAN, and the producer has been revised
+since — by the later work in this change set that corrected the flow-7 deployment total, the
+readiness predicate, the credential redaction and the manifest tiering, every one of which
+changed the script's bytes. So `sha256sum docs/migration/smoke-evidence/smoke-checks.sh` returns
+a different value from the row, and that is expected rather than evidence of tampering: the row
+is a record of an event, and the file is a program that has moved on since the event.
+
+Recomputing the row to today's digest was rejected. It would assert that the currently committed
+script produced these captures, which is false, and the assertion could not be withdrawn by
+re-taking the captures either: the pre-migration side probed a JDK 8 deployment of the base
+commit, and that deployment cannot be rebuilt from this tree - the shared local artifact
+repository now holds the intra-reactor artifacts at class-file version 61 and the older compiler
+cannot read them, which is recorded with the captured compiler error in
+baseline/surefire/notes/property-allowlist-line-continuation.txt. Editing a frozen capture to make a
+number agree with a later state of the tree is the authenticity defect this checkpoint's surefire
+work was spent eliminating, and it is not reintroduced here for a digest.

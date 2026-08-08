@@ -1,0 +1,295 @@
+===== cleanup-1 =====
+request-method: POST
+request-url: http://localhost:53080/arkcase/api/latest/plugin/task/deleteProcessInstance/101/568
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: unknown
+observed-content-length: 0
+observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+(empty)
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Length: 0
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== cleanup-1-verify-1 =====
+request-method: GET
+request-url: http://localhost:53080/arkcase/api/latest/plugin/task/byId/598
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: (none reported)
+observed-body-bytes: 15356
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{"@id":"1","taskId":<ENGINE-ID>,"priority":"Medium","title":"Review arkcase migration smoke probe","dueDate":"<TIMESTAMP>","attachedToObjectType":"FILE","attachedToObjectName":null,"attachedToObjectId":101,"assignee":"arkcase-admin@arkcase.org","owner":null,"businessProcessName":"ACM Document Approval Process - Review","businessProcessId":<ENGINE-ID>,"adhocTask":false,"completed":true,"status":"TERMINATED","pendingStatus":null,"percentComplete":0,"details":null,"type":null,"createDate":"<TIMESTAMP>","taskStartDate":null,"taskFinishedDate":"2026-08-08","taskDurationInMillis":8765,"workflowRequestType":"DOCUMENT_REVIEW","workflowRequestId":null,"reviewDocumentPdfRenditionId":"101","reviewDocumentFormXmlId":null,"documentUnderReview":null,"documentsToReview":[{"@id":"2","fileId":101,"status":"ACTIVE","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","cmisRepositoryId":"alfresco","versionSeriesId":"workspace://SpacesStore/<UUID>","fileName":"Casefile","fileActiveVersionMimeType":"application/pdf","fileActiveVersionNameExtension":".pdf","folder":{"@id":"3","id":102,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","name":"ROOT","cmisRepositoryId":"alfresco","cmisFolderId":"workspace://SpacesStore/<UUID>","parentFolder":null,"status":"ACTIVE","participants":[{"@id":"4","id":108,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":102,"participantType":"*","participantLdapId":"*","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"5","id":126,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true},{"@id":"6","id":109,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":102,"participantType":"group-write","participantLdapId":"ARKCASE_SUPERVISOR@ARKCASE.ORG","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"7","id":127,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"},{"@id":"8","id":128,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"write","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true},{"@id":"9","id":110,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":102,"participantType":"read","participantLdapId":"arkcase-admin@arkcase.org","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"10","id":129,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true}],"restricted":false,"link":false},"container":{"@id":"11","id":102,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","containerObjectType":"CASE_FILE","containerObjectId":101,"containerObjectTitle":"20260808_101","folder":{"@ref":"3"},"attachmentFolder":{"@ref":"3"},"calendarFolderId":null,"calendarFolderRecreated":false,"cmisRepositoryId":"alfresco"},"fileType":"CASE_FILE","fileLang":null,"activeVersionTag":"1.0","category":"Document","pageCount":1,"fileSource":null,"versions":[{"@id":"12","id":101,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","cmisObjectId":"workspace://SpacesStore/<UUID>;1.0","versionTag":"1.0","versionMimeType":"application/pdf","searchablePDF":true,"versionFileNameExtension":".pdf","gpsIso6709":null,"gpsLatitudeDegrees":0.0,"gpsLongitudeDegrees":0.0,"gpsReadable":null,"mediaCreated":"<TIMESTAMP>","heightPixels":0,"widthPixels":0,"deviceMake":null,"deviceModel":null,"durationSeconds":0.0,"fileSizeBytes":6471,"className":"com.armedia.acm.plugins.ecm.model.EcmFileVersion","fileHash":"c1a2e076dee70deb78b9e371e3fb1fcd","validFile":true}],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[{"@id":"13","id":111,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FILE","objectId":101,"participantType":"*","participantLdapId":"*","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"14","id":131,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true},{"@id":"15","id":112,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FILE","objectId":101,"participantType":"group-write","participantLdapId":"ARKCASE_SUPERVISOR@ARKCASE.ORG","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"16","id":132,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"},{"@id":"17","id":133,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"write","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true},{"@id":"18","id":113,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FILE","objectId":101,"participantType":"read","participantLdapId":"arkcase-admin@arkcase.org","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"19","id":130,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true}],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null}],"childObjects":[],"reworkInstructions":null,"outcomeName":"reviewOutcome","availableOutcomes":[{"@id":"20","name":"APPROVE","description":"Approve Document","fieldsRequiredWhenOutcomeIsChosen":[]},{"@id":"21","name":"SEND_FOR_REWORK","description":"Send for Rework","fieldsRequiredWhenOutcomeIsChosen":["reworkInstructions"]}],"taskOutcome":null,"participants":[{"@id":"22","id":527,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"TASK","objectId":598,"participantType":"assignee","participantLdapId":"arkcase-admin@arkcase.org","created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","privileges":[{"@id":"23","id":967,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"add file","accessType":"grant","accessReason":"policy"},{"@id":"24","id":968,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"save","accessType":"grant","accessReason":"policy"},{"@id":"25","id":969,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"complete","accessType":"grant","accessReason":"policy"},{"@id":"26","id":970,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"delete","accessType":"grant","accessReason":"policy"},{"@id":"27","id":971,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"uploadOrReplaceFile","accessType":"deny","accessReason":"policy"},{"@id":"28","id":972,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"addComment","accessType":"grant","accessReason":"policy"},{"@id":"29","id":973,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"addTag","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true},{"@id":"30","id":528,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"TASK","objectId":598,"participantType":"collaborator group","participantLdapId":"","created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","privileges":[{"@id":"31","id":974,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"add file","accessType":"grant","accessReason":"policy"},{"@id":"32","id":975,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"save","accessType":"grant","accessReason":"policy"},{"@id":"33","id":976,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"uploadOrReplaceFile","accessType":"deny","accessReason":"policy"},{"@id":"34","id":977,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"addComment","accessType":"grant","accessReason":"policy"},{"@id":"35","id":978,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"addTag","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true},{"@id":"36","id":529,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"TASK","objectId":598,"participantType":"*","participantLdapId":"*","created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","privileges":[{"@id":"37","id":979,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"read","accessType":"grant","accessReason":"policy"},{"@id":"38","id":980,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"uploadOrReplaceFile","accessType":"deny","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":false,"editableUser":true,"editableType":false}],"container":{"@id":"39","id":135,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","containerObjectType":"TASK","containerObjectId":598,"containerObjectTitle":"TASK-598","folder":{"@id":"40","id":171,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","name":"ROOT","cmisRepositoryId":"alfresco","cmisFolderId":"workspace://SpacesStore/<UUID>","parentFolder":null,"status":"ACTIVE","participants":[{"@id":"41","id":533,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":171,"participantType":"write","participantLdapId":"arkcase-admin@arkcase.org","created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","privileges":[{"@id":"42","id":981,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"read","accessType":"grant","accessReason":"policy"},{"@id":"43","id":982,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"write","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true},{"@id":"44","id":534,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":171,"participantType":"*","participantLdapId":"*","created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","privileges":[{"@id":"45","id":983,"created":"<TIMESTAMP>","creator":"ACTIVITI_SYSTEM","modified":"<TIMESTAMP>","modifier":"ACTIVITI_SYSTEM","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"deletable":true,"editableUser":true,"editableType":true}],"restricted":false,"link":false},"attachmentFolder":{"@ref":"40"},"calendarFolderId":null,"calendarFolderRecreated":false,"cmisRepositoryId":"alfresco"},"ecmFolderPath":null,"parentObjectId":116,"parentObjectType":"COMPLAINT","parentObjectTitle":"arkcase migration smoke probe","parentObjectName":"arkcase migration smoke probe","candidateGroups":[""],"nextAssignee":null,"legacySystemId":null,"buckslipTask":false,"buckslipFutureApprovers":null,"buckslipFutureTasks":null,"buckslipPastApprovers":null,"restricted":false,"references":[]}
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== cleanup-2 =====
+request-method: DELETE
+request-url: http://localhost:53080/arkcase/api/latest/service/ecm/id/142
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 500
+observed-content-type: text/plain;charset=UTF-8
+observed-content-length: 111
+observed-body-bytes: 111
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+Cannot invoke "com.armedia.acm.plugins.ecm.model.EcmFileVersion.getFileHash()" because "ecmFileVersion" is null
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 500 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 111
+Date: <HTTP-DATE>
+Connection: close
+
+
+----- end response-headers -----
+
+===== cleanup-2-verify-1 =====
+request-method: GET
+request-url: http://localhost:53080/arkcase/api/latest/plugin/search/advancedSearch?q=id%3A142-FILE&start=0&n=1
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 2299
+observed-body-bytes: 2299
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":1,"start":0,"docs":[
+      {
+        "title_parseable":["arkcase-smoke-probe"],
+        "duplicate_b":false,
+        "assignee_full_name_lcs":"arkcase-admin@arkcase.org",
+        "id":"142-FILE",
+        "parent_type_s":"COMPLAINT",
+        "category_s":"Document",
+        "parent_folder_id_i":170,
+        "status_lcs":"ACTIVE",
+        "public_doc_b":true,
+        "type_lcs":"attachment",
+        "content_type":["text/plain",
+          "text/plain; charset=ISO-8859-1"],
+        "acm_participants_lcs":"[{\"ldapId\":\"*\", \"type\":\"*\"},{\"ldapId\":\"ARKCASE_SUPERVISOR@ARKCASE.ORG\", \"type\":\"group-write\"},{\"ldapId\":\"arkcase-admin@arkcase.org\", \"type\":\"read\"}]",
+        "object_type_s":"FILE",
+        "object_id_s":"142",
+        "title_parseable_lcs":"arkcase-smoke-probe",
+        "parent_object_id_i":116,
+        "title_t":"arkcase-smoke-probe",
+        "creator_lcs":"arkcase-admin@arkcase.org",
+        "protected_object_b":true,
+        "cmis_version_series_id_s":"workspace://SpacesStore/<UUID>",
+        "modified_date_tdt":["<TIMESTAMP>"],
+        "create_date_tdt":["<TIMESTAMP>"],
+        "creator_full_name_lcs":"ArkCase Administrator",
+        "adhoctask_b":false,
+        "name":["arkcase-smoke-probe"],
+        "modifier_full_name_lcs":"ArkCase Administrator",
+        "name_partial":["arkcase-smoke-probe"],
+        "cmis_repository_id_s":"alfresco",
+        "parent_ref_s":"116-COMPLAINT",
+        "ext_s":".txt",
+        "page_count_i":1,
+        "version_s":"1.0",
+        "hidden_b":false,
+        "modifier_lcs":"arkcase-admin@arkcase.org",
+        "parent_id_s":"116",
+        "ecmfileid":["workspace://SpacesStore/<UUID>"],
+        "link_b":false,
+        "mime_type_s":"text/plain",
+        "parent_number_lcs":"20260808_116",
+        "stream_size":[116],
+        "x_parsed_by":["org.apache.tika.parser.DefaultParser",
+          "org.apache.tika.parser.txt.TXTParser"],
+        "stream_content_type":["text/plain"],
+        "content_encoding":["ISO-8859-1"],
+        "_version_":1872932215205134336}]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 2299
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== cleanup-2-verify-2 =====
+request-method: GET
+request-url: http://localhost:53080/arkcase/api/latest/plugin/search/advancedSearch?q=id%3A142-FILE&start=0&n=1
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+

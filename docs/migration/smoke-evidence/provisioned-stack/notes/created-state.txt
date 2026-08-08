@@ -1,0 +1,24 @@
+application state this run created
+
+state-mutation-permitted: yes
+objects-registered-for-removal: 1 (see notes/cleanup.txt for the outcome)
+
+removed automatically at the end of the run:
+  the document flow 3 uploaded, by its file identifier
+  the task the workflow flow 7 started, by its task identifier
+  the queue transition flow 8 applied, by returning the case file to the
+    queue it was found in
+
+NOT removable, and therefore disclosed:
+  complaint identifier: 180
+  complaint number: 20260807_180
+  The application exposes no endpoint that removes a complaint —
+  complaints are records rather than disposable objects — so this object
+  survives the run.  It is recorded here by identifier so that an
+  operator can dispose of it deliberately.  Presenting a close operation
+  as a removal, or omitting the fact, would both be worse than saying so.
+
+consequence for the comparison: a complaint created in each run means the
+  numbering sequence advances between runs by construction.  That is why
+  flow 6 compares the FORM of the generated number rather than its value,
+  and why the predecessor state is captured before the object is created.

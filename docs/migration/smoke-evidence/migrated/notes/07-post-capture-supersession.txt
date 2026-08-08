@@ -1,0 +1,256 @@
+===== figures inside this capture that the committed tree has since superseded =====
+
+WHY THIS FILE EXISTS.  A capture is a record of one moment.  The tree it is committed
+beside kept moving after that moment, and three of the things this capture counted are
+counts OF THAT TREE rather than of the deployment it probed.  Where the tree changed, the
+count went stale.  This note enumerates every such figure, gives the measured current
+value, and gives the command that measures it, so that a reader who counts and gets a
+different answer from the one printed beside it knows which is which and why.
+
+WHAT WAS NOT DONE, and why it matters more than what was.  No observation was edited.
+Not one status record, response body, log region, digest or report was changed to make a
+number agree with a later state of the tree.  Editing a frozen capture to tidy a
+comparison is the authenticity defect this checkpoint's evidence work was spent
+eliminating, and re-taking the pair is not available either: the pre-migration side probed a
+JDK 8 deployment of the base commit -- its startup region records JVM Version 1.8.0_492 --
+and that deployment cannot be rebuilt from this tree, because the shared local artifact
+repository now holds the intra-reactor artifacts at class-file version 61 and the older
+compiler cannot read them.  So the stale figures stay where they are, and this note stands
+beside them.
+
+This file is carried identically in BOTH capture directories, because every figure it
+supersedes is a figure about the pair.
+
+--------------------------------------------------------------------------------
+1. FIVE ARCHIVED SUREFIRE REPORTS WERE WITHDRAWN AFTER THIS CAPTURE WAS WRITTEN
+--------------------------------------------------------------------------------
+The five test classes that produced them were withdrawn from the change set, because they
+were created outside the file list the migration plan authorises.  A report for a class
+that exists nowhere in the tree is not evidence about this change set, so the reports went
+with the classes:
+
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
+  surefire/ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml
+
+Only the migrated archive held them; the pre-migration archive never did, so its figures
+are untouched throughout.  Measured over the two directories as they now stand:
+
+  pre-migration archive   278 reports   892 test methods    (unchanged)
+  migrated archive        279 reports   893 test methods    (was 284 / 933)
+
+  for side in baseline migrated; do
+      printf '%s %s\n' "$side" \
+          "$(find docs/migration/smoke-evidence/$side/surefire -name 'TEST-*.xml' | wc -l)"
+  done
+
+SUPERSEDED FIGURES, file by file.  Each is left as the run computed it:
+
+  comparison.txt
+      suites-in-this-capture: 284          now 279
+      present-here-only: 6                 now 1
+    The verdict beneath them is unaffected: the pairing contract counts an addition as an
+    addition either way, and REQUIRED-DIFFERENCES: 4 never included this row.
+
+  notes/surefire-pairing.txt
+      archive-reports-carried: 284         now 279
+      suites-present-in-this-capture: 284  now 279
+      suites-added-migrated-only: 6        now 1
+    and the ADDED list, six entries, now has one:
+      acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml
+    The fatal direction is unchanged and still zero: suites-lost-baseline-only: 0.  Every
+    required suite named by expected-suites.txt is still present, so contract-state and
+    suites-missing-from-this-capture are unaffected.
+
+  smoke-run-summary.txt, MIRROR block, and the same block in summary.txt
+      Present on THIS migrated side only, inside surefire/, 6      now 1
+    The one remaining entry is the SolrReindexServiceTests report named above.
+
+  surefire/run-provenance.txt and surefire/notes/report-restoration.txt
+    Both were brought to the measured 279 / 893 in place, and both record the withdrawal
+    and the as-harvested 284 / 933 explicitly, because those two files are the archive's
+    own provenance and an archive whose provenance note miscounts its own directory
+    cannot be checked at all.  The archive's sha256-manifest.txt was regenerated over
+    what remains and verifies clean.
+
+--------------------------------------------------------------------------------
+2. THE MIRROR ACCOUNTING UNDERCOUNTS THE OUTSIDE-SUREFIRE SET
+--------------------------------------------------------------------------------
+The MIRROR block records "Present on THIS migrated side only, outside surefire/, 2" and
+names two files.  Measured from the two path sets, the set is 4.  The two it does not name
+are:
+
+  notes/capture-comparison-agreement.txt
+      a statement ABOUT the pair -- whether the two captures agree -- and therefore
+      written once, from the side that performs the comparison, exactly like
+      comparison.txt and artifacts/diff-result.txt beside it
+  startup/workflow-engine-findings.txt
+      a one-sided finding about the process engine on the target runtime, which has no
+      pre-migration counterpart because it is a finding about the migrated deployment
+
+Both belong to the same category the block already admits for its other two entries, so
+the deviation is in the COUNT and the enumeration, not in the layout.  The block's own
+rule -- "ANY entry present on only one side and NOT named here is a real finding" -- is
+what makes this worth recording rather than leaving to a reader's diff.  The baseline-only
+set is unchanged and correct at 1:
+
+  surefire/notes/property-allowlist-line-continuation.txt
+
+  ( cd docs/migration/smoke-evidence \
+      && diff <(cd baseline && find . -type f | LC_ALL=C sort) \
+              <(cd migrated && find . -type f | LC_ALL=C sort) )
+
+--------------------------------------------------------------------------------
+3. FLOW 7 PUBLISHES TWO VALUES FOR ONE QUANTITY, AND THE SMALLER ONE IS RIGHT
+--------------------------------------------------------------------------------
+flow-7-workflow-start.status records DEFINITIONS_LOADED: 40 on both sides.  That value
+came from a superseded derivation which counted every line of the captured process-engine
+startup region matching "bpmn" case-insensitively.  The producer committed beside this
+capture no longer uses it: flow7_definitions_loaded_observed counts the deployer's own
+per-definition line, "Found resource", which is emitted once per definition accepted.
+
+Measured on the region THIS capture committed, both sides:
+
+  bpmn, case-insensitive, over the delimited region     40      the superseded rule
+  Found resource                                         8      the retained rule
+  delimited region line count                           91      matches STARTUP_REGION_LINES
+  definition files in the repository tree               36      matches DEFINITIONS_ON_DISK
+
+  for side in baseline migrated; do
+      sed -n '/^----- region -----$/,/^----- end region -----$/p' \
+          docs/migration/smoke-evidence/$side/startup/workflow-engine-init.log \
+        | grep -c 'Found resource'
+  done
+
+notes/capture-count-reconciliation.txt beside this file already carries the engine figure
+of 8, and states that the result record and the status file agree on it.  They do not: the
+status file says 40.  That note's closing "mismatches: 0" is therefore wrong by exactly
+one, and this is that one.  It is the only cross-file count disagreement in either capture,
+and it is a disagreement between two revisions of one producer rather than between two
+observations -- which is why it is recorded here instead of being edited away in either
+direction.  STARTUP_REGION_LINES and DEFINITIONS_ON_DISK are unaffected and both check out
+against the region and the tree.
+
+--------------------------------------------------------------------------------
+4. THE PRODUCER DIGEST WILL NOT MATCH THE COMMITTED SCRIPT
+--------------------------------------------------------------------------------
+env/toolchain.txt records producer-sha256, and its documented use is the comparison of the
+two captures' rows against EACH OTHER: equal digests mean one program wrote both, and that
+still holds.  It is not the digest of smoke-checks.sh as committed, because the producer
+was revised after these captures ran.  Recomputing it would assert that the current script
+produced them, which is false.  The reasoning is set out in full in ../parity-provability.txt.
+
+--------------------------------------------------------------------------------
+5. THE COMPARISON PREDATES FLOW 1'S AUTHORIZATION RECORDS, SO ITS COUNT IS ONE LOW
+--------------------------------------------------------------------------------
+comparison.txt reports
+
+    match    flow-1-login.status: 5 record(s) agree
+
+and the two committed flow-1-login.status files carry ELEVEN records each, of which THREE
+differ.  The five it counted are the transport records -- anonymous, authenticated,
+authenticated-identity, ldap-directories, ldap-directory-registered -- and those five do
+agree.  The six the comparison never saw are the authorization records, added to the status
+after that comparison was computed:
+
+    granted-authority-count            5   vs   6          DIFFERS
+    granted-authority-set-sha256       77fbb81f8668d699…  vs  ec995b8723e19713…   DIFFERS
+    granted-authority-set-ordered      the migrated side additionally holds the
+                                       directory group ARKCASE_SUPERVISOR@ARKCASE.ORG
+                                                                                  DIFFERS
+    granted-privilege-count          106   vs 106          agrees
+    granted-privilege-set-sha256     bcf3ed0bd9a2b2318f541badabf338c5621fe12383a7b15f024cb648c9e5f782
+                                       on BOTH sides                              agrees
+    granted-privilege-set-ordered      identical on both sides                     agrees
+
+The producer drops no status key -- canonical_status_projection filters only the declared
+variable-cardinality prefixes, and flow 1 has none -- so a run of the current producer over
+these two files reports DIFFER for flow-1-login.status and the required count becomes FIVE:
+
+    1  flow-1-login verdict
+    2  flow-1-login.status, 3 of 11 records            <-- not in the committed count of 4
+    3  flow-5-activemq-event.status, 3 of 18 records
+    4  application.min.js
+    5  application.min.css
+
+  ( cd docs/migration/smoke-evidence \
+      && diff <(LC_ALL=C sort baseline/flow-1-login.status) \
+              <(LC_ALL=C sort migrated/flow-1-login.status) )
+
+THE DIFFERENCE ITSELF IS NOT NEW AND IS ALREADY ADJUDICATED.  It is the extra granted
+authority resolved in ../ambiguity-resolutions.md, where it is traced to directory content
+rather than to the runtime: the same principal, the same four ROLE_ authorities including
+ROLE_SUPERVISOR, the same 106 privileges and the same privilege digest on both sides, with
+one additional LDAP group label on the migrated side.  What is corrected here is the COUNT
+and the FILE it is read from -- the six keys live in flow-1-login.status in this capture
+generation, not in an authorization-projection section of flow-1-login.out, and that .out
+carries five probe sections and no such section.
+
+The rest of comparison.txt was checked against the committed files rather than assumed, flow
+by flow: flow-2 20/20, flow-3 13/13, flow-4 9/9, flow-6 4/4, flow-8 12/12 all agree exactly
+as reported; flow-5's three differing broker counters are the six diff lines it prints; and
+flow-7's 18 reported records are its 21 status records less the three task-list-settle keys
+the projection excludes by declared prefix.  One row was stale, and it is this one.
+
+--------------------------------------------------------------------------------
+6. THREE RESULT RECORDS DO NOT ECHO THE STATUS FILE THEY QUOTE
+--------------------------------------------------------------------------------
+Each flow-n-<slug>.result.txt inlines its own flow-n-<slug>.status under the heading
+"observed-statuses, inlined verbatim from flow-n-<slug>.status".  Sixteen such pairs exist,
+two sides by eight flows.  Twelve echo their status file exactly.  Three do not, and because
+the result record is declared the authoritative record for its flow, the discrepancy is set
+out here in full rather than left for a reader to trip over.
+
+  for side in baseline migrated; do
+    for f in $side/flow-*.status; do
+      n=0
+      while IFS= read -r line; do
+          [ -n "$line" ] || continue
+          grep -qF -- "$line" "${f%.status}.result.txt" || n=$((n+1))
+      done < "$f"
+      printf '%s %s not-echoed=%s\n' "$side" "$(basename "$f")" "$n"
+    done
+  done
+
+  baseline/flow-1-login          ELEVEN of eleven records are absent from the result.
+      The result record describes a run that received NO HTTP RESPONSE AT ALL: it carries
+      verdict: SKIPPED, inlines anonymous=000, authenticated=000, authenticated-identity=000,
+      ldap-directories=000, ldap-directory-registered=000 and authenticated-leg-outcome=SKIPPED,
+      and states in terms that the authorization result was not observed.  The status file
+      committed beside it carries anonymous=401, authenticated=200, authenticated-identity=200,
+      ldap-directories=200, ldap-directory-registered=200 and a full six-record authorization
+      set.  These are two different runs.  The status file is the one the comparison reads and
+      the one every figure in ../parity-provability.txt and ../ambiguity-resolutions.md is
+      derived from; the result record's own COMPARISON CRITERION line, which claims "MATCH on
+      every recorded row", is therefore a statement about the run it came from and not about
+      the two status files committed here, which differ in three records.
+
+  migrated/flow-1-login          SIX of eleven records are absent from the result.
+      The six are exactly the authorization records, which were added to the status after
+      that result record was written.  The five transport records it does echo agree with the
+      status file exactly.
+
+  baseline/flow-7-workflow-start and migrated/flow-7-workflow-start
+      FIVE of twenty-one records are absent from the inlined block on each side:
+      HEADLINE_STATUS, START, PROCESS_INSTANTIATED, TASK_ASSIGNED and DEFINITIONS_LOADED.
+      The observations narrative immediately below the block asserts that four of those five
+      "are in the observed-statuses block above", and they are not.  No VALUE is in conflict
+      here -- the two sides carry identical flow-7 status files -- so this is an omission from
+      one rendering rather than two runs disagreeing.  The same narrative separately reports
+      "definitions loaded by the engine 91", which is the region LINE count and a third value
+      for the quantity section 3 above reconciles; the engine figure is 8.
+
+WHY NONE OF IT WAS EDITED.  A result record is a produced rendering of a run.  Rewriting one
+so that it quotes a status file it never saw would manufacture an observation, and the
+capture pair cannot be re-taken: the pre-migration side probed a JDK 8 deployment of the
+base commit that cannot be rebuilt from this tree, for the reason given at the head of this
+note.  Note what env/toolchain.txt does and does not say about that: it records the tools of
+the HOST that ran the producer -- openjdk 17.0.19 and node v20.20.2 on both sides -- and the
+runtime of the DEPLOYED SERVER is in the startup region, JDK 8 on the pre-migration side and
+Java 17 on the migrated one.  The status files, the .out transcripts and the digests are the observations; where a
+result record and its status file disagree, THE STATUS FILE IS THE OBSERVATION AND THE RESULT
+RECORD IS A RENDERING OF AN EARLIER ONE.  Every figure published in
+../parity-provability.txt has been re-derived from the status files and the .out transcripts
+on that basis.

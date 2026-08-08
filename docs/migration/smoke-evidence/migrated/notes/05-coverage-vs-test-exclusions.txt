@@ -203,17 +203,43 @@ check execution: pom.xml:466-488 at the base commit, bound to the test phase,
 
 OBSERVATION ONLY, per R-6: the check execution's failure-halting override is
   COMMENTED OUT — pom.xml:473 at the base commit, pom.xml:646 in the delivered
-  tree — so a coverage shortfall does not fail the build.  That is pre-existing
-  configuration and part of the baseline.  It is NOT uncommented here, no change
-  to it is recommended, and no increase to the minimum ratio is proposed.  R-6
-  makes a pre-existing condition a documentation event rather than a repair
+  tree.  WHAT THAT MEANS IS THE OPPOSITE OF WHAT AN EARLIER REVISION OF THIS NOTE
+  RECORDED, and the correction is stated here rather than quietly applied, because
+  the two readings lead to opposite conclusions about what a green build proves.
+  An earlier revision read the commented-out element as meaning that a coverage
+  shortfall does not fail the build.  It does fail it.  The goal descriptor of the
+  pinned coverage plugin declares haltOnFailure with default-value="true", read
+  from META-INF/maven/plugin.xml inside jacoco-maven-plugin-0.8.13.jar in the local
+  artefact repository, and its check goal raises a build failure carrying the text
+  "Coverage checks have not been met. See log for details." when a rule is
+  violated.  A commented-out override therefore leaves the FAILING behaviour in
+  force; it does not remove it.  The comment's own wording says as much — it offers
+  the element OR a command-line property as the two ways to stop the check from
+  breaking the build, which only makes sense if breaking the build is the default —
+  and the pre-migration counterpart of this note reads it correctly at its LINK 7.
+  This revision brings the migrated note back into agreement with it.
+  The configuration is pre-existing either way, it is NOT uncommented here, no
+  change to it is recommended, and no increase to the minimum ratio is proposed.
+  R-6 makes a pre-existing condition a documentation event rather than a repair
   event; the change set's escape clause for such conditions is invoked exactly
   twice across the whole migration — the frontend profiles.js creation and the
   Sass toolchain removal — and NEITHER invocation is in this folder.
-sharpening-effect, recorded with no change proposed: with failure-halting
-  inactive, a severed run described below is quieter still.  The interaction is
-  recorded because it explains why a reader cannot detect severance from the
-  build's own verdict, not because anything about it should change.
+the-distinction-that-has-to-be-kept: the PLUGIN DEFAULT and an INVOCATION
+  OVERRIDE are two different things, and conflating them is how the error above
+  arose.  The evidence commands used for this migration pass
+  -Djacoco.haltOnFailure=false on the command line, which does make a shortfall
+  non-fatal FOR THOSE INVOCATIONS — deliberately, so that one module's coverage
+  cannot abandon the reactor before later modules have been reached and archived.
+  That override is a property of the capture command, not of the build
+  configuration, and it is archived beside the counters it applies to in
+  coverage-counters.txt.  Because the override is in force during capture, an
+  independently archived ratio and check verdict are MORE necessary rather than
+  less: the build's own exit status cannot stand in for them.
+sharpening-effect, recorded with no change proposed: under the capture
+  invocations' explicit override, a severed run described below is quieter still.
+  The interaction is recorded because it explains why a reader cannot detect
+  severance from the build's own verdict, not because anything about it should
+  change.
 
 the one exclusion this migration adds, and why it is also not a test exclusion
 =============================================================================
@@ -379,9 +405,12 @@ arguments are ever genuinely required later, they must be added in a way that
 PRESERVES the exported value rather than replacing it.
 
 Two further things sharpen the hazard rather than mitigate it, and both are
-recorded without any change being proposed.  The failure-halting override noted
-above is commented out, so a coverage shortfall would not have failed the build
-even had the data set been real.  And the repository's own coverage summary
+recorded without any change being proposed.  The capture invocations pass
+-Djacoco.haltOnFailure=false explicitly, so during capture a coverage shortfall
+would not have failed the build even had the data set been real — that is a
+property of the capture command and NOT of the commented-out element in the POM,
+which leaves the plugin's failing default in force, as corrected above.  And the
+repository's own coverage summary
 helper, jacoco-summary.sh at the repository root, aggregates the REPORT output
 rather than the execution data, so a severed run yields a summary that prints
 zeroes rather than printing nothing — one more reason a reader cannot tell a
@@ -391,7 +420,19 @@ and it is unchanged.
 
 how the hazard is discharged, by evidence and not by assertion
 -------------------------------------------------------------
-../jacoco-liveness.txt is the discharge.  It records coverage data measured off
+TWO records discharge it, and they answer two different questions that read
+deceptively like one.  ../jacoco-liveness.txt answers "did the agent attach", by
+measuring execution-data size off disk, and a byte total is the right instrument
+for that and the wrong instrument for anything else.  ../coverage-counters.txt
+answers "what did the attached agent MEASURE, and did it clear the configured
+minimum", by archiving the class, method, line, branch and instruction counters
+the plugin computed — each row bound to the SHA-256 of the execution data file it
+was computed from — together with the check goal's own verdict lines quoted
+verbatim.  An earlier revision of this note named only the first and treated it as
+sufficient; it is not, because eleven megabytes of execution data is consistent
+with any ratio whatsoever, and a reader who takes a byte total for a coverage
+figure has been handed a number that does not mean what it appears to mean.
+../jacoco-liveness.txt, the liveness half: it records coverage data measured off
 disk per module: 69 execution data files found, 69 of them NON-EMPTY, 0 empty, a
 per-module path-and-bytes listing, a byte total, and a state of LIVE.  The data
 set the check execution evaluated was therefore a real one and not an empty one.

@@ -16,8 +16,26 @@
 #   staging-directory  defaults to a fresh mkdtemp directory, whose path is printed.
 #
 # environment:
-#   NVM_DIR   an nvm installation; defaults to $HOME/.nvm
-#   BASE_REF  the commit to extract; defaults to the base commit of the migration
+#   NVM_DIR    an nvm installation; defaults to $HOME/.nvm
+#   BASE_REF   the commit to extract; defaults to the base commit of the migration
+#   NODE_LINE  the Node major line to build on; defaults to 8, the historical line
+#
+# WHY NODE_LINE EXISTS, AND WHY IT MATTERS MORE THAN IT LOOKS.  Two of the five
+# artifacts differ between the historical build and the migrated one, and the whole
+# weight of the attribution rests on a THIRD build that holds the runtime constant
+# while varying only the package manager, the lockfile and the specification form:
+#
+#   A  base-commit tree, yarn,          Node  8   NODE_LINE=8   (the default)
+#   B  base-commit tree, yarn,          Node 20   NODE_LINE=20
+#   C  migrated tree,    npm ci,        Node 20   capture-frontend-artifacts.sh
+#
+# B and C agreeing on all five artifacts is what eliminates the package-manager
+# change, the lockfile and the manifest rewrite as causes and leaves the runtime as
+# the only remaining variable.  An earlier revision of this evidence performed build B
+# but committed no program that reproduces it, so the single most load-bearing step in
+# the attribution was the one step a reader could not repeat.  One parameter fixes
+# that: the same program produces A and B, so they differ in the runtime and in
+# nothing else -- which is exactly the claim being made.
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -62,20 +80,31 @@ if [ ! -s "${NVM_DIR}/nvm.sh" ]; then
 fi
 # shellcheck disable=SC1091
 . "$NVM_DIR/nvm.sh" > /dev/null
-nvm use 8 > /dev/null 2>&1 || { nvm install 8 > /dev/null 2>&1 && nvm use 8 > /dev/null 2>&1; }
-if ! node --version 2>/dev/null | grep -q '^v8\.'; then
-    printf 'capture-historical-frontend.sh: node is %s, not the v8 line.\n' \
-        "$(node --version 2>/dev/null || echo 'unavailable')" >&2
-    printf '  Building on any other runtime would make this capture the same\n' >&2
-    printf '  measurement as the migrated one, which is the gap it exists to close.\n' >&2
+NODE_LINE="${NODE_LINE:-8}"
+case "$NODE_LINE" in
+    ''|*[!0-9]*)
+        printf 'capture-historical-frontend.sh: NODE_LINE must be a Node major line, got %s\n' "$NODE_LINE" >&2
+        exit 2 ;;
+esac
+nvm use "$NODE_LINE" > /dev/null 2>&1 \
+    || { nvm install "$NODE_LINE" > /dev/null 2>&1 && nvm use "$NODE_LINE" > /dev/null 2>&1; }
+if ! node --version 2>/dev/null | grep -q "^v${NODE_LINE}\."; then
+    printf 'capture-historical-frontend.sh: node is %s, not the v%s line.\n' \
+        "$(node --version 2>/dev/null || echo 'unavailable')" "$NODE_LINE" >&2
+    printf '  The runtime is the variable this capture exists to isolate, so building on\n' >&2
+    printf '  a runtime other than the one asked for would silently answer a different\n' >&2
+    printf '  question than the one the caller posed.\n' >&2
     exit 2
 fi
 export CI=true
 
 {
-    echo "=== historical runtime ==="
+    printf '=== runtime this capture built on ===\n'
+    printf 'requested-node-line: %s\n' "$NODE_LINE"
     node --version
     npm --version
+    printf 'tree-built: %s (base commit of the migration unless BASE_REF was overridden)\n' "$BASE_REF"
+    printf 'package-manager: yarn, the one the base commit used\n'
 } > "${STAGE}/toolchain.txt" 2>&1
 
 # Only the frontend subtree is extracted: nothing else in the base commit
@@ -92,11 +121,55 @@ yarn --version >> "${STAGE}/toolchain.txt" 2>&1
 
 cd "$FE" || exit 2
 
-# config/config.js requires ./../profiles, which is not tracked at the base commit;
-# the deployed runtime writes it.  Written here with exactly the content that writer
-# emits, otherwise the build cannot start at all.  This is one of the two
-# escape-clause invocations recorded in the pre-existing-defects register.
-printf 'module.exports = { profiles: [ %s ] };' "'custom'" > profiles.js
+# config/config.js requires ./../profiles, which is not tracked at the base commit; the
+# deployed runtime writes it.  The build cannot start without it, so something has to
+# supply it here.
+#
+# IT IS COPIED FROM THE TRACKED FILE RATHER THAN WRITTEN FROM A LITERAL, AND THAT IS THE
+# WHOLE POINT.  profiles.js is a behaviour-bearing INPUT: config/config.js requires it and
+# uses what it exports to add and remove entries from the asset lists the pipeline
+# concatenates.  A comparison of two builds is only a comparison if their inputs are the
+# same, and an earlier revision of this script wrote  profiles: [ 'custom' ]  from a literal
+# while the migrated side built against the tracked default, whose array is EMPTY.  Two
+# builds with two different values for a behaviour-bearing input do not isolate the runtime;
+# they vary two things and attribute the result to one.  Copying the tracked file makes the
+# input identical on both sides by construction, and its digest is recorded below so the
+# claim is checkable rather than asserted.
+#
+# Using the migrated tree's tracked file to build the base-commit tree is not a
+# contamination of the baseline: the base commit has no profiles.js at all, so ANY content
+# used here is supplied by the harness rather than taken from that commit.  Given that, the
+# only defensible choice is the content the other side of the comparison uses.
+TRACKED_PROFILES="${REPO}/${FE_REL}/profiles.js"
+if [ ! -f "$TRACKED_PROFILES" ]; then
+    printf 'capture-historical-frontend.sh: no tracked profiles.js at %s\n' "$TRACKED_PROFILES" >&2
+    printf '  It is the behaviour-bearing build input both sides must share.  Without it this\n' >&2
+    printf '  capture would have to invent one, and the comparison would vary two things.\n' >&2
+    exit 2
+fi
+cp "$TRACKED_PROFILES" profiles.js
+
+# Every behaviour-bearing input of this build, recorded with its digest where it has one, so
+# that the two sides of the comparison can be shown to have received the same inputs instead
+# of being assumed to have.  The migrated side records the same fields under
+# notes/frontend-comparison-provenance.txt.
+{
+    echo "=== behaviour-bearing build inputs, historical side ==="
+    printf 'profiles-js-sha256: %s\n'   "$(sha256sum profiles.js   | cut -d' ' -f1)"
+    printf 'profiles-js-bytes: %s\n'    "$(wc -c < profiles.js | tr -d ' ')"
+    printf 'profiles-js-source: the tracked %s of the migrated tree, copied verbatim\n' "${FE_REL}/profiles.js"
+    printf 'manifest-sha256: %s\n'      "$(sha256sum package.json  | cut -d' ' -f1)"
+    printf 'lockfile-name: yarn.lock\n'
+    printf 'lockfile-sha256: %s\n'      "$(sha256sum yarn.lock     | cut -d' ' -f1)"
+    printf 'gruntfile-sha256: %s\n'     "$(sha256sum Gruntfile.js  | cut -d' ' -f1)"
+    printf 'asset-config-sha256: %s\n'  "$(sha256sum config/env/all.js | cut -d' ' -f1)"
+    printf 'NODE_ENV: %s\n'             "${NODE_ENV-(unset)}"
+    printf 'NODE_APP_INSTANCE: %s\n'    "${NODE_APP_INSTANCE-(unset)}"
+    printf 'build-working-directory: %s\n' "$(pwd)"
+    printf 'build-relative-path-within-tree: %s\n' "$FE_REL"
+    printf 'dist-directory-clean-before-build: %s\n' \
+        "$( [ -e assets/dist ] && echo 'no - assets/dist existed' || echo 'yes - assets/dist absent' )"
+} | tee "${STAGE}/build-inputs.txt"
 
 yarn --skip-integrity-check --ignore-engines --no-progress --non-interactive install \
     > "${STAGE}/install.log" 2>&1
@@ -110,7 +183,7 @@ echo "build-exit=$?" > "${STAGE}/build.status"
 # without opening anything.  Neither exit status above is treated as the result: the
 # Gruntfile forces its way past task failures, so the artifacts are the evidence.
 {
-    echo "=== artifact digests, historical Node build ==="
+    printf '=== artifact digests, base-commit tree built with yarn on the Node %s line ===\n' "$NODE_LINE"
     for f in assets/dist/application.js assets/dist/application.min.js \
              assets/dist/vendors.min.js assets/dist/application.min.css home.html
     do
@@ -124,6 +197,10 @@ echo "build-exit=$?" > "${STAGE}/build.status"
     ls -1 assets/dist/ 2>/dev/null
 } | tee "${STAGE}/artifacts.txt"
 
-printf '\ncompare the table above against %s\n' "${HERE}/artifact-digests-node8.txt"
+if [ "$NODE_LINE" = '8' ]; then
+    printf '\ncompare the table above against %s\n' "${HERE}/artifact-digests-node8.txt"
+else
+    printf '\ncompare the table above against %s\n' "${HERE}/artifact-digests-node20-basecommit-yarn.txt"
+fi
 printf 'logs, status files and the staged tree are under %s\n' "$STAGE"
-echo done > "${STAGE}/COMPLETE"
+printf 'done\n' > "${STAGE}/COMPLETE"

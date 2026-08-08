@@ -1,0 +1,901 @@
+coverage counters and check verdict
+
+produced-by: docs/migration/smoke-evidence/capture-coverage-counters.sh
+capture-label: pre-migration baseline, JDK 8, base commit c8f6226105
+reactor-root-scanned: the root this capture was pointed at; absolute paths are
+  deliberately not published here, and every module below is named by its path
+  RELATIVE to that root so the two sides of the comparison line up
+coverage-plugin-version: 0.8.7   read from the POM, not asserted here
+configured-minimum: 0.02   read from code.coverage.minimum in the POM this capture was pointed at
+rule-under-evaluation: element BUNDLE, counter LINE, value COVEREDRATIO, minimum as above
+
+WHAT THIS RECORD PROVES THAT A BYTE TOTAL CANNOT.  Execution-data size proves the
+agent attached.  The counters below prove what the attached agent MEASURED, and
+the ratio on each row is computed from that module report by the same arithmetic
+the rule uses.  Both facts are needed: without the first a ratio could have been
+computed over an empty data set, and without the second a live data set says
+nothing about whether the minimum was cleared.
+
+THE COUNTERS ARE BOUND TO THE DATA THEY CAME FROM.  Every row carries the SHA-256
+of the module jacoco.exec alongside the digests of the report files computed from
+it.  A counter table published without that binding can be regenerated from a
+later run while an older digest sits beside it, and nothing in either would show
+it; these rows cannot drift apart from their source without the digests changing.
+
+===== the invocation, as a program recorded it =====
+The argument vector below was written by the shell that ran the build, one
+argument per line.  It is archived because the check goal can be overridden from
+the command line, and a coverage verdict obtained under an override is a different
+claim from one obtained under the configured behaviour.
+  mvn
+  -B
+  -ntp
+  -fae
+  test
+  -Dmaven.test.failure.ignore=true
+  -Djacoco.haltOnFailure=false
+  -Dmaven.repo.local=<baseline-repo>
+halt-on-failure-override-in-invocation: present -- the invocation carried -Djacoco.haltOnFailure=false
+plugin-default-for-haltOnFailure: true -- the goal descriptor of the pinned
+  coverage plugin declares default-value="true" for haltOnFailure and its check
+  goal raises a build failure when a rule is violated.  So a coverage shortfall
+  DOES fail the build unless an invocation overrides it, and a commented-out
+  override in the POM leaves the failing behaviour in force rather than removing
+  it.  This is stated because the opposite was once recorded here, and the two
+  readings lead to opposite conclusions about what a passing build means.
+
+===== execution data =====
+execution-data-files-found: 68
+execution-data-files-non-empty: 68
+execution-data-files-empty: 0
+execution-data-total-bytes: 8593773
+module-reports-found: 68
+module-reports-absent: 0
+modules-whose-execution-data-carries-more-than-one-session: 0
+A module with more than one session has accumulated data from more than one test
+phase, because the coverage agent appends by default.  The counters barely move when
+that happens -- it is the same suite -- so the accumulation shows up only in the byte
+total, which is precisely the kind of unexplainable number that made an earlier
+coverage record impossible to reconcile.  Zero here means every figure below describes
+exactly one run of the suite.
+
+===== aggregate counters, summed over every module report above =====
+CLASS       missed=1361     covered=499      covered-ratio=0.26828
+METHOD      missed=14115    covered=4541     covered-ratio=0.24341
+LINE        missed=50810    covered=13189    covered-ratio=0.20608
+BRANCH      missed=12892    covered=2423     covered-ratio=0.15821
+INSTRUCTION missed=212304   covered=52143    covered-ratio=0.19718
+
+modules-with-line-ratio-below-configured-minimum: 0
+NOTE ON THE AGGREGATE.  The rule the build evaluates is BUNDLE-scoped, so it is
+applied once per module and never to the sum.  The aggregate above is therefore a
+summary for a reader and NOT the quantity the rule tested; the per-module verdicts
+are, and the count of modules below the minimum is the figure that corresponds to
+the rule.  Both are published so neither can be mistaken for the other.
+
+===== the check goal, in its own words =====
+lines-reading-Analyzed-bundle: 136   counted as they appear; the report goal and the
+  check goal each announce the bundle they analysed, so this figure is roughly twice
+  the module count by construction and is NOT a module count
+lines-reading-All-coverage-checks-have-been-met: 68
+lines-reading-Rule-violated: 0
+lines-reading-Coverage-checks-have-not-been-met: 0
+no violation line of either shape appears in the build log.
+
+===== per-module counters, one block per module, sorted by module path =====
+module: acm-forms/acm-form-close-complaint
+  exec-bytes: 33784
+  exec-sha256: 632d98bd34e6344d9b37acf151a6afd80f0f16566aa01e4166bde40aaa934d81
+  sessions-in-execution-data: 1
+  report-xml-sha256: 4bf3a1be63df143103cb09059b82d144b82628201aa0da8c655f61f18599d9e8
+  report-csv-sha256: 53e89920173155206b5035b3dda60b90026c9975109a48b0fc0353d18b0ef8c3
+  CLASS       missed=0       covered=0
+  METHOD      missed=0       covered=0
+  LINE        missed=0       covered=0
+  BRANCH      missed=0       covered=0
+  INSTRUCTION missed=0       covered=0
+  line-covered-ratio: n/a   against configured minimum 0.02   NO-LINES-ANALYSED
+module: acm-forms/acm-form-report-of-investigation
+  exec-bytes: 97743
+  exec-sha256: 6fcfc42016e175716944f14373ab61e98874d405b9a4979cb00edcff48038de5
+  sessions-in-execution-data: 1
+  report-xml-sha256: 3950d9fac733da31ffb45bfcd0c25d479c65a6e4dbf66519f04c718ece89c4fa
+  report-csv-sha256: 27dd583f830d56b02758e3f105212cb141b34b40ba3cc10ead85dc3281ead361
+  CLASS       missed=3       covered=3
+  METHOD      missed=60      covered=8
+  LINE        missed=181     covered=20
+  BRANCH      missed=22      covered=2
+  INSTRUCTION missed=662     covered=59
+  line-covered-ratio: 0.09950   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-admin-plugin
+  exec-bytes: 176471
+  exec-sha256: 7feb053a15ecf062bb47256521252e9761e8044ce0d657684386f35d72e58979
+  sessions-in-execution-data: 1
+  report-xml-sha256: 96301fda07c70b5fa598f9fbae2c75a8cd8ff53248f9174afb644ef74d2ea47f
+  report-csv-sha256: 53e89920173155206b5035b3dda60b90026c9975109a48b0fc0353d18b0ef8c3
+  CLASS       missed=0       covered=0
+  METHOD      missed=0       covered=0
+  LINE        missed=0       covered=0
+  BRANCH      missed=0       covered=0
+  INSTRUCTION missed=0       covered=0
+  line-covered-ratio: n/a   against configured minimum 0.02   NO-LINES-ANALYSED
+module: acm-plugins/acm-default-plugins/acm-audit-plugin
+  exec-bytes: 157247
+  exec-sha256: 11839f01165d5d49f12b53e9ed8f07b74dc4f6701b31e73ce102012c11bdba63
+  sessions-in-execution-data: 1
+  report-xml-sha256: fb3a73228af2f5e4eed228fdea5cd4f57c8412cab8e12bdc938e389ad2e978f3
+  report-csv-sha256: 7390bdbf0b6c6f026ec36de7079831ccd3facc05850285723d76fa2b646251ba
+  CLASS       missed=4       covered=1
+  METHOD      missed=19      covered=5
+  LINE        missed=153     covered=29
+  BRANCH      missed=24      covered=4
+  INSTRUCTION missed=654     covered=120
+  line-covered-ratio: 0.15934   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-case-file-plugin
+  exec-bytes: 399248
+  exec-sha256: 6cc51f3b7d09fa68d6606fab678fc7f38600d31fc8edd4ec4939fdc2666aec9b
+  sessions-in-execution-data: 1
+  report-xml-sha256: c6b09f85326af9a328555d3448db640999efb4e6ccaeba0a4d213bc80a78fcca
+  report-csv-sha256: 0ac9a205a26c6d7c177a7090468e4fa60e769be68755c235e710e9279698eea3
+  CLASS       missed=90      covered=20
+  METHOD      missed=716     covered=213
+  LINE        missed=2425    covered=570
+  BRANCH      missed=586     covered=91
+  INSTRUCTION missed=9964    covered=2104
+  line-covered-ratio: 0.19032   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-complaint-plugin
+  exec-bytes: 358186
+  exec-sha256: 18bf28d811ee0c695b6657f56867cbe325aae25cafcc27d52317245d20d6e365
+  sessions-in-execution-data: 1
+  report-xml-sha256: 8e54230e1593dd5078661a6f4998d6f0b674c36c25b6ffef3c28a8c38f430e3a
+  report-csv-sha256: 0c440c7750ca1fe9f405ddab87b5638dc6497270076b3ddf8d605d9eae3f42e8
+  CLASS       missed=69      covered=9
+  METHOD      missed=702     covered=170
+  LINE        missed=2342    covered=476
+  BRANCH      missed=529     covered=107
+  INSTRUCTION missed=9104    covered=1936
+  line-covered-ratio: 0.16891   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-consultation-plugin
+  exec-bytes: 326859
+  exec-sha256: 613d7e644b84ef49f21de1bde074b24790e80e93847b5b5ef0a77db51d461c29
+  sessions-in-execution-data: 1
+  report-xml-sha256: 2c89135bc6b22e8e7c5d7ce2e7f2032cf0a08b97d6ac2b3d3e8886eb81c65baa
+  report-csv-sha256: 5e20851bcbe3411d2439bb4757000ef8060cc2193b4ef00995e277d47e8671dd
+  CLASS       missed=48      covered=7
+  METHOD      missed=400     covered=121
+  LINE        missed=1368    covered=312
+  BRANCH      missed=295     covered=67
+  INSTRUCTION missed=5446    covered=1340
+  line-covered-ratio: 0.18571   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-dashboard-plugin
+  exec-bytes: 171162
+  exec-sha256: 5b52200f5b7f925e3db8901c378156d58a9deeaf334d2b51a188f2c273026a89
+  sessions-in-execution-data: 1
+  report-xml-sha256: 527ac92d9757d70507545d93233b0ef8f1fef08ea30e15498a0be4a837e2cb22
+  report-csv-sha256: 068163d40c0137bac23f3ca23f93995d20b90e8602c3c29fe86b506215946c37
+  CLASS       missed=37      covered=16
+  METHOD      missed=295     covered=102
+  LINE        missed=960     covered=277
+  BRANCH      missed=197     covered=29
+  INSTRUCTION missed=3719    covered=943
+  line-covered-ratio: 0.22393   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-object-association-plugin
+  exec-bytes: 193725
+  exec-sha256: 44bb97ca944bc12afdff65896015dbea5ba6162148fe4d9ec19eedafb01bf8d7
+  sessions-in-execution-data: 1
+  report-xml-sha256: cff6fafb8ab46364f1acd80f281c8eea3547007811efc83a6fd2c23131362602
+  report-csv-sha256: 9a0ea1acdf3e8107e59f4007eeefa0768454f667704efbab0e008ffe5f462cce
+  CLASS       missed=10      covered=3
+  METHOD      missed=67      covered=49
+  LINE        missed=269     covered=94
+  BRANCH      missed=82      covered=4
+  INSTRUCTION missed=1262    covered=272
+  line-covered-ratio: 0.25895   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-object-lock-plugin
+  exec-bytes: 167695
+  exec-sha256: c92cb7d67bb79950092af5de941ea88386086794be4f6dbf9255ad1e37905136
+  sessions-in-execution-data: 1
+  report-xml-sha256: a4556e8211023720a462cd4066aeef0764ca5fbbf12d111811b9f58447f0ed49
+  report-csv-sha256: cbe81dd809d81373297e49f2d1eb90476855b7a518ff4e46a74a7368464f6573
+  CLASS       missed=0       covered=1
+  METHOD      missed=5       covered=5
+  LINE        missed=19      covered=9
+  BRANCH      missed=2       covered=0
+  INSTRUCTION missed=105     covered=38
+  line-covered-ratio: 0.32143   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-person-plugin
+  exec-bytes: 198797
+  exec-sha256: 23b5730e6f0f0aac5613f850489ef1790f6394c777f2a93ad81364bd73b9fbe7
+  sessions-in-execution-data: 1
+  report-xml-sha256: 5cde47b95d885d4ebd6129752bfa777039daa2db3a19952dd9e730c8389fbb85
+  report-csv-sha256: 2f54c2f0b1b9a9d75114ffbdc6d7539e24bb01e29d8cb3321728fbdfa34347d3
+  CLASS       missed=59      covered=24
+  METHOD      missed=658     covered=334
+  LINE        missed=2194    covered=775
+  BRANCH      missed=635     covered=97
+  INSTRUCTION missed=9257    covered=2756
+  line-covered-ratio: 0.26103   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-profile-plugin
+  exec-bytes: 42009
+  exec-sha256: 6b771228c74427bd2940ca3a4eef52e02fae8b9f44d52254ec0575b693fbcd15
+  sessions-in-execution-data: 1
+  report-xml-sha256: dea6464ccc8b423490dcfc8d37d0330ed7bd5713024587b69b6319daa69df49f
+  report-csv-sha256: 72ca69ad93dfeaddd3d7f9e30fc9d5b0a9b3f645c63adfac4bd7214cab79a988
+  CLASS       missed=10      covered=3
+  METHOD      missed=55      covered=112
+  LINE        missed=143     covered=279
+  BRANCH      missed=34      covered=18
+  INSTRUCTION missed=531     covered=862
+  line-covered-ratio: 0.66114   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-report-plugin
+  exec-bytes: 7461
+  exec-sha256: b6de303c395cb51b4f86b328fdf6e92cf89b12dc5697ed90956ea07e19072042
+  sessions-in-execution-data: 1
+  report-xml-sha256: f193b794ef7ea797595d42c1a09608a9dcadc2d10e0fd026e36689023fb7ef43
+  report-csv-sha256: f6b842ff348b52d5b6fbd1c4b4dbcb9ee66c32d7f2ad2c977230d405c46f25f0
+  CLASS       missed=26      covered=1
+  METHOD      missed=317     covered=5
+  LINE        missed=999     covered=21
+  BRANCH      missed=208     covered=8
+  INSTRUCTION missed=4356    covered=70
+  line-covered-ratio: 0.02059   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-default-plugins/acm-task-plugin
+  exec-bytes: 377899
+  exec-sha256: 9d0852dde08d86f0d749e27833cd3c4f510e4422183844ab93d66c58fbebbe6c
+  sessions-in-execution-data: 1
+  report-xml-sha256: cf41c450d244bca71ed9b71e4875348dae160a40842f39de20cb0cc4a61b3a13
+  report-csv-sha256: 9c87504671b84f58af7d243fa23e140f6bc29895680573a3e855df47e2db87f1
+  CLASS       missed=37      covered=24
+  METHOD      missed=507     covered=263
+  LINE        missed=2358    covered=730
+  BRANCH      missed=724     covered=131
+  INSTRUCTION missed=10102   covered=2845
+  line-covered-ratio: 0.23640   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-extra-plugins/acm-alfresco-rma-integration
+  exec-bytes: 50705
+  exec-sha256: 9a42805b0826e18f0b23fdbbd0c7fa0594201614dc9d13ec72852cb9e6f5275e
+  sessions-in-execution-data: 1
+  report-xml-sha256: 9a9e6d4cc6964c8077f5c07a186b2aafc98f7e0f9813755403c92c4fceb6ed9e
+  report-csv-sha256: 7af7cf970c7cbe5a72ffcbdf2ffbd0b0d24e2f9642c9e21ff985bbd9d9231e81
+  CLASS       missed=13      covered=8
+  METHOD      missed=154     covered=61
+  LINE        missed=601     covered=195
+  BRANCH      missed=148     covered=56
+  INSTRUCTION missed=2574    covered=676
+  line-covered-ratio: 0.24497   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-extra-plugins/acm-ms-outlook-plugin
+  exec-bytes: 186282
+  exec-sha256: 587c2bb3d9c1793340020e244837c2a6454e8307576dee96334debed395114d3
+  sessions-in-execution-data: 1
+  report-xml-sha256: abb40b5e4f04b475d6f7b01d97f33328a4aa33bb0ff03f75ed5fa3e2e6b73042
+  report-csv-sha256: 59219e135503af3a74b92661d883e6375865702f2b21cb2d568bdbe0458ddb9a
+  CLASS       missed=5       covered=3
+  METHOD      missed=46      covered=15
+  LINE        missed=145     covered=36
+  BRANCH      missed=30      covered=0
+  INSTRUCTION missed=558     covered=143
+  line-covered-ratio: 0.19890   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-extra-plugins/acm-onlyoffice-plugin
+  exec-bytes: 169361
+  exec-sha256: c441f6936ee18cb055b35e3e0b901f8284c62d86548a39d72d23bd5fb89d743f
+  sessions-in-execution-data: 1
+  report-xml-sha256: f987a372f2a1fb5d75d94f8fcdb14a5c69e1514375224b7ca1eb686d6784590a
+  report-csv-sha256: c0cd1bf5c8b589eb640bf570c588c500ec307c8b61741a9bea7b82fe7a2055c5
+  CLASS       missed=33      covered=11
+  METHOD      missed=295     covered=54
+  LINE        missed=699     covered=102
+  BRANCH      missed=67      covered=3
+  INSTRUCTION missed=2869    covered=316
+  line-covered-ratio: 0.12734   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-plugins/acm-extra-plugins/acm-personnel-security-plugin
+  exec-bytes: 37866
+  exec-sha256: 21c63865cd4be39d9e1f9e4101230f1127d60b126ecc2e44be13c610bc73d74d
+  sessions-in-execution-data: 1
+  report-xml-sha256: ddc16e665e47f594f9a9caeebc10076e10931fa3698af7626a5eb557ac4dfb20
+  report-csv-sha256: 19b47b115f8ca595cb985adf91536b170b4230382b4201395484c2b85886f541
+  CLASS       missed=1       covered=2
+  METHOD      missed=9       covered=45
+  LINE        missed=30      covered=106
+  BRANCH      missed=9       covered=9
+  INSTRUCTION missed=135     covered=410
+  line-covered-ratio: 0.77941   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-audit
+  exec-bytes: 43976
+  exec-sha256: 6cf8c7b3a49e6a9c0c91684ae66874cc3fe8fc2148642f84d86e925e5c430d26
+  sessions-in-execution-data: 1
+  report-xml-sha256: e7374bf1016b1d3e10398e9b009ee142a2cbeb8593b58a9db9c2a535e21bc3a9
+  report-csv-sha256: e0d2830906fc03ad460dfe56441cc114a4201807f41d921dab200ed0c749cf73
+  CLASS       missed=14      covered=3
+  METHOD      missed=184     covered=39
+  LINE        missed=672     covered=122
+  BRANCH      missed=173     covered=24
+  INSTRUCTION missed=2607    covered=490
+  line-covered-ratio: 0.15365   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-authentication-token
+  exec-bytes: 128628
+  exec-sha256: bd26a2bcf744d3cb328711d4287b55b8fd2b9ab31dfcd9365a27a0361e8568a6
+  sessions-in-execution-data: 1
+  report-xml-sha256: 5753693cb62fbddbfec5fef623a87875442b6ed9f506835074ae0eb430f918fb
+  report-csv-sha256: 3d4676a56b24ab7d63b038f151bdc0515fa4b630072e0ca7c3c1868ac02a090f
+  CLASS       missed=3       covered=1
+  METHOD      missed=56      covered=4
+  LINE        missed=149     covered=8
+  BRANCH      missed=24      covered=0
+  INSTRUCTION missed=543     covered=36
+  line-covered-ratio: 0.05096   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-calendar-integration-exchange
+  exec-bytes: 4515
+  exec-sha256: e713bb2074596dadc1b10b812b6b7c3cf5a5e0677834364ec4acab413ea3e22d
+  sessions-in-execution-data: 1
+  report-xml-sha256: d234379e8492f258f3336d184e9a16bfa4f797881b49184ef4bcedf517f5d8fa
+  report-csv-sha256: 53e89920173155206b5035b3dda60b90026c9975109a48b0fc0353d18b0ef8c3
+  CLASS       missed=0       covered=0
+  METHOD      missed=0       covered=0
+  LINE        missed=0       covered=0
+  BRANCH      missed=0       covered=0
+  INSTRUCTION missed=0       covered=0
+  line-covered-ratio: n/a   against configured minimum 0.02   NO-LINES-ANALYSED
+module: acm-services/acm-service-calendar
+  exec-bytes: 22147
+  exec-sha256: 27f6d7ed3c84418b089f805fb240fcf85453b58d65fe82a2fbf1326bb3f5367d
+  sessions-in-execution-data: 1
+  report-xml-sha256: 70afec971e0ab08af460763a701d6f511d834e86f089bc92caeb8454220402f8
+  report-csv-sha256: 53e89920173155206b5035b3dda60b90026c9975109a48b0fc0353d18b0ef8c3
+  CLASS       missed=0       covered=0
+  METHOD      missed=0       covered=0
+  LINE        missed=0       covered=0
+  BRANCH      missed=0       covered=0
+  INSTRUCTION missed=0       covered=0
+  line-covered-ratio: n/a   against configured minimum 0.02   NO-LINES-ANALYSED
+module: acm-services/acm-service-comprehend-medical
+  exec-bytes: 29100
+  exec-sha256: 4acf1e6c6884ac762c75d06842c167cb63934d712bf0cd52800d8bfc926ab67d
+  sessions-in-execution-data: 1
+  report-xml-sha256: 6493cbc7d2c68215f5dfe28b6f8c91ec33f669932e995599fd5b7cc492e5e4fd
+  report-csv-sha256: 5a4e6f5fbffd645b476b6bae3270dc339aec1169134c99354fb15250fe65d59d
+  CLASS       missed=11      covered=3
+  METHOD      missed=211     covered=13
+  LINE        missed=670     covered=48
+  BRANCH      missed=225     covered=16
+  INSTRUCTION missed=2680    covered=191
+  line-covered-ratio: 0.06685   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-compress-folder
+  exec-bytes: 165830
+  exec-sha256: 81ba424d00cba402029f706697c0d933f130158fa52904bffd7d44ddafb359f0
+  sessions-in-execution-data: 1
+  report-xml-sha256: 25091a41a93973824ba7c5825565d8301290e28f677efdb20b976133142e1f22
+  report-csv-sha256: 1a24229836ebbf60a1c1b7dd10ff511d66b0aa95ac74bd39c8874ac3e4f7c31a
+  CLASS       missed=1       covered=8
+  METHOD      missed=47      covered=53
+  LINE        missed=185     covered=171
+  BRANCH      missed=86      covered=21
+  INSTRUCTION missed=904     covered=755
+  line-covered-ratio: 0.48034   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-config
+  exec-bytes: 98001
+  exec-sha256: e38514ad9cc6287bf58cf5a7ad1d0ca70fd4336b292e6ff95adf6cef10cf11cf
+  sessions-in-execution-data: 1
+  report-xml-sha256: 3c13f8140cafde277f2c72d2e4f74adc6ef33978415cab5944cc7a18c51f4142
+  report-csv-sha256: e2ccf5de3076f06a59400b281353bdc3e2e5c8fa05b9465d2606244d8eee45d7
+  CLASS       missed=10      covered=14
+  METHOD      missed=149     covered=52
+  LINE        missed=576     covered=154
+  BRANCH      missed=137     covered=59
+  INSTRUCTION missed=2730    covered=854
+  line-covered-ratio: 0.21096   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-configuration
+  exec-bytes: 16433
+  exec-sha256: 16f70a52a38cc0f989c8c330ffd0710ad9256f41a8377c63ab44593a4f6f8a60
+  sessions-in-execution-data: 1
+  report-xml-sha256: 4900085f4c97d385f50d0c864d4a18793da7362886fdee72222731975917a7bd
+  report-csv-sha256: 97ab9394e286712716824492c9b06248d1908883e5d722e071ec138837a3268e
+  CLASS       missed=0       covered=2
+  METHOD      missed=2       covered=7
+  LINE        missed=4       covered=12
+  BRANCH      missed=2       covered=2
+  INSTRUCTION missed=12      covered=48
+  line-covered-ratio: 0.75000   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-correspondence
+  exec-bytes: 60008
+  exec-sha256: cb056f87d7f10282f9d08db13e543c639316e3c20658ba201e9e6e21bf736bac
+  sessions-in-execution-data: 1
+  report-xml-sha256: 4344a16ee62c6e9254ae5adcee54af09d7e4f638d97e25e2ddcb7d5ca57605e3
+  report-csv-sha256: 29998c95bd4f3a8ccad6ce6427a9adc7b1e508d2320a15953cad29227d2ecba8
+  CLASS       missed=8       covered=2
+  METHOD      missed=136     covered=21
+  LINE        missed=593     covered=93
+  BRANCH      missed=205     covered=27
+  INSTRUCTION missed=2450    covered=489
+  line-covered-ratio: 0.13557   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-costsheet
+  exec-bytes: 168848
+  exec-sha256: 70d94108acb8365d31cf7a127d72dfcb4cbe0fa2a9a289b0d378bbc0a5e22e68
+  sessions-in-execution-data: 1
+  report-xml-sha256: 479ac06cfd8a9ee23ef5a7e6e24092e2027e4f0f0a8f3af3d96a588e73fdbd9c
+  report-csv-sha256: 77619165a20b0c20d3b2d564bab419bb012a775425ce404435dae31b59a94a2a
+  CLASS       missed=21      covered=9
+  METHOD      missed=145     covered=96
+  LINE        missed=461     covered=197
+  BRANCH      missed=96      covered=18
+  INSTRUCTION missed=1914    covered=637
+  line-covered-ratio: 0.29939   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-data-access-control
+  exec-bytes: 208081
+  exec-sha256: 071644446f58f4fd5dcd87a8b0ff8c447d65f36244b2c76fc6b5934d69663b17
+  sessions-in-execution-data: 1
+  report-xml-sha256: 05ae5f337ed88deadaa507f37576bf0285bd135db25a3bc3c6f0da83a5503fa5
+  report-csv-sha256: 8fb8f05c3e02969dceab89b0af397c7c15f59fb97f838443459de1112a412d59
+  CLASS       missed=12      covered=6
+  METHOD      missed=148     covered=66
+  LINE        missed=529     covered=306
+  BRANCH      missed=190     covered=132
+  INSTRUCTION missed=2095    covered=1304
+  line-covered-ratio: 0.36647   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-data-update
+  exec-bytes: 47349
+  exec-sha256: 9c25df230b035cb2efcfddd83fdc26f9e2e81d4453c3d3b69887d76426b06d5e
+  sessions-in-execution-data: 1
+  report-xml-sha256: 62b576b3992e1665bf4fa605608f2c82ed0ef8a006445288f7174a6b719a3fa8
+  report-csv-sha256: d7d6be1870ec6b79d42441ebe9a11e71776700b6c3668a35de8cce2ee0a8aa14
+  CLASS       missed=37      covered=1
+  METHOD      missed=352     covered=7
+  LINE        missed=1176    covered=44
+  BRANCH      missed=150     covered=24
+  INSTRUCTION missed=4704    covered=174
+  line-covered-ratio: 0.03607   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-ecm
+  exec-bytes: 387174
+  exec-sha256: 8db8ff29a54d70f84304eae0eba5fc5f864e0b367a574c833a97bb04e45af659
+  sessions-in-execution-data: 1
+  report-xml-sha256: f8daa25e7b4f31eac9b1c50f1348eb307bd94b2641a30f4187ec7e94a19c1b41
+  report-csv-sha256: 76eec86de12c01d85a27b4023688d28cd3d36a08e0ad787dce8df7c8d30bd051
+  CLASS       missed=155     covered=54
+  METHOD      missed=1698    covered=622
+  LINE        missed=6806    covered=2221
+  BRANCH      missed=1866    covered=436
+  INSTRUCTION missed=29005   covered=9099
+  line-covered-ratio: 0.24604   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-electronic-signature
+  exec-bytes: 164412
+  exec-sha256: 12a728651e19fd73868ee3a4902c5a88feb9471ee7860f045408939187a7232a
+  sessions-in-execution-data: 1
+  report-xml-sha256: 9441f772ba4ac017eb92904648a6ca45dc49b8287c60880b895b884a3f0e9407
+  report-csv-sha256: 2d22d4ddd7e3928958faa740fff734a0c544855fcd12611eadc04e2f5a6a7771
+  CLASS       missed=3       covered=4
+  METHOD      missed=14      covered=25
+  LINE        missed=34      covered=73
+  BRANCH      missed=3       covered=3
+  INSTRUCTION missed=119     covered=263
+  line-covered-ratio: 0.68224   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-email-smtp
+  exec-bytes: 96292
+  exec-sha256: 30b3bacdc07c67b344e897963040fd107b4fa9cc486f610ab55bcc0d922cd7c6
+  sessions-in-execution-data: 1
+  report-xml-sha256: a95ed984833c83aaba51631ac34b39f7c3287e7728cf81f3abc6f06053098731
+  report-csv-sha256: bb10c5f633dc4de9510293ce1c323a0f321efa5883a35dc5ce544bf77542e3d7
+  CLASS       missed=3       covered=4
+  METHOD      missed=60      covered=18
+  LINE        missed=279     covered=151
+  BRANCH      missed=63      covered=45
+  INSTRUCTION missed=1148    covered=672
+  line-covered-ratio: 0.35116   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-email
+  exec-bytes: 235524
+  exec-sha256: 25150743a5aa5b473eeae601d1c0c268f183890128806d7e7580083382ba1b57
+  sessions-in-execution-data: 1
+  report-xml-sha256: 87e21da523d826ce99fa8a15b8bc1a442a4ba8ad416635ef9c1e9a7a6c31126e
+  report-csv-sha256: b3a439a8ce384f2a6062046c05c70b0e5cfc02cd7d8fcaecfcaa81b5e06cedd0
+  CLASS       missed=33      covered=6
+  METHOD      missed=281     covered=47
+  LINE        missed=799     covered=149
+  BRANCH      missed=137     covered=19
+  INSTRUCTION missed=2953    covered=620
+  line-covered-ratio: 0.15717   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-form-configuration
+  exec-bytes: 41784
+  exec-sha256: bd6e1cea0106ab49652ef0b1ffa9b4a810b9aca970df9269539e88dadcd247d9
+  sessions-in-execution-data: 1
+  report-xml-sha256: 6c612c3ee2491d3cb8cbb60e86a2eff9aade55c4447f96780e1d4df53c7a9621
+  report-csv-sha256: 6ed0338860a455b3b7d73b66bae57fbb217de2eb13bfda53ecfcbdbe39ed0a3d
+  CLASS       missed=27      covered=2
+  METHOD      missed=266     covered=17
+  LINE        missed=977     covered=54
+  BRANCH      missed=446     covered=10
+  INSTRUCTION missed=4003    covered=226
+  line-covered-ratio: 0.05238   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-functional-access-control
+  exec-bytes: 123558
+  exec-sha256: 332deec9aaa0e028b89d9b4044d3efaa9cd64665be131bdc42558c4d579f7f4f
+  sessions-in-execution-data: 1
+  report-xml-sha256: 8c469ab5fc01a747f00f927152277973af0c6a2c2683178c8e947177a259e486
+  report-csv-sha256: fb347e8aedc3b8bfafe710b5b73dcefe714fb57f6b3322504790ef59113e879a
+  CLASS       missed=4       covered=5
+  METHOD      missed=66      covered=21
+  LINE        missed=229     covered=53
+  BRANCH      missed=90      covered=2
+  INSTRUCTION missed=1148    covered=237
+  line-covered-ratio: 0.18794   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-holiday
+  exec-bytes: 14759
+  exec-sha256: a4850d1967731be0f6f6ee9adc67ec2d5b3a688989160007633de57a7c70f36b
+  sessions-in-execution-data: 1
+  report-xml-sha256: 85377313f6a51c018058a4852bf3444f6974a6b0b1085fa51c13da297ba5e33a
+  report-csv-sha256: 25fd4409caa949e41d1bd86ec5d5b8fdf4eeed3f60f0603ed363ba1544dd0a03
+  CLASS       missed=5       covered=4
+  METHOD      missed=73      covered=27
+  LINE        missed=152     covered=60
+  BRANCH      missed=30      covered=26
+  INSTRUCTION missed=560     covered=227
+  line-covered-ratio: 0.28302   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-login
+  exec-bytes: 114650
+  exec-sha256: ee14ebebac91cf222d442940de4879aca31b4ed63435826afd09a490ea0d4d80
+  sessions-in-execution-data: 1
+  report-xml-sha256: 04253dd57aa07b6004f599e5b188fa05f6e7ae90baacac660c857f0edbf3eecc
+  report-csv-sha256: 9d2efb950408814610bdcbc9d3ffcef556647c2270659695cbaceb76ef9bd069
+  CLASS       missed=56      covered=23
+  METHOD      missed=497     covered=155
+  LINE        missed=1924    covered=455
+  BRANCH      missed=517     covered=99
+  INSTRUCTION missed=7576    covered=2011
+  line-covered-ratio: 0.19126   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-ms-outlook-integration
+  exec-bytes: 70557
+  exec-sha256: 5bfc56b61c9661c3dd192369e6c16f629d319c6a4287a93889adcfcfce42e20e
+  sessions-in-execution-data: 1
+  report-xml-sha256: fa6dd3181045a16cdf4aac0cb2442127453b11fe39d1f153fe55133e43ffdada
+  report-csv-sha256: 53e89920173155206b5035b3dda60b90026c9975109a48b0fc0353d18b0ef8c3
+  CLASS       missed=0       covered=0
+  METHOD      missed=0       covered=0
+  LINE        missed=0       covered=0
+  BRANCH      missed=0       covered=0
+  INSTRUCTION missed=0       covered=0
+  line-covered-ratio: n/a   against configured minimum 0.02   NO-LINES-ANALYSED
+module: acm-services/acm-service-note
+  exec-bytes: 172886
+  exec-sha256: 2749c6a58e0dc446327042f60f4b59c5df4809072698a48d4c933cea8cfe9f49
+  sessions-in-execution-data: 1
+  report-xml-sha256: 89016302600bfaaf7e82b0548a638d748268d8b04a461f7b1219372728165a67
+  report-csv-sha256: 8b138c28f95b5c0a16cc02f4677f800e1e9f75f0f2f55f41e0caed344b91eac8
+  CLASS       missed=5       covered=5
+  METHOD      missed=37      covered=46
+  LINE        missed=159     covered=136
+  BRANCH      missed=40      covered=12
+  INSTRUCTION missed=706     covered=499
+  line-covered-ratio: 0.46102   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-notification
+  exec-bytes: 195618
+  exec-sha256: 1c807a1e743e9d484fae570360b480409705a69cf16ae057b15bdb132bc9964d
+  sessions-in-execution-data: 1
+  report-xml-sha256: a21f2b68814b40a40d3f40fe23338e4a49184aa45dc03568681bba2ad6f83f9b
+  report-csv-sha256: 05e8a004b5738039b902b62954e0ce178dbb2789436410d82f4b5ce4d2d83f82
+  CLASS       missed=36      covered=15
+  METHOD      missed=366     covered=166
+  LINE        missed=1081    covered=440
+  BRANCH      missed=243     covered=56
+  INSTRUCTION missed=4022    covered=1606
+  line-covered-ratio: 0.28928   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-object-history
+  exec-bytes: 51502
+  exec-sha256: 55a3c4901ffa69409e782ee2f244cf3e067549ad66b240ad06534f14b1e95c27
+  sessions-in-execution-data: 1
+  report-xml-sha256: 7584ccbd7777181189efa8aef5169a636cb20cf892af7c3b508c868ceebe81f2
+  report-csv-sha256: bb8e8238f31fe065342698510d60b6b36694ec94ef308113486e50373cc0b5d0
+  CLASS       missed=6       covered=2
+  METHOD      missed=55      covered=18
+  LINE        missed=116     covered=43
+  BRANCH      missed=15      covered=3
+  INSTRUCTION missed=386     covered=123
+  line-covered-ratio: 0.27044   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-object-lock
+  exec-bytes: 121979
+  exec-sha256: c5c75d3235407751d2c75ff895a38079f97f8063f161b2006ae720c4f34cdde9
+  sessions-in-execution-data: 1
+  report-xml-sha256: e1e8ac70b636141a4bde1cac6298ce0a0549f305b051dfd177683776bb5b1ee9
+  report-csv-sha256: ff0b9472f7aefce4067cd147ab7fb89395ce8c866c88d8fc4abd23c1d4ef0cf5
+  CLASS       missed=11      covered=6
+  METHOD      missed=89      covered=33
+  LINE        missed=312     covered=102
+  BRANCH      missed=105     covered=11
+  INSTRUCTION missed=1513    covered=406
+  line-covered-ratio: 0.24638   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-ocr
+  exec-bytes: 244155
+  exec-sha256: a8bacd2d5e289726f69a070ed2ba70bc89a449868d6639efed86e4eff0d20ad2
+  sessions-in-execution-data: 1
+  report-xml-sha256: 2963438e07d83571e792a2cc679fa3a23b5af0e7ecc0a12ab1176ce26e8ae601
+  report-csv-sha256: c7f77ef9e7da8a860f9f680e308f78bf75bab160c42f60904c64af124d8bb701
+  CLASS       missed=4       covered=6
+  METHOD      missed=73      covered=66
+  LINE        missed=351     covered=144
+  BRANCH      missed=117     covered=22
+  INSTRUCTION missed=1662    covered=481
+  line-covered-ratio: 0.29091   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-plugin-manager
+  exec-bytes: 30360
+  exec-sha256: 94c5aad0eee7ac6e6c2fffdbfca787eb3a7aa0c64cb519ae4e279878604de468
+  sessions-in-execution-data: 1
+  report-xml-sha256: be401f946f4599d81b68f12b812fd9cadf5e3ddfa626116d6b3a1b89ea8392af
+  report-csv-sha256: 437e828c9f777a5640f091229b2bc000835f3330354b063eb7733f64232eb027
+  CLASS       missed=4       covered=6
+  METHOD      missed=34      covered=32
+  LINE        missed=74      covered=108
+  BRANCH      missed=27      covered=33
+  INSTRUCTION missed=280     covered=416
+  line-covered-ratio: 0.59341   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-search
+  exec-bytes: 183738
+  exec-sha256: bf4ce15e0bc2480654a16ce6be4fd8b1e29637383630df6ce1e6bf9f066ec8c7
+  sessions-in-execution-data: 1
+  report-xml-sha256: 3b34fd525c0f0a830143b1b21440794a8a410c2f03a17ebc0a5fcabf504db367
+  report-csv-sha256: 2555427132a1145b099be3c025ccc3c875ced07cbeab759497489c68c387be31
+  CLASS       missed=41      covered=21
+  METHOD      missed=442     covered=105
+  LINE        missed=1828    covered=383
+  BRANCH      missed=683     covered=99
+  INSTRUCTION missed=8870    covered=1911
+  line-covered-ratio: 0.17322   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-state-of-arkcase
+  exec-bytes: 88458
+  exec-sha256: bfa3ee69477f4ff54c1edc8d0b06b57df3be79ec694a04ee896cb98bea39431a
+  sessions-in-execution-data: 1
+  report-xml-sha256: d8e40e38e5dfa934a01549a9aea84d15885ca59bb00e51a2c93797716985f689
+  report-csv-sha256: fe4e86e9926a7d4e4e305b1822d28d00f4ff1361d78edbf7d03501d3e4c0044d
+  CLASS       missed=2       covered=5
+  METHOD      missed=14      covered=18
+  LINE        missed=47      covered=58
+  BRANCH      missed=19      covered=9
+  INSTRUCTION missed=223     covered=239
+  line-covered-ratio: 0.55238   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-subscription
+  exec-bytes: 163363
+  exec-sha256: c5c5d7b5ee1d78f6eced6a64c779300baccd6112fd774ae64deaf570e8495161
+  sessions-in-execution-data: 1
+  report-xml-sha256: 939457e77e545daaafadd9f4bd9abbcfb7435875206835ddca5eb835ae0f026f
+  report-csv-sha256: 057712de842d3aff8efdea2ab4120eba777ca5985ef47209008c91c2ba6be5da
+  CLASS       missed=16      covered=6
+  METHOD      missed=127     covered=51
+  LINE        missed=369     covered=112
+  BRANCH      missed=44      covered=2
+  INSTRUCTION missed=1431    covered=395
+  line-covered-ratio: 0.23285   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-timesheet
+  exec-bytes: 168556
+  exec-sha256: 574c21d112b62c4f451937dd3b4ce376dc3a378e662df65def11f5e8e9bf9023
+  sessions-in-execution-data: 1
+  report-xml-sha256: c38cc898de48483f6126199d47b97137446748d9f14e1c3203a6a28b65e7b973
+  report-csv-sha256: 484b7d43bf3f7465e0cf2dc0dc32aa268a5fba8ec9fd23b435af3c8f54e53368
+  CLASS       missed=25      covered=9
+  METHOD      missed=179     covered=100
+  LINE        missed=574     covered=215
+  BRANCH      missed=104     covered=24
+  INSTRUCTION missed=2453    covered=704
+  line-covered-ratio: 0.27250   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-transcribe
+  exec-bytes: 323935
+  exec-sha256: 9ef56e13af6f2ed07a1e0fd635ac998975154ebc9a341945a0e04016da4a3ef5
+  sessions-in-execution-data: 1
+  report-xml-sha256: 96d5870eca5da7ff2a602e99056ac86705996aba0acb3ca441a66b380ddbacad
+  report-csv-sha256: 33b6bb4c4af70c8f5f2c0458dee9e66808adddb8fe626cab4215feb8fcad5ac7
+  CLASS       missed=12      covered=9
+  METHOD      missed=156     covered=96
+  LINE        missed=633     covered=204
+  BRANCH      missed=219     covered=52
+  INSTRUCTION missed=2762    covered=699
+  line-covered-ratio: 0.24373   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-users
+  exec-bytes: 229382
+  exec-sha256: 2d95a3f578f08ae53c11f94fa297739fe7897f068ea2a7ee1309dd0a661e1127
+  sessions-in-execution-data: 1
+  report-xml-sha256: ccdb7e3da9552a751cdb80a7b8be2e46f48f95b585e304d361318163ec225f67
+  report-csv-sha256: ab168d657eb8a6a965d463ae523b57c98f971a3aad9be22deb80f169471275c1
+  CLASS       missed=77      covered=49
+  METHOD      missed=809     covered=491
+  LINE        missed=3166    covered=1386
+  BRANCH      missed=618     covered=214
+  INSTRUCTION missed=14082   covered=5985
+  line-covered-ratio: 0.30448   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-services/acm-service-webdav
+  exec-bytes: 57928
+  exec-sha256: 79a201cd0d0e0dd13e1e923ff3af5170dc9b2b3fcfe20365922c9f68bd50afbc
+  sessions-in-execution-data: 1
+  report-xml-sha256: 191e535bb6259fd70931e5ea37f217479c58686d526cff220b981fa9301a81a2
+  report-csv-sha256: 9cb411400960b4c35b925c93681a76084c8bd0423e532aa8eb5155d389783c5a
+  CLASS       missed=7       covered=7
+  METHOD      missed=119     covered=23
+  LINE        missed=371     covered=101
+  BRANCH      missed=77      covered=13
+  INSTRUCTION missed=1564    covered=441
+  line-covered-ratio: 0.21398   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-standard-applications/acm-foia
+  exec-bytes: 262078
+  exec-sha256: d089c45a6e110f798bfe5d17651b241bbd781f9935c87ead0cc6960ca13c34f2
+  sessions-in-execution-data: 1
+  report-xml-sha256: 9d2aedf326bc54a0c522ce06e1687eabd3df4a5d96bcf7fc55c1826071a2fba5
+  report-csv-sha256: 1d10f895743b658abd09035a757d63c3b8d698698ab0804df76b6edc0c97b452
+  CLASS       missed=170     covered=7
+  METHOD      missed=2042    covered=118
+  LINE        missed=7514    covered=251
+  BRANCH      missed=1694    covered=18
+  INSTRUCTION missed=30930   covered=784
+  line-covered-ratio: 0.03232   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-activemq-configuration
+  exec-bytes: 3395
+  exec-sha256: 6d1af81de506eae8fb57805feb99ac76479ec81bd0aa98b691d17bc7550983cb
+  sessions-in-execution-data: 1
+  report-xml-sha256: 02b9b8afbbce0d69f60b81a39cbdabcf3beca6597939148fd007a9e1efbde1c5
+  report-csv-sha256: 53e89920173155206b5035b3dda60b90026c9975109a48b0fc0353d18b0ef8c3
+  CLASS       missed=0       covered=0
+  METHOD      missed=0       covered=0
+  LINE        missed=0       covered=0
+  BRANCH      missed=0       covered=0
+  INSTRUCTION missed=0       covered=0
+  line-covered-ratio: n/a   against configured minimum 0.02   NO-LINES-ANALYSED
+module: acm-tool-integrations/acm-activiti-configuration
+  exec-bytes: 131428
+  exec-sha256: 899c397f6a34934dfebd2e63d464aedec210aa835d8a1961c67bfcb1fae7aa1b
+  sessions-in-execution-data: 1
+  report-xml-sha256: c28b4dba2b7f78d7f34e8d98295bde22e037ef8b663f7f9197c811c7ac8c08b3
+  report-csv-sha256: e183e163b7a21a0ac0b22c17b566e85a9367476a2f6bfb2244af245297b345f4
+  CLASS       missed=14      covered=5
+  METHOD      missed=130     covered=31
+  LINE        missed=413     covered=100
+  BRANCH      missed=66      covered=8
+  INSTRUCTION missed=1623    covered=340
+  line-covered-ratio: 0.19493   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-comprehend-medical
+  exec-bytes: 101883
+  exec-sha256: 5c8a1e692bab01a4654992be0c7b8090bd3d5bb4be3f7cac61eb25f2c6efe864
+  sessions-in-execution-data: 1
+  report-xml-sha256: 63662e28c464e92d4df58c5a09aac4f8098e5ebc6ebe404443be5c7f392f4885
+  report-csv-sha256: 1621faf9d35e48493989c755b5f3ca50380d6e1c117c95e041fc3a51edc79852
+  CLASS       missed=7       covered=2
+  METHOD      missed=58      covered=13
+  LINE        missed=194     covered=20
+  BRANCH      missed=29      covered=0
+  INSTRUCTION missed=786     covered=46
+  line-covered-ratio: 0.09346   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-configuration
+  exec-bytes: 79265
+  exec-sha256: dd294a90bc4a7b234e36f86d322d6a6380fbd74b81984dc8a26645120bfd8e48
+  sessions-in-execution-data: 1
+  report-xml-sha256: 5695bb48b12f7a9ffa9dddc578eb00ead068e39e63d8687c7b194e3ee39c9873
+  report-csv-sha256: 94a78ca300c8f3d602911c386ee932c9971a1d4c6f5feb74ec51feaaf59321e9
+  CLASS       missed=43      covered=6
+  METHOD      missed=288     covered=32
+  LINE        missed=1016    covered=154
+  BRANCH      missed=251     covered=75
+  INSTRUCTION missed=4309    covered=739
+  line-covered-ratio: 0.13162   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-drools-rule-monitor
+  exec-bytes: 152287
+  exec-sha256: 35e706b73dab703afc36b5e968de1bc34e2af8dd54f6ae776641ceed720ff4e5
+  sessions-in-execution-data: 1
+  report-xml-sha256: 6b31b1a43890c9aa9502c56d9b5e8d76ecd5963979014ecb5784a9cb1c6fb83f
+  report-csv-sha256: 8f03db097076fb23f4de4852095a5676d2e7e245dc5439fb056a95e596de1e80
+  CLASS       missed=0       covered=1
+  METHOD      missed=3       covered=11
+  LINE        missed=19      covered=38
+  BRANCH      missed=7       covered=1
+  INSTRUCTION missed=92      covered=123
+  line-covered-ratio: 0.66667   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-encryption
+  exec-bytes: 4388
+  exec-sha256: f55d5daa43a286573abe02269cefeae4d8869d4b6e1802f3ab13e7d41f8a4a8e
+  sessions-in-execution-data: 1
+  report-xml-sha256: b827ac60eaf8bd2bfedffb6c484122f3bd5ee68c0c3212994790da90671d131f
+  report-csv-sha256: 53e89920173155206b5035b3dda60b90026c9975109a48b0fc0353d18b0ef8c3
+  CLASS       missed=0       covered=0
+  METHOD      missed=0       covered=0
+  LINE        missed=0       covered=0
+  BRANCH      missed=0       covered=0
+  INSTRUCTION missed=0       covered=0
+  line-covered-ratio: n/a   against configured minimum 0.02   NO-LINES-ANALYSED
+module: acm-tool-integrations/acm-files-folder-watcher
+  exec-bytes: 31699
+  exec-sha256: c01b575bb6bcd13137a20e8c33df6ffd5172cb720135c22355663aa3b876813a
+  sessions-in-execution-data: 1
+  report-xml-sha256: ad57330a7d06215c009066f634e2ec2f9b4a75ca8e76a1a70e45ac0db3141807
+  report-csv-sha256: 94fc7a1ddc80ae9bc97c8318c8b4ad959a07cfc86019a805c7c1a830ede31902
+  CLASS       missed=12      covered=8
+  METHOD      missed=112     covered=44
+  LINE        missed=263     covered=148
+  BRANCH      missed=63      covered=31
+  INSTRUCTION missed=1044    covered=545
+  line-covered-ratio: 0.36010   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-object-converter
+  exec-bytes: 45513
+  exec-sha256: 7643a2bed5affd2c3aa66b1418f52a591c58bddcac7d23ced749fd5c51707c26
+  sessions-in-execution-data: 1
+  report-xml-sha256: 27f67483f2027bb55c0bec7338ecf113e903c2ae3017d0b47d40edc7942c2c33
+  report-csv-sha256: 122a3f6063601035d366cf158c0abae3dbe0e29684035add93ead8838d49b6e3
+  CLASS       missed=7       covered=5
+  METHOD      missed=37      covered=17
+  LINE        missed=141     covered=57
+  BRANCH      missed=30      covered=0
+  INSTRUCTION missed=624     covered=190
+  line-covered-ratio: 0.28788   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-object-diff
+  exec-bytes: 93783
+  exec-sha256: 49d0e2796e90160d248e6567a50a3789dea6552eb83abb2be7ecd591a444ff13
+  sessions-in-execution-data: 1
+  report-xml-sha256: 991a05a5a90ff843d7e5134ffa35715063259948db06aa5a758408df09ec1d46
+  report-csv-sha256: 7408369df58504b30a7176a47406c57d38e8930e311d37024852799f3d7a72c0
+  CLASS       missed=0       covered=16
+  METHOD      missed=24      covered=92
+  LINE        missed=68      covered=339
+  BRANCH      missed=58      covered=122
+  INSTRUCTION missed=297     covered=1267
+  line-covered-ratio: 0.83292   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-pdf-utilities
+  exec-bytes: 82589
+  exec-sha256: 039f555cc61be4ca4c25160363220a7b00ba1d337926c2acff594d610a2c9d54
+  sessions-in-execution-data: 1
+  report-xml-sha256: 3b744e8c93d0dfe15e09eaedefdfdf8ea7bd9921daa35fbb94ac4bb35bd44597
+  report-csv-sha256: ae7f51df6a90b0e02ea9cd13cf8aec8086a5e569b5a8652c325bef5d455e2412
+  CLASS       missed=0       covered=2
+  METHOD      missed=10      covered=6
+  LINE        missed=122     covered=61
+  BRANCH      missed=21      covered=5
+  INSTRUCTION missed=556     covered=261
+  line-covered-ratio: 0.33333   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-proxy-http
+  exec-bytes: 7751
+  exec-sha256: 32535b36b22230a1c57f60206e18ca364e8dec0fc428f260fe7d0c5aea944cce
+  sessions-in-execution-data: 1
+  report-xml-sha256: 219861ff35979dbc183713f491dff54a1c092e4fd536808e428abf21628763d2
+  report-csv-sha256: 7bf62742c23872f5d2835232df2c7c44b9316ebd0332349c7736294ddb7e504c
+  CLASS       missed=0       covered=1
+  METHOD      missed=41      covered=2
+  LINE        missed=392     covered=29
+  BRANCH      missed=187     covered=14
+  INSTRUCTION missed=1772    covered=200
+  line-covered-ratio: 0.06888   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-report-configuration
+  exec-bytes: 30971
+  exec-sha256: f60dd32f3d36f44611a081f23580ed583e4bb18a7e1720b291c1287490b46183
+  sessions-in-execution-data: 1
+  report-xml-sha256: 77a887608e09c3c930a0403eef5748ee4c14fb51820755469dc1004f83c49ab7
+  report-csv-sha256: 7bf545d2161d805511fad34668dec05a34fb2dde5a4e50521f6f97a95041b239
+  CLASS       missed=3       covered=2
+  METHOD      missed=71      covered=10
+  LINE        missed=118     covered=51
+  BRANCH      missed=6       covered=8
+  INSTRUCTION missed=301     covered=269
+  line-covered-ratio: 0.30178   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-spring-data-source
+  exec-bytes: 3395
+  exec-sha256: ac6625176765dcef94e0e9d9064e0b1d04a7c3214035a4e9acaa436899e648bf
+  sessions-in-execution-data: 1
+  report-xml-sha256: ea7b66a6d1637514e5ae5982bdc5ac6794e0759eb7fdc12dffa14cdf9c9a5bd1
+  report-csv-sha256: 53e89920173155206b5035b3dda60b90026c9975109a48b0fc0353d18b0ef8c3
+  CLASS       missed=0       covered=0
+  METHOD      missed=0       covered=0
+  LINE        missed=0       covered=0
+  BRANCH      missed=0       covered=0
+  INSTRUCTION missed=0       covered=0
+  line-covered-ratio: n/a   against configured minimum 0.02   NO-LINES-ANALYSED
+module: acm-tool-integrations/acm-transcribe-tool
+  exec-bytes: 130643
+  exec-sha256: e7e4e70a8702a6aafcf4f6630fbbebac422f93f44ab554e54f5ecfc83694fd03
+  sessions-in-execution-data: 1
+  report-xml-sha256: 24228cdfc1cab735bc8fbd2b21d079a8f75f37f7fb4051565fb9940f2b2791fd
+  report-csv-sha256: 87fc0bc78a9e965a3ba822ea444f5943a1c21a5a20b8cad5e3c591a2e120d5ef
+  CLASS       missed=11      covered=11
+  METHOD      missed=109     covered=68
+  LINE        missed=368     covered=107
+  BRANCH      missed=137     covered=2
+  INSTRUCTION missed=1567    covered=251
+  line-covered-ratio: 0.22526   against configured minimum 0.02   AT-OR-ABOVE-MINIMUM
+module: acm-tool-integrations/acm-zylab-integration
+  exec-bytes: 6719
+  exec-sha256: 237493e1830d4179425de3f78337fc297023e1ad620018105fd49ebb89455aa1
+  sessions-in-execution-data: 1
+  report-xml-sha256: c8f6dce66463945d5e8be15484a9902d3d9d367fb8b4829ab1557d66b0a7cf3c
+  report-csv-sha256: 53e89920173155206b5035b3dda60b90026c9975109a48b0fc0353d18b0ef8c3
+  CLASS       missed=0       covered=0
+  METHOD      missed=0       covered=0
+  LINE        missed=0       covered=0
+  BRANCH      missed=0       covered=0
+  INSTRUCTION missed=0       covered=0
+  line-covered-ratio: n/a   against configured minimum 0.02   NO-LINES-ANALYSED

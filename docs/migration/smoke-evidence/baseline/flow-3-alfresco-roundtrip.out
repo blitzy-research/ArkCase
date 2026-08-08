@@ -4,14 +4,14 @@ title: document round-trip to the content repository
 
 ===== repository-reachability =====
 request-method: GET
-request-url: https://arkcase-ce.local/share
+request-url: http://localhost:53091/alfresco
 auth-mode: anon
 redirects-followed: 0
-redirect-target-reported: (none)
+redirect-target-reported: http://localhost:53091/alfresco/
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
+http-version: 1.1
+observed-http-status: 302
 observed-content-type: unknown
 observed-content-length: (none reported)
 observed-body-bytes: 0
@@ -23,68 +23,155 @@ transport-refused-oversized-body: no
 transport-body-ceiling-bytes: 1048576
 capture-headers-truncated: no
 capture-diagnostics-truncated: no
-transport-exit-status-observed: 7
+transport-exit-status-observed: 0
 ----- body -----
 (empty)
 ----- end body -----
 ----- transport-diagnostics -----
-curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
-
+(none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-(none)
+HTTP/1.1 302 
+Location: /alfresco/
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+Server:  
+
+
 ----- end response-headers -----
 
-===== store-leg =====
-leg: store-leg
-leg-purpose: store a document with known, fixed bytes in the content repository and record the identifier, the name and the content type the application resolved for it
-leg-observed: no
-leg-not-observed-because: no fixture object was available to attach a document to, so the store request was not sent; flow 6 must create the fixture first
+===== upload-document =====
 request-method: POST
-request-url: http://localhost:20050/arkcase/api/latest/service/ecm/upload
+request-url: http://localhost:53081/arkcase/api/latest/service/ecm/upload
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: (none reported)
+observed-body-bytes: 7089
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+[{"@id":"1","fileId":157,"status":"ACTIVE","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","cmisRepositoryId":"alfresco","versionSeriesId":"workspace://SpacesStore/<UUID>","fileName":"arkcase-smoke-probe","fileActiveVersionMimeType":"text/plain","fileActiveVersionNameExtension":".txt","folder":{"@id":"2","id":191,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","name":"ROOT","cmisRepositoryId":"alfresco","cmisFolderId":"workspace://SpacesStore/<UUID>","parentFolder":null,"status":"ACTIVE","participants":[{"@id":"3","id":650,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":191,"participantType":"*","participantLdapId":"*","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"4","id":1219,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":true,"deletable":true},{"@id":"5","id":651,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":191,"participantType":"group-write","participantLdapId":"ARKCASE_SUPERVISOR@ARKCASE.ORG","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"6","id":1216,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"},{"@id":"7","id":1217,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"write","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":true,"deletable":true},{"@id":"8","id":652,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FOLDER","objectId":191,"participantType":"read","participantLdapId":"arkcase-admin@arkcase.org","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"9","id":1218,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":true,"deletable":true}],"restricted":false,"link":false},"container":{"@id":"10","id":143,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","containerObjectType":"COMPLAINT","containerObjectId":121,"containerObjectTitle":"20260808_121","folder":{"@ref":"2"},"attachmentFolder":{"@ref":"2"},"calendarFolderId":null,"calendarFolderRecreated":false,"cmisRepositoryId":"alfresco"},"fileType":"attachment","fileLang":null,"activeVersionTag":"1.0","category":"Document","pageCount":1,"fileSource":null,"versions":[{"@id":"11","id":157,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","cmisObjectId":"workspace://SpacesStore/<UUID>;1.0","versionTag":"1.0","versionMimeType":"text/plain","searchablePDF":false,"versionFileNameExtension":".txt","gpsIso6709":null,"gpsLatitudeDegrees":0.0,"gpsLongitudeDegrees":0.0,"gpsReadable":null,"mediaCreated":null,"heightPixels":0,"widthPixels":0,"deviceMake":null,"deviceModel":null,"durationSeconds":0.0,"fileSizeBytes":116,"className":"com.armedia.acm.plugins.ecm.model.EcmFileVersion","fileHash":"d7c08a0af852f4bb1607d87da9a8b5ce","validFile":true}],"tags":[],"securityField":null,"lock":null,"legacySystemId":null,"description":null,"className":"com.armedia.acm.plugins.ecm.model.EcmFile","participants":[{"@id":"12","id":660,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FILE","objectId":157,"participantType":"*","participantLdapId":"*","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"13","id":1224,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":true,"deletable":true},{"@id":"14","id":661,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FILE","objectId":157,"participantType":"group-write","participantLdapId":"ARKCASE_SUPERVISOR@ARKCASE.ORG","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"15","id":1225,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"},{"@id":"16","id":1226,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"write","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":true,"deletable":true},{"@id":"17","id":662,"className":"com.armedia.acm.services.participants.model.AcmParticipant","objectType":"FILE","objectId":157,"participantType":"read","participantLdapId":"arkcase-admin@arkcase.org","created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","privileges":[{"@id":"18","id":1227,"created":"<TIMESTAMP>","creator":"arkcase-admin@arkcase.org","modified":"<TIMESTAMP>","modifier":"arkcase-admin@arkcase.org","objectAction":"read","accessType":"grant","accessReason":"policy"}],"replaceChildrenParticipant":false,"editableUser":true,"editableType":true,"deletable":true}],"organizationAssociation":null,"personAssociation":null,"restricted":false,"link":false,"duplicate":false,"custodian":null,"zylabFileMetadata":null,"uuid":null,"mailAddress":null}]
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== download-document =====
+request-method: GET
+request-url: http://localhost:53081/arkcase/api/latest/plugin/ecm/download?ecmFileId=157
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: text/plain;charset=UTF-8
+observed-content-length: (none reported)
+observed-body-bytes: 116
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+ArkCase migration smoke probe document.
+Fixed content, so that the baseline and migrated runs send identical bytes.
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Content-Disposition: attachment; filename="arkcase-smoke-probe.txt"
+X-ArkCase-File-Metadata: {"fileTypeCapitalized":"Attachment","fileName":"arkcase-smoke-probe","fileType":"attachment","fileNameWithVersion":"arkcase-smoke-probe:1.0"}
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: text/plain;charset=UTF-8
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== store-leg-document-identity =====
+leg: store-leg-document-identity
+leg-purpose: store a document with known, fixed bytes in the content repository and record the identifier, the name and the content type the application resolved for it
+leg-observed: yes
+leg-not-observed-because: (not applicable: the leg was observed)
+request-method: POST
+request-url: http://localhost:53081/arkcase/api/latest/service/ecm/upload
+companion-record: store-leg, which carries the same leg in the leg-state vocabulary the .status token set is built from.  This record carries the document-level fields: the name, the digest of the bytes sent, and the media type the application recorded for the document
 document-name: arkcase-smoke-probe.txt
 document-content-type-declared-on-send: text/plain
 document-content-sha256-sent: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
-observed-http-status: not-observed
-resolved-content-type: not-observed
-declared-content-length: not-observed
-stored-object-identifier: none
-stored-object-name-recorded-by-application: not-observed
-stored-object-mime-type-recorded-by-application: not-observed
------ end store-leg -----
+observed-http-status: 200
+resolved-content-type: application/json;charset=UTF-8
+declared-content-length: 7089
+stored-object-identifier: 157
+stored-object-name-recorded-by-application: arkcase-smoke-probe
+stored-object-mime-type-recorded-by-application: text/plain
+----- end store-leg-document-identity -----
 
-===== retrieve-leg =====
-leg: retrieve-leg
+===== retrieve-leg-document-identity =====
+leg: retrieve-leg-document-identity
 leg-purpose: read the same document back out of the content repository and record the content type it resolves to, the length it declares and the digest of the bytes returned
-leg-observed: no
-leg-not-observed-because: no document was stored, because there was no fixture object to attach one to, so this leg had nothing to read back
+leg-observed: yes
+leg-not-observed-because: (not applicable: the leg was observed)
 request-method: GET
-request-url: http://localhost:20050/arkcase/api/latest/plugin/ecm/download
+request-url: http://localhost:53081/arkcase/api/latest/plugin/ecm/download
+companion-record: retrieve-leg, which carries the same leg in the leg-state vocabulary the .status token set is built from.  This record carries the document-level fields: the digest of the bytes returned and whether they match the bytes sent
 document-name: arkcase-smoke-probe.txt
-stored-object-identifier: none
-observed-http-status: not-observed
-resolved-content-type: not-observed
-declared-content-length: not-observed
+stored-object-identifier: 157
+observed-http-status: 200
+resolved-content-type: text/plain;charset=UTF-8
+declared-content-length: 116
 document-content-sha256-sent: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
-document-content-sha256-received: not-observed
-retrieved-bytes-match-sent: not-compared
------ end retrieve-leg -----
-
-===== upload-document (SKIPPED) =====
-leg: upload-document
-leg-outcome: SKIPPED
-leg-reason: the store leg was not attempted: no parent object existed to attach a document to
-note: this leg is named even though it was not observed, so that the
-  status file carries the same token set in both runs and the gap is
-  visible in a directory diff rather than being absent from it (R-5).
-
-===== download-document (SKIPPED) =====
-leg: download-document
-leg-outcome: SKIPPED
-leg-reason: the retrieve leg was not attempted because nothing was stored to retrieve
-note: this leg is named even though it was not observed, so that the
-  status file carries the same token set in both runs and the gap is
-  visible in a directory diff rather than being absent from it (R-5).
+document-content-sha256-received: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+retrieved-bytes-match-sent: yes
+----- end retrieve-leg-document-identity -----
 
 ===== mime-declared-on-send (text/plain) =====
 leg: mime-declared-on-send
@@ -94,93 +181,93 @@ note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
 
-===== mime-recorded-by-application (not-observed) =====
+===== mime-recorded-by-application (text/plain) =====
 leg: mime-recorded-by-application
-leg-outcome: not-observed
+leg-outcome: text/plain
 leg-reason: the content type the application persisted FOR THE DOCUMENT, read from the store response body; this is the direct output of the reinstated activation framework MIME mapping and is recorded verbatim, never normalised
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
 
-===== mime-resolved-on-download (not-observed) =====
+===== mime-resolved-on-download (text/plain;charset=UTF-8) =====
 leg: mime-resolved-on-download
-leg-outcome: not-observed
+leg-outcome: text/plain;charset=UTF-8
 leg-reason: the content type the download endpoint declared when serving the same document back; recorded verbatim
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
 
-===== store-response-representation-type (not-observed) =====
+===== store-response-representation-type (application/json;charset=UTF-8) =====
 leg: store-response-representation-type
-leg-outcome: not-observed
+leg-outcome: application/json;charset=UTF-8
 leg-reason: the content type of the STORE RESPONSE ITSELF — the endpoint representation format, normally JSON.  Recorded because it is genuine evidence about the endpoint, and DELIBERATELY EXCLUDED from the MIME criterion because it describes the response envelope and not the document
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
 
-===== mime-identity (not-compared) =====
+===== mime-identity (yes) =====
 leg: mime-identity
-leg-outcome: not-compared
-leg-reason: at least one term of the three-way identity was not observed, so the identity was not tested.  That is deliberately NOT recorded as a failure: an untested criterion and a failed criterion are different findings and a capture that conflated them would be misleading
+leg-outcome: yes
+leg-reason: whether declared, recorded and served named the same media type.  Compared on the media type — type/subtype, lower-cased, parameters removed — because a charset parameter added by the container is not a MIME resolution difference; compared essences were declared=text/plain recorded=text/plain served=text/plain, and every value above is recorded verbatim
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
 
-===== mime-resolution (not-compared) =====
+===== mime-resolution (text/plain) =====
 leg: mime-resolution
-leg-outcome: not-compared
-leg-reason: no content type identity was established, because at least one of the three terms was not observed
+leg-outcome: text/plain
+leg-reason: the media type on which declared, recorded and served all agreed; the three verbatim values are recorded in their own rows above
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
 
-===== retrieved-bytes-match (SKIPPED) =====
+===== retrieved-bytes-match (yes) =====
 leg: retrieved-bytes-match
-leg-outcome: SKIPPED
-leg-reason: no bytes were sent and none were retrieved, so no comparison was made
+leg-outcome: yes
+leg-reason: whether the bytes retrieved equalled the bytes sent, compared by digest
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
 
-===== roundtrip (SKIPPED) =====
+===== roundtrip (requirements-unmet-0) =====
 leg: roundtrip
-leg-outcome: SKIPPED
-leg-reason: the round trip as a whole was not performed
+leg-outcome: requirements-unmet-0
+leg-reason: the number of this flow requirements left unsatisfied by the observations above
 note: this leg is named even though it was not observed, so that the
   status file carries the same token set in both runs and the gap is
   visible in a directory diff rather than being absent from it (R-5).
 
-===== store-leg (SKIPPED) =====
-SKIPPED
-REASON: the store leg was not executed: flow 6 produced no object to attach a document to
+===== store-leg =====
+OBSERVED
+REASON: the store leg was executed against /api/latest/service/ecm/upload
 leg: store
 leg-purpose: the document is written to the content repository
 request-path: /api/latest/service/ecm/upload
-observed-http-status: not-observed
-Content-Type: not-observed
-recorded-mime-type: not-observed
-created-object-identifier: not-observed
+observed-http-status: 200
+Content-Type: application/json;charset=UTF-8
+recorded-mime-type: text/plain
+created-object-identifier: 157
 created-object-identifier-treatment: captured, never normalised; the treatment is stated in the result record
-object-name: not-observed
-stored-content-sha256: not-observed
+object-name: arkcase-smoke-probe
+stored-content-sha256: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
 probe-content-sha256: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
 probe-content-sha256-note: the digest of the fixed bytes this leg sends.  It is computed in every path, including the paths where the leg does not run, because it is what makes the two captures comparable at all: identical input is the precondition for reading anything into identical output
-response-body-recorded-in-section: none: the leg was not executed
+response-body-recorded-in-section: upload-document
 criterion-halves-read-from-this-leg: stored-document identity from the sha256 rows.  The MIME half is read from recorded-mime-type ONLY — the type the application recorded FOR THE DOCUMENT, which is the activation mapping output.  The Content-Type row above it is this store RESPONSE own type, normally JSON; it is recorded as endpoint evidence and is excluded from the MIME criterion, because comparing a response envelope type against a document media type reports a mismatch on a perfectly good round trip.  The criterion itself is asserted by flow_3_record_mime_tokens as a three-way identity and every mismatch is counted
 
-===== retrieve-leg (SKIPPED) =====
-SKIPPED
-REASON: the retrieve leg was not executed: nothing was stored, so there was nothing to read back
+===== retrieve-leg =====
+OBSERVED
+REASON: the retrieve leg was executed against /api/latest/plugin/ecm/download
 leg: retrieve
 leg-purpose: the stored document is read back from the content repository
 request-path: /api/latest/plugin/ecm/download
-observed-http-status: not-observed
-Content-Type: not-observed
-Content-Length: not-observed
-retrieved-content-sha256: not-observed
+observed-http-status: 200
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 116
+retrieved-content-sha256: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
 expected-content-sha256: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
-retrieved-bytes-match-stored-bytes: not-compared
-response-body-recorded-in-section: none: the leg was not executed
+retrieved-bytes-match-stored-bytes: yes
+response-body-recorded-in-section: download-document
 response-body-form-note: a body that is not textual is recorded by size and digest and is never embedded, because arbitrary bytes in a text capture produce neither readable evidence nor a usable comparison
 criterion-halves-read-from-this-leg: stored-document identity by comparing the retrieved digest against the expected digest; the MIME half from the Content-Type row, verbatim, which on THIS leg is the document own served type and so is a genuine term of the identity.  That identity — declared, recorded and served naming one media type — is asserted by flow_3_record_mime_tokens, which counts every mismatch
 

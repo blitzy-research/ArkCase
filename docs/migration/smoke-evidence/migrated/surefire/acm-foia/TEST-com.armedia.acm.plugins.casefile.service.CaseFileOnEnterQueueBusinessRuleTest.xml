@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="6.157" tests="8" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="6.227" tests="8" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,148 +18,148 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="enterDeleteQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="4.064">
-    <system-out><![CDATA[2026-08-07 07:30:56,041 main DEBUG Apache Log4j Core 2.17.1 initializing configuration XmlConfiguration[location={REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml]
-2026-08-07 07:30:56,063 main DEBUG Installed 4 script engines
-2026-08-07 07:30:56,118 main DEBUG BeanShell Engine version: 1.0, language: BeanShell, threading: MULTITHREADED, compile: true, names: [beanshell, bsh, java], factory class: bsh.engine.BshScriptEngineFactory
-2026-08-07 07:30:56,147 main DEBUG Groovy Scripting Engine version: 2.0, language: Groovy, threading: MULTITHREADED, compile: true, names: [groovy, Groovy], factory class: org.codehaus.groovy.jsr223.GroovyScriptEngineFactory
-2026-08-07 07:30:56,147 main DEBUG MVEL (MVFLEX Expression Language) version: 2.3, language: mvel, threading: THREAD-ISOLATED, compile: true, names: [mvel], factory class: org.mvel2.jsr223.MvelScriptEngineFactory
-2026-08-07 07:30:56,172 main DEBUG juel version: 1.0, language: JSP 2.1 EL, threading: MULTITHREADED, compile: true, names: [juel], factory class: org.activiti.engine.impl.scripting.JuelScriptEngineFactory
-2026-08-07 07:30:56,172 main DEBUG PluginManager 'Core' found 128 plugins
-2026-08-07 07:30:56,172 main DEBUG PluginManager 'Level' found 0 plugins
-2026-08-07 07:30:56,178 main DEBUG PluginManager 'Lookup' found 17 plugins
-2026-08-07 07:30:56,203 main DEBUG Building Plugin[name=layout, class=org.apache.logging.log4j.core.layout.PatternLayout].
-2026-08-07 07:30:56,214 main DEBUG PluginManager 'TypeConverter' found 26 plugins
-2026-08-07 07:30:56,229 main DEBUG PatternLayout$Builder(pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n", PatternSelector=null, Configuration({REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml), Replace=null, charset="null", alwaysWriteExceptions="null", disableAnsi="null", noConsoleNoAnsi="null", header="null", footer="null", )
-2026-08-07 07:30:56,229 main DEBUG PluginManager 'Converter' found 49 plugins
-2026-08-07 07:30:56,251 main DEBUG Building Plugin[name=appender, class=org.apache.logging.log4j.core.appender.ConsoleAppender].
-2026-08-07 07:30:56,261 main DEBUG ConsoleAppender$Builder(target="SYSTEM_OUT", follow="null", direct="null", , bufferedIo="null", bufferSize="null", immediateFlush="null", , ignoreExceptions="null", PatternLayout(%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n), name="Console", Configuration({REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml), , Filter=null, ={}, )
-2026-08-07 07:30:56,264 main DEBUG Starting OutputStreamManager SYSTEM_OUT.false.false
-2026-08-07 07:30:56,264 main DEBUG Building Plugin[name=appenders, class=org.apache.logging.log4j.core.config.AppendersPlugin].
-2026-08-07 07:30:56,266 main DEBUG createAppenders(={Console})
-2026-08-07 07:30:56,266 main DEBUG Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
-2026-08-07 07:30:56,269 main DEBUG createAppenderRef(ref="Console", level="DEBUG", Filter=null)
-2026-08-07 07:30:56,270 main DEBUG Building Plugin[name=root, class=org.apache.logging.log4j.core.config.LoggerConfig$RootLogger].
-2026-08-07 07:30:56,270 main DEBUG createLogger(additivity="false", level="DEBUG", includeLocation="null", ={Console}, ={}, Configuration({REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml), Filter=null)
-2026-08-07 07:30:56,274 main DEBUG Building Plugin[name=loggers, class=org.apache.logging.log4j.core.config.LoggersPlugin].
-2026-08-07 07:30:56,275 main DEBUG createLoggers(={root})
-2026-08-07 07:30:56,275 main DEBUG Configuration XmlConfiguration[location={REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml] initialized
-2026-08-07 07:30:56,275 main DEBUG Starting configuration XmlConfiguration[location={REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml]
-2026-08-07 07:30:56,276 main DEBUG Started configuration XmlConfiguration[location={REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml] OK.
-2026-08-07 07:30:56,276 main DEBUG Shutting down OutputStreamManager SYSTEM_OUT.false.false-1
-2026-08-07 07:30:56,277 main DEBUG OutputStream closed
-2026-08-07 07:30:56,277 main DEBUG Shut down OutputStreamManager SYSTEM_OUT.false.false-1, all resources released: true
-2026-08-07 07:30:56,277 main DEBUG Appender DefaultConsole-1 stopped with status true
-2026-08-07 07:30:56,277 main DEBUG Stopped org.apache.logging.log4j.core.config.DefaultConfiguration@2c88b9fc OK
-2026-08-07 07:30:56,332 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6
-2026-08-07 07:30:56,335 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=StatusLogger
-2026-08-07 07:30:56,337 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=ContextSelector
-2026-08-07 07:30:56,339 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Loggers,name=
-2026-08-07 07:30:56,341 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Appenders,name=Console
-2026-08-07 07:30:56,347 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
-2026-08-07 07:30:56,347 main DEBUG Reconfiguration complete for context[name=1dbd16a6] at URI {REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml (org.apache.logging.log4j.core.LoggerContext@23444a36) with optional ClassLoader: null
-2026-08-07 07:30:56,347 main DEBUG Shutdown hook enabled. Registering a new one.
-2026-08-07 07:30:56,348 main DEBUG LoggerContext[name=1dbd16a6, org.apache.logging.log4j.core.LoggerContext@23444a36] started OK.
-2026-08-07 07:30:57,533 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/drools/drools-decisiontables/7.49.0.Final/drools-decisiontables-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
-2026-08-07 07:30:57,542 main DEBUG AsyncLogger.ThreadNameStrategy=UNCACHED (user specified null, default is UNCACHED)
-2026-08-07 07:30:57,542 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
-2026-08-07 07:30:57,547 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.decisiontable.DecisionTableProviderImpl with priority 0
-2026-08-07 07:30:57,547 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/drools/drools-core/7.49.0.Final/drools-core-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
-2026-08-07 07:30:57,549 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.core.io.impl.ResourceFactoryServiceImpl with priority 0
-2026-08-07 07:30:57,550 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.core.concurrent.ExecutorProviderImpl with priority 0
-2026-08-07 07:30:57,550 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/drools/drools-compiler/7.49.0.Final/drools-compiler-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
-2026-08-07 07:30:57,558 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.compiler.kie.builder.impl.KieServicesImpl with priority 0
-2026-08-07 07:30:57,561 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.compiler.builder.impl.KnowledgeBuilderFactoryServiceImpl with priority 0
-2026-08-07 07:30:57,562 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.compiler.builder.impl.JaxbConfigurationFactoryServiceImpl with priority 0
-2026-08-07 07:30:57,563 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.compiler.kie.builder.impl.KieBaseUpdatersImpl with priority 0
-2026-08-07 07:30:57,563 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/drools/drools-mvel/7.49.0.Final/drools-mvel-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
-2026-08-07 07:30:57,649 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.mvel.MVELConstraintBuilder with priority 0
-2026-08-07 07:30:57,652 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.mvel.MVELCoreComponentsBuilder with priority 0
-2026-08-07 07:30:57,656 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.mvel.asm.ClassFieldAccessorFactory with priority 0
-2026-08-07 07:30:57,671 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.mvel.asm.DefaultClassBuilderFactory with priority 0
-2026-08-07 07:30:57,671 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/kie/kie-internal/7.49.0.Final/kie-internal-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
-2026-08-07 07:30:57,673 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.kie.internal.services.KieAssemblersImpl with priority 0
-2026-08-07 07:30:57,674 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.kie.internal.services.KieRuntimesImpl with priority 0
-2026-08-07 07:30:57,675 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.kie.internal.services.KieWeaversImpl with priority 0
-2026-08-07 07:30:57,676 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.kie.internal.services.KieBeliefsImpl with priority 0
-2026-08-07 07:30:57,677 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.internal.builder.KnowledgeBuilderFactoryService is implemented by org.drools.compiler.builder.impl.KnowledgeBuilderFactoryServiceImpl@2e90a3de
-2026-08-07 07:30:57,677 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.internal.runtime.beliefs.KieBeliefs is implemented by org.kie.internal.services.KieBeliefsImpl@532860c7
-2026-08-07 07:30:57,677 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.compiler.rule.builder.ConstraintBuilder is implemented by org.drools.mvel.MVELConstraintBuilder@9d573a6
-2026-08-07 07:30:57,677 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.core.base.FieldAccessorFactory is implemented by org.drools.mvel.asm.ClassFieldAccessorFactory@62ccbd95
-2026-08-07 07:30:57,677 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.compiler.kie.builder.impl.KieBaseUpdaters is implemented by org.drools.compiler.kie.builder.impl.KieBaseUpdatersImpl@49696c41
-2026-08-07 07:30:57,677 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.internal.builder.JaxbConfigurationFactoryService is implemented by org.drools.compiler.builder.impl.JaxbConfigurationFactoryServiceImpl@595713f3
-2026-08-07 07:30:57,678 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.internal.assembler.KieAssemblers is implemented by org.kie.internal.services.KieAssemblersImpl@7bbd133c
-2026-08-07 07:30:57,678 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.internal.runtime.KieRuntimes is implemented by org.kie.internal.services.KieRuntimesImpl@7c9a39cb
-2026-08-07 07:30:57,678 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.io.KieResources is implemented by org.drools.core.io.impl.ResourceFactoryServiceImpl@7e93497d
-2026-08-07 07:30:57,678 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.core.base.CoreComponentsBuilder is implemented by org.drools.mvel.MVELCoreComponentsBuilder@1fba15d7
-2026-08-07 07:30:57,678 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.core.factmodel.ClassBuilderFactory is implemented by org.drools.mvel.asm.DefaultClassBuilderFactory@c8dc1ef
-2026-08-07 07:30:57,678 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.compiler.compiler.DecisionTableProvider is implemented by org.drools.decisiontable.DecisionTableProviderImpl@21f4f5d4
-2026-08-07 07:30:57,678 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.concurrent.KieExecutors is implemented by org.drools.core.concurrent.ExecutorProviderImpl@45488836
-2026-08-07 07:30:57,678 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.KieServices is implemented by org.drools.compiler.kie.builder.impl.KieServicesImpl@a9339e5
-2026-08-07 07:30:57,679 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.internal.weaver.KieWeavers is implemented by org.kie.internal.services.KieWeaversImpl@687313e1
-2026-08-07 07:30:57,732 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:30:57,830 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:30:57,831 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:30:59,346 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-07 07:30:59,400 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-07 07:30:59,400 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-07 07:30:59,400 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+  <testcase name="enterDeleteQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="4.185">
+    <system-out><![CDATA[2026-08-07 21:42:42,822 main DEBUG Apache Log4j Core 2.17.1 initializing configuration XmlConfiguration[location={REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml]
+2026-08-07 21:42:42,843 main DEBUG Installed 4 script engines
+2026-08-07 21:42:42,903 main DEBUG BeanShell Engine version: 1.0, language: BeanShell, threading: MULTITHREADED, compile: true, names: [beanshell, bsh, java], factory class: bsh.engine.BshScriptEngineFactory
+2026-08-07 21:42:42,933 main DEBUG Groovy Scripting Engine version: 2.0, language: Groovy, threading: MULTITHREADED, compile: true, names: [groovy, Groovy], factory class: org.codehaus.groovy.jsr223.GroovyScriptEngineFactory
+2026-08-07 21:42:42,933 main DEBUG MVEL (MVFLEX Expression Language) version: 2.3, language: mvel, threading: THREAD-ISOLATED, compile: true, names: [mvel], factory class: org.mvel2.jsr223.MvelScriptEngineFactory
+2026-08-07 21:42:42,962 main DEBUG juel version: 1.0, language: JSP 2.1 EL, threading: MULTITHREADED, compile: true, names: [juel], factory class: org.activiti.engine.impl.scripting.JuelScriptEngineFactory
+2026-08-07 21:42:42,963 main DEBUG PluginManager 'Core' found 128 plugins
+2026-08-07 21:42:42,963 main DEBUG PluginManager 'Level' found 0 plugins
+2026-08-07 21:42:42,967 main DEBUG PluginManager 'Lookup' found 17 plugins
+2026-08-07 21:42:42,995 main DEBUG Building Plugin[name=layout, class=org.apache.logging.log4j.core.layout.PatternLayout].
+2026-08-07 21:42:43,006 main DEBUG PluginManager 'TypeConverter' found 26 plugins
+2026-08-07 21:42:43,022 main DEBUG PatternLayout$Builder(pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n", PatternSelector=null, Configuration({REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml), Replace=null, charset="null", alwaysWriteExceptions="null", disableAnsi="null", noConsoleNoAnsi="null", header="null", footer="null", )
+2026-08-07 21:42:43,022 main DEBUG PluginManager 'Converter' found 49 plugins
+2026-08-07 21:42:43,044 main DEBUG Building Plugin[name=appender, class=org.apache.logging.log4j.core.appender.ConsoleAppender].
+2026-08-07 21:42:43,061 main DEBUG ConsoleAppender$Builder(target="SYSTEM_OUT", follow="null", direct="null", , bufferedIo="null", bufferSize="null", immediateFlush="null", , ignoreExceptions="null", PatternLayout(%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n), name="Console", Configuration({REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml), , Filter=null, ={}, )
+2026-08-07 21:42:43,065 main DEBUG Starting OutputStreamManager SYSTEM_OUT.false.false
+2026-08-07 21:42:43,065 main DEBUG Building Plugin[name=appenders, class=org.apache.logging.log4j.core.config.AppendersPlugin].
+2026-08-07 21:42:43,067 main DEBUG createAppenders(={Console})
+2026-08-07 21:42:43,067 main DEBUG Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
+2026-08-07 21:42:43,070 main DEBUG createAppenderRef(ref="Console", level="DEBUG", Filter=null)
+2026-08-07 21:42:43,070 main DEBUG Building Plugin[name=root, class=org.apache.logging.log4j.core.config.LoggerConfig$RootLogger].
+2026-08-07 21:42:43,071 main DEBUG createLogger(additivity="false", level="DEBUG", includeLocation="null", ={Console}, ={}, Configuration({REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml), Filter=null)
+2026-08-07 21:42:43,074 main DEBUG Building Plugin[name=loggers, class=org.apache.logging.log4j.core.config.LoggersPlugin].
+2026-08-07 21:42:43,075 main DEBUG createLoggers(={root})
+2026-08-07 21:42:43,076 main DEBUG Configuration XmlConfiguration[location={REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml] initialized
+2026-08-07 21:42:43,076 main DEBUG Starting configuration XmlConfiguration[location={REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml]
+2026-08-07 21:42:43,076 main DEBUG Started configuration XmlConfiguration[location={REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml] OK.
+2026-08-07 21:42:43,077 main DEBUG Shutting down OutputStreamManager SYSTEM_OUT.false.false-1
+2026-08-07 21:42:43,077 main DEBUG OutputStream closed
+2026-08-07 21:42:43,077 main DEBUG Shut down OutputStreamManager SYSTEM_OUT.false.false-1, all resources released: true
+2026-08-07 21:42:43,077 main DEBUG Appender DefaultConsole-1 stopped with status true
+2026-08-07 21:42:43,078 main DEBUG Stopped org.apache.logging.log4j.core.config.DefaultConfiguration@295eaa7c OK
+2026-08-07 21:42:43,130 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6
+2026-08-07 21:42:43,133 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=StatusLogger
+2026-08-07 21:42:43,135 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=ContextSelector
+2026-08-07 21:42:43,137 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Loggers,name=
+2026-08-07 21:42:43,139 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Appenders,name=Console
+2026-08-07 21:42:43,150 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
+2026-08-07 21:42:43,151 main DEBUG Reconfiguration complete for context[name=1dbd16a6] at URI {REACTOR-ROOT}/acm-standard-applications/acm-foia/target/test-classes/log4j2.xml (org.apache.logging.log4j.core.LoggerContext@4b195203) with optional ClassLoader: null
+2026-08-07 21:42:43,151 main DEBUG Shutdown hook enabled. Registering a new one.
+2026-08-07 21:42:43,152 main DEBUG LoggerContext[name=1dbd16a6, org.apache.logging.log4j.core.LoggerContext@4b195203] started OK.
+2026-08-07 21:42:44,412 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/drools/drools-decisiontables/7.49.0.Final/drools-decisiontables-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
+2026-08-07 21:42:44,421 main DEBUG AsyncLogger.ThreadNameStrategy=UNCACHED (user specified null, default is UNCACHED)
+2026-08-07 21:42:44,421 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
+2026-08-07 21:42:44,426 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.decisiontable.DecisionTableProviderImpl with priority 0
+2026-08-07 21:42:44,426 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/drools/drools-core/7.49.0.Final/drools-core-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
+2026-08-07 21:42:44,428 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.core.io.impl.ResourceFactoryServiceImpl with priority 0
+2026-08-07 21:42:44,429 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.core.concurrent.ExecutorProviderImpl with priority 0
+2026-08-07 21:42:44,429 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/drools/drools-compiler/7.49.0.Final/drools-compiler-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
+2026-08-07 21:42:44,438 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.compiler.kie.builder.impl.KieServicesImpl with priority 0
+2026-08-07 21:42:44,441 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.compiler.builder.impl.KnowledgeBuilderFactoryServiceImpl with priority 0
+2026-08-07 21:42:44,442 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.compiler.builder.impl.JaxbConfigurationFactoryServiceImpl with priority 0
+2026-08-07 21:42:44,443 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.compiler.kie.builder.impl.KieBaseUpdatersImpl with priority 0
+2026-08-07 21:42:44,443 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/drools/drools-mvel/7.49.0.Final/drools-mvel-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
+2026-08-07 21:42:44,527 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.mvel.MVELConstraintBuilder with priority 0
+2026-08-07 21:42:44,530 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.mvel.MVELCoreComponentsBuilder with priority 0
+2026-08-07 21:42:44,535 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.mvel.asm.ClassFieldAccessorFactory with priority 0
+2026-08-07 21:42:44,550 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.drools.mvel.asm.DefaultClassBuilderFactory with priority 0
+2026-08-07 21:42:44,550 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Loading kie.conf from jar:file:{LOCAL-ARTIFACT-REPOSITORY}/org/kie/kie-internal/7.49.0.Final/kie-internal-7.49.0.Final.jar!/META-INF/kie.conf in classloader jdk.internal.loader.ClassLoaders$AppClassLoader@1dbd16a6
+2026-08-07 21:42:44,552 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.kie.internal.services.KieAssemblersImpl with priority 0
+2026-08-07 21:42:44,553 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.kie.internal.services.KieRuntimesImpl with priority 0
+2026-08-07 21:42:44,554 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.kie.internal.services.KieWeaversImpl with priority 0
+2026-08-07 21:42:44,555 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Added Service org.kie.internal.services.KieBeliefsImpl with priority 0
+2026-08-07 21:42:44,556 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.internal.builder.KnowledgeBuilderFactoryService is implemented by org.drools.compiler.builder.impl.KnowledgeBuilderFactoryServiceImpl@49d26eba
+2026-08-07 21:42:44,556 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.internal.runtime.beliefs.KieBeliefs is implemented by org.kie.internal.services.KieBeliefsImpl@139f1db4
+2026-08-07 21:42:44,556 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.compiler.rule.builder.ConstraintBuilder is implemented by org.drools.mvel.MVELConstraintBuilder@2e90a3de
+2026-08-07 21:42:44,556 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.core.base.FieldAccessorFactory is implemented by org.drools.mvel.asm.ClassFieldAccessorFactory@532860c7
+2026-08-07 21:42:44,556 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.compiler.kie.builder.impl.KieBaseUpdaters is implemented by org.drools.compiler.kie.builder.impl.KieBaseUpdatersImpl@9d573a6
+2026-08-07 21:42:44,556 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.internal.builder.JaxbConfigurationFactoryService is implemented by org.drools.compiler.builder.impl.JaxbConfigurationFactoryServiceImpl@62ccbd95
+2026-08-07 21:42:44,556 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.internal.assembler.KieAssemblers is implemented by org.kie.internal.services.KieAssemblersImpl@49696c41
+2026-08-07 21:42:44,557 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.internal.runtime.KieRuntimes is implemented by org.kie.internal.services.KieRuntimesImpl@595713f3
+2026-08-07 21:42:44,557 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.io.KieResources is implemented by org.drools.core.io.impl.ResourceFactoryServiceImpl@7bbd133c
+2026-08-07 21:42:44,557 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.core.base.CoreComponentsBuilder is implemented by org.drools.mvel.MVELCoreComponentsBuilder@7c9a39cb
+2026-08-07 21:42:44,557 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.core.factmodel.ClassBuilderFactory is implemented by org.drools.mvel.asm.DefaultClassBuilderFactory@7e93497d
+2026-08-07 21:42:44,557 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.drools.compiler.compiler.DecisionTableProvider is implemented by org.drools.decisiontable.DecisionTableProviderImpl@1fba15d7
+2026-08-07 21:42:44,557 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.concurrent.KieExecutors is implemented by org.drools.core.concurrent.ExecutorProviderImpl@c8dc1ef
+2026-08-07 21:42:44,557 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.KieServices is implemented by org.drools.compiler.kie.builder.impl.KieServicesImpl@21f4f5d4
+2026-08-07 21:42:44,557 [DEBUG] [main] org.kie.api.internal.utils.ServiceDiscoveryImpl - Service org.kie.api.internal.weaver.KieWeavers is implemented by org.kie.internal.services.KieWeaversImpl@45488836
+2026-08-07 21:42:44,615 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:44,705 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:44,705 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:46,218 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-07 21:42:46,271 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-07 21:42:46,271 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-07 21:42:46,272 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="enterFulfillQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.318">
-    <system-out><![CDATA[2026-08-07 07:30:59,476 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:30:59,700 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-07 07:30:59,720 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-07 07:30:59,720 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-07 07:30:59,720 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+  <testcase name="enterFulfillQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.342">
+    <system-out><![CDATA[2026-08-07 21:42:46,358 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:46,607 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-07 21:42:46,615 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-07 21:42:46,616 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-07 21:42:46,616 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="enterApproveQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.28">
-    <system-out><![CDATA[2026-08-07 07:30:59,786 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:30:59,992 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-07 07:31:00,000 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-07 07:31:00,001 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-07 07:31:00,001 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+  <testcase name="enterApproveQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.593">
+    <system-out><![CDATA[2026-08-07 21:42:46,697 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:46,923 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-07 21:42:46,930 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-07 21:42:46,931 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-07 21:42:46,931 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="enterGeneralCounselQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.266">
-    <system-out><![CDATA[2026-08-07 07:31:00,062 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:31:00,257 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-07 07:31:00,266 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-07 07:31:00,267 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-07 07:31:00,267 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+  <testcase name="enterGeneralCounselQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.026">
+    <system-out><![CDATA[2026-08-07 21:42:46,999 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:47,212 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-07 21:42:47,220 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-07 21:42:47,221 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-07 21:42:47,221 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="enterIntakeQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.294">
-    <system-out><![CDATA[2026-08-07 07:31:00,332 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:31:00,550 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-07 07:31:00,560 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-07 07:31:00,560 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-07 07:31:00,560 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+  <testcase name="enterIntakeQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.259">
+    <system-out><![CDATA[2026-08-07 21:42:47,280 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:47,486 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-07 21:42:47,493 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-07 21:42:47,493 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-07 21:42:47,494 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="enterHoldQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.285">
-    <system-out><![CDATA[2026-08-07 07:31:00,625 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:31:00,836 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-07 07:31:00,845 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-07 07:31:00,845 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-07 07:31:00,845 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+  <testcase name="enterHoldQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.267">
+    <system-out><![CDATA[2026-08-07 21:42:47,566 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:47,752 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-07 21:42:47,761 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-07 21:42:47,761 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-07 21:42:47,761 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="enterReleaseQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.278">
-    <system-out><![CDATA[2026-08-07 07:31:00,908 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:31:01,114 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-07 07:31:01,123 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-07 07:31:01,123 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-07 07:31:01,123 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+  <testcase name="enterReleaseQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.228">
+    <system-out><![CDATA[2026-08-07 21:42:47,813 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:47,982 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-07 21:42:47,989 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-07 21:42:47,990 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-07 21:42:47,990 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
-  <testcase name="enterBillingQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.276">
-    <system-out><![CDATA[2026-08-07 07:31:01,183 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
-2026-08-07 07:31:01,390 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
-2026-08-07 07:31:01,399 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
-2026-08-07 07:31:01,400 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
-2026-08-07 07:31:01,400 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
+  <testcase name="enterBillingQueue" classname="com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest" time="0.233">
+    <system-out><![CDATA[2026-08-07 21:42:48,040 [DEBUG] [main] org.drools.compiler.compiler.JavaDialectConfiguration - Selected compiler ECLIPSE [drools.dialect.java.compiler:null, hasEclipseCompiler:true]
+2026-08-07 21:42:48,215 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now FIRING_ALL_RULES
+2026-08-07 21:42:48,222 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was FIRING_ALL_RULES is now HALTING
+2026-08-07 21:42:48,222 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was HALTING is now INACTIVE
+2026-08-07 21:42:48,223 [DEBUG] [main] org.drools.core.common.DefaultAgenda - State was INACTIVE is now DISPOSED
 ]]></system-out>
   </testcase>
 </testsuite>

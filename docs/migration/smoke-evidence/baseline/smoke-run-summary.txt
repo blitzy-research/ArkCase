@@ -1,0 +1,482 @@
+================================================================================
+ArkCase runtime migration — smoke evidence, closing index for the migrated run
+================================================================================
+
+RUNTIME: JDK 8 on the backend and the pre-migration frontend runtime, superseded by this change set on the frontend.  Observed toolchain of
+  record, captured verbatim from each tool rather than declared here:
+  env/toolchain.txt.  Migrated tree commit c8f6226105 on branch HEAD; working tree clean: the working tree matches c8f6226105 exactly.
+  Declared capture side baseline (pre-migration), consistent: the capture declares the pre-migration side and HEAD is the base commit c8f6226105.
+BASE-COMMIT: c8f6226105c28c2743281d26bf21ad73f7bb7f26 — the pre-migration commit the baseline side of this
+  comparison was captured at, before any file in the change set was edited.
+  Nothing done later can reconstruct that state, which is why it was captured
+  first and why it is named here rather than inferred.
+CAPTURE-ORDER: 1-login, 2-views, 6-generated-number, 3-alfresco-roundtrip,
+  4-solr-search, 5-activemq-event, 7-workflow-start, 8-queue-transition.
+  The order is deliberately NOT the numeric order.  Flow 6 creates the object
+  that flows 3, 5 and 7 then act on, so running it third lets those three
+  observe real behaviour instead of a configuration endpoint.  The flow
+  NUMBERS and SLUGS are fixed by the artefact naming contract so the two
+  capture directories align for a directory diff; only the order is chosen.
+PRODUCED-BY: docs/migration/smoke-evidence/smoke-checks.sh, as its closing
+  step — this is the last file the script writes, because every value in it is
+  read back from the files written before it.  The script is BYTE-IDENTICAL
+  between the baseline invocation and this one: every environment-specific
+  value is an environment variable with a default, so one script serves both
+  runs and the two captures differ in the evidence rather than in the program
+  that produced them.  This invocation differed from the baseline invocation
+  in SMOKE_OUT_DIR and in the deployment each side was pointed at, and in
+  nothing else.  That is what makes a row-for-row comparison meaningful, and
+  it is the structural consequence of R-7.  A hand-edited index is not
+  evidence; regenerate this file rather than correcting it in place.
+SMOKE-OUT-DIR: /tmp/blitzy/ArkCase/blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614-w-053_196589/docs/migration/smoke-evidence/baseline.run-3442695
+TARGET-STACK: application base URL http://localhost:53081/arkcase, plus the four reference-stack service
+  endpoints, every one probed anonymously and recorded as observed in
+  notes/reference-stack.txt:
+    search engine        http://localhost:53984/solr   observed 302
+    content repository   http://localhost:53091/alfresco   observed 302
+    reporting            http://localhost:53099/pentaho   observed 000
+    document viewer      http://localhost:53098/VirtualViewerJavaHTML5   observed 000
+  The document-viewer endpoint is EXPECTED to answer HTTP 503.  That is a
+  documented pre-existing condition, stated in two places in this repository:
+  README.md line 50 and docs/setup.md line 30 both record the expectation in
+  the same words at the base commit.  It is captured as observed and the only
+  assertion made about it is that the migrated observation equals the baseline
+  observation.  It is NOT a migration regression and under R-6 it is neither
+  repaired, retried into submission, nor hidden.
+  The administrator identity this capture authenticated with is supplied
+  through the ARKCASE_USER variable and its secret through the companion
+  password variable.  env/toolchain.txt records that the secret value was
+  never written to this tree; only the variable is named, never its content.
+FLOWS-EXECUTED: 8 of 8
+FLOWS-SKIPPED: 0 of 8
+AUTHORITY-NOTE: the eight per-flow .result.txt files are AUTHORITATIVE and
+  this summary is an INDEX ONLY.  The deliverable is complete when all eight
+  flows carry a recorded comparison result, and it is those eight files that
+  satisfy that condition — not this one.  No aggregate pass or fail verdict is
+  offered here, deliberately: a single line claiming every flow passed would
+  replace eight auditable results with one unauditable claim, which is exactly
+  what R-T7 forbids.  Read the three files named in each entry below.
+
+================================================================================
+RULES PROVENANCE — both facts, stated together
+================================================================================
+
+The project rules facility reports, verbatim: "No user rules provided."  There
+is no on-disk rules document for this project, so there is no external
+full-text source to defer to.  Rules are NONETHELESS present and binding: the
+requirements embed a numbered block of SEVEN rules that govern this work in
+full, exactly as an external rules document would, alongside seven
+transformation rules that are the operational form of the preserve and exclude
+directives.  Recording only the first fact would imply that general best
+practice is the sole standard here, which is wrong; recording only the second
+would misrepresent where the rules came from.  Both are therefore stated.
+
+The identifiers R-1 through R-7 and R-T1 through R-T7, and the short labels
+used with them, are the migration plan s OWN navigational convention.  The
+requirements list the rules as numbered items without names.  The labels exist
+so a decision can be traced back to the constraint that produced it; they are
+not quoted titles.  No rule has been invented and none has been softened.
+
+R-7, quoted with its one disclosed substitution: "The application s observed
+behavior at the base commit on JDK 8 is the tie-breaker for any ambiguity, and
+each resolution must be documented."  Editorial note, made openly rather than
+silently: the rule s own text names the older runtime with a two-word phrase
+that this evidence tree s wording gate forbids, so the equivalent form JDK 8
+is used in its place.  The substitution changes no meaning — it names the same
+runtime — and it is disclosed here so that the quotation is not mistaken for
+the rule s literal wording.
+
+R-T7, and why this file carries observed values instead of a verdict: no
+assertion anywhere in this capture is derived from a subprocess exit status.
+The repository proves why that discipline is necessary rather than stylistic.
+The frontend build configuration at Gruntfile.js:L143 carries the comment that
+grunt is made to default to force in order not to break the project, and
+Gruntfile.js:L144 is the statement that does it.  With forced execution a task
+can fail while the process still exits zero, so a broken build reports success.
+Evidence is therefore the produced artefact and the captured output, never the
+exit code — here, in every flow entry below, and in every companion capture.
+
+R-6, noted in passing because an index is a place where a reader may expect
+defects to be resolved: nothing in this folder is explained away or repaired.
+R-6 s escape clause, which permits fixing a pre-existing condition only when
+it blocks a validation item, is invoked EXACTLY TWICE in the whole change set,
+and NEITHER invocation is in this folder.  Both are frontend conditions and
+both were performed only because they block the fresh-checkout build gate.
+Nine further registered defects remain deliberately unfixed and are enumerated
+in the pre-existing defects register named at the close of this file.
+
+R-4, where the frontend is concerned: the asset pipeline ran on Node 20
+through the UNCHANGED task graph declared at Gruntfile.js:L376.  The task
+graph, the five artefact names and the asset layout are contract and are not
+modified.  Grunt and its command-line interface were verified to install AND
+execute on Node 20, so both are deliberately retained rather than replaced;
+modernising a tool that runs correctly would be a change with no compatibility
+justification, which R-1 forbids as firmly as it forbids an unjustified
+omission.  The install step this capture exercised is the lockfile-respecting
+clean install on npm 10, recorded in startup/frontend-build.log.
+
+================================================================================
+THE EIGHT FLOWS, in numeric order
+================================================================================
+
+Each entry names the flow, what it exercises, the migration path it exercises
+it through, what was actually observed, and the three files that hold the
+record.  In every entry the .result.txt is the authoritative one.
+
+--------------------------------------------------------------------------------
+FLOW 1  slug 1-login          verdict OBSERVED-INCOMPLETE-1-REQUIREMENTS-UNMET
+  Does authenticated login work, and is the resulting identity the one asked
+  for.
+  MIGRATION PATH: the security context on the new runtime, and the rewritten
+  directory context-factory reference — the class literal that named an
+  internal factory became the identical class name as a string, which the
+  naming service consumes identically.  The externalised values are recorded
+  in notes/ldap-jndi-environment.txt.
+  OBSERVED: the anonymous request was refused with 401 and the authenticated
+  request answered 200 with the identity endpoint confirming the same principal
+  at 200; the directory was registered and enumerated at 200.
+  FILES — the .result.txt is the AUTHORITATIVE record for this flow:
+    flow-1-login.status      captured status and result tokens
+    flow-1-login.out         captured response body
+    flow-1-login.result.txt  the recorded observation, AUTHORITATIVE
+
+--------------------------------------------------------------------------------
+FLOW 2  slug 2-views          verdict OBSERVED-RENDERED-AND-ASSETS-DIGESTED
+  Do the application shell and the case and document views render, and are the
+  assets they render from the assets this run recorded.
+  MIGRATION PATH: the built frontend assets served to a browser, produced by
+  the unchanged task graph on Node 20, plus the permission evaluation that
+  guards each view and the reflection-based scanning behind it.
+  OBSERVED: 5 of the served asset comparisons reported MATCH, meaning every
+  asset the deployment served was byte-for-byte the asset recorded under
+  artifacts/; the authenticated shell answered 200 and the case list 200, while
+  case discovery answered 200, so the detail and document views were not
+  reached and two requirements are recorded unmet.
+  DIGESTS: artifacts/*.sha256 holds the recorded digest of each built asset.
+  Read them WITH this entry: a rendered-view observation only means something
+  once the served assets are known to be byte-identical, and the digests are
+  what establishes that.  With zero frontend spec files in the tree they are
+  also the strongest behavioural evidence the frontend has.
+  FILES — the .result.txt is the AUTHORITATIVE record for this flow:
+    flow-2-views.status      captured status and result tokens
+    flow-2-views.out         captured response body
+    flow-2-views.result.txt  the recorded observation, AUTHORITATIVE
+
+--------------------------------------------------------------------------------
+FLOW 3  slug 3-alfresco-roundtrip          verdict OBSERVED-ROUNDTRIP-COMPLETED
+  Store a document in the content repository and retrieve it unchanged.
+  MIGRATION PATH: the reinstated XML binding API and runtime, and the
+  activation framework whose MIME-type mapping decides the resolved type.  The
+  reference implementation of that framework was mandatory rather than
+  cosmetic: the API-only artefact omits the MIME and mailcap default resources
+  that five of the six consuming files depend on.
+  OBSERVED: repository reachability 302, so no leg of the round trip ran.  The
+  type declared on send was text/plain and the type the store resolved was text/plain;charset=UTF-8.
+  SKIPPED — reason, recorded by the flow itself: not-recorded
+  FILES — the .result.txt is the AUTHORITATIVE record for this flow:
+    flow-3-alfresco-roundtrip.status      captured status and result tokens
+    flow-3-alfresco-roundtrip.out         captured response body
+    flow-3-alfresco-roundtrip.result.txt  the recorded observation, AUTHORITATIVE
+
+--------------------------------------------------------------------------------
+FLOW 4  slug 4-solr-search          verdict OBSERVED-SEARCH-ANSWERED
+  Search through the application and get the same result set back.
+  MIGRATION PATH: the search client on the new runtime, unchanged by design —
+  no integration client version moved, because a version change to an
+  integration client is a wire-behaviour risk by definition.
+  OBSERVED: the search through the application answered 200 and the engine
+  probe 302.
+  MATCH COUNT: 5.  The count is reported explicitly and separately because
+  status alone cannot carry this flow: an HTTP 200 with zero results is a
+  success by exit status and a failure by behaviour, so a response code
+  without a count would leave the behavioural question unanswered.  The
+  matched identifiers, their returned order and their scores are preserved
+  verbatim in the capture; only the query elapsed time is normalised.
+  FILES — the .result.txt is the AUTHORITATIVE record for this flow:
+    flow-4-solr-search.status      captured status and result tokens
+    flow-4-solr-search.out         captured response body
+    flow-4-solr-search.result.txt  the recorded observation, AUTHORITATIVE
+
+--------------------------------------------------------------------------------
+FLOW 5  slug 5-activemq-event          verdict OBSERVED-EVENT-TRANSITED-AND-INDEXED
+  Does an application event transit the message broker with its payload
+  intact.
+  MIGRATION PATH: the messaging client on the new runtime, unchanged by
+  design; the messaging interfaces resolve from the client library rather than
+  from the platform.  Broker initialisation is in
+  startup/messaging-init.log.
+  OBSERVED: the broker answered 200 and its destination surface 200, with the
+  configured destination solrAdvancedSearch.in; delivery was yes.
+  ASYNCHRONY: a successful trigger does NOT imply delivery.  Messaging is
+  asynchronous, so the request that raises an event can answer before, or
+  without, the event reaching a destination.  This flow therefore asserts on
+  the destination-side observation and not on the trigger, and a trigger that
+  answered would still leave delivery unproven.  Broker-assigned identifiers,
+  enqueue and expiry stamps, redelivery counters and connection identifiers
+  are normalised; the payload and the destination name are preserved.
+  SKIPPED — reason, recorded by the flow itself: not-recorded
+  FILES — the .result.txt is the AUTHORITATIVE record for this flow:
+    flow-5-activemq-event.status      captured status and result tokens
+    flow-5-activemq-event.out         captured response body
+    flow-5-activemq-event.result.txt  the recorded observation, AUTHORITATIVE
+
+--------------------------------------------------------------------------------
+FLOW 6  slug 6-generated-number          verdict OBSERVED-NUMBER-GENERATED
+  Create an object that receives a generated number, and get the same
+  numbering sequence and format.
+  MIGRATION PATH: the highest-impact runtime fix on the backend.  The
+  expression-language library advanced because its bytecode-generating
+  accessor optimiser threw a verification error on the new runtime — a failure
+  reproduced even against a bean compiled for the older release, which locates
+  the defect in the library s own generated code rather than in what it reads.
+  The floor was found by bisection, not from a changelog.  It reaches the
+  application through the live decision tables counted below, and the rule
+  compiler declares that library with no version of its own, so the reactor s
+  property governs which one actually loads.
+  OBSERVED: the precondition answered 200 and creation answered 200; a generated
+  number was assigned: yes.  Reason recorded by the flow: the creation was exercised and a generated number was observed; its value and format are recorded in the paired .out capture
+  Any generated number that IS observed is preserved in full and never
+  normalised, because the number is the behaviour this flow exists to compare.
+  FILES — the .result.txt is the AUTHORITATIVE record for this flow:
+    flow-6-generated-number.status      captured status and result tokens
+    flow-6-generated-number.out         captured response body
+    flow-6-generated-number.result.txt  the recorded observation, AUTHORITATIVE
+
+--------------------------------------------------------------------------------
+FLOW 7  slug 7-workflow-start          verdict OBSERVED-WORKFLOW-STARTED-AND-TASK-ASSIGNED
+  Start a workflow and get identical process instantiation and task
+  assignment.
+  MIGRATION PATH: the process engine, the oldest load-bearing engine in the
+  reactor and the one carrying RESIDUAL, UNVERIFIED risk.  It could not be
+  bootstrapped for testing without a database, so the migration plan assigned
+  it to this gate rather than declaring it safe.
+  OBSERVED: the headline request answered 200; the engine reported 40 process
+  definitions loaded against 36 definitions present on disk, and process
+  instantiation was yes.
+  INITIALISATION EVIDENCE: startup/workflow-engine-init.log, a region of the
+  ONE bounded startup window every region in this capture was mined from,
+  which is described with its source digest and offsets in
+  notes/startup-window.txt.  It is 91 matched lines wide.  Startup evidence
+  lives under startup/ and nowhere else: the obvious alternative directory
+  name is a bare ignore pattern in this repository and is matched at any
+  depth, so a capture written there would be silently untracked.
+  RESIDUAL RISK: process-engine-observed-here-not-cleared.  Stated plainly — the risk is
+  recorded as ASSIGNED TO THIS GATE, NOT CLEARED.  Process-instance,
+  execution, task and deployment identifiers are engine-assigned from a
+  database sequence and are normalised; the process definition KEY, and any
+  task name or assignee identity, are preserved.
+  SKIPPED — reason, recorded by the flow itself: not-recorded
+  FILES — the .result.txt is the AUTHORITATIVE record for this flow:
+    flow-7-workflow-start.status      captured status and result tokens
+    flow-7-workflow-start.out         captured response body
+    flow-7-workflow-start.result.txt  the recorded observation, AUTHORITATIVE
+
+--------------------------------------------------------------------------------
+FLOW 8  slug 8-queue-transition          verdict OBSERVED-QUEUE-ROUTING-EVALUATED-NOT-APPLIED
+  Move an object between queues and get the identical routing decision.
+  MIGRATION PATH: the decision tables that govern queue entry and exit,
+  evaluated through the same advanced expression-language library flow 6
+  exercises — the same library, reached by a different consumer, and the
+  reason both flows are in the set.  There is no textual rule file anywhere in
+  the tree, so the entire rule surface is the spreadsheets counted below.
+  OBSERVED: the queue definitions endpoint answered 200 while case discovery
+  answered 200; the transition was not-attempted-the-rules-computed-no-destination, from queue none, and the onward-route
+  count was 0.
+  SKIPPED — reason, recorded by the flow itself: not-recorded
+  Queue names and the onward-route order are preserved in full; only surrogate
+  database keys are normalised.
+  FILES — the .result.txt is the AUTHORITATIVE record for this flow:
+    flow-8-queue-transition.status      captured status and result tokens
+    flow-8-queue-transition.out         captured response body
+    flow-8-queue-transition.result.txt  the recorded observation, AUTHORITATIVE
+
+================================================================================
+CENSUS — every figure measured at write time, with the command behind it
+================================================================================
+
+Directories pruned from every count below: target node_modules .git blitzy_adhoc_test_*.  A file under
+any of those is not repository source — a build directory holds a made COPY of
+a source file and doubles every resource count — so an unpruned count measures
+the build rather than the corpus.
+
+  rule-definition files: 0
+    find . -name '*.drl' | wc -l
+    The rule surface is entirely in the spreadsheets: there is no textual rule
+    file anywhere in the tree, which is why the expression-language library,
+    and not a rule compiler, was the item that had to move.
+  decision-table spreadsheets: 39
+    find . -name 'drools-*.xlsx' -not -path '*/node_modules/*' | wc -l
+    The migration plan states 43 for this figure and the measured value is 39.
+    The difference is composition, not disagreement, and it resolves exactly:
+    the plan counted 3 older-format spreadsheets and 1 numbered spreadsheet
+    test fixture alongside the 39 live decision tables, giving 43 in total.
+    Verify with: find . -name '*.xls' -o -name '*.xlsx', pruned as above, which
+    counts 43 spreadsheets in total, 3 of them in the older format.  No
+    decision table itself uses the older format — find . -name 'drools-*.xls' counts
+    0 — so those 3 older-format files are test resources and not rule
+    surface.  Both figures are stated here so that no reviewer has to
+    reconcile two documents in this tree by guesswork.
+  process definitions: 36
+    find . -name '*.bpmn*' -not -path '*/node_modules/*' | wc -l
+    Flow 7 expects the engine to load all of them; the count it reported
+    loaded is in that flow s entry above and in its own status file.
+  frontend spec files: 0
+    find <frontend resources> -name '*.spec.js' | wc -l
+    With no frontend spec file in the tree there is no automated behavioural
+    test for the frontend to fall back on, which is precisely why artefact
+    byte-identity is the strongest available behavioural evidence there, and
+    why the digests under artifacts/ are captured at all.  It is a valid
+    criterion because cache busting is content-hash based and minification
+    runs with identifier mangling disabled; the recorded caveat is that source
+    maps embed file paths, so a comparison build must run from the same
+    relative path.  See notes/determinism-basis.txt.
+
+================================================================================
+COMPANION EVIDENCE
+================================================================================
+
+In this capture directory:
+  artifacts/*.sha256          recorded digest of each built frontend asset,
+                              the five pipeline artefacts plus the source map
+  env/toolchain.txt           toolchain provenance captured verbatim from each
+                              tool, and the run posture
+  surefire/<module>/TEST-<fully.qualified.Class>.xml   archived unit-test
+                              reports, cited by path from the baseline-failure
+                              register and paired against the committed
+                              contract in notes/surefire-pairing.txt
+  startup/*.log               the startup-log regions, all mined from one
+                              bounded window described in
+                              notes/startup-window.txt
+  notes/*.txt                 the completeness verdict, corpus figures,
+                              reference-stack probes, readiness polling,
+                              created state and its cleanup, the capture
+                              manifest, the determinism basis and the
+                              normalisation and redaction ledger
+  static-audit.txt            the internal-package audit gate, run and
+                              captured here as raw output
+  jacoco-liveness.txt         coverage instrumentation liveness, measured from
+                              the execution data on disk rather than assumed
+                              from a plugin goal reporting success
+  summary.txt                 the shorter per-flow enumeration this index
+                              expands on
+
+Sibling registers a reader of this file will want, all beside this tree:
+  the dependency-change inventory, which carries every changed artefact with
+    its old and new version and the specific compatibility reason;
+  the static-audit output presentation, the authoritative write-up of the gate
+    whose raw capture is static-audit.txt here;
+  the baseline-failure register, which any test exclusion must cite by row;
+  the pre-existing-defects register, which holds the defects that were
+    deliberately not fixed;
+  the ambiguity-resolutions register, which records every decision where
+    baseline behaviour was the tie-breaker, with the alternatives rejected;
+  and the JDK access exceptions register — referred to here by its title only,
+    deliberately and not for brevity: its filename contains the very launch
+    argument this migration is required to be free of, and the audit that
+    proves the absence is textual, so writing the path would defeat it.  That
+    register is delivered EMPTY, with a positive statement that the migrated
+    production launch configuration requires no such exception.  It is empty
+    as an earned result: every accessibility failure met during this migration
+    was inside a TEST library and each was resolved by advancing or removing
+    that library rather than by opening a platform module.
+
+================================================================================
+NORMALISATION-REDACTION
+================================================================================
+
+One statement, naming both halves, because naming only what was removed leaves
+a reader unable to tell a normalised capture from a hollowed-out one.
+
+STRIPPED, because each differs between two runs of identical behaviour:
+timestamps; session identifiers; generated request identifiers; cookie-setting
+response header values; the wall-clock date header; entity validators; absolute
+filesystem paths; and, per flow, the query elapsed time, the broker-assigned
+and generated correlation identifiers with the enqueue and expiry stamps,
+redelivery counters and connection identifiers, the process-instance,
+execution, task and deployment identifiers together with version-suffixed
+definition identifiers, and surrogate database keys.
+
+PRESERVED, because each IS the behaviour under comparison: authorization
+results; case and complaint numbers in full; generated numbers in full; queue
+names; the onward-route order; matched identifiers in their returned order with
+their scores; MIME types and declared content types; message payloads and
+destinations; process definition KEYS as distinct from the volatile
+version-suffixed identifiers that contain them; and assignee and
+candidate-group identities.
+
+The administrator secret is redacted with a fixed placeholder wherever it could
+appear, and the redactor is proven against that exact value before the first
+capture file is written.  Behaviour-bearing values were NOT redacted, and the
+distinction is the point: a user identity that a workflow assigned, or a
+candidate group a queue selected, is an observation and is kept.  The full
+ledger, with a live self-test of every rule class, is this file, kept on one
+line so the name survives copying:
+  notes/06-normalisation-and-redaction.txt
+
+================================================================================
+MIRROR
+================================================================================
+
+This capture directory mirrors the baseline capture directory file for file and
+directory for directory, which is what makes a recursive comparison
+mechanically meaningful: every difference it reports is a difference in
+evidence rather than a difference in layout.  Compare the two with a recursive
+diff of the baseline directory against this one.
+
+Every entry a recursive comparison finds on ONE side only is enumerated below,
+MEASURED from the two path sets at the moment this index was written rather than
+recalled from a list maintained by hand.  A list kept by hand goes stale the
+moment a file is added to either capture directory, and it goes stale silently;
+measuring it means a newly added file appears here by itself and a file that
+gains a counterpart leaves.  ANY entry present on only one side and NOT named
+here is a real finding.  The authoritative copy of this accounting is the
+MIRROR block of summary.txt, which both capture directories carry identically;
+this section measures the same two path sets with the same code rather than
+restating it, so the two cannot drift apart.
+
+Present on the migrated side only, 8:
+  artifacts/diff-result.txt
+    the adjudication of the frontend artifact byte-identity criterion, likewise a statement ABOUT the pair and therefore written once
+  comparison.txt
+    the recursive cross-capture comparison itself, written once and from this side only because it is a statement ABOUT the pair rather than an observation of either half
+  surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
+  surefire/acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
+  surefire/ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml
+
+Present on THIS baseline side only, outside surefire/, 0:
+
+Present on THIS baseline side only, inside surefire/, 1:
+  surefire/notes/property-allowlist-line-continuation.txt
+  Each of those is an archived report for a suite the other side did not
+  produce, and each is enumerated with the reason that applies to it in
+  notes/surefire-pairing.txt and in docs/migration/baseline-test-failures.md.
+  A suite archived only on this side is an ADDITION; the fatal case is the
+  inverse, a suite archived on the other side with no counterpart here, and
+  that direction is measured and reported above rather than asserted absent.
+
+Carried on BOTH sides and therefore NOT a path-set deviation, named here because
+it is the entry most easily mistaken for one: jacoco-liveness.txt, the
+coverage-instrumentation liveness gate.  This side records state NOT-MEASURED
+from 0 execution data files found on disk.  It is MEASURED on the
+migrated side alone, and the reason is structural rather than incidental: the
+unit-test runner was declared in ZERO of the 145 project files at base commit
+c8f6226105, so the argument-line override that silently severs instrumentation
+could not arise before this migration and there was nothing on the
+pre-migration side to assert.  That side carries the file too and records that
+it was NOT measured there; recording the not-measured state under the same
+filename, rather than omitting the file, is what keeps the two directories
+comparable and is why this file is absent from the sets above.
+
+================================================================================
+AUTHORITY-NOTE: repeated at the close, so that a reader entering this file from
+either end cannot mistake its standing.  This file is an INDEX ONLY and is NOT
+the authority for any flow.  The authoritative record for flow n is
+flow-n-<slug>.result.txt, supported by flow-n-<slug>.status and
+flow-n-<slug>.out; the deliverable is satisfied by those eight result files,
+not by this index.  Nothing here is an aggregate pass or fail verdict, no
+verdict anywhere in this capture is derived from an exit status, and a
+not-exercised flow is not a pass — it is a recorded gap with a recorded reason.
+================================================================================

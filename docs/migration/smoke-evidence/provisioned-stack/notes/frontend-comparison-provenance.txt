@@ -1,0 +1,42 @@
+which frontend build produced this side of the artifact comparison
+
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_frontend_provenance
+
+frontend-resources-directory: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources
+artifact-directory-configured: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
+artifact-directory-resolved: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
+home-html-probed: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/home.html
+lockfile-in-the-resources-directory: present
+node-on-path-at-capture-time: v20.20.2
+npm-on-path-at-capture-time: 10.8.2
+artifact-age-in-whole-days-at-capture-time: 0
+artifact-directory-is-the-in-tree-default: yes
+artifact-directory-reproduction: this side digested the in-tree build outputs, reproducible from this checkout with the manifest build script
+
+read this together with:
+  env/toolchain.txt              the full toolchain this capture ran on
+  notes/artifact-gate.txt        whether all five digests were produced
+  notes/artifact-digest-records.txt  whether each record is in schema
+  notes/determinism-basis.txt    why the digests are a valid comparison
+  comparison.txt                 the per-artifact cross-capture outcome
+
+what this record does NOT contain, and where it lives instead.  Whether a
+  difference between the two digest sets is a REGRESSION or an artefact of
+  two different toolchains is an analysis over both runs, and no single run
+  is in a position to make it.  It is recorded in
+  docs/migration/ambiguity-resolutions.md, with the alternatives considered
+  and rejected.  This record supplies the input that analysis needs: which
+  build, on which runtime, with which package manager, this side came from.
+
+the node and npm versions above are the ones on PATH when the DIGESTS were
+  taken, which is not automatically the toolchain that PRODUCED the
+  artifacts: a capture may point at a staged build made elsewhere, and the
+  artifact age above is the only in-band hint of that.  An age of 0 days on
+  both sides means both sides built fresh on the toolchain each recorded; a
+  large age on one side means that side points at a staged build and its
+  recorded toolchain is NOT the one that produced its artifacts.  Treat the
+  two as independent facts, because they are.
+
+scope fence: this record adds no tooling and no build step.  It observes
+  paths and versions and states where the adjudication lives.  Nothing here
+  may be read as a pass mark.

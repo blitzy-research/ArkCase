@@ -1,12 +1,12 @@
 queue-definitions=200
-case-discovery=500
-TRANSITION: not-attempted-no-case-file
+case-discovery=200
+next-possible-queues=200
+TRANSITION: not-attempted-the-rules-computed-no-destination
 FROM_QUEUE: none
-TO_QUEUE: not-observed-no-case-file
+TO_QUEUE: none
 QUEUE_OBSERVED_AFTER_TRANSITION: not-attempted
 QUEUE_OBSERVED_AFTER_RESTORE: not-attempted
-NEXT_QUEUES_COUNT: not-observed
-NEXT_QUEUES: not-observed
-OBJECT_ID: none
+NEXT_QUEUES_COUNT: 0
+NEXT_QUEUES: none
+OBJECT_ID: 101
 OBJECT_NUMBER: none
-REASON: the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against

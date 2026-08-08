@@ -1,0 +1,184 @@
+===== solr =====
+request-method: GET
+request-url: https://arkcase-ce.local/solr
+auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 0
+observed-http-status: 000
+observed-content-type: unknown
+observed-content-length: (none reported)
+observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 7
+----- body -----
+(empty)
+----- end body -----
+----- transport-diagnostics -----
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
+
+----- end transport-diagnostics -----
+----- response-headers -----
+(none)
+----- end response-headers -----
+
+===== alfresco-share =====
+request-method: GET
+request-url: https://arkcase-ce.local/share
+auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 0
+observed-http-status: 000
+observed-content-type: unknown
+observed-content-length: (none reported)
+observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 7
+----- body -----
+(empty)
+----- end body -----
+----- transport-diagnostics -----
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
+
+----- end transport-diagnostics -----
+----- response-headers -----
+(none)
+----- end response-headers -----
+
+===== pentaho =====
+request-method: GET
+request-url: https://arkcase-ce.local/pentaho
+auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 0
+observed-http-status: 000
+observed-content-type: unknown
+observed-content-length: (none reported)
+observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 7
+----- body -----
+(empty)
+----- end body -----
+----- transport-diagnostics -----
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
+
+----- end transport-diagnostics -----
+----- response-headers -----
+(none)
+----- end response-headers -----
+
+===== virtualviewer =====
+request-method: GET
+request-url: https://arkcase-ce.local/VirtualViewerJavaHTML5
+auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 0
+observed-http-status: 000
+observed-content-type: unknown
+observed-content-length: (none reported)
+observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 7
+----- body -----
+(empty)
+----- end body -----
+----- transport-diagnostics -----
+curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
+
+----- end transport-diagnostics -----
+----- response-headers -----
+(none)
+----- end response-headers -----
+
+===== config-server (NOT ATTEMPTED) =====
+request-method: GET
+request-url: (no URL: CONFIG_SERVER_URL was unset for this run)
+observed-http-status: NOT-ATTEMPTED
+not-attempted-because: CONFIG_SERVER_URL is unset, so no configuration-server address was supplied for this run.  The configuration server is one of the six services whose wire behaviour this migration preserves, and this probe is the only observation of it available to this script; supplying CONFIG_SERVER_URL closes the gap
+note: the request above was NOT sent, so there is no response body to
+  record.  The section is written rather than omitted because an absent
+  section cannot be compared: a reader could not tell an unsent request
+  from lost evidence.  Nothing here is a substitute for the observation
+  that was not made, and no value below it is inferred from one.
+
+===== message-broker-management (NOT ATTEMPTED) =====
+request-method: GET
+request-url: (no URL: BROKER_STATUS_URL was unset for this run)
+observed-http-status: NOT-ATTEMPTED
+not-attempted-because: BROKER_STATUS_URL is unset, so no broker management address was supplied for this run.  The broker is one of the services whose wire behaviour this migration preserves; supplying the URL adds it to this matrix, and flow 5 uses the same value for its credentialed destination read
+note: the request above was NOT sent, so there is no response body to
+  record.  The section is written rather than omitted because an absent
+  section cannot be compared: a reader could not tell an unsent request
+  from lost evidence.  Nothing here is a substitute for the observation
+  that was not made, and no value below it is inferred from one.
+
+===== message-broker-transport (NOT ATTEMPTED) =====
+probe-kind: tcp-connect
+endpoint: (none supplied)
+purpose: the wire the application publishes and consumes messages on, as opposed to the management surface above
+observed-outcome: NOT-ATTEMPTED
+not-attempted-because: no endpoint was supplied for this run, so no
+  address was guessed.  A guessed address would record a connection
+  failure that reads as a behavioural finding about a service that was
+  never addressed.
+
+===== directory-service (NOT ATTEMPTED) =====
+probe-kind: tcp-connect
+endpoint: (none supplied)
+purpose: the directory the login flow authenticates against and the synchronisation jobs read
+observed-outcome: NOT-ATTEMPTED
+not-attempted-because: no endpoint was supplied for this run, so no
+  address was guessed.  A guessed address would record a connection
+  failure that reads as a behavioural finding about a service that was
+  never addressed.
+
+===== database (NOT ATTEMPTED) =====
+probe-kind: tcp-connect
+endpoint: (none supplied)
+purpose: the relational store the persistence layer maps onto, whose schema this migration leaves unchanged
+observed-outcome: NOT-ATTEMPTED
+not-attempted-because: no endpoint was supplied for this run, so no
+  address was guessed.  A guessed address would record a connection
+  failure that reads as a behavioural finding about a service that was
+  never addressed.
+

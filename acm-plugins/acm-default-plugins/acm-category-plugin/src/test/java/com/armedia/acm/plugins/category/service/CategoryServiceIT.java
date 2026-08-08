@@ -41,12 +41,16 @@ import com.armedia.acm.core.exceptions.AcmUpdateObjectFailedException;
 import com.armedia.acm.data.AuditPropertyEntityAdapter;
 import com.armedia.acm.plugins.category.model.Category;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -93,6 +97,12 @@ public class CategoryServiceIT
     private EntityManager entityManager;
     @Autowired
     private AuditPropertyEntityAdapter auditAdapter;
+    /**
+     * Stand-in logger handed back by the scoped static log-manager mock in {@link #setUp()}. It replaces the
+     * framework-supplied mock the pre-migration revision of this class declared, and it is created here rather
+     * than through an annotation because this class runs on the Spring runner, which performs no mock injection.
+     */
+    private final Logger mockedLogger = Mockito.mock(Logger.class);
     private Long parentId;
     private Long childId;
     private Long grandChildId;
@@ -107,41 +117,56 @@ public class CategoryServiceIT
         auditAdapter.setUserId("creator");
 
         Date created = new Date();
-        Category parent = new Category();
-        parent.setName("parent");
-        parent.setDescription("parent");
-        parent.setCreator("creator");
-        parent.setCreated(created);
-        parent.setModifier("creator");
-        parent.setModified(created);
-        parent.setStatus(DEACTIVATED);
-        parent = categoryService.create(parent);
-        parentId = parent.getId();
 
-        Category child = new Category();
-        child.setName("child");
-        child.setDescription("child");
-        child.setCreator("creator");
-        child.setCreated(created);
-        child.setModifier("creator");
-        child.setModified(created);
-        child.setStatus(DEACTIVATED);
-        child.setParent(parent);
-        child = categoryService.create(child);
-        childId = child.getId();
+        // Scoped static mock of the log manager, replacing the framework-level static mock the pre-migration
+        // revision of this class armed here. Three properties of this form are deliberate.
+        // - It is held in try-with-resources, so it is armed only around the behaviour that reaches the logger and
+        // is unregistered on the way out. A static mock left registered leaks into every later test that runs on
+        // the same thread, which the framework-level mock avoided only because its runner tore the class down.
+        // - CALLS_REAL_METHODS is required rather than tidy: the default answer stubs EVERY static method on
+        // LogManager, including the ones log4j itself calls while the category service runs, so only the single
+        // call the replaced expectation named is stubbed and everything else stays real.
+        // - It stubs and asserts nothing else. The replaced expectation returned a stand-in logger and verified
+        // nothing about it, so neither does this.
+        try (MockedStatic<LogManager> logManager = Mockito.mockStatic(LogManager.class, Mockito.CALLS_REAL_METHODS))
+        {
+            logManager.when(() -> LogManager.getLogger(CategoryServiceImpl.class)).thenReturn(mockedLogger);
 
-        Category grandChild = new Category();
-        grandChild.setName("grandChild");
-        grandChild.setDescription("grandChild");
-        grandChild.setCreator("creator");
-        grandChild.setCreated(created);
-        grandChild.setModifier("creator");
-        grandChild.setModified(created);
-        grandChild.setParent(child);
-        grandChild.setStatus(DEACTIVATED);
-        grandChild = categoryService.create(grandChild);
-        grandChildId = grandChild.getId();
+            Category parent = new Category();
+            parent.setName("parent");
+            parent.setDescription("parent");
+            parent.setCreator("creator");
+            parent.setCreated(created);
+            parent.setModifier("creator");
+            parent.setModified(created);
+            parent.setStatus(DEACTIVATED);
+            parent = categoryService.create(parent);
+            parentId = parent.getId();
 
+            Category child = new Category();
+            child.setName("child");
+            child.setDescription("child");
+            child.setCreator("creator");
+            child.setCreated(created);
+            child.setModifier("creator");
+            child.setModified(created);
+            child.setStatus(DEACTIVATED);
+            child.setParent(parent);
+            child = categoryService.create(child);
+            childId = child.getId();
+
+            Category grandChild = new Category();
+            grandChild.setName("grandChild");
+            grandChild.setDescription("grandChild");
+            grandChild.setCreator("creator");
+            grandChild.setCreated(created);
+            grandChild.setModifier("creator");
+            grandChild.setModified(created);
+            grandChild.setParent(child);
+            grandChild.setStatus(DEACTIVATED);
+            grandChild = categoryService.create(grandChild);
+            grandChildId = grandChild.getId();
+        }
     }
 
     // @AfterTransaction

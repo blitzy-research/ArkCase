@@ -1,0 +1,21 @@
+===== capture atomicity =====
+run-identity: run-<TIMESTAMP>-pid2960633
+files-in-capture: 356
+files-not-written-by-this-run: 0
+test-report-archive-carried-forward: yes (284 file(s) from <REPO-ROOT>/docs/migration/smoke-evidence/migrated/surefire)
+test-report-archive-integrity: verified: every digest in the archive own manifest matches the carried copy, so the archive published with this capture is byte-identical to the installed one
+
+HOW THIS IS DECIDED.  A marker file is created before the first capture
+file is written and is never touched again.  Every file here must be at
+least as new as it.  A file that is older was not written by this run,
+whatever the directory listing suggests -- and a capture assembled from
+several runs is exactly how one file comes to assert a comparison verdict
+against a version of another file that no longer exists.
+
+THE ONE EXEMPTION, named rather than hidden: surefire/ is carried forward
+from the previous capture on purpose, so that publishing does not delete
+the archive, and its integrity is asserted by its own digest manifest at
+the point it is carried -- the two rows above.
+
+VERDICT: ONE RUN.  Every file outside the exempted archive is at least
+as new as this run marker.

@@ -1,0 +1,172 @@
+startup-log-region: jpa-init.log
+region-describes: persistence provider initialisation against the existing schema, with no DDL modification, for AAP 0.9.4
+region-mandatory: yes
+region-pattern: eclipselink|persistence unit|persistenceunit|EntityManagerFactory|LocalContainerEntityManagerFactoryBean|jpa|liquibase|weaving
+region-pattern-flags: grep -E -i, applied to the extracted window only
+window-source: /opt/tomcat/current/logs/catalina.out
+window-source-sha256: 1581c892796e20ced0c0794c820691c049f388b1289efa0819de6ce73f15f0c1
+window-boots-present-in-source: 1
+window-sha256: 62917e5d4a84290b6d2ebb6c2eea2a399794d09108320f9fe43b47104c9bf731
+window-start-line: 1
+window-end-line: 32062
+window-start-byte-offset: 0
+window-end-byte-offset: 9273924
+window-lines: 32062
+matched-lines: 153
+line-cap: 2000
+capture-truncated: no
+----- region -----
+[m[36m<TIMESTAMP>,802 [DEBUG] [main] com.armedia.acm.quartz.scheduler.AcmJobRegistryPostProcessor - Register bean definition for job: [jpaBatchUpdateJob]
+[m[32m<TIMESTAMP>,522 [INFO ] [main] org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+[32m<TIMESTAMP>,451 [INFO ] [main] org.eclipse.persistence.logging.default - <TIMESTAMP>--ServerSession(1173695433)--Thread(Thread[main,5,main])--EclipseLink, version: Eclipse Persistence Services - 2.7.16.v20250613-47773a333b
+[m[33m<TIMESTAMP>,670 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1173695433)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [organization] for the entity class [class com.armedia.acm.plugins.profile.model.UserOrg] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,670 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1173695433)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [user] for the entity class [class com.armedia.acm.plugins.profile.model.UserOrg] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,674 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1173695433)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [dashboardOwner] for the entity class [class com.armedia.acm.plugins.dashboard.model.Dashboard] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,675 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1173695433)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [organization] for the entity class [class com.armedia.acm.plugins.person.model.OrganizationDBA] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,676 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1173695433)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [person] for the entity class [class com.armedia.acm.plugins.person.model.PersonAlias] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,677 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1173695433)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [identifier] for the entity class [class com.armedia.acm.services.users.model.group.AcmGroup] since weaving was not enabled or did not occur.
+[m[33m<TIMESTAMP>,678 [WARN ] [main] org.eclipse.persistence.logging.metadata - <TIMESTAMP>--ServerSession(1173695433)--Thread(Thread[main,5,main])--Reverting the lazy setting on the OneToOne or ManyToOne attribute [identifier] for the entity class [class com.armedia.acm.services.users.model.AcmUser] since weaving was not enabled or did not occur.
+[m[32m<TIMESTAMP>,771 [INFO ] [main] liquibase - Successfully acquired change log lock
+[m[33m<TIMESTAMP>,888 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/addressable is not a recognized file type
+[m[33m<TIMESTAMP>,423 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/category is not a recognized file type
+[m[33m<TIMESTAMP>,473 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/complaint is not a recognized file type
+[m[33m<TIMESTAMP>,500 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/dashboard is not a recognized file type
+[m[33m<TIMESTAMP>,573 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/object-association is not a recognized file type
+[m[33m<TIMESTAMP>,586 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/common is not a recognized file type
+[m[33m<TIMESTAMP>,586 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/organization is not a recognized file type
+[m[33m<TIMESTAMP>,666 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/person is not a recognized file type
+[m[33m<TIMESTAMP>,775 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/profile is not a recognized file type
+[m[33m<TIMESTAMP>,787 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/audit is not a recognized file type
+[m[33m<TIMESTAMP>,862 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/authenticationtoken is not a recognized file type
+[m[33m<TIMESTAMP>,874 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/billing is not a recognized file type
+[m[33m<TIMESTAMP>,965 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/correspondence is not a recognized file type
+[m[33m<TIMESTAMP>,992 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/file is not a recognized file type
+[m[33m<TIMESTAMP>,073 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/signature is not a recognized file type
+[m[33m<TIMESTAMP>,080 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/exemption is not a recognized file type
+[m[33m<TIMESTAMP>,090 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/form is not a recognized file type
+[m[33m<TIMESTAMP>,202 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/outlook is not a recognized file type
+[m[33m<TIMESTAMP>,215 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/note is not a recognized file type
+[m[33m<TIMESTAMP>,267 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/notification is not a recognized file type
+[m[33m<TIMESTAMP>,376 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/search is not a recognized file type
+[m[33m<TIMESTAMP>,383 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/sequence is not a recognized file type
+[m[33m<TIMESTAMP>,463 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/subscription is not a recognized file type
+[m[33m<TIMESTAMP>,470 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/tables/tag is not a recognized file type
+[m[33m<TIMESTAMP>,789 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/complaint is not a recognized file type
+[m[33m<TIMESTAMP>,872 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/dashboard is not a recognized file type
+[m[33m<TIMESTAMP>,885 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/common is not a recognized file type
+[m[33m<TIMESTAMP>,885 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/organization is not a recognized file type
+[m[33m<TIMESTAMP>,892 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/person is not a recognized file type
+[m[33m<TIMESTAMP>,975 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/profile is not a recognized file type
+[m[33m<TIMESTAMP>,982 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/audit is not a recognized file type
+[m[33m<TIMESTAMP>,087 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/correspondence is not a recognized file type
+[m[33m<TIMESTAMP>,188 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/search is not a recognized file type
+[m[33m<TIMESTAMP>,610 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/constraints/tag is not a recognized file type
+[m[33m<TIMESTAMP>,672 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/packageSpecs/object-association is not a recognized file type
+[m[33m<TIMESTAMP>,864 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/packageBodies/object-association is not a recognized file type
+[m[33m<TIMESTAMP>,987 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/triggers/addressable is not a recognized file type
+[m[33m<TIMESTAMP>,064 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/triggers/complaint is not a recognized file type
+[m[33m<TIMESTAMP>,074 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/triggers/person is not a recognized file type
+[m[33m<TIMESTAMP>,083 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/triggers/file is not a recognized file type
+[m[33m<TIMESTAMP>,896 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/drops/complaint is not a recognized file type
+[m[33m<TIMESTAMP>,956 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/ddl/drops/authenticationtoken is not a recognized file type
+[m[33m<TIMESTAMP>,573 [WARN ] [main] liquibase - included file classpath:/ddl/acm-database-changelog.xml//com/armedia/acm/dml/update is not a recognized file type
+[m[32m<TIMESTAMP>,789 [INFO ] [main] liquibase - Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,864 [INFO ] [main] liquibase - Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,154 [INFO ] [main] liquibase - Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,270 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller: Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,364 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller: Change set /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller failed, but failOnError was false.  Error: Error executing SQL ALTER TABLE arkcase.acm_container_folder RENAME arkcase.acm_container: (conn=75818) Table 'arkcase.acm_container_folder' doesn't exist
+[m[32m<TIMESTAMP>,365 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller: Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,381 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller: Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,452 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller: Change set /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller failed, but failOnError was false.  Error: Error executing SQL ALTER TABLE arkcase.acm_file DROP KEY uk_version_series_id: (conn=75818) Can't DROP INDEX `uk_version_series_id`; check that it exists
+[m[32m<TIMESTAMP>,453 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller: Reading from arkcase.DATABASECHANGELOG
+[m[32m<TIMESTAMP>,478 [INFO ] [main] liquibase - Successfully released change log lock
+[m[32m<TIMESTAMP>,340 [INFO ] [main] com.armedia.acm.quartz.scheduler.AcmJobFactory - Job [jpaBatchUpdateJob] will be added to the scheduler if not scheduled already.
+[m[32m<TIMESTAMP>,351 [INFO ] [main] com.armedia.acm.quartz.scheduler.AcmJobFactory - Trigger with repeating interval of [3600] seconds created for job [jpaBatchUpdateJob]
+[m[36m<TIMESTAMP>,082 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,082 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,082 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,181 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,182 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,268 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,284 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,364 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,459 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,885 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,972 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,986 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,474 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,474 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,481 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,481 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,481 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,556 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,561 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,575 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,579 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,582 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,590 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,593 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,651 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,652 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,787 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,676 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,677 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,592 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,599 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,705 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,705 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,612 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,664 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,686 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,714 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,717 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,752 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,866 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,870 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,875 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,582 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,633 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,768 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,931 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,599 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,605 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,723 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,729 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,734 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,737 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,744 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,746 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,755 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,761 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,446 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,449 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,853 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,854 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,038 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,515 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,663 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,664 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,670 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,671 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,713 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,761 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,092 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,169 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,175 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,597 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,631 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,668 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,669 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,578 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,586 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,591 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,651 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,662 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,666 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,668 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,678 [DEBUG] [auditorExecutor-4] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,679 [DEBUG] [auditorExecutor-3] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,779 [DEBUG] [auditorExecutor-1] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,676 [DEBUG] [auditorExecutor-2] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+[m[36m<TIMESTAMP>,678 [DEBUG] [auditorExecutor-5] com.armedia.acm.services.search.service.JpaObjectsToSearchService - Sending objects to SOLR: 1 added; 0 updated; 0 deleted.
+----- end region -----

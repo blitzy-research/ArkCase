@@ -1,0 +1,530 @@
+process-engine initialisation - ANNOTATION (NOT CAPTURED OUTPUT)
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+WHAT THIS FILE IS, AND WHY IT IS A FILE OF ITS OWN
+  This is review annotation on the captured startup region beside it,
+  startup/workflow-engine-init.log.  Not one line here is captured output: every
+  log line, every deployment line and every count belongs to that file, and
+  nothing here contributes to it.
+  It is a SEPARATE file because the region file is producer-written and this is
+  not.  For a time this annotation was appended below the end-of-region delimiter
+  inside the region file itself, which had two consequences, both real.  The
+  region file stopped being reproducible: smoke-checks.sh writes that file as a
+  fixed header followed by the matched window lines and nothing else, so a
+  re-capture would have silently discarded 427 lines of analysis.  And the two
+  captures stopped being comparable at the file level - the pre-migration side's
+  copy of the region file is 60 lines, exactly what the producer emits, while the
+  migrated side's had grown to 487.
+  Separating them fixes both.  The region file is now byte-for-byte what the
+  producer writes on either side, and this annotation is declared in the capture
+  manifest as an AUTHORED COMPANION: a path the producer never writes and, having
+  been named, never destroys - a staged run carries it forward from the tree it
+  replaces and reports that it did.  See notes/manifest.txt.
+  Where this file cites the region file, it cites the line numbers of the region
+  file as the producer writes it, which are unchanged by the separation because
+  the annotation only ever sat after the region ended.
+
+CAPTURE STATUS AND PROVENANCE, RE-VERIFIED RATHER THAN TRUSTED
+  CAPTURE STATUS is CAPTURED.  The region was mined from a real Java 17 container
+  startup, not composed.  That is not asserted here, it is re-derived: the window
+  source named in the header is still on disk, so the byte range recorded above
+  was re-extracted and re-hashed, and it reproduces the window-sha256 recorded in
+  the header bit for bit.  Re-running the recorded region pattern over that same
+  byte range reproduces matched-lines 45 exactly.  One honest qualification belongs
+  with that derivation: the whole-file digest of the window source no longer matches
+  the window-source-sha256 the header recorded, because the container kept logging
+  into that file after the window was cut, and the evidence runs that followed
+  appended to it.  What is re-derivable, and what was re-derived, is the recorded
+  BYTE RANGE, and that reproduces the recorded window digest exactly.  A whole-file
+  digest of a live log is not a stable anchor and is not treated as one here.  The header says
+  capture-truncated no, and that is consistent with the region ending on the
+  container's deployment-finished line.
+  The same two derivations were run against the counterpart capture and they also
+  reproduce its recorded window digest and its matched-lines figure of 41.  The two
+  matched-lines figures therefore differ, 45 here against 41 there, and the
+  difference is reported rather than reconciled, and it was traced rather than
+  assumed: this side's window carries exactly four additional lines - two
+  configuration-watcher notices for the engine's own working directory and the two
+  events they raise - and every other line in the region matches the counterpart
+  logger for logger, 24 from the deployment service and 10 from the classpath
+  deployer on both sides.
+  Both sides therefore mined one bounded single-boot window each, which is what
+  makes a count-for-count comparison mean anything.
+  The runtime each window ran on is recorded by the container itself inside the
+  window rather than claimed here: this side reports JVM version 17.0.19, and the
+  pre-migration side reports a 1.8.0 series JVM.  Written as prose, the older
+  runtime is called JDK 8 throughout this evidence tree.
+  Commit provenance, stated without invention.  The pre-migration base commit is
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26, confirmed by ancestry to be an
+  ancestor of this branch head.  The capture run itself executed against tree
+  0e13c8620de59ca66bfe8d0e261c82f15acc9cfd, which is necessarily an ancestor of
+  the commit that records this file.  No hash here is guessed; each was read from
+  the repository.
+
+MIRROR OBLIGATION, AND WHY NO HEADER FIELD WAS ADDED
+  This file mirrors its pre-migration counterpart mechanically: same filename,
+  same header field set, same field order, same two region delimiters, each
+  appearing exactly once.  A field-name comparison between the two files returns
+  no difference, and that is the property that lets the whole capture directory be
+  compared with a recursive diff instead of by reading.
+  That mirror was chosen over a differently-shaped header schema that the brief
+  for this file also proposed.  The two could not both be satisfied, and the
+  disagreement is recorded here rather than resolved silently.  The proposed
+  schema would have introduced header fields the counterpart does not carry, and
+  it described the counterpart as already carrying three of them.  The
+  counterpart does not: it carries the window-provenance schema reproduced above,
+  and its delimiters are named region rather than capture.  Because the mirror
+  obligation is also the one constraint a reviewer can check mechanically, the
+  mirror won and the substantive content the schema was meant to carry is
+  recorded in this annotation instead.
+  Every line of this annotation is written so that none of it parses as a header
+  field.  That is deliberate and it is load-bearing twice over: it keeps the
+  field-name comparison against the counterpart returning no difference, and it
+  keeps the capture script's own readers intact, since they either read a single
+  named header field or read strictly between the two region delimiters.  Nothing
+  below this heading can perturb either.
+
+WHAT THIS REGION ACTUALLY OBSERVED
+  These are observations, read back from the region above.
+  ENGINE CONSTRUCTED                     1 process engine reached a usable state
+  CLASSPATH DEFINITIONS FOUND            8
+  DEFINITION KEYS EXTRACTED              8
+  ALREADY PRESENT, SO NOT REDEPLOYED     8
+  NEWLY DEPLOYED IN THIS BOOT            0
+  WARN LINES IN REGION                   0
+  ERROR LINES IN REGION                  0
+  MATCHED LINES IN REGION                41
+  The eight keys, in the order the region records them, are acmDocumentWorkflow,
+  acmDocumentSingleTaskWorkflow, acmDocumentTaskWorkflow, ArkCaseBuckslipProcess,
+  cmComplaintWorkflow, CorrectiveTaskActionPlan, CorrectiveActionPlan and
+  MediaEngineWorkFlow.  The counterpart capture records the same eight keys, in
+  the same order, with the same eight already-present decisions and the same
+  matched-lines figure.  On every value this region can compare, the two runtimes
+  agree.
+  One nuance matters and is easy to lose: the engine did not deploy eight
+  definitions during this boot.  It reconciled eight and skipped all eight because
+  they were already present from an earlier boot, so the newly-deployed figure is
+  zero.  Reconciled and deployed are different measurements and are reported
+  separately above.
+
+WHAT THIS REGION DOES NOT OBSERVE, AND WHAT THE CAPTURE NOW DOES
+  This region still carries no definition total of its own.  The engine's own
+  repository is never queried for one anywhere in this window, so nothing in the
+  region below adjudicates how many definitions the engine holds, and no line in it
+  may be read as doing so.
+  The CAPTURE, however, now carries that observation, taken from the engine itself
+  rather than from any log:
+  DEFINITIONS EXPECTED, FROM THE CORPUS                36
+  DEFINITIONS LOADED, ENGINE REPOSITORY TOTAL          9, OBSERVED
+  The second figure was read from the process engine's own definition table, the
+  table the engine writes one row into per deployed definition, by a query the
+  evidence producer was configured with for this capture; it returned the bare
+  integer 9 and the producer refuses anything that is not a bare integer.  The
+  figure is published in the flow-7 record as DEFINITIONS_LOADED and is repeated
+  here only because this file is the artefact that adjudicates it.
+  Three properties of that measurement are stated so it is not over-read.
+  First, it is an observation of the ENGINE, not of this region.  Region and engine
+  are different sources and this file keeps them apart; an earlier generation of
+  this capture recorded UNOBSERVED here precisely because no engine-side source had
+  been consulted, and the honest correction is to name the new source rather than to
+  claim the region had carried the figure all along.
+  Second, 9 OBSERVED against 36 EXPECTED is a GAP and is reported as one.  The
+  expected figure counts definition files in the repository; the observed figure
+  counts what this deployment's engine holds.  They answer different questions, and
+  nothing here asserts that the remaining 27 were loaded, that they should have been,
+  or that their absence is a migration effect.  The region is consistent with the
+  smaller number: it shows eight definitions reconciled from the classpath and all
+  eight skipped because they already existed, so this boot deployed none and the
+  engine's total was established by earlier boots and by the configuration those
+  boots ran under.
+  Third, the conflation this file was written to prevent still stands.  A count of
+  region lines that merely mention a definition file is NOT a count of definitions.
+  An earlier generation of the flow record published 34 on exactly that basis; that
+  figure is withdrawn, the producer no longer has that fallback, and with no engine
+  query configured it now reports a sentinel and the criterion resting on it is
+  treated as unmet rather than satisfied by a number that measured something else.
+  This annotation therefore reports the reconciliation figure of eight, the
+  newly-deployed figure of zero and the engine repository total of nine, all three
+  observed, and asserts no other definition count.
+  ONE COMPARISON ROW IS NOT LIKE FOR LIKE, and saying so is the whole point of this
+  paragraph.  The cross-capture comparison beside these directories reports the row
+  DEFINITIONS_LOADED as 34 on the pre-migration side against 9 on this side, and a
+  reader scanning it would reasonably take that as a drop of 25 definitions.  It is
+  not: 34 is a count of log lines containing a definition-file token, produced by the
+  withdrawn basis described above, and 9 is a count of rows in the engine's own
+  definition table.  The two figures measure different things, so their difference is
+  not a quantity of anything.  The pre-migration capture cannot be re-taken - it was
+  recorded on the pre-migration runtime at the base commit, which is the one thing a
+  later run cannot reproduce - so the row is left exactly as the comparison computes
+  it and the asymmetry is disclosed here rather than repaired by editing a capture.
+  Anyone reading that row must read this paragraph with it.
+
+RISK CLASSIFICATION
+  RESIDUAL UNVERIFIED RISK, ASSIGNED TO THIS GATE, PARTLY DISCHARGED AND NOT CLEARED.
+  The wording is deliberate and is not softened, and the two halves are separated so
+  that neither is read as the other.  DISCHARGED: the engine was observed, on the
+  migrated runtime, to hold definitions in its own records - nine of them - and to
+  reconcile its classpath corpus without error.  NOT CLEARED: no business-process task
+  attributable to a run of this capture was ever observed, so the engine has not been
+  shown to EXECUTE a definition on this runtime, and executing one is the behaviour the
+  risk is about.  An engine that starts and holds definitions is a weaker statement than
+  an engine that runs them, and this file makes the weaker statement only.  The workflow engine is the
+  oldest load-bearing component in the reactor, a 2014-vintage release, and it
+  could not be bootstrapped for testing in isolation without a database, so it was
+  assigned to the deployment and smoke gates rather than declared safe.  Nothing
+  in this capture may be read as verifying it, and nothing below reclassifies it.
+  Its version is deliberately unchanged.  No compatibility failure was
+  demonstrated for it, and a version change without a demonstrated compatibility
+  reason is out of scope, so bumping the oldest load-bearing component in the
+  reactor would itself be a rule violation and a far larger behavioural risk than
+  the one this gate manages.  The honest corollary is stated with it, because the
+  first half alone would flatter the result: not having demonstrated a failure is
+  not the same as having demonstrated safety.  That gap is exactly what the word
+  residual denotes, and it is why the classification stays not cleared even though
+  every observed value on this side matches the pre-migration side.
+
+DEFINITIONS EXPECTED, RE-DERIVED RATHER THAN ADOPTED
+  Two command forms were run over this tree and both return 36.  The first is the
+  plain form, a find for definition files with installed dependencies excluded.
+  The second additionally prunes build-output and repository-metadata directories.
+  They agree here because this working tree currently carries no build copies of
+  definition resources; on a built tree the plain form would additionally count the
+  build copies, which is a property of the working tree and not of the corpus.
+  The breakdown is recorded so a reviewer can localise any shortfall rather than
+  merely observe one, and the source set each figure belongs to is stated because
+  it is what makes a difference explicable.
+  complaint plugin                          1   main source
+  task plugin                               5   3 main source, 2 test source
+  personnel security plugin                 1   main source
+  document management service               3   main source
+  media engine service                      1   main source
+  transcription service                     1   main source
+  freedom-of-information application       11   main source
+  privacy application                       8   main source
+  workflow engine configuration module      5   test source
+  TOTAL                                    36   29 main source, 7 test source
+  The corpus figure therefore includes seven test-source definitions, which no
+  deployed application is ever expected to load.  Any comparison that treats 36 as
+  a deployment target without saying so is comparing two different things.
+
+WHY EIGHT IS NOT A SHORTFALL AGAINST THIRTY-SIX
+  This is the explanation the previous section is owed, and it is established
+  rather than assumed, because presenting a mismatch as a failure without
+  establishing that the missing definitions were ever expected to deploy would be
+  the more serious error.
+  The startup deployer does not scan the corpus.  It scans five classpath name
+  patterns, and the region above records them verbatim: definition resources whose
+  names begin with acm, ArkCase, DefaultComplaint, Corrective or Media.  Exactly
+  nine of the 36 corpus basenames match those five patterns.  The ninth is a
+  test-source copy of the default complaint workflow belonging to the workflow
+  engine configuration module, which is not on a deployed runtime classpath.
+  Eight is therefore the complete and expected set for this mechanism, and the
+  observed eight is a match rather than a deficit.
+  The remaining 27 main-source definitions are not reachable by this scan at all.
+  They are administered through the engine's own definition service rather than by
+  the startup classpath scan, so their absence from this region is by design.
+  This is an expectation about mechanism, derived from the scan patterns the region
+  records and from the corpus census above.  It is not an observation that those 27
+  were loaded by some other route; this capture observed no such thing.
+
+THE STARTUP-WINDOW TIMING TRAP, AND HOW IT WAS AVOIDED
+  The engine reconciles its definitions during the first-startup window, and the
+  repository documents that window twice.  The deployment step in README.md:L175
+  states that the first startup will take 5 - 10 minutes, and docs/setup.md:L133
+  repeats it in the same terms.  Both anchors are cited because both exist and a
+  single citation would look like a transcription rather than a check.
+  Those two line numbers were re-derived for this file rather than copied from the
+  brief, which cited README.md:L141 and docs/setup.md:L108.  Both of those anchors
+  are now stale: this migration updates both documents, so the line numbers moved.
+  Recording the correction here keeps the citation checkable instead of merely
+  plausible.
+  Why the trap matters: a capture cut before that window closes yields a definition
+  figure that measures capture timing rather than engine behaviour, and it would be
+  indistinguishable from a genuine shortfall.  This capture spans the whole window.
+  The evidence for that claim is structural rather than promised.  The window was
+  taken as one bounded byte range over a source containing exactly one boot, the
+  header records capture-truncated no, and the final line of the region is the
+  container's own deployment-finished line for the application archive, so the
+  region runs to the end of deployment rather than stopping inside it.
+  How the window was determined to have closed: the container's startup-completed
+  line, which is the last event of the boot.  That observation belongs to the
+  readiness region and is not duplicated here; it is recorded in
+  readiness-poll.log in this same startup directory, which was mined from the very
+  same single window as this region and carries the identical window digest.
+  Cross-referenced by filename, not reproduced.
+  The measured deployment on this side was faster than the documented 5 to 10
+  minute range.  That is not a finding and is not treated as one: the criterion is
+  that the capture spans to the startup-completed line, not that it lasted a
+  particular time.  Elapsed figures are inter-run noise and the counterpart's
+  differ too.
+
+THREE FINDINGS THAT BOUND THE CONCERN, AND DO NOT CLEAR IT
+  Stated first, because it governs all three: these findings BOUND the residual
+  concern.  They do not eliminate it, and no combination of them discharges this
+  gate.  The engine still could not be executed before deployment, which is why the
+  classification above stays not cleared.  Findings one to three are expectations
+  derived from configuration and dependency analysis, not observations from this
+  capture.
+  FINDING 1, and it is the one that has to be stated carefully, because the
+  inference originally drawn from it is withdrawn as false.  The two measurements
+  are true and were re-derived over this tree: the definition corpus declares zero
+  script-task elements and zero script-format attributes.  The inference drawn from
+  those two zeros, that the engine therefore never requests a scripting engine, is
+  FALSE and is withdrawn here rather than quietly dropped.  The engine also reaches
+  a scripting engine through a task listener, which a census of script tasks and
+  script formats cannot see.  One main-source definition, the personnel security
+  background investigation definition version 11, declares seven complete-event
+  script task listeners, at lines 46, 66, 86, 108, 119, 142 and 153, each carrying
+  a language field whose value is javascript, at lines 48, 68, 88, 110, 121, 144
+  and 155.  The platform's removal of its bundled scripting engine therefore does
+  reach the engine along that path.  That is a platform-removal matter rather than
+  an engine-version matter, and the lesson is worth stating plainly: a
+  pattern-based census over configuration is only as good as its knowledge of every
+  element that can reach the capability being censused.  The repository itself
+  records the same conclusion, in the comment block at pom.xml:L203-L218, which
+  registers the one main definition resource whose task listeners request the
+  engine.
+  FINDING 2.  The engine's persistence layer reflects over the application's own
+  domain classes, through ordinary unrestricted reflection, rather than over
+  platform internals.  Strong encapsulation does not bite on that path.
+  FINDING 3.  It reads no class bytes and touches no encapsulated platform
+  package.  This is also why the register of production launch-configuration
+  exceptions for encapsulated-package access is earned empty rather than assumed
+  empty: no package needs opening on this engine's behalf.  That register is
+  referred to here BY TITLE ONLY, and never by filename or path, because its
+  filename embeds a token this evidence tree carries nowhere at any depth.
+  Findings 2 and 3 remain sound.  Finding 1 survives only as its two measurements;
+  its inference does not.  A reader who takes all three as clearance has
+  misread this section.
+
+THE SCRIPTING-ENGINE DEFECT, REGISTERED AND NOT FIXED
+  Recorded because it was discovered, and left alone because the governing rule
+  says discovered pre-existing defects are documented rather than repaired.
+  Nothing in this file proposes, implies or performs a repair.
+  THE TWO CALL SITES, re-derived over this tree, are exactly two:
+  acm-standard-applications/acm-foia/src/main/java/gov/foia/service/JavaScriptEvaluatingPredicate.java
+  at line 94, and the privacy application's counterpart at
+  acm-standard-applications/acm-privacy/src/main/java/gov/privacy/service/JavaScriptEvaluatingPredicate.java
+  at line 98.  Each asks the script-engine manager for an engine by name.
+  WHY IT FAILS SILENTLY, which is what makes it dangerous.  The platform removed
+  the engine implementation while leaving the scripting API in place, so both files
+  compile cleanly at the new release level.  The lookup returns nothing at run
+  time and the next dereference throws.  Neither a compiler nor the change set's
+  static audit over main source would surface it, because there is nothing
+  textually wrong with either file.
+  WHY BOTH COPIES ARE PROVABLY UNREACHABLE DEAD CODE.  In
+  acm-standard-applications/acm-foia/src/main/resources/spring/spring-extension-library-foia.xml
+  the XML comment region OPENS at line 131 and CLOSES at line 141.  Both
+  declarations inside it are therefore commented out: the alternative
+  folder-name-equals predicate declared at line 131 and the script-evaluating
+  predicate declared at line 139.  There is NO ACTIVE DECLARATION of either at
+  all.  The sole consumer, a bean reference at line 150, sits inside a commented
+  property block spanning lines 148 to 152.  The privacy application has NO XML
+  reference whatsoever, and its apparent cross-module references are declaration
+  examples inside documentation comments.
+  That reading was verified line by line for this file, and it corrects a
+  description elsewhere in the migration plan which treats line 131 as an active
+  declaration of a different, non-scripting predicate class.  Line 131 is where
+  the comment opens.  Getting this backwards would turn a proof of unreachability
+  into a claim that something live had been left broken.
+  ONE CLAIM IS WITHDRAWN AS FALSE, AND ITS REPLACEMENT MEASURED.  An earlier
+  revision of this annotation asserted that no standalone scripting-engine
+  artifact is declared as a dependency anywhere in the reactor, and characterised
+  the root build file's comment block as declining to pin the engine and
+  forbidding its addition.  Both statements were true of an earlier state of this
+  tree and are false of the tree this capture describes.  They are withdrawn here
+  rather than quietly dropped, because a reader who carried them forward would
+  conclude the opposite of the truth about the classpath.
+  WHAT IS ACTUALLY DECLARED, re-derived over this tree rather than recalled.  A
+  search for the engine across every build file returns four matches in two files.
+  The root aggregator holds three: the version property, pinned at 15.4; the
+  comment block at pom.xml:L203-L218 that explains the pin; and the managed
+  dependency entry at pom.xml:L1153-L1164, whose own comment records that the
+  engine's classes live under a package the platform never shipped and that it
+  registers through the standard scripting service descriptor, so the scripting
+  API the task listeners go through is untouched.  One module declares it:
+  acm-plugins/acm-extra-plugins/acm-personnel-security-plugin/pom.xml at lines 117
+  to 121, at RUNTIME scope, because no source file in that module names it.  The
+  root comment block is therefore the precise inverse of what was claimed: it pins
+  the engine and states why, and it scopes the migration plan's instruction not to
+  add a standalone engine to the two dead call sites analysed below, which it
+  leaves unrepaired.  The fourth match is a version-property key inside this
+  evidence tree's own advisory capture script, which is not engine wiring.
+  WHY THAT DECLARATION EXISTS, AND WHY IT IS NOT A REPAIR OF THIS DEFECT.  It
+  serves the TASK-LISTENER path recorded under finding 1 above, which executed at
+  the base commit on Java 8 and stopped executing on the new runtime - a live
+  behavioural regression introduced by the runtime move, evidenced by the
+  personnel-security background-investigation integration test erroring 2 of 2
+  with a message naming a missing javascript engine, against no baseline row.  It
+  does not serve, and cannot reach, the two call sites below: neither the freedom
+  of information application nor the privacy application declares the engine, and
+  both call sites are unreachable in any case for the reasons set out above.
+  THE DECISION AND ITS TWO JUSTIFICATIONS.  Nothing was added FOR THESE TWO CALL
+  SITES, and neither is on the classpath of a module that declares the engine.
+  First, adding one for their sake would introduce a production dependency solely
+  to support code that cannot execute, which is not a compatibility-blocking
+  upgrade and is therefore out of scope.  Second, it would convert provably dead
+  code into live code, which is a behaviour CHANGE measured against pre-migration
+  behaviour, and pre-migration behaviour is the tie-breaker.  The defect is
+  registered instead.  Note the contrast with the task-listener path, where the
+  same two tests point the other way: that path DID execute before the runtime
+  move, so restoring it preserves pre-migration behaviour and declining to would
+  change it.  Same engine, opposite conclusions, because the two paths had
+  opposite pre-migration behaviour.
+  A CAUTION FOR ANY READER RECONCILING THIS WITH FINDING 1.  The two dead call
+  sites above and the seven task listeners in finding 1 are different paths with
+  opposite pre-migration behaviour: the call sites never ran, the listeners did.
+  This annotation records both and is careful not to conflate their outcomes.  The
+  LISTENER path has been restored, by the runtime-scope declaration measured two
+  paragraphs above; the CALL-SITE path has not, and is registered as a defect
+  rather than made functional.  An earlier revision of this annotation stated that
+  no restoration existed in this tree, which was true when it was written and is
+  false now; it is withdrawn here for the same reason the claim above it is.
+
+NORMALISATION APPLIED TO THE REGION
+  Stripped, as inter-run noise: timestamps; thread names and identifiers;
+  engine-assigned deployment, process-instance and execution identifiers; job and
+  timer identifiers; database connection identifiers; elapsed-time figures.
+  Preserved, because each is what a criterion compares: every process-definition
+  key; every definition resource name and version suffix; every count; and the
+  full text of any WARN or ERROR line, of which this region contains none.
+  Counts are exempted from normalisation explicitly.  A pipeline that strips digits
+  as volatile would erase the only evidence this file carries, so the reconciliation
+  figure, the newly-deployed figure, the matched-lines figure and the corpus figures
+  are all exempt and survive intact.
+  Two absolute paths survive inside the region, in the container's own deployment
+  lines, and they are left as captured.  Rewriting bytes inside a byte-pinned
+  region would break the digest re-derivation that proves this capture genuine,
+  which is a worse outcome than retaining a scratch directory name.  The
+  counterpart capture retains the equivalent path for its own runtime directory, so
+  the two differ there by capture-environment provenance rather than by behaviour.
+
+REDACTION APPLIED
+  The fixed placeholder in this tree is <REDACTED>, following the convention at
+  docs/setup.md:L144.  Nothing in this region required it: the region carries no
+  credential, no connection string and no session identifier, and it was scanned
+  for credential-shaped assignments before this annotation was written.
+  The documented administrator credential is recorded at README.md:L189, an anchor
+  also re-derived for this file because the brief's anchor for it was stale.  Its
+  password VALUE appears nowhere in this file and nowhere else in this capture
+  directory; that was verified by searching for the value itself rather than for
+  the word password.
+  THE RULE APPLIED TO PROCESS VARIABLES, stated so it can be checked: variable
+  NAMES are preserved because a name is what a comparison matches, and variable
+  VALUES are redacted unless a value is demonstrably a non-sensitive control value
+  needed as evidence, on the grounds that a value may carry personal or
+  case-sensitive data.  This region contains no process-variable output, so the
+  rule had nothing to act on here; it is stated because the reader is entitled to
+  know which rule was in force.
+  The production launch configuration is described and cited, never reproduced.
+  It lives at README.md:L149 and is duplicated in docs/setup.md.  It is not
+  imported here for two reasons: it contains credential-shaped values, and it
+  contains a pre-existing unbalanced-quotation defect which the governing rule
+  forbids repairing.  Copying it would either propagate that defect or silently
+  repair it, and both are wrong.
+
+GOVERNING RULES AND PROVENANCE
+  TWO PROVENANCE FACTS, stated together, because either one alone misleads.
+  First, there is NO on-disk user rules document for this project: the project's
+  rules facility was queried and returned, verbatim, "No user rules provided.",
+  and that read was complete rather than partial.  Second, rules are nonetheless
+  present and binding: the migration requirements embed an explicit numbered block
+  of seven rules that governs this work in full, exactly as an external rules
+  document would, plus seven transformation rules that are the operational form of
+  the preserve and exclude lists.  Fourteen constraints apply.
+  Reporting only the first would imply that enterprise best practice is the sole
+  standard here, which is wrong.  Reporting only the second would misrepresent
+  where the rules came from.  Best practice is applied on top of them, never as a
+  substitute, and the absence of a rules document is not licence to lower the bar.
+  The identifiers used to cite those rules across this evidence tree are the
+  migration plan's OWN navigational convention, not quoted rule titles.  No rule
+  is invented here and none is softened.
+  BASELINE BEHAVIOUR IS THE TIE-BREAKER.  This is the rule that creates this file.
+  It makes the application's observed behaviour at the pre-migration base commit
+  the tie-breaker for any ambiguity, and it requires each resolution to be
+  documented.  It is PARAPHRASED here rather than quoted, and that choice is
+  disclosed rather than made silently: the rule's own text names the older runtime
+  with a phrase this documentation tree's wording gate forbids, so a verbatim quote
+  would require substituting JDK 8 into it.  Paraphrase avoids the substitution
+  entirely.  The clause requiring each resolution to be documented is what this
+  annotation discharges, and the comparison target for this gate is identical
+  process instantiation AND identical task assignment.  Both halves are named
+  because a start request can answer successfully while no instance was created and
+  no task assigned, so the criterion is a matching definition key, a matching task
+  name and a matching assignee, not merely a successful response.
+  EVIDENCE OVER EXIT STATUS, applied at full strength.  No verdict in this file
+  rests on a process exit status.  Every figure above was read back from the region
+  after it was written, or re-derived by command over this tree.  The point is
+  applied literally to this gate: an engine bean that constructs without throwing
+  is not evidence that definitions deployed, so construction is reported as
+  construction and the definition figures are reported separately: the corpus figure as
+  an expectation about the repository, and the engine repository total as an observation
+  taken from the engine's own records.
+  DOCUMENT DISCOVERED DEFECTS, DO NOT FIX THEM.  Applied to the scripting-engine
+  defect above, to the unbalanced-quotation defect in the launch configuration, and
+  to the out-of-scope observations below.  The change set invokes this rule's escape
+  clause exactly twice and NEITHER invocation is in this folder, which keeps the
+  exception count auditable and stops it growing quietly.
+  JUSTIFIED CHANGES, AND ITS CONTRAPOSITIVE.  Every dependency change in this
+  migration owes a specific compatibility reason, and the contrapositive binds just
+  as hard: a change without such a reason is out of scope.  The engine's unchanged
+  version is that contrapositive in action, together with the corollary recorded in
+  the classification section above.  Operationally the same rule fenced this file's
+  production: no tool was installed to write or verify it, and every derivation
+  above used the standard command set already present.
+  NOTHING SILENTLY SKIPPED.  The engine repository total is now recorded as an
+  observed figure with the source it came from named, and it is reported against the
+  corpus expectation as a gap rather than presented as agreement.  Where an earlier
+  generation of this file recorded UNOBSERVED it did so in plain words rather than
+  filling the field with a plausible figure, and the correction names the new source
+  rather than pretending the figure had always been there.  No test is excluded by
+  anything in this file.
+  NO ENCAPSULATED-PACKAGE ACCESS IN PRODUCTION LAUNCH CONFIGURATION.  The audited
+  configuration declares no module-access JVM argument, meaning an argument that
+  opens or exports an otherwise-encapsulated platform package to the unnamed
+  module, and both the deployment document and the setup document positively state
+  so.  The corresponding register is delivered empty with that positive statement,
+  and it is referred to in this file BY TITLE ONLY.  This file itself carries zero
+  such arguments in any form.
+  NAMESPACE INVARIANCE.  Nothing in this file references the successor namespace, a
+  newer framework generation, a typed dialect of the frontend language or a module
+  bundler.  All are excluded from this migration and none is happening.
+
+OUT-OF-SCOPE OBSERVATIONS, RECORDED AND NOT FIXED
+  Recorded because they were found while verifying this file, and left untouched
+  because they belong to other files and repairing them here would exceed this
+  file's scope.
+  A recursive search for module-access JVM arguments across the documentation tree
+  does not return zero, although THIS FILE returns zero.  The matches are prose
+  descriptions in three deliverable documents and in the two runtime documents, all
+  of which state that no such argument is required, plus seven lines inside the
+  full container capture in this same startup directory.  Those seven are genuine
+  captured lines in which the container echoed its own invocation arguments for the
+  validation runtime.  They are real evidence of how the validation container was
+  launched, they are not the audited production launch configuration, and deleting
+  them would falsify a capture.  Left as captured.
+  An earlier generation of the counterpart flow record for this gate published a
+  definition figure derived by counting region lines that mention a definition file.
+  That was a line count rather than a definition count.  It is withdrawn: the flow
+  record now publishes the engine's own repository total, which this file adopts and
+  adjudicates above, and the line-count figure is retained nowhere.
+  Two citation anchors used by the brief for this file are stale because this
+  migration edits the documents they point into.  The corrected anchors are used
+  above and the corrections are stated where they occur rather than applied
+  silently.
+
+CROSS-REFERENCES, BY FILENAME ONLY, NEVER DUPLICATED
+  Container and application startup lines are in catalina.out.log.  Readiness
+  polling and the startup-completed line the window closes on are in
+  readiness-poll.log.  Context, aspect and directory-service initialisation are in
+  spring-context.log and ldap-context-source.log.  Annotation scanning is in
+  reflection-scan.log.  Persistence initialisation is in jpa-init.log.  Messaging
+  initialisation is in messaging-init.log.  Asset-pipeline output is in
+  frontend-build.log.  The error scan is in errors.log.  All are in this same
+  startup directory.
+  This gate's own execution result, including whether a process instance was
+  created and a task assigned, belongs to the flow 7 records in the parent
+  directory and is not restated here.  This file supplies only the initialisation
+  evidence that flow cites by name.  Toolchain provenance, artifact digests and
+  test-report archives belong to the sibling directories and are neither reproduced
+  nor recomputed here.

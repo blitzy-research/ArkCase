@@ -1,0 +1,723 @@
+flow: 5
+slug: 5-activemq-event
+title: event transits the message broker
+
+===== trigger =====
+trigger-description: the application request that causes an event to be published
+trigger-request-method: POST
+trigger-request-path: /api/latest/plugin/complaint
+trigger-publishing-mechanism: the object write is what publishes; the write path marshals the object and hands it to the messaging template, which sends it to the destination named in the delivery half
+trigger-observed-http-status: not-issued
+trigger-observed-content-type: not-issued
+trigger-observed-body-bytes: 0
+trigger-generated-object-number: 20260807_180
+trigger-response-archived-in: nowhere: no publishing request was issued in this run, so no trigger response exists to archive or to point at
+trigger-body-provenance: no body: there is no captured trigger response to reproduce.  Nothing is substituted for it, and the delivery half below is not allowed to infer an arrival from a trigger that never happened
+trigger-status-is-not-delivery-evidence: a publishing request can answer 200 while the message never arrives; the delivery half below is the only admissible arrival evidence (R-T7)
+----- body -----
+(no single response body: this half is an observation record,
+ and the fields above are its content)
+----- end body -----
+
+===== delivery-attempt-1 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-2 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-3 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-4 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-5 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-6 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-7 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-8 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-9 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-10 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-11 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery-attempt-12 =====
+request-method: GET
+request-url: http://localhost:8080/arkcase/api/latest/plugin/search/advancedSearch?q=%2220260807_180%22&start=0&n=5
+auth-mode: basic
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 200
+observed-content-type: application/json;charset=UTF-8
+observed-content-length: 195
+observed-body-bytes: 195
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: present
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+{
+  "response":{"numFound":0,"start":0,"docs":[]
+  },
+  "facet_counts":{
+    "facet_queries":{},
+    "facet_fields":{},
+    "facet_ranges":{},
+    "facet_intervals":{},
+    "facet_heatmaps":{}}}
+
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 200 
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Set-Cookie: <REDACTED-CREDENTIAL>
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: <HTTP-DATE>
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Type: application/json;charset=UTF-8
+Content-Length: 195
+Date: <HTTP-DATE>
+
+
+----- end response-headers -----
+
+===== delivery =====
+delivery-description: the observed evidence that the published message arrived
+delivery-destination-name: solrAdvancedSearch.in
+delivery-destination-type: queue
+delivery-payload-declared-type: text message carrying JSON; the publisher converts a JSON string and the consumer receives it as a string
+delivery-payload-state: not observed within the capture window: 12 attempts at 5s each.  Recorded plainly rather than inferred from the trigger, and rather than re-triggering until a delivery happened to be seen
+delivery-message-priority: not set by the publisher; the provider default applies
+delivery-message-persistence-configured: persistent delivery mode on the publishing template
+delivery-message-persistence-effective: the provider default, because the property that makes an explicit quality of service take effect appears nowhere in the reactor; that default is also persistent, so the two readings agree
+delivery-message-application-properties: none set by the publisher, which sends a destination and a payload and no properties
+delivery-observation-means: the consumer-side observable effect.  The destination is consumed by the indexing listener, so the object named in the trigger half becoming findable requires that the message was published, delivered and applied.  No broker client library is installed to observe this, and none is needed
+delivery-observation-scope: the search response of THIS delivery attempt only, qualified by a positive reported match count of 0.  Both conditions are required.  An earlier revision searched the WHOLE capture file for the object number, and this flow writes that number into that same file in its own trigger half, so every attempt that answered 200 matched the script's own record and an empty result set was recorded as a delivery.  The count is required as well as the scope because the search platform echoes the submitted query inside its response, so the number is present in the body of an answer that matched nothing
+delivery-observation-means-secondary: broker status surface not-configured
+delivery-observation-means-independent: the broker's own view of the destination, which does not come from the application's answer at all.  Consumer-side and broker-side evidence can disagree, and when they do the disagreement is the finding, so both are captured and neither stands in for the other
+delivery-broker-management-reported-status: not-configured.  This is the status the RESPONSE reported, not the status the transport reported: the reference stack's management surface answers a refused read with transport status 200 and puts the real refusal inside the body, so asserting on the transport status would record a successful observation of a refusal (R-T7)
+delivery-broker-destination-reported-name: not-configured
+delivery-broker-enqueue-count: not-configured — messages the broker has accepted onto this destination
+delivery-broker-dequeue-count: not-configured — messages the broker has seen consumed from it
+delivery-broker-dispatch-count: not-configured
+delivery-broker-inflight-count: not-configured
+delivery-broker-consumer-count: not-configured — consumers attached at the moment of observation; zero means nothing can deliver what the destination carries, which is a broker-side fact that the application's answer cannot report
+delivery-broker-queue-size: not-configured
+delivery-broker-counter-basis: the counters are cumulative for the broker instance, not scoped to this run, and they are recorded as such rather than presented as a per-run delta.  What they establish is that the destination exists, that traffic has passed through it and that something is consuming it; what they do not establish on their own is that THIS run produced the traffic, which is what the consumer-side observation above is for
+delivery-broker-counters-read-without-a-broker-client: the destination name and every counter above were read over ordinary HTTP with the tool this script already uses.  An earlier revision recorded the destination as not observable without a broker client and cited the prohibition on adding tooling; the prohibition is real but the premise was wrong, and it was checked rather than argued
+delivery-observation-broker-credential: <REDACTED-CREDENTIAL> the broker probe is anonymous.  The broker is a separate security domain, so it receives its own credential or none; the ArkCase administrator credential is never sent to it
+delivery-attempts-configured: 12 at 5s
+delivery-attempts-used: 12
+delivery-final-observed-status: 200
+delivery-object-under-observation: 20260807_180
+delivery-payload-reproduced-from: (nothing was delivered to reproduce)
+delivery-broker-connection-credential-source: application configuration, which authenticates the broker connection
+delivery-broker-connection-credential-value-recorded: never
+delivery-messaging-api-references-measured: 46 references to the messaging interfaces across the reactor's Java sources, measured at run time
+delivery-messaging-api-provenance: every one of those references resolves from the broker client library rather than from the platform runtime, which is why the removal of the platform enterprise modules required no reinstatement here — unlike the XML binding, annotation and activation packages, which did
+delivery-startup-corroboration: broker startup lines matched: 280 (see startup/messaging-init.log); persistence startup lines matched: 153 (see startup/jpa-init.log); both mined from the single window recorded in notes/startup-window.txt
+delivery-volatile-values-normalised: broker-assigned message identifier, generated correlation identifier, enqueue and expiry timestamps, redelivery counter, connection and client identifier
+delivery-values-preserved-verbatim: destination name, payload content, declared type, priority and persistence flags, application-set properties
+----- body -----
+(no single response body: this half is an observation record,
+ and the fields above are its content)
+----- end body -----
+

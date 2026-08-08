@@ -6,14 +6,38 @@ because the only thing a baseline is for is recording a failure nobody predicted
 and an authored report can only ever contain what its author already believed.
 
 harvested-by: install-surefire-evidence.sh, committed beside this archive
-harvested-from-commit: 1142314222c85f5ccaa73034f9edb98234fb2b61
-harvested-from-branch: blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614
-working-tree-at-harvest: 7 path(s) OUTSIDE this archive differed from the commit above, so the capture is evidence about the working tree at that moment rather than about the commit alone. This archive itself is excluded from the count, which would otherwise be self-referential and unstable
-integrity: sha256-manifest.txt beside this note covers every report here and
-  this note itself.  Verify the archive has not been edited since it was
-  harvested with:  cd <this directory> && sha256sum -c sha256-manifest.txt
-suites-installed: 284
-aggregate: suites=284 tests=933 failures=3 errors=1 skipped=21
+harvested-from-commit: fe468d4524d4e16014bee336a04d8bfaf77acfab
+harvested-from-branch: blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614-w-053
+commit-resolves-in-this-repository: yes -- fe468d4524d4e16014bee336a04d8bfaf77acfab resolves to a commit object in the repository that owns this archive
+commit-reachable-from-branch: yes -- reachable from blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614-w-053; that branch's head when this harvest ran was fe468d4524d4e16014bee336a04d8bfaf77acfab, and later commits do not affect reachability
+working-tree-at-harvest: clean -- every file outside this archive tracked and unmodified
+git-status-porcelain-at-harvest: empty -- git status --porcelain reported no line outside this archive
+tracked-tree-proof: not-applicable -- the harvest root is a git checkout, so its own HEAD is the identity
+reports-produced-by-a-build-of: fe468d4524d4e16014bee336a04d8bfaf77acfab -- the same commit the harvest ran at
+integrity: sha256-manifest.txt beside this note covers every file in this
+  archive -- every report, this note itself, and every file under notes/.
+  Verify the archive has not been edited since it was harvested with:
+    cd <this directory> && sha256sum -c sha256-manifest.txt
+post-harvest withdrawal, recorded rather than glossed:
+  This archive as committed is the harvest described above MINUS five reports.  The
+  five test classes that produced them were withdrawn from the change set after this
+  harvest ran -- the four Active Directory context-source tests and the angular-starter
+  wiring test -- so their reports describe test source that no longer exists anywhere in
+  the tree, and a report for a class that is not there is not evidence about this change
+  set.  They were removed with the classes.  Nothing else was touched: no surviving
+  report was edited, no runner counter was rewritten, and the digest manifest was
+  regenerated over what remains so it authenticates the archive that is actually here.
+  reports withdrawn: 5
+    acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest.xml
+    acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
+    acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
+    acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
+    ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml
+  as-harvested, before the withdrawal: suites=284 tests=933 failures=3 errors=1 skipped=21
+  the two lines below state the archive AS IT NOW STANDS, measured over the directory,
+  not as it was harvested; the four failure and error rows are untouched by the removal.
+suites-installed: 279
+aggregate: suites=279 tests=893 failures=3 errors=1 skipped=21
 build-install-phase-exit-status: 0
 build-test-phase-exit-status: 0
 
@@ -23,7 +47,7 @@ runtime provenance, read out of the installed reports themselves:
   installed JDK path recorded by the runtime: not carried: java.home and sun.boot.library.path are machine paths and the property allowlist drops them, so this archive states the runtime by version rather than by location
 
 the two transformations applied, and their exact extent:
-  1. absolute machine paths replaced with placeholders: 256064 occurrences
+  1. absolute machine paths replaced with placeholders: 255686 occurrences
      {REACTOR-ROOT}   the root the build ran from
      {LOCAL-ARTIFACT-REPOSITORY}   the local artifact repository the build used
      the repository path was taken from: the default location, the run having recorded no maven.repo.local

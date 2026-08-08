@@ -1,0 +1,109 @@
+what the artifact comparison covers, and what it does not — the scope fence for the byte-identity criterion
+
+subject: the SCOPE of the five-artifact byte comparison in ../artifacts/
+RUNTIME: Java 17.  Interpreter of record for this side: node v20.20.2, npm 10.8.2.
+BASE-COMMIT: c8f6226105
+MIRRORS: docs/migration/smoke-evidence/baseline/notes/01-artifact-comparison-scope.txt
+ESTABLISHES: exactly which produced files the criterion is asserted over, which
+  produced file is deliberately excluded, and what a MATCH on the included set
+  does and does not entitle a reader to conclude
+COMPANIONS: determinism-basis.txt, which establishes that the comparison is
+  valid at all; artifact-gate.txt, which establishes that all five were
+  produced on this side; ../artifacts/diff-result.txt, which states the verdict
+
+why a scope fence needs a file of its own
+=========================================
+The byte-identity criterion is the strongest claim in this whole deliverable —
+stronger than visual equivalence, stronger than a passing test — and a claim
+that strong is only meaningful if the set it ranges over is fixed in advance and
+in writing.  Without that, an inconvenient file can quietly leave the set and
+the criterion still reads as satisfied.  This note fixes the set.  It is
+deliberately separate from the verdict record so that the scope cannot be
+adjusted in the same edit that reports the outcome.
+
+the five artifacts the criterion is asserted over
+=================================================
+Measured from the build output of this side rather than recited from the plan:
+
+  assets/dist/application.js         the concatenated, annotated application
+  assets/dist/application.min.js     the minified application bundle
+  assets/dist/vendors.min.js         the minified third-party bundle
+  assets/dist/application.min.css    the minified stylesheet bundle
+  home.html                          the cache-busted entry document
+
+Four live under the distribution directory; the fifth is at the frontend
+resources root, which is where the pipeline rewrites it.  All five are compared
+by SHA-256, one record per artifact per side, in ../artifacts/.
+
+what the distribution directory actually holds, so the reader can see the
+excluded file rather than take its exclusion on trust
+=====================================================
+The directory holds TEN entries, not five:
+
+  4 of the compared artifacts, under their canonical names
+  4 cache-busted copies of those same four, each carrying a content hash in
+    its filename — these are the files home.html is rewritten to point at
+  1 source map, application.min.js.map
+  1 cache-busted copy of that source map
+
+So the compared set is four of the ten plus home.html from one level up.  The
+cache-busted copies are not compared SEPARATELY and do not need to be: their
+filenames are content hashes of the canonical files, so a canonical file that
+matches byte for byte produces the identically named cache-busted copy, and
+home.html — which is compared — is the document that names them.  A difference
+there would surface as a difference in home.html.
+
+the one produced file deliberately excluded, and the exact reason
+================================================================
+  assets/dist/application.min.js.map            EXCLUDED
+
+The source map is excluded because it EMBEDS FILE PATHS.  Two builds of
+identical input, run from two different absolute roots, produce source maps that
+differ in the path strings and agree in nothing else that matters — so a
+comparison including it would report a difference that is a property of where
+the build ran rather than of what it produced.  The exclusion is therefore
+narrow and mechanical, and it is decided BEFORE the outcome is known rather
+than in response to it.
+
+Two properties keep the exclusion honest.  It is not silent: it is stated here,
+in ../artifacts/diff-result.txt, and in the plan's own validation criteria,
+which record the same caveat.  And it does not shelter the bundles: the map is a
+DEBUGGING SIDECAR that no runtime request loads and no page references, so
+excluding it removes nothing the application's behaviour depends on.  The four
+JavaScript and CSS bundles — which are what the browser executes — remain fully
+in scope, and the map's own byte size on this side is 1474109 bytes, alongside its cache-busted copy.
+
+what a MATCH on this set does and does not mean
+===============================================
+DOES mean: the pipeline consumed the same inputs and emitted the same bytes, so
+  the concatenation order, the annotation pass, the minifier settings, the
+  cache-bust hashes and the rewritten entry document are all unchanged.
+DOES NOT mean: the application behaves identically in a browser.  Nothing in
+  this capture executes the bundles.  The frontend tree contains ZERO spec
+  files, so there is no automated behavioural test on either side to appeal to,
+  which is exactly why the byte criterion is being leaned on this hard.  A
+  reader wanting behavioural assurance beyond byte identity has the eight
+  recorded smoke flows and nothing else, and should read them for what they
+  say rather than inferring from this note.
+DOES NOT mean: anything about a file outside the five named above.
+
+read this note together with
+============================
+../artifacts/diff-result.txt — the verdict this scope applies to, per artifact
+  and overall
+../artifacts/*.sha256 — the ten digest records, five per side
+determinism-basis.txt — why two builds of identical input can be expected to
+  agree byte for byte at all
+artifact-gate.txt — whether all five were produced on this side
+frontend-comparison-provenance.txt — which build each side came from
+02-node-env.txt — the interpreter each side ran, which is the variable the
+  residual difference is attributed to
+
+mirror obligation
+=================
+The baseline counterpart carries this exact filename — 01-artifact-comparison-scope.txt, character
+for character — at the mirrored path under baseline/notes/, so that diff -r over
+the two trees is mechanical.  A CONTENT difference at this filename is expected
+and correct: the two sides state different runtimes, different interpreters and
+different measured figures.  A STRUCTURAL difference — this file present on one
+side only — is not, and means the mirror has been broken.

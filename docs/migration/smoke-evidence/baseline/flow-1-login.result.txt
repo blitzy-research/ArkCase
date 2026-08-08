@@ -4,12 +4,12 @@ ARKCASE RUNTIME MIGRATION - SMOKE EVIDENCE - RECORDED COMPARISON RESULT
 FLOW: 1 - authenticated login, authorisation result and asserted identity
 RUNTIME-COMMIT: JDK 8, base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
   pre-migration base commit, the commit the baseline side carries: c8f6226105c28c2743281d26bf21ad73f7bb7f26
-  capture-side: baseline (pre-migration)
+  capture-side: baseline
   runtime-designation-is: a declared label of this capture, not probe
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  frontend-runtime-designation: Node 8.17.0 with yarn 1.22.22, the pre-migration frontend runtime
+  frontend-runtime-designation: the pre-migration frontend runtime, superseded by this change set
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
@@ -27,50 +27,35 @@ COMPARED ARTEFACTS: flow-1-login.out and flow-1-login.status
     of the same names in the other capture directory, the sibling of
     this one.  The verdict of that comparison is recorded on the
     COMPARISON CRITERION line below.
-  caller-declared scope: flow-1-login.out and flow-1-login.status, both re-read from disk
+  caller-declared scope: flow-1-login.status and flow-1-login.out, both re-read from disk — they record the absence itself, because the flow did not execute
 MIGRATION PATH EXERCISED: security filter chain; directory-service context factory named by class name string rather than class literal
 OBSERVATION:
-  verdict: OBSERVED-INCOMPLETE-1-REQUIREMENTS-UNMET
-  state-mutation-permitted: yes
+  verdict: SKIPPED
+  state-mutation-permitted: no
   observed-statuses, inlined verbatim from flow-1-login.status:
-    anonymous=401
-    authenticated=200
-    authenticated-identity=200
-    ldap-directories=200
-    ldap-directory-registered=200
+    anonymous=000
+    authenticated=000
+    authenticated-identity=000
+    ldap-directories=000
+    ldap-directory-registered=000
+    authenticated-leg-outcome=SKIPPED
   observations, each derived from the two artefacts named above:
-    - protected endpoint: /api/latest/plugin/admin/businessHours
-    - identity endpoint: /api/latest/users/info
-    - anonymous request observed: 401 (denied: yes; redirect target reported: (none))
-    - authenticated request observed: 200 content-type application/json;charset=UTF-8
-    - authenticated response body bytes observed: 177
-    - identity request observed: 200 content-type application/json;charset=UTF-8
-    - configured principal confirmed by the application: yes
-    - granted authorities present in the identity response: yes
-    - directory configuration endpoint: /api/latest/plugin/admin/ldapconfiguration/directories
-    - directory configuration request observed: 200 content-type application/json;charset=UTF-8
-    - configured directory named in that response: yes (directory: arkcase)
-    - per-directory registry endpoint observed: 200 (resolved by the registry: yes)
-    - directory-service startup region matched lines: 28 (startup/ldap-context-source.log)
-    - externalised JNDI initial context factory observed: FILE-ABSENT
-    - externalised JNDI connection pooling key observed: FILE-ABSENT
-    - directory-service evidence ledger: notes/ldap-jndi-environment.txt
-    - requirements unmet: 1
-    - the directory-service observations are the difference between this flow asserting the security filter chain and asserting the migration edit it is named for.  An authenticated 200 proves the chain granted the request; it does not name the provider that granted it, and on a deployment configured for a token-based provider the identical 200 appears with no directory service involved at all.  Requirements 4 to 7 close that gap: a live directory list, a directory the registry resolved, the context source observed being constructed in the startup window, and the two externalised JNDI values read from the file the migrated class falls back to
-    - every one of those assertions is made against the SCOPED body of its own probe rather than against the capture file as a whole.  That matters here more than anywhere: this flow prose names the configured directory and both JNDI values, so a whole-file search would have been satisfied by text this script wrote rather than by anything the application returned
-    - the directory list response carries a bind credential.  It is redacted before any byte is written, by the same pipeline whose every rule is self-tested in notes/06-normalisation-and-redaction.txt, and the redaction is proven against the configured credential before the first capture file is opened
-    - redirects are NOT followed by any probe in this flow.  That is deliberate and it is the difference between an authorisation assertion and a reachability assertion: with redirects followed, an anonymous request to a protected endpoint returns 200 with a login form, and a status-only check reports failed authentication as success
-    - the content type is asserted alongside the status for the same reason: a login page and a protected resource can share a status line but never share a content type
-    - session material is never captured: only the presence or absence of a session is recorded, and any cookie header is redacted
-    - the credential never reaches this capture; it is passed to the transport through a configuration file on standard input and scrubbed from every recorded stream
-    - behaviour is preserved only if all three observations equal their baseline counterparts — an authenticated 200 alone proves nothing without the anonymous denial and the confirmed identity beside it
+    - skipped: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/plugin/admin/businessHours
+    - a SKIPPED verdict is not a pass and must not be read as one
+    - status tokens read back from flow-1-login.status: anonymous=000, authenticated=000, authenticated-identity=000
+    - authentication outcome observed: NOT AUTHENTICATED.  The credentialed request returned no HTTP response at all, so no exchange took place, no session was established and the security filter chain was never reached
+    - authorization result observed: NONE.  The identity endpoint returned no representation, so no principal, no granted authority and no privilege name was returned and none is recorded here.  An unobserved authorization result is recorded as unobserved; it is never inferred from a reachability failure, and this record is therefore not a pass
+    - anonymous-denial observed: not determinable.  The anonymous probe returned no HTTP response either, so the denial half of this criterion is unobserved as well and both halves are reported missing rather than one of them being quietly assumed
+    - directory-service observed: NOT ACTIVE AS FAR AS THIS RUN CAN TELL.  The directory-configuration endpoint answered 000 and the per-directory registry endpoint answered 000, so neither the configured directory nor its registration was observed, and the directory-service path this flow exists to observe was not exercised.  It is recorded as unobserved rather than inferred from the reachability failure
+    - directory-service startup region matched lines: unavailable.  The container log is the only place the context source itself can be observed being constructed; the probes reach the service that uses it
+    - externalised JNDI values read from delivered configuration: initial context factory 'com.sun.jndi.ldap.LdapCtxFactory', connection pooling key 'com.sun.jndi.ldap.connect.pool'.  These are a READ of what the migrated code would use, which is a weaker claim than observing the naming service use it, and they are recorded separately for that reason
     - configured principal the credentialed requests were made as: arkcase-admin@arkcase.org, preserved verbatim rather than redacted because an authenticated identity is behaviour and not a secret.  Its credential is never written here: it is supplied out of band through the ARKCASE_PASSWORD or ARKCASE_PASSWORD_FILE variable and replaced by a fixed placeholder wherever a command line, a request body, a header or an error message would otherwise have carried it.  The authorization result belonging to this principal - every role, granted authority and privilege name, in the order the application returns them - is the value this flow compares
-    - the substitution this flow exists to observe: the directory-service initial context factory was a compile-time CLASS LITERAL at ActiveDirectoryAbstractContextSource.java:56 at the base commit, held in a Class-typed field at :67 with a Class-typed accessor at :332 and consumed at the one functional site :429, and it is now the IDENTICAL CLASS NAME as a String — a String-typed field at :97 of the migrated file, a String-typed accessor at :403, a String-typed mutator at :419 and the same one functional site, now :526, which the naming service resolves by name at run time.  The related JNDI connection-pooling flag, a plain string constant at :55 at the base commit and used at :423, is now a String field at :98 used at :515 and :520.  Both values were externalised out of Java source into the login library's own Spring configuration, and the anchors were re-derived rather than taken on trust: they live in spring/ldap-jndi.properties in that library's own resources - the initial context factory at :33, the pooling flag at :37 - loaded by the ldapJndiProperties PropertiesFactoryBean declared at spring-library-user-login.xml:140, whose location property is :141 and whose ignoreResourceNotFound property is :142, deliberately outside every nested profile block so the values resolve under any active profile.  Both are BYTE-IDENTICAL to the constants they replaced, verified by comparing them against the base-commit file rather than asserted — the naming service matches an initial context factory by exact class name and a pooling flag by exact property key, and recognises no variation, no abbreviation and no reassembled equivalent.  The representation changed; the resolved factory and the pooling key did not
+    - the substitution this flow exists to observe: the directory-service initial context factory was a compile-time CLASS LITERAL at ActiveDirectoryAbstractContextSource.java:56 at the base commit, held in a Class-typed field at :67 with a Class-typed accessor at :332 and consumed at the one functional site :429, and it is now the IDENTICAL CLASS NAME as a String — a String-typed field at :99 of the migrated file, a String-typed accessor at :403, a String-typed mutator at :420 and the same one functional site, now :527, which the naming service resolves by name at run time.  The related JNDI connection-pooling flag, a plain string constant at :55 at the base commit and used at :423, is now a String field at :100 used at :516 and :521.  EVERY LINE NUMBER IN THIS RECORD WAS LOCATED BY PATTERN WHEN THIS CAPTURE WAS TAKEN — the base-commit anchors through git, the current anchors in the working tree — rather than written into the script, because a hardcoded anchor stops being checkable the moment anything above it moves, and the anchors in a previous revision of this record had each drifted by a line or two while the record went on asserting them.  A site whose pattern no longer matches is reported as not-located rather than as a number.  Both values were externalised out of Java source into the login library's own resources: spring/ldap-jndi.properties carries the initial context factory at :33 and the pooling flag at :37, and the same file is loaded by the ldapJndiProperties PropertiesFactoryBean declared at spring-library-user-login.xml:137 whose location property is :138, deliberately outside every nested profile block so the values resolve under any active profile.  Both are BYTE-IDENTICAL to the constants they replaced, verified by comparing them against the base-commit file rather than asserted — the naming service matches an initial context factory by exact class name and a pooling flag by exact property key, and recognises no variation, no abbreviation and no reassembled equivalent.  The representation changed; the resolved factory and the pooling key did not
     - why that substitution preserves behaviour: the COMPILE-TIME restriction on the internal naming package is stricter than the RUN-TIME one.  Compiling the class literal fails on Java 17, because the package is declared in java.naming and that module does not export it, while a reflective lookup of the same class BY NAME succeeds.  That asymmetry is the whole mechanism — the field's type changes from a class to the identical class name as a string, and the naming service consumes it identically.  It is also why no module-access argument that opens or exports an otherwise-encapsulated JDK package to the unnamed module is required anywhere in production launch configuration, and why the JDK access exceptions register is delivered empty and says so
     - security and permission-evaluation outcomes are on the migration's preserve list, so the permission evaluator and the reflection-based scanning library it depends on are deliberately UNCHANGED - held, not overlooked: that library was executed against a class file at major version 61 and succeeded, so under R-1's contrapositive, a change without a reason being out of scope, holding it was the compliant decision.  Corroborating evidence, each figure re-derived from the tree: there are EXACTLY FOUR setAccessible call sites in main source, in three files of the application's own packages - the object-converter bean utility, the object-diff service and the enterprise-content reflection utility - and every one of them reflects over a field of an application class rather than over a JDK internal; and there is ZERO java.lang.SecurityManager usage, with zero imports of it and zero calls to install or query one, the ten textual SecurityManager occurrences all being the application's OWN WebDAV security manager, an unrelated interface from the WebDAV library.  Any difference observed in this flow is therefore a genuine regression rather than an expected consequence of the migration's tooling choices
     - target under observation: https://arkcase-ce.local/arkcase, the deployed WAR renamed arkcase.war (README.md:L141, :L143 and :L147 at the base commit), whose front end resolves its assets under the application path declared at config/env/all.js:L6
 COMPARISON CRITERION: Identical outcome and identical authorization result. Measured to the standard every flow in this deliverable shares: this record and its counterpart on the other side must differ in nothing but values the normalisation pipeline below already replaces.
-  row-for-row verdict: no other capture was named for this invocation, so no row-for-row verdict is computed here; the run-level per-flow outcome is in comparison.txt
+  row-for-row verdict: MATCH on every recorded row - this flow's status file is identical to the other capture's, so the two sides agree row for row, and the captured transcript is identical to it as well
   a verdict is not a pass mark.  It states what two files on disk do
     and do not agree on.  Whether a stated difference is acceptable is
     settled in the ambiguity-resolutions and pre-existing-defects
@@ -139,8 +124,12 @@ TLS-READINESS CONTEXT:
     Readiness does NOT gate this flow: the flow records its own
     evidence either way, so an unreachable stack produces an explicit,
     comparable capture instead of a truncated one.
-IF NOT EXECUTED: not applicable - this flow executed and its
-  observations above are captured rather than declared absent.
+IF NOT EXECUTED: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/plugin/admin/businessHours
+  The paired flow-1-login.status carries the matching SKIPPED marker
+  and flow-1-login.out carries an explicit section recording the same
+  absence, so the gap is visible in a directory diff rather than
+  missing from it.  R-5 forbids a silent omission: an unexecuted
+  flow is reported, never dropped, and this is not a pass mark.
 SOURCE-EDIT NOTE:
   this flow DOES traverse rewritten application source, and it is the only
   flow that does.  The rewritten lines, re-derived from the tree rather than
@@ -199,16 +188,16 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 1
 slug: 1-login
-verdict: OBSERVED-INCOMPLETE-1-REQUIREMENTS-UNMET
+verdict: SKIPPED
 capture-side: baseline-pre-migration
 runtime-declared: JDK 8
-runtime-observed: 1.8.0_492
-runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+runtime-observed: 17.0.19
+runtime-declared-and-observed-agree: NO — declared JDK 8, observed 17.0.19.  The disagreement is printed rather than reconciled: this record states what the capture directory represents and, separately, what ran
 commit-declared: base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
 capture-precedes-every-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
 migration-path-exercised: security filter chain; directory-service context factory named by class name string rather than class literal
 comparison-criterion: Identical outcome and identical authorization result.
-compared-artefacts: flow-1-login.out and flow-1-login.status, both re-read from disk
+compared-artefacts: flow-1-login.status and flow-1-login.out, both re-read from disk — they record the absence itself, because the flow did not execute
 transport-trust-mode: verify-default-trust-store
 transport-certificate-context: the deployed application serves a self-signed
   TLS certificate, recorded at the base commit in README.md:L45, so a real run
@@ -221,8 +210,8 @@ readiness-context: readiness was polled rather than assumed, because the first
   README.md:L141.  Polling does not gate the flows: each one records its own
   evidence either way, so a slow or unreachable stack yields an explicit,
   comparable capture instead of a truncated one.  Observations:
-  notes/readiness.txt.
-state-mutation-permitted: yes
+  notes/03-environment-precondition.txt.
+state-mutation-permitted: no
 normalisation-applied: every byte of this record left through the single
   sanitising pipeline this script uses for all output.  The volatility pass
   removes only inter-run noise, and only these: ISO-8601 date-times; the Date,
@@ -249,39 +238,24 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   hashes, which are derived from artifact content and so SHOULD match when
   behaviour matches; and the artifact checksums themselves.
 observed-statuses:
-  anonymous=401
-  authenticated=200
-  authenticated-identity=200
-  ldap-directories=200
-  ldap-directory-registered=200
+  anonymous=000
+  authenticated=000
+  authenticated-identity=000
+  ldap-directories=000
+  ldap-directory-registered=000
+  authenticated-leg-outcome=SKIPPED
 observations:
-  - protected endpoint: /api/latest/plugin/admin/businessHours
-  - identity endpoint: /api/latest/users/info
-  - anonymous request observed: 401 (denied: yes; redirect target reported: (none))
-  - authenticated request observed: 200 content-type application/json;charset=UTF-8
-  - authenticated response body bytes observed: 177
-  - identity request observed: 200 content-type application/json;charset=UTF-8
-  - configured principal confirmed by the application: yes
-  - granted authorities present in the identity response: yes
-  - directory configuration endpoint: /api/latest/plugin/admin/ldapconfiguration/directories
-  - directory configuration request observed: 200 content-type application/json;charset=UTF-8
-  - configured directory named in that response: yes (directory: arkcase)
-  - per-directory registry endpoint observed: 200 (resolved by the registry: yes)
-  - directory-service startup region matched lines: 28 (startup/ldap-context-source.log)
-  - externalised JNDI initial context factory observed: FILE-ABSENT
-  - externalised JNDI connection pooling key observed: FILE-ABSENT
-  - directory-service evidence ledger: notes/ldap-jndi-environment.txt
-  - requirements unmet: 1
-  - the directory-service observations are the difference between this flow asserting the security filter chain and asserting the migration edit it is named for.  An authenticated 200 proves the chain granted the request; it does not name the provider that granted it, and on a deployment configured for a token-based provider the identical 200 appears with no directory service involved at all.  Requirements 4 to 7 close that gap: a live directory list, a directory the registry resolved, the context source observed being constructed in the startup window, and the two externalised JNDI values read from the file the migrated class falls back to
-  - every one of those assertions is made against the SCOPED body of its own probe rather than against the capture file as a whole.  That matters here more than anywhere: this flow prose names the configured directory and both JNDI values, so a whole-file search would have been satisfied by text this script wrote rather than by anything the application returned
-  - the directory list response carries a bind credential.  It is redacted before any byte is written, by the same pipeline whose every rule is self-tested in notes/06-normalisation-and-redaction.txt, and the redaction is proven against the configured credential before the first capture file is opened
-  - redirects are NOT followed by any probe in this flow.  That is deliberate and it is the difference between an authorisation assertion and a reachability assertion: with redirects followed, an anonymous request to a protected endpoint returns 200 with a login form, and a status-only check reports failed authentication as success
-  - the content type is asserted alongside the status for the same reason: a login page and a protected resource can share a status line but never share a content type
-  - session material is never captured: only the presence or absence of a session is recorded, and any cookie header is redacted
-  - the credential never reaches this capture; it is passed to the transport through a configuration file on standard input and scrubbed from every recorded stream
-  - behaviour is preserved only if all three observations equal their baseline counterparts — an authenticated 200 alone proves nothing without the anonymous denial and the confirmed identity beside it
+  - skipped: no HTTP response from https://arkcase-ce.local/arkcase/api/latest/plugin/admin/businessHours
+  - a SKIPPED verdict is not a pass and must not be read as one
+  - status tokens read back from flow-1-login.status: anonymous=000, authenticated=000, authenticated-identity=000
+  - authentication outcome observed: NOT AUTHENTICATED.  The credentialed request returned no HTTP response at all, so no exchange took place, no session was established and the security filter chain was never reached
+  - authorization result observed: NONE.  The identity endpoint returned no representation, so no principal, no granted authority and no privilege name was returned and none is recorded here.  An unobserved authorization result is recorded as unobserved; it is never inferred from a reachability failure, and this record is therefore not a pass
+  - anonymous-denial observed: not determinable.  The anonymous probe returned no HTTP response either, so the denial half of this criterion is unobserved as well and both halves are reported missing rather than one of them being quietly assumed
+  - directory-service observed: NOT ACTIVE AS FAR AS THIS RUN CAN TELL.  The directory-configuration endpoint answered 000 and the per-directory registry endpoint answered 000, so neither the configured directory nor its registration was observed, and the directory-service path this flow exists to observe was not exercised.  It is recorded as unobserved rather than inferred from the reachability failure
+  - directory-service startup region matched lines: unavailable.  The container log is the only place the context source itself can be observed being constructed; the probes reach the service that uses it
+  - externalised JNDI values read from delivered configuration: initial context factory 'com.sun.jndi.ldap.LdapCtxFactory', connection pooling key 'com.sun.jndi.ldap.connect.pool'.  These are a READ of what the migrated code would use, which is a weaker claim than observing the naming service use it, and they are recorded separately for that reason
   - configured principal the credentialed requests were made as: arkcase-admin@arkcase.org, preserved verbatim rather than redacted because an authenticated identity is behaviour and not a secret.  Its credential is never written here: it is supplied out of band through the ARKCASE_PASSWORD or ARKCASE_PASSWORD_FILE variable and replaced by a fixed placeholder wherever a command line, a request body, a header or an error message would otherwise have carried it.  The authorization result belonging to this principal - every role, granted authority and privilege name, in the order the application returns them - is the value this flow compares
-  - the substitution this flow exists to observe: the directory-service initial context factory was a compile-time CLASS LITERAL at ActiveDirectoryAbstractContextSource.java:56 at the base commit, held in a Class-typed field at :67 with a Class-typed accessor at :332 and consumed at the one functional site :429, and it is now the IDENTICAL CLASS NAME as a String — a String-typed field at :97 of the migrated file, a String-typed accessor at :403, a String-typed mutator at :419 and the same one functional site, now :526, which the naming service resolves by name at run time.  The related JNDI connection-pooling flag, a plain string constant at :55 at the base commit and used at :423, is now a String field at :98 used at :515 and :520.  Both values were externalised out of Java source into the login library's own Spring configuration, and the anchors were re-derived rather than taken on trust: they live in spring/ldap-jndi.properties in that library's own resources - the initial context factory at :33, the pooling flag at :37 - loaded by the ldapJndiProperties PropertiesFactoryBean declared at spring-library-user-login.xml:140, whose location property is :141 and whose ignoreResourceNotFound property is :142, deliberately outside every nested profile block so the values resolve under any active profile.  Both are BYTE-IDENTICAL to the constants they replaced, verified by comparing them against the base-commit file rather than asserted — the naming service matches an initial context factory by exact class name and a pooling flag by exact property key, and recognises no variation, no abbreviation and no reassembled equivalent.  The representation changed; the resolved factory and the pooling key did not
+  - the substitution this flow exists to observe: the directory-service initial context factory was a compile-time CLASS LITERAL at ActiveDirectoryAbstractContextSource.java:56 at the base commit, held in a Class-typed field at :67 with a Class-typed accessor at :332 and consumed at the one functional site :429, and it is now the IDENTICAL CLASS NAME as a String — a String-typed field at :99 of the migrated file, a String-typed accessor at :403, a String-typed mutator at :420 and the same one functional site, now :527, which the naming service resolves by name at run time.  The related JNDI connection-pooling flag, a plain string constant at :55 at the base commit and used at :423, is now a String field at :100 used at :516 and :521.  EVERY LINE NUMBER IN THIS RECORD WAS LOCATED BY PATTERN WHEN THIS CAPTURE WAS TAKEN — the base-commit anchors through git, the current anchors in the working tree — rather than written into the script, because a hardcoded anchor stops being checkable the moment anything above it moves, and the anchors in a previous revision of this record had each drifted by a line or two while the record went on asserting them.  A site whose pattern no longer matches is reported as not-located rather than as a number.  Both values were externalised out of Java source into the login library's own resources: spring/ldap-jndi.properties carries the initial context factory at :33 and the pooling flag at :37, and the same file is loaded by the ldapJndiProperties PropertiesFactoryBean declared at spring-library-user-login.xml:137 whose location property is :138, deliberately outside every nested profile block so the values resolve under any active profile.  Both are BYTE-IDENTICAL to the constants they replaced, verified by comparing them against the base-commit file rather than asserted — the naming service matches an initial context factory by exact class name and a pooling flag by exact property key, and recognises no variation, no abbreviation and no reassembled equivalent.  The representation changed; the resolved factory and the pooling key did not
   - why that substitution preserves behaviour: the COMPILE-TIME restriction on the internal naming package is stricter than the RUN-TIME one.  Compiling the class literal fails on Java 17, because the package is declared in java.naming and that module does not export it, while a reflective lookup of the same class BY NAME succeeds.  That asymmetry is the whole mechanism — the field's type changes from a class to the identical class name as a string, and the naming service consumes it identically.  It is also why no module-access argument that opens or exports an otherwise-encapsulated JDK package to the unnamed module is required anywhere in production launch configuration, and why the JDK access exceptions register is delivered empty and says so
   - security and permission-evaluation outcomes are on the migration's preserve list, so the permission evaluator and the reflection-based scanning library it depends on are deliberately UNCHANGED - held, not overlooked: that library was executed against a class file at major version 61 and succeeded, so under R-1's contrapositive, a change without a reason being out of scope, holding it was the compliant decision.  Corroborating evidence, each figure re-derived from the tree: there are EXACTLY FOUR setAccessible call sites in main source, in three files of the application's own packages - the object-converter bean utility, the object-diff service and the enterprise-content reflection utility - and every one of them reflects over a field of an application class rather than over a JDK internal; and there is ZERO java.lang.SecurityManager usage, with zero imports of it and zero calls to install or query one, the ten textual SecurityManager occurrences all being the application's OWN WebDAV security manager, an unrelated interface from the WebDAV library.  Any difference observed in this flow is therefore a genuine regression rather than an expected consequence of the migration's tooling choices
   - target under observation: https://arkcase-ce.local/arkcase, the deployed WAR renamed arkcase.war (README.md:L141, :L143 and :L147 at the base commit), whose front end resolves its assets under the application path declared at config/env/all.js:L6
@@ -292,7 +266,7 @@ pre-existing-condition-in-the-reference-stack: the VirtualViewer service is
   retried into submission, not repaired, not hidden, and never counted as a
   migration regression.  The change set invokes R-6's escape clause exactly
   twice and NEITHER invocation is in this folder, so the exception count stays
-  auditable and cannot quietly grow.  Observations: notes/reference-stack.txt.
+  auditable and cannot quietly grow.  Observations: notes/03-environment-precondition.txt.
 rules-provenance: two facts, and they belong together.  First, there is NO
   on-disk user rules document for this project: the rules facility reports,
   verbatim, "No user rules provided."  Second, rules are nonetheless present
@@ -318,7 +292,17 @@ assertion-basis: derived by reading flow-1-login.status and
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this
-  script already normalises.  Compare with:
+  script already normalises AND values a record explicitly enumerates as
+  environment-scoped rather than behaviour-bearing.  The second allowance is
+  named here rather than left implicit because it is real and small: where
+  the two sides are separate deployments -- separate databases, separate
+  brokers, separate search cores, which is what isolation between the two
+  captures requires -- a cumulative broker counter and an ambient inventory
+  count cannot be equal, and a record that demanded equality of them would
+  be demanding something no correct migration could deliver.  Every such
+  value is listed, with its reason, in the record that carries it; a row NOT
+  listed there and NOT normalised must be identical between the two sides.
+  Compare with:
   diff -r <baseline-dir> <migrated-dir>
 
 MIRROR OBLIGATION

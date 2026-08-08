@@ -371,15 +371,24 @@ poms-declaring-the-newer-junit-generation: 0 of 145
   classpath before it is imported anywhere, and neither figure alone rules that
   out.  Both are zero.
 
-  Four of these figures are larger in the working tree, which at the time this
-  note was written reads 77 trees, 407 files, 285 unit classes, 86 integration
-  classes and 371 importing files.  Those five are stated as a measurement taken
-  at a moment, not as an invariant: the migrated corpus is the one still being
-  added to, so a later reading may be larger again, and only the baseline column
-  above is fixed.  The growth is added test classes, enumerated with their
-  reasons in docs/migration/baseline-test-failures.md.  The integration-class
-  count and the newer-generation count are unmoved, and a figure that grew
-  because a test was added is the opposite of what R-5 guards against.
+  As delivered, EVERY figure above reads the same in the working tree: 76 trees,
+  402 files, 280 unit classes, 86 integration classes, 366 importing files and
+  zero on both newer-generation counts.  The delivered test corpus is the
+  base-commit test corpus, which the strongest available check states directly
+  — the two path sets diff empty:
+    diff <( git ls-tree -r --name-only c8f6226105 \
+              | grep '/src/test/java/.*\.java$' | sort ) \
+         <( git ls-files '*.java' | grep '/src/test/java/' | sort )
+  An earlier revision of this note recorded four of these figures as larger in
+  the working tree — 77 trees, 407 files, 285 unit classes and 371 importing
+  files — because that revision of the change set had added seven test classes.
+  All seven are now gone: two were withdrawn during it and five were removed
+  afterwards, the five being outside the enumerated file list the plan freezes.
+  The correction is recorded rather than quietly applied, because a note whose
+  figures move without saying so is not evidence.  Nothing here was reached by
+  deleting or disabling a test the baseline ran: the count that R-5 actually
+  guards — the inherited ignores — is unmoved at 26, and no suite the baseline
+  ran is missing from the migrated archive.
 
 WHAT FOLLOWS FROM THIS.  The corpus sits entirely on the older JUnit generation
 — 366 annotated files and not one on the newer one — and no assertion anywhere

@@ -1,0 +1,127 @@
+ACTIVATION FRAMEWORK MIME RESOLUTION — WHAT THIS DIRECTORY IS FOR
+=================================================================
+
+Why it exists
+-------------
+JEP 320 removed the JavaBeans Activation Framework from the JDK in version 11, so the
+migration reinstates it as an ordinary Maven dependency. Two artifacts satisfy the same
+javax.activation API and their coordinates give no hint that the choice matters: one is
+the reference implementation and one is API-only. The migration plan records the choice
+as BEHAVIOURAL rather than cosmetic, and assigned the evidence for it to the document
+round-trip smoke flow.
+
+That assignment does not work, and this directory is the answer to it. The round-trip
+flow sends its document with an EXPLICIT content type on the request, so the application
+never has to resolve one and the activation defaults are never consulted on either leg.
+A round trip that succeeds would look exactly the same with the wrong artifact. The flow
+additionally cannot run at all in an environment where the content repository is not
+provisioned, which is the environment both committed captures were taken in. Evidence for
+a behaviour-bearing artifact choice cannot rest on a flow that does not exercise the
+behaviour, so the behaviour is exercised here instead — directly, on the target runtime,
+with no network and no reference stack.
+
+What is here
+------------
+  MimeProbe.java   calls new MimetypesFileTypeMap().getContentType(name) for a fixed set
+                   of attachment names and prints one tab-separated line per name, plus
+                   the implementation class it got and the jar that class was loaded from
+  probe.sh         runs the probe against each candidate artifact in turn, reads the two
+                   behaviour-bearing default resources out of each jar, records which
+                   activation jar the built deployment archive ships, counts the
+                   application's own consumers of the same call, and computes the
+                   comparison
+  results.txt      the captured output of a run of probe.sh
+
+Reproduce with:
+  export JAVA_HOME=<jdk-17>
+  PATH="$JAVA_HOME/bin:$PATH" docs/migration/smoke-evidence/activation-mime/probe.sh
+
+What the measurement found
+--------------------------
+Four findings, all read from results.txt rather than asserted here.
+
+1. THE ARTIFACTS DIFFER IN A WAY THE COORDINATES DO NOT SHOW. The reference implementation
+   carries both META-INF/mimetypes.default and META-INF/mailcap.default and holds 42
+   classes; the API-only artifact carries NEITHER and holds 31. MimetypesFileTypeMap reads
+   the first of those resources.
+
+2. THE API-ONLY ARTIFACT DOES NOT RESOLVE DIFFERENTLY — IT FAILS OUTRIGHT. This is a
+   stronger finding than the plan's, and it is stated as the stronger one rather than
+   folded into the weaker wording. Constructing MimetypesFileTypeMap against the API-only
+   jar throws NoClassDefFoundError for com.sun.activation.registries.LogSupport, from the
+   constructor itself. So the consequence of the wrong artifact is not a subtly different
+   media type on an attachment; it is an unhandled error the first time any of the four
+   main-source consumers processes one. The plan describes the consequence as MIME types
+   resolving differently, which would have been the milder outcome.
+
+3. THE DEPLOYED ARCHIVE SHIPS EXACTLY ONE ACTIVATION JAR, and it is the reference
+   implementation. That matters twice: it is the artifact that carries the resources, and
+   one jar rather than two is what keeps resolution deterministic. The reactor excludes the
+   legacy standalone 1.1 jar from both dependencies that drag it in for that second reason,
+   and the probe confirms the stated basis for the exclusion: the legacy jar resolves this
+   probe set IDENTICALLY to the reference implementation, so the exclusion is about not
+   having two providers for one package rather than about the legacy jar resolving wrongly.
+
+4. A REGISTER ENTRY WAS RESTING ON THE WRONG READING OF A FILE, and the probe withdrew it.
+   The reason first recorded for rejecting the legacy standalone jar was that its copy of
+   META-INF/mimetypes.default DIFFERS from the reference implementation's, so a classpath
+   holding both would resolve MIME types in an order-dependent way. Comparing the resource
+   at both levels shows why that reasoning could not stand: as bytes the two copies do
+   differ, 581 against 606 with 50 differing lines, but once comments and blank lines are
+   removed the payload is IDENTICAL — 22 extension-to-type pairs on each side and zero
+   differences between them. The bytes differ only in a licence header and comments, and
+   the mappings are what MimetypesFileTypeMap is built from. Order therefore could not have
+   changed a resolved media type between these two, which is the same conclusion finding 3
+   reached from the opposite direction by executing them. The exclusion is still correct,
+   on the two grounds that survive measurement: R-T4 requires an artifact this migration
+   depends on to be pinned explicitly rather than inherited from whichever dependency
+   happens to carry it, and two providers of one package — 38 classes against 42 — is a
+   duplicate-provider classpath whose CLASS resolution is order-dependent even where its
+   resource payload coincides. The register entry now records that basis instead, and this
+   comparison is part of probe.sh so the withdrawal stays reproducible rather than becoming
+   a claim about a measurement nobody can repeat.
+
+What the resolutions actually are
+---------------------------------
+Worth reading rather than assuming, because the map is smaller than most readers expect.
+Of the eighteen real extensions probed, the reference implementation resolves seven to a
+specific media type — txt, html, png, jpg, gif, tiff and rtf — and returns the fallback
+application/octet-stream for the rest, including pdf, docx, xlsx, zip, csv, xml, eml and
+msg. That is what META-INF/mimetypes.default contains. The two controls, a name with no
+extension and a name with an extension no map knows, both return the fallback on every
+classpath, which is what proves the probe is reading a map at all rather than returning a
+constant.
+
+The consequence for the evidence is a narrow one and is stated narrowly: the artifact
+choice is behaviour-bearing for the seven extensions the map knows and for every path that
+constructs the map at all, and it is NOT the source of a media type for the office formats
+— those are resolved elsewhere in the application.
+
+What this directory does not prove
+----------------------------------
+It does not observe any application code path running in a deployed container. It exercises
+the API the consumers call, on the same runtime, from the same artifact the deployment
+ships. It does not exercise EmailAttachmentExtractorComponent, InputStreamDataSource,
+AbstractBatchXMLFileListener or AttachmentCaptureFileListener themselves.
+
+The class-level assertions for those live in the archived unit suite under
+../migrated/surefire/. Observing them end to end would need a live mail path or a live
+batch-capture path, and neither the mail provider nor the capture tool is provisioned in
+this environment. That gap is recorded here and in the per-boundary contract matrix rather
+than closed by a probe that cannot close it.
+
+Rules this record is bound by
+-----------------------------
+R-1, and its contrapositive. No tool was installed to produce this evidence: the probe is
+compiled and run with the JDK the build already requires, and read with the standard
+command set. No dependency was changed to make the measurement possible.
+
+R-7. The pre-migration behaviour is the tie-breaker, and at the base commit the platform
+supplied this framework with both default resources present. The artifact that reproduces
+that state is the one the deployment ships, and this directory is the measurement that
+shows it rather than the assertion that claims it.
+
+R-T7, evidence over exit codes. probe.sh asserts on captured output and never on a process
+exit status, and here that is not stylistic: one of the three artifacts is EXPECTED to make
+the probe exit non-zero, and that non-zero exit is the finding. A script that branched on
+exit status would have reported the discriminating result as a failure of the probe.

@@ -1,0 +1,90 @@
+restoration of runner-written report content to this archive
+
+subject: ten report files in this evidence tree that stopped being runner output, and
+  the restoration that made them runner output again
+RUNTIME: JDK 8.  Read out of the archived reports themselves rather than taken from
+  prose: every installed report in this archive retains its own java.runtime.version,
+  and across the archive it is 1.8.0_492-8u492-ga~us2-0ubuntu1~25.10.1-b09.
+BASE-COMMIT: c8f6226105
+IMMUTABLE-SOURCE-COMMIT: fc44276779
+MIRRORS: docs/migration/smoke-evidence/migrated/surefire/notes/report-restoration.txt
+ESTABLISHES: that no file under ../ carries authored prose, and that the one report in
+  this archive that had authored prose prepended to it carries none now
+
+why this note exists instead of a comment inside the reports
+===========================================================
+A previous revision of this evidence tree recorded per-report provenance by prepending
+an XML comment to the report it described.  Ten files were treated that way, one under
+this archive and nine under the Java 17 archive.  That was the wrong place for it, and
+for two reasons rather than one.
+
+The first is that it falsified two published claims.  The archive page states that the
+reports carry zero XML comments and zero prose bytes ahead of any testsuite element, and
+the baseline failure register states that each report carries its provenance natively
+rather than in a comment ahead of its root element.  Both were true of every report except
+the ten, and a claim that holds for all but ten files is not a claim, it is an error.
+
+The second is worse in general, though not on this side.  Under the Java 17 archive five of
+the nine comments sat above content the runner had NOT written, because the runner-written
+content had been replaced by authored text; the mirrored note records that in full.  On
+THIS side the single affected file lost nothing: the comment was prepended and the report
+body below it was untouched.
+
+what was restored, and from where
+=================================
+The file is:
+
+  acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest.xml
+
+It is byte-recoverable from commit fc44276779, whose tree carries this archive in the form
+install-surefire-evidence.sh installed it.  That commit IS a commit object in this
+repository, so the source of the restoration can be checked rather than trusted:
+
+  git cat-file -e fc44276779^{commit}
+  git show fc44276779:docs/migration/smoke-evidence/baseline/surefire/acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest.xml
+
+The restoration was performed by deleting the comment block, and the result was verified
+against that immutable source byte for byte and length for length BEFORE anything was
+written.  The two are identical at 2229 bytes.  The comment itself had asserted that it was
+the only thing added; the comparison is what turns that assertion into a measurement, and
+it is the reason this side needed no re-run.
+
+why this side was not re-harvested, restated because the reason changed
+=======================================================================
+The archive page already explains why the pre-migration half was not re-harvested, and
+that reasoning still holds: this side is a JDK 8 capture of a throwaway checkout of the
+base commit, taken before any file in the change set was edited, and re-running it today
+would replace a genuine record of that state with a record of a different one.
+
+What has changed is that the argument no longer has to rest on the comment's own claim
+about itself.  It rests on the byte comparison above.  All 278 reports state
+java.runtime.version 1.8.0_492, every one carries the 15 allowlisted properties JDK 8
+publishes with native values, and elapsed times are naturally distributed -- 153
+zero-valued against 739 non-zero -- which is not the signature of an authored file.
+
+state of the archive after the restoration, measured
+====================================================
+  reports in this archive                                    278
+  reports carrying a native java.runtime.version             278
+  reports carrying a native java.class.version               278
+  reports carrying any XML comment                              0
+  prose bytes ahead of any testsuite element                    0
+  aggregate over the archive    suites=278 tests=892 failures=3 errors=1 skipped=21
+
+The aggregate is unchanged by the restoration.  That is the invariance witness: a text
+transformation that leaves the four runner counters untouched has demonstrably not altered
+a recorded outcome.  The three failures and one error remain the four rows registered in
+docs/migration/baseline-test-failures.md, and nothing here softens one.
+
+The digest manifest beside this note was regenerated over the restored archive, so
+`sha256sum -c sha256-manifest.txt` now authenticates runner output rather than authored
+text -- which is the property the manifest was always supposed to have.
+
+mirror obligation
+=================
+The Java 17 counterpart carries this exact filename -- report-restoration.txt, character
+for character -- at the mirrored path under migrated/surefire/notes/, so that a recursive
+diff over the two trees is mechanical.  A CONTENT difference at this filename is expected
+and correct: the two sides restored a different number of files and state different
+runtimes and different archive sizes.  A STRUCTURAL difference -- this file present on one
+side only -- is not, and means the mirror has been broken.

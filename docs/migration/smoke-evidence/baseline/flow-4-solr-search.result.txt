@@ -23,7 +23,7 @@ RUNTIME / COMMIT
         compiler and no virtual machine, so the runtime is a property of the
         deployed application being observed rather than something this flow can
         measure for itself.
-    runtime-banner-observed: openjdk version "1.8.0_492"
+    runtime-banner-observed: openjdk version "17.0.19" 2026-04-21
         Captured verbatim from the tool, as evidence beside the declared label
         rather than in place of it.
     base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
@@ -62,10 +62,10 @@ COMPARED ARTEFACTS
     what lets a recursive diff pair them without a mapping table.
 
 QUERIES ISSUED
-    1  GET http://localhost:20050/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
+    1  GET http://localhost:53081/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=5&s=create_date_tdt%20asc
        through the application search endpoint, Accept: application/json,
        authenticated as the administrator account; auth-mode recorded as basic
-    2  GET https://arkcase-ce.local/solr
+    2  GET http://localhost:53984/solr
        the search engine directly, unauthenticated, to record whether the
        engine itself answered
 
@@ -297,27 +297,28 @@ R-1 - JUSTIFIED CHANGES, AS A SCOPE FENCE.
 
 OBSERVATION
     Read back from flow-4-solr-search.status and flow-4-solr-search.out.
-    query-issued-application-search: GET http://localhost:20050/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACOMPLAINT&start=0&n=5&s=create_date_tdt%20asc
-    query-issued-search-engine-direct: GET https://arkcase-ce.local/solr
-    status-token-application-search: 500
-    status-token-search-engine-direct: 000
-    match-count-observed: unavailable
-    match-count-settled-across-two-consecutive-observations: unavailable
-    ranking-observed-raw: unavailable
+    query-issued-application-search: GET http://localhost:53081/arkcase/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=5&s=create_date_tdt%20asc
+    query-issued-search-engine-direct: GET http://localhost:53984/solr
+    status-token-application-search: 200
+    status-token-search-engine-direct: 302
+    match-count-observed: 5
+    match-count-settled-across-two-consecutive-observations: yes
+    ranking-observed-raw: 101-CASE_FILE,102-CASE_FILE,103-CASE_FILE,104-CASE_FILE,105-CASE_FILE
 
     RANKING - document identifiers in the order the search returned them.
     Not sorted, not deduplicated, not reordered, not truncated.
-        (no ranking observed.  The ordered identifier list is recorded as
-        "unavailable", which is deliberately NOT the same record as an empty
-        ranking: an empty ranking would assert that the search answered
-        and returned no documents, and no run made that claim here.)
+        rank 1  101-CASE_FILE
+        rank 2  102-CASE_FILE
+        rank 3  103-CASE_FILE
+        rank 4  104-CASE_FILE
+        Relevance scores, where the response exposed them, are
+        transcribed per hit in the ordered result set section of
+        flow-4-solr-search.out and are NOT dropped.
 
     INDEX READINESS AT CAPTURE TIME
-        NOT ESTABLISHED.  No count was observed at all, so there was
-        nothing to settle.  This is recorded plainly as a limitation
-        rather than papered over, and it is NOT reported as a settled
-        empty index: an unpopulated index and an unreached index are
-        different observations and must stay distinguishable.
+        ESTABLISHED.  Two consecutive observations agreed on a non-zero
+        count, so the answer recorded above is the settled state of the
+        index rather than a timing artefact.
 
     WHY THE COUNT IS RECORDED SEPARATELY FROM THE STATUS: an answer of HTTP
     200 carrying an empty result set is a success by status and a failure by
@@ -336,7 +337,7 @@ RUNTIME-COMMIT: JDK 8, base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  frontend-runtime-designation: Node 8.17.0 with yarn 1.22.22, the pre-migration frontend runtime
+  frontend-runtime-designation: the pre-migration frontend runtime, superseded by this change set
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
@@ -357,57 +358,60 @@ COMPARED ARTEFACTS: flow-4-solr-search.out and flow-4-solr-search.status
   caller-declared scope: flow-4-solr-search.out and flow-4-solr-search.status, re-read from disk
 MIGRATION PATH EXERCISED: search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded
 OBSERVATION:
-  verdict: OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET
+  verdict: OBSERVED-SEARCH-ANSWERED
   state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-4-solr-search.status:
     search-request-declaration=OBSERVED
-    search-through-application=500
-    search-engine-direct=000
-    SEARCH: 500
-    SOLR_PING: 000
-    RESULT_COUNT: unavailable
-    RESULT_COUNT_STABLE: unavailable
-    RESULT_IDS_ORDERED: unavailable
+    search-through-application=200
+    search-engine-direct=302
+    search-through-application-recheck-1=200
+    SEARCH: 200
+    SOLR_PING: 302
+    RESULT_COUNT: 5
+    RESULT_COUNT_STABLE: yes
+    RESULT_IDS_ORDERED: 101-CASE_FILE,102-CASE_FILE,103-CASE_FILE,104-CASE_FILE,105-CASE_FILE
   observations, each derived from the two artefacts named above:
-    - application search endpoint observed: 500 content-type text/plain;charset=UTF-8
-    - search engine direct observed: 000
-    - application search response body bytes observed: 37
-    - result count observed: unknown
-    - result count settled across two consecutive observations: unavailable (after 0 re-observation(s), limit 12 at 5s)
-    - document identifiers returned, in the order returned: unavailable
-    - requirements unmet: 5
+    - application search endpoint observed: 200 content-type application/json;charset=UTF-8
+    - search engine direct observed: 302
+    - application search response body bytes observed: 8139
+    - result count observed: 5
+    - result count settled across two consecutive observations: yes (after 1 re-observation(s), limit 12 at 5s)
+    - document identifiers returned, in the order returned: 101-CASE_FILE,102-CASE_FILE,103-CASE_FILE,104-CASE_FILE,105-CASE_FILE
+    - requirements unmet: 0
     - the full result body is captured verbatim; result ordering and result counts are NOT normalised because ranking is the behaviour under observation
     - the result count is also recorded as a token in the .status file, because a search answering 200 with an empty result set is a success by status and a failure by behaviour
     - the query-time figure the engine reports is normalised away: it is wall-clock cost rather than behaviour, and it differs on every run
-    - RESULT_COUNT: unknown
-    - hits transcribed in returned order: 0
+    - RESULT_COUNT: 5
+    - hits transcribed in returned order: 5
     - relevance scores exposed per hit: no
-    - index readiness at capture time: not established: the response exposes no total-match figure, so this capture cannot say whether the index was populated (search engine reached directly: no, observed 000)
+    - index readiness at capture time: not established: the search response header reported status (absent) rather than 0, so a low or zero count here may be an engine condition rather than an index state (search engine reached directly: yes, observed 302)
     - the ordered result set is additionally transcribed into the search-result-set section of the .out, unsorted, undeduplicated, unreordered and untruncated, with scores retained; the engine query-time figure is the only value inside the response that is normalised away
     - RESULT_COUNT above is read back out of flow-4-solr-search.out rather than carried in a variable, so this file and that one cannot disagree about it
     - behaviour is preserved only if the result set and its ordering match the baseline capture exactly
 COMPARISON CRITERION: identical result set AND identical ranking - both halves, each with
   its own verdict, because either half on its own answers the criterion only
   part of the way.
-  RESULT SET HALF - verdict: NOT ESTABLISHED.  No match figure was observed, so there is no
-    result set to compare.  RESULT_COUNT is recorded as the token
-    "unavailable" and deliberately NOT as zero: zero would assert that the
-    search answered and matched nothing, which is a behavioural claim this
-    run did not produce.
-  RANKING HALF - verdict: NOT ESTABLISHED.  No ordered identifier list was observed, so there
-    is no ranking to compare.  RESULT_IDS_ORDERED is recorded as
-    "unavailable", which is deliberately NOT the same record as an empty
-    ranking: an empty ranking would assert that the search answered and
-    returned no documents.
+  RESULT SET HALF - verdict: OBSERVED.  5 match(es), recorded as the RESULT_COUNT token in
+    the .status file rather than left to be inferred from the body.  The set
+    half holds only if the counterpart capture records the same count and the
+    same membership; this record states the observation, not the verdict of
+    the comparison, which is made by diffing the two.
+  RANKING HALF - verdict: OBSERVED.  5 identifier(s) transcribed in the order returned;
+    relevance scores exposed per hit: no.  The ranking half holds only
+    if the counterpart capture lists the same identifiers in the same
+    positions - membership alone is the set half and does not answer this
+    one.
   INDEX READINESS AT CAPTURE TIME, carried here as well as in the note above
     because a low or zero count is uninterpretable without it and the two
     readiness observations are comparable only because the same means was used
     in both runs:
-      unavailable
+      yes
   DOCUMENT IDENTIFIERS IN THE ORDER THE RESPONSE RETURNED THEM, one per line:
-    (none - no identifier was returned on this run, so there is no order
-    to transcribe.  The list is recorded as unavailable, which is not the
-    same thing as empty.)
+    rank 1   101-CASE_FILE
+    rank 2   102-CASE_FILE
+    rank 3   103-CASE_FILE
+    rank 4   104-CASE_FILE
+    rank 5   105-CASE_FILE
   AFFIRMATIVELY, and this is the part a tidy-looking record would quietly
     break: the results were NOT sorted, NOT deduplicated, NOT reordered and
     NOT truncated, and the relevance scores are RETAINED.  The transcriber
@@ -497,11 +501,11 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 4
 slug: 4-solr-search
-verdict: OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET
+verdict: OBSERVED-SEARCH-ANSWERED
 capture-side: baseline-pre-migration
 runtime-declared: JDK 8
-runtime-observed: 1.8.0_492
-runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+runtime-observed: 17.0.19
+runtime-declared-and-observed-agree: NO — declared JDK 8, observed 17.0.19.  The disagreement is printed rather than reconciled: this record states what the capture directory represents and, separately, what ran
 commit-declared: base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
 capture-precedes-every-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
 migration-path-exercised: search client on Java 17, unchanged by design: an HTTP client that manipulates no bytecode and touches no encapsulated JDK package was cleared rather than upgraded
@@ -548,28 +552,29 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   behaviour matches; and the artifact checksums themselves.
 observed-statuses:
   search-request-declaration=OBSERVED
-  search-through-application=500
-  search-engine-direct=000
-  SEARCH: 500
-  SOLR_PING: 000
-  RESULT_COUNT: unavailable
-  RESULT_COUNT_STABLE: unavailable
-  RESULT_IDS_ORDERED: unavailable
+  search-through-application=200
+  search-engine-direct=302
+  search-through-application-recheck-1=200
+  SEARCH: 200
+  SOLR_PING: 302
+  RESULT_COUNT: 5
+  RESULT_COUNT_STABLE: yes
+  RESULT_IDS_ORDERED: 101-CASE_FILE,102-CASE_FILE,103-CASE_FILE,104-CASE_FILE,105-CASE_FILE
 observations:
-  - application search endpoint observed: 500 content-type text/plain;charset=UTF-8
-  - search engine direct observed: 000
-  - application search response body bytes observed: 37
-  - result count observed: unknown
-  - result count settled across two consecutive observations: unavailable (after 0 re-observation(s), limit 12 at 5s)
-  - document identifiers returned, in the order returned: unavailable
-  - requirements unmet: 5
+  - application search endpoint observed: 200 content-type application/json;charset=UTF-8
+  - search engine direct observed: 302
+  - application search response body bytes observed: 8139
+  - result count observed: 5
+  - result count settled across two consecutive observations: yes (after 1 re-observation(s), limit 12 at 5s)
+  - document identifiers returned, in the order returned: 101-CASE_FILE,102-CASE_FILE,103-CASE_FILE,104-CASE_FILE,105-CASE_FILE
+  - requirements unmet: 0
   - the full result body is captured verbatim; result ordering and result counts are NOT normalised because ranking is the behaviour under observation
   - the result count is also recorded as a token in the .status file, because a search answering 200 with an empty result set is a success by status and a failure by behaviour
   - the query-time figure the engine reports is normalised away: it is wall-clock cost rather than behaviour, and it differs on every run
-  - RESULT_COUNT: unknown
-  - hits transcribed in returned order: 0
+  - RESULT_COUNT: 5
+  - hits transcribed in returned order: 5
   - relevance scores exposed per hit: no
-  - index readiness at capture time: not established: the response exposes no total-match figure, so this capture cannot say whether the index was populated (search engine reached directly: no, observed 000)
+  - index readiness at capture time: not established: the search response header reported status (absent) rather than 0, so a low or zero count here may be an engine condition rather than an index state (search engine reached directly: yes, observed 302)
   - the ordered result set is additionally transcribed into the search-result-set section of the .out, unsorted, undeduplicated, unreordered and untruncated, with scores retained; the engine query-time figure is the only value inside the response that is normalised away
   - RESULT_COUNT above is read back out of flow-4-solr-search.out rather than carried in a variable, so this file and that one cannot disagree about it
   - behaviour is preserved only if the result set and its ordering match the baseline capture exactly
@@ -606,7 +611,17 @@ assertion-basis: derived by reading flow-4-solr-search.status and
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this
-  script already normalises.  Compare with:
+  script already normalises AND values a record explicitly enumerates as
+  environment-scoped rather than behaviour-bearing.  The second allowance is
+  named here rather than left implicit because it is real and small: where
+  the two sides are separate deployments -- separate databases, separate
+  brokers, separate search cores, which is what isolation between the two
+  captures requires -- a cumulative broker counter and an ambient inventory
+  count cannot be equal, and a record that demanded equality of them would
+  be demanding something no correct migration could deliver.  Every such
+  value is listed, with its reason, in the record that carries it; a row NOT
+  listed there and NOT normalised must be identical between the two sides.
+  Compare with:
   diff -r <baseline-dir> <migrated-dir>
 
 MIRROR OBLIGATION

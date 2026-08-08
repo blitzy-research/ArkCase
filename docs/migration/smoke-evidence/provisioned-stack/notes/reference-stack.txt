@@ -1,0 +1,55 @@
+reference-stack reachability, observed statuses read back from
+notes/reference-stack.status
+
+solr-url: https://arkcase-ce.local/solr
+solr-observed: 000
+alfresco-share-url: https://arkcase-ce.local/share
+alfresco-share-observed: 000
+pentaho-url: https://arkcase-ce.local/pentaho
+pentaho-observed: 000
+virtualviewer-url: https://arkcase-ce.local/VirtualViewerJavaHTML5
+virtualviewer-observed: 000
+config-server-url: (not supplied)/actuator/health
+config-server-observed: NOT-ATTEMPTED: no CONFIG_SERVER_URL was supplied
+config-server-path-choice: the probed path deliberately does NOT name a
+  configuration resource.  Measured against the provisioned server, a
+  /<application>/<profile> request returns 214,320 bytes carrying 30
+  credential-shaped property keys, including a cloud secret access key and
+  two service passwords.  This capture answers the smaller question - does
+  the server answer on the wire - with a path whose response carries no
+  configuration value, because publishing a deployment secret into a
+  committed evidence tree is not a trade this deliverable may make.
+message-broker-management-url: (not supplied)
+message-broker-management-observed: NOT-ATTEMPTED
+message-broker-management-reading: this row is probed ANONYMOUSLY, so an
+  authentication challenge is a POSITIVE observation: it proves the surface
+  is listening and responding.  Flow 5 probes the same surface WITH a
+  credential, for destination counters, and that is a different question.
+message-broker-transport-endpoint: (not supplied)
+message-broker-transport-observed: NOT-ATTEMPTED
+directory-service-endpoint: (not supplied)
+directory-service-observed: NOT-ATTEMPTED
+database-endpoint: (not supplied)
+database-observed: NOT-ATTEMPTED
+non-http-row-reading: CONNECTED means the port accepted a connection and
+  nothing more.  It does not establish protocol health or that this
+  application can authenticate; the flows that use the service are where
+  that is observed, and flow 1 is the one that observes the directory.
+cloud-tool-endpoints-observed: none, and this row exists so that absence is
+  a recorded fact rather than a gap.  No endpoint and no credential for the
+  transcription or medical-comprehension tools is supplied to this capture:
+  probing a live cloud endpoint would incur third-party charges and would
+  require a secret this deliverable must never hold.
+cloud-tool-archived-unit-test-suites-in-this-capture: 0
+virtualviewer-expectation: HTTP 503.  Documented pre-existing condition in
+  README.md and docs/setup.md at the base commit.  Captured as observed under
+  R-6: not repaired, not retried into submission, not hidden, and not a
+  migration regression.
+
+these probes are anonymous by design: they establish that a service answers,
+  which needs no credential, and sending one would put administrator material
+  on four more connections for no additional evidence.
+
+assertion: for every row above, the only requirement is that the migrated
+  observation equals the baseline observation.  No status is judged good or
+  bad by this script.

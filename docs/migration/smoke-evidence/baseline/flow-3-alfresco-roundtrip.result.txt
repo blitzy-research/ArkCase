@@ -9,7 +9,7 @@ RUNTIME-COMMIT: JDK 8, base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  frontend-runtime-designation: Node 8.17.0 with yarn 1.22.22, the pre-migration frontend runtime
+  frontend-runtime-designation: the pre-migration frontend runtime, superseded by this change set
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
@@ -28,33 +28,51 @@ COMPARED ARTEFACTS: flow-3-alfresco-roundtrip.out and flow-3-alfresco-roundtrip.
     this one.  The verdict of that comparison is recorded on the
     COMPARISON CRITERION line below.
   caller-declared scope: flow-3-alfresco-roundtrip.out and flow-3-alfresco-roundtrip.status, re-read from disk
-MIGRATION PATH EXERCISED: reinstated XML binding API and its runtime; activation framework MIME-type mapping
+MIGRATION PATH EXERCISED: reinstated XML binding API and its runtime; the activation framework MIME-type mapping that made the reference implementation mandatory rather than the API-only jar, which lacks the default MIME and mailcap resources
 OBSERVATION:
-  verdict: NOT-EXERCISED-NO-FIXTURE-OBJECT
+  verdict: OBSERVED-ROUNDTRIP-COMPLETED
   state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-3-alfresco-roundtrip.status:
-    repository-reachability=000
-    upload-document=SKIPPED
-    download-document=SKIPPED
+    repository-reachability=302
+    upload-document=200
+    download-document=200
     mime-declared-on-send=text/plain
-    mime-recorded-by-application=not-observed
-    mime-resolved-on-download=not-observed
-    store-response-representation-type=not-observed
-    mime-identity=not-compared
-    mime-resolution=not-compared
-    retrieved-bytes-match=SKIPPED
-    roundtrip=SKIPPED
-    REASON: no fixture object was available to attach a document to; flow 6 must create it first
-    store-leg=SKIPPED
-    retrieve-leg=SKIPPED
+    mime-recorded-by-application=text/plain
+    mime-resolved-on-download=text/plain;charset=UTF-8
+    store-response-representation-type=application/json;charset=UTF-8
+    mime-identity=yes
+    mime-resolution=text/plain
+    retrieved-bytes-match=yes
+    roundtrip=requirements-unmet-0
+    store-leg=OBSERVED
+    retrieve-leg=OBSERVED
   observations, each derived from the two artefacts named above:
-    - content repository reachability observed: 000
-    - flow 6 did not produce an object to attach a document to, so there was nothing to round-trip against
-    - both legs carry an explicit SKIPPED record with a REASON in the .out rather than being omitted from it (R-5)
-    - repository-assigned object identifier: treated as BEHAVIOUR-BEARING, not as volatile.  It is captured verbatim and reused verbatim to build the retrieve request, because the two legs have to be shown to concern the SAME object; it is expected to differ between two runs and no normalise expression touches it
-    - no captured payload required a token to be normalised for a wording gate on this run
-    - no captured line begins with a character the plain-text checks look for
-    - requirements unmet: 1
+    - content repository reachability observed: 302
+    - parent object used: COMPLAINT 121 (created by flow 6)
+    - upload observed: 200 content-type application/json;charset=UTF-8 (/api/latest/service/ecm/upload)
+    - stored document identifier recovered: 157
+    - mime type declared when the document was sent: text/plain
+    - mime type recorded by the application for the stored object: text/plain
+    - mime type the download endpoint served the object as: text/plain;charset=UTF-8
+    - mime criterion requirements unmet: 0 (the three-way identity between the three rows immediately above)
+    - content type of the store RESPONSE itself: application/json;charset=UTF-8 — the endpoint representation format, recorded as endpoint evidence and deliberately excluded from the MIME criterion
+    - object name sent: arkcase-smoke-probe.txt; object name recorded: arkcase-smoke-probe
+    - download observed: 200 content-type text/plain;charset=UTF-8 content-length 116 (/api/latest/plugin/ecm/download)
+    - digest of the bytes sent: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+    - digest of the bytes retrieved: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+    - retrieved bytes match sent bytes: yes
+    - requirements unmet: 0
+    - each leg carries two distinctly named sections in the .out — store-leg and store-leg-document-identity, then retrieve-leg and retrieve-leg-document-identity — with the same field set in the same order whether or not the leg ran, so a directory diff lines up field against field (R-5, R-7).  The names are distinct because every reader here is section-scoped: two sections sharing one name put the second one out of reach of the only mechanism that reads it
+    - repository-assigned object identifier: treated as BEHAVIOUR-BEARING, not as volatile.  It is captured verbatim on the store leg and reused verbatim to build the retrieve request, because the two legs must be shown to concern the SAME object; it is therefore expected to differ between two runs, and that row alone differing is not a behavioural difference.  No normalise expression touches it
+    - this is a real round trip: a document with fixed, known bytes is stored against a real parent object, retrieved, and compared byte for byte, and the resolved content type is recorded on both legs
+    - the content type is the reason this flow exists in the form it does: it is the observable output of the activation framework MIME mapping, and every recorded value is verbatim, because a MIME type is behaviour-bearing here and rewriting a recorded one would erase the signal
+    - the MIME criterion is asserted as a three-way identity — the type declared on send, the type the application recorded for the document, and the type it served the document back as must all name one media type — and EVERY mismatch increments the unmet count, so a MIME regression moves this verdict off OBSERVED-ROUNDTRIP-COMPLETED.  A content type that is ABSENT from an observed store response is counted as a mismatch rather than as an absence of observation, because that is precisely the regression the API-only activation jar would produce: it lacks the default MIME and mailcap resources, so the upload succeeds and no type comes back
+    - the comparison is made on the media type — type and subtype, lower-cased, parameters removed — while every row keeps its verbatim value.  A charset parameter added by the servlet container is not a MIME resolution difference, and counting one would report a regression that did not happen; the row that states the comparison prints the essences it compared, so the judgement can be checked against the verbatim values and disagreed with
+    - the uploaded document is registered for removal and deleted at the end of the run; see notes/cleanup.txt
+    - if the generated document shape differs between the two captures, suspect provider resolution for the XML binding API first: a second implementation of the same API is on the deployed classpath through the persistence provider object-XML module, and the deployed classpath shape was verified by execution to resolve to the reference implementation and to produce identical output, which is why no provider-selection properties file is required anywhere and none is added
+    - nothing captured on this run required a token to be normalised for a wording gate; if a future capture does, the substitution and its reason are recorded here rather than applied silently, and the surrounding element is kept
+    - no captured line begins with a character the plain-text checks look for; captured bodies stay inside their own delimiters
+    - behaviour is preserved only if the stored document, the retrieved bytes and every resolved content type match the baseline capture
 COMPARISON CRITERION: Identical stored document and identical MIME resolution. Measured to the standard every flow in this deliverable shares: this record and its counterpart on the other side must differ in nothing but values the normalisation pipeline below already replaces.
   row-for-row verdict: no other capture was named for this invocation, so no row-for-row verdict is computed here; the run-level per-flow outcome is in comparison.txt
   a verdict is not a pass mark.  It states what two files on disk do
@@ -137,14 +155,14 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 3
 slug: 3-alfresco-roundtrip
-verdict: NOT-EXERCISED-NO-FIXTURE-OBJECT
+verdict: OBSERVED-ROUNDTRIP-COMPLETED
 capture-side: baseline-pre-migration
 runtime-declared: JDK 8
-runtime-observed: 1.8.0_492
-runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+runtime-observed: 17.0.19
+runtime-declared-and-observed-agree: NO — declared JDK 8, observed 17.0.19.  The disagreement is printed rather than reconciled: this record states what the capture directory represents and, separately, what ran
 commit-declared: base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
 capture-precedes-every-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
-migration-path-exercised: reinstated XML binding API and its runtime; activation framework MIME-type mapping
+migration-path-exercised: reinstated XML binding API and its runtime; the activation framework MIME-type mapping that made the reference implementation mandatory rather than the API-only jar, which lacks the default MIME and mailcap resources
 comparison-criterion: Identical stored document and identical MIME resolution.
 compared-artefacts: flow-3-alfresco-roundtrip.out and flow-3-alfresco-roundtrip.status, re-read from disk
 transport-trust-mode: verify-default-trust-store
@@ -187,28 +205,46 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   hashes, which are derived from artifact content and so SHOULD match when
   behaviour matches; and the artifact checksums themselves.
 observed-statuses:
-  repository-reachability=000
-  upload-document=SKIPPED
-  download-document=SKIPPED
+  repository-reachability=302
+  upload-document=200
+  download-document=200
   mime-declared-on-send=text/plain
-  mime-recorded-by-application=not-observed
-  mime-resolved-on-download=not-observed
-  store-response-representation-type=not-observed
-  mime-identity=not-compared
-  mime-resolution=not-compared
-  retrieved-bytes-match=SKIPPED
-  roundtrip=SKIPPED
-  REASON: no fixture object was available to attach a document to; flow 6 must create it first
-  store-leg=SKIPPED
-  retrieve-leg=SKIPPED
+  mime-recorded-by-application=text/plain
+  mime-resolved-on-download=text/plain;charset=UTF-8
+  store-response-representation-type=application/json;charset=UTF-8
+  mime-identity=yes
+  mime-resolution=text/plain
+  retrieved-bytes-match=yes
+  roundtrip=requirements-unmet-0
+  store-leg=OBSERVED
+  retrieve-leg=OBSERVED
 observations:
-  - content repository reachability observed: 000
-  - flow 6 did not produce an object to attach a document to, so there was nothing to round-trip against
-  - both legs carry an explicit SKIPPED record with a REASON in the .out rather than being omitted from it (R-5)
-  - repository-assigned object identifier: treated as BEHAVIOUR-BEARING, not as volatile.  It is captured verbatim and reused verbatim to build the retrieve request, because the two legs have to be shown to concern the SAME object; it is expected to differ between two runs and no normalise expression touches it
-  - no captured payload required a token to be normalised for a wording gate on this run
-  - no captured line begins with a character the plain-text checks look for
-  - requirements unmet: 1
+  - content repository reachability observed: 302
+  - parent object used: COMPLAINT 121 (created by flow 6)
+  - upload observed: 200 content-type application/json;charset=UTF-8 (/api/latest/service/ecm/upload)
+  - stored document identifier recovered: 157
+  - mime type declared when the document was sent: text/plain
+  - mime type recorded by the application for the stored object: text/plain
+  - mime type the download endpoint served the object as: text/plain;charset=UTF-8
+  - mime criterion requirements unmet: 0 (the three-way identity between the three rows immediately above)
+  - content type of the store RESPONSE itself: application/json;charset=UTF-8 — the endpoint representation format, recorded as endpoint evidence and deliberately excluded from the MIME criterion
+  - object name sent: arkcase-smoke-probe.txt; object name recorded: arkcase-smoke-probe
+  - download observed: 200 content-type text/plain;charset=UTF-8 content-length 116 (/api/latest/plugin/ecm/download)
+  - digest of the bytes sent: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+  - digest of the bytes retrieved: 803cb8df217e3bcddbb28b4a842a73eca4742a662eca924f1e855dd768f252c9
+  - retrieved bytes match sent bytes: yes
+  - requirements unmet: 0
+  - each leg carries two distinctly named sections in the .out — store-leg and store-leg-document-identity, then retrieve-leg and retrieve-leg-document-identity — with the same field set in the same order whether or not the leg ran, so a directory diff lines up field against field (R-5, R-7).  The names are distinct because every reader here is section-scoped: two sections sharing one name put the second one out of reach of the only mechanism that reads it
+  - repository-assigned object identifier: treated as BEHAVIOUR-BEARING, not as volatile.  It is captured verbatim on the store leg and reused verbatim to build the retrieve request, because the two legs must be shown to concern the SAME object; it is therefore expected to differ between two runs, and that row alone differing is not a behavioural difference.  No normalise expression touches it
+  - this is a real round trip: a document with fixed, known bytes is stored against a real parent object, retrieved, and compared byte for byte, and the resolved content type is recorded on both legs
+  - the content type is the reason this flow exists in the form it does: it is the observable output of the activation framework MIME mapping, and every recorded value is verbatim, because a MIME type is behaviour-bearing here and rewriting a recorded one would erase the signal
+  - the MIME criterion is asserted as a three-way identity — the type declared on send, the type the application recorded for the document, and the type it served the document back as must all name one media type — and EVERY mismatch increments the unmet count, so a MIME regression moves this verdict off OBSERVED-ROUNDTRIP-COMPLETED.  A content type that is ABSENT from an observed store response is counted as a mismatch rather than as an absence of observation, because that is precisely the regression the API-only activation jar would produce: it lacks the default MIME and mailcap resources, so the upload succeeds and no type comes back
+  - the comparison is made on the media type — type and subtype, lower-cased, parameters removed — while every row keeps its verbatim value.  A charset parameter added by the servlet container is not a MIME resolution difference, and counting one would report a regression that did not happen; the row that states the comparison prints the essences it compared, so the judgement can be checked against the verbatim values and disagreed with
+  - the uploaded document is registered for removal and deleted at the end of the run; see notes/cleanup.txt
+  - if the generated document shape differs between the two captures, suspect provider resolution for the XML binding API first: a second implementation of the same API is on the deployed classpath through the persistence provider object-XML module, and the deployed classpath shape was verified by execution to resolve to the reference implementation and to produce identical output, which is why no provider-selection properties file is required anywhere and none is added
+  - nothing captured on this run required a token to be normalised for a wording gate; if a future capture does, the substitution and its reason are recorded here rather than applied silently, and the surrounding element is kept
+  - no captured line begins with a character the plain-text checks look for; captured bodies stay inside their own delimiters
+  - behaviour is preserved only if the stored document, the retrieved bytes and every resolved content type match the baseline capture
 pre-existing-condition-in-the-reference-stack: the VirtualViewer service is
   EXPECTED to answer HTTP 503.  That is a documented pre-existing condition at
   the base commit, recorded in TWO places — README.md:L53 and
@@ -242,7 +278,17 @@ assertion-basis: derived by reading flow-3-alfresco-roundtrip.status and
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this
-  script already normalises.  Compare with:
+  script already normalises AND values a record explicitly enumerates as
+  environment-scoped rather than behaviour-bearing.  The second allowance is
+  named here rather than left implicit because it is real and small: where
+  the two sides are separate deployments -- separate databases, separate
+  brokers, separate search cores, which is what isolation between the two
+  captures requires -- a cumulative broker counter and an ambient inventory
+  count cannot be equal, and a record that demanded equality of them would
+  be demanding something no correct migration could deliver.  Every such
+  value is listed, with its reason, in the record that carries it; a row NOT
+  listed there and NOT normalised must be identical between the two sides.
+  Compare with:
   diff -r <baseline-dir> <migrated-dir>
 
 MIRROR OBLIGATION

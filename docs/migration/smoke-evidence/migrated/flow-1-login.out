@@ -4,7 +4,7 @@ title: authenticated login, authorisation result and asserted identity
 
 ===== anonymous =====
 request-method: GET
-request-url: http://localhost:20040/arkcase/api/latest/plugin/admin/businessHours
+request-url: http://localhost:53080/arkcase/api/latest/plugin/admin/businessHours
 auth-mode: anon
 redirects-followed: 0
 redirect-target-reported: (none)
@@ -50,7 +50,7 @@ Date: <HTTP-DATE>
 
 ===== authenticated =====
 request-method: GET
-request-url: http://localhost:20040/arkcase/api/latest/plugin/admin/businessHours
+request-url: http://localhost:53080/arkcase/api/latest/plugin/admin/businessHours
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
@@ -96,7 +96,7 @@ Date: <HTTP-DATE>
 
 ===== authenticated-identity =====
 request-method: GET
-request-url: http://localhost:20040/arkcase/api/latest/users/info
+request-url: http://localhost:53080/arkcase/api/latest/users/info
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
@@ -106,7 +106,7 @@ http-version: 1.1
 observed-http-status: 200
 observed-content-type: application/json;charset=UTF-8
 observed-content-length: (none reported)
-observed-body-bytes: 3515
+observed-body-bytes: 3560
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: present
@@ -117,7 +117,7 @@ capture-headers-truncated: no
 capture-diagnostics-truncated: no
 transport-exit-status-observed: 0
 ----- body -----
-{"userId":"arkcase-admin@arkcase.org","fullName":"ArkCase Administrator","mail":"arkcase-admin@arkcase.org","firstName":"ArkCase","lastName":"Administrator","authorities":["ARKCASE_SUPERVISOR@ARKCASE.ORG","ROLE_ADMINISTRATOR","ROLE_PRE_AUTHENTICATED","ARKCASE_ADMINISTRATOR@ARKCASE.ORG","ROLE_SUPERVISOR","ROLE_BILLING_QUEUE"],"privileges":["acmCalendarAdminPrivilege","acmCaseApprovePrivilege","costsheetApprovePrivilege","subscribePrivilege","acmNotificationModulePrivilege","acmTaskClaimPrivilege","acmSubscriptionModulePrivilege","saveCasePrivilege","blogPrivilege","acmCaseModulePrivilege","tagPrivilege","acmOrganizationDeletePrivilege","acmSearchModulePrivilege","acmObjectTitleSavePrivilege","acmCategoryManagementPrivilege","documentRepositoryModulePrivilege","acmPersonDeletePrivilege","timesheetCreatePrivilege","acmSignatureFindPrivilege","acmPersonAssociationListPrivilege","acmOrganizationModulePrivilege","acmTaskDeletePrivilege","acmConsultationSavePrivilege","acmTaskCreatePrivilege","acmPersonFindPrivilege","acmOrganizationAssociationDeletePrivilege","acmTaskListPrivilege","participantPrivilege","acmObjectTitleGetPrivilege","acmGetSequenceRegistryPrivilege","acmPersonModulePrivilege","timesheetPrivilege","acmOrganizationSavePrivilege","acmTimeModulePrivilege","costsheetCreatePrivilege","helloWorldPrivilege","acmTaskModulePrivilege","acmAdhocReportModulePrivilege","acmListBillingInvoicesPrivilege","acmPersonTypesPrivilege","acmGenerateCorrespondencePrivilege","acmCalendarEventsCreatePrivilege","caseFileListPrivilege","acmSaveNotePrivilege","acmEmailConfigurePrivilege","acmComplaintModulePrivilege","filePrivilege","acmCreateBillingItemPrivilege","acmPersonSavePrivilege","timesheetApprovePrivilege","searchPrivilege","auditReadEventsForObjectPrivilege","acmDeleteNoteByIdPrivilege","acmNotificationPrivilege","acmSignatureConfirmPrivilege","acmCalendarEventsDeletePrivilege","acmOrganizationAssociationListPrivilege","acmGetSequenceResetPrivilege","dashboardPrivilege","generateStateOfArkcasePrivilege","listLocksDetailsPrivilege","acmPersonListPrivilege","acmOrganizationAssociationSavePrivilege","acmComplaintCreatePrivilege","adminPrivilege","acmReportModulePrivilege","acmCalendarEventsSavePrivilege","acmListNotesPrivilege","objectSuggestionPrivilege","acmCalendarReadShortenedConfigPrivilege","objectUnLockPrivilege","acmOrganizationListPrivilege","acmSaveSequenceResetPrivilege","acmCreateBillingInvoicePrivilege","acmAdminModulePrivilege","profilePrivilege","acmListBillingItemsPrivilege","acmAuditModulePrivilege","acmComplaintListPrivilege","acmPersonAssociationDeletePrivilege","objectLockPrivilege","acmPersonAssociationSavePrivilege","listMilestonesGroupedByDate","acmOrganizationDetailsPrivilege","acmConsultationListPrivilege","reportPrivilege","auditPrivilege","listLockedObjectsPrivilege","acmComplaintApprovePrivilege","acmGlobalAllowPrivilege","acmTaskSavePrivilege","splitCaseFilePrivilege","acmComplaintSavePrivilege","acmCalendarEventsListPrivilege","acmTaskCompletePrivilege","acmSaveSequenceConfigurationPrivilege","acmConsultationModulePrivilege","acmCostModulePrivilege","documentRepositoryManagerPrivilege","acmOutlookListObjectsPrivilege","caseFileCreatePrivilege","acmSearchPrivilege","acmDashboardModulePrivilege","acmTagModulePrivilege","costsheetPrivilege","acmGetSequenceConfigurationPrivilege"],"directoryName":"arkcase","country":null,"countryAbbreviation":null,"department":null,"company":null,"title":null,"notificationMessage":null,"langCode":"en"}
+{"userId":"arkcase-admin@arkcase.org","fullName":"ArkCase Administrator","mail":"arkcase-admin@arkcase.org","firstName":"ArkCase","lastName":"Administrator","authorities":["ARKCASE_SUPERVISOR@ARKCASE.ORG@ARKCASE.ORG","ARKCASE_SUPERVISOR@ARKCASE.ORG","ROLE_ADMINISTRATOR","ROLE_PRE_AUTHENTICATED","ARKCASE_ADMINISTRATOR@ARKCASE.ORG","ROLE_SUPERVISOR","ROLE_BILLING_QUEUE"],"privileges":["acmCalendarAdminPrivilege","acmCaseApprovePrivilege","costsheetApprovePrivilege","subscribePrivilege","acmNotificationModulePrivilege","acmTaskClaimPrivilege","acmSubscriptionModulePrivilege","saveCasePrivilege","blogPrivilege","acmCaseModulePrivilege","tagPrivilege","acmOrganizationDeletePrivilege","acmSearchModulePrivilege","acmObjectTitleSavePrivilege","acmCategoryManagementPrivilege","documentRepositoryModulePrivilege","acmPersonDeletePrivilege","timesheetCreatePrivilege","acmSignatureFindPrivilege","acmPersonAssociationListPrivilege","acmOrganizationModulePrivilege","acmTaskDeletePrivilege","acmConsultationSavePrivilege","acmTaskCreatePrivilege","acmPersonFindPrivilege","acmOrganizationAssociationDeletePrivilege","acmTaskListPrivilege","participantPrivilege","acmObjectTitleGetPrivilege","acmGetSequenceRegistryPrivilege","acmPersonModulePrivilege","timesheetPrivilege","acmOrganizationSavePrivilege","acmTimeModulePrivilege","costsheetCreatePrivilege","helloWorldPrivilege","acmTaskModulePrivilege","acmAdhocReportModulePrivilege","acmListBillingInvoicesPrivilege","acmPersonTypesPrivilege","acmGenerateCorrespondencePrivilege","acmCalendarEventsCreatePrivilege","caseFileListPrivilege","acmSaveNotePrivilege","acmEmailConfigurePrivilege","acmComplaintModulePrivilege","filePrivilege","acmCreateBillingItemPrivilege","acmPersonSavePrivilege","timesheetApprovePrivilege","searchPrivilege","auditReadEventsForObjectPrivilege","acmDeleteNoteByIdPrivilege","acmNotificationPrivilege","acmSignatureConfirmPrivilege","acmCalendarEventsDeletePrivilege","acmOrganizationAssociationListPrivilege","acmGetSequenceResetPrivilege","dashboardPrivilege","generateStateOfArkcasePrivilege","listLocksDetailsPrivilege","acmPersonListPrivilege","acmOrganizationAssociationSavePrivilege","acmComplaintCreatePrivilege","adminPrivilege","acmReportModulePrivilege","acmCalendarEventsSavePrivilege","acmListNotesPrivilege","objectSuggestionPrivilege","acmCalendarReadShortenedConfigPrivilege","objectUnLockPrivilege","acmOrganizationListPrivilege","acmSaveSequenceResetPrivilege","acmCreateBillingInvoicePrivilege","acmAdminModulePrivilege","profilePrivilege","acmListBillingItemsPrivilege","acmAuditModulePrivilege","acmComplaintListPrivilege","acmPersonAssociationDeletePrivilege","objectLockPrivilege","acmPersonAssociationSavePrivilege","listMilestonesGroupedByDate","acmOrganizationDetailsPrivilege","acmConsultationListPrivilege","reportPrivilege","auditPrivilege","listLockedObjectsPrivilege","acmComplaintApprovePrivilege","acmGlobalAllowPrivilege","acmTaskSavePrivilege","splitCaseFilePrivilege","acmComplaintSavePrivilege","acmCalendarEventsListPrivilege","acmTaskCompletePrivilege","acmSaveSequenceConfigurationPrivilege","acmConsultationModulePrivilege","acmCostModulePrivilege","documentRepositoryManagerPrivilege","acmOutlookListObjectsPrivilege","caseFileCreatePrivilege","acmSearchPrivilege","acmDashboardModulePrivilege","acmTagModulePrivilege","costsheetPrivilege","acmGetSequenceConfigurationPrivilege"],"directoryName":"arkcase","country":null,"countryAbbreviation":null,"department":null,"company":null,"title":null,"notificationMessage":null,"langCode":"en"}
 ----- end body -----
 ----- transport-diagnostics -----
 (none)
@@ -142,7 +142,7 @@ Date: <HTTP-DATE>
 
 ===== ldap-directories =====
 request-method: GET
-request-url: http://localhost:20040/arkcase/api/latest/plugin/admin/ldapconfiguration/directories
+request-url: http://localhost:53080/arkcase/api/latest/plugin/admin/ldapconfiguration/directories
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)
@@ -152,7 +152,7 @@ http-version: 1.1
 observed-http-status: 200
 observed-content-type: application/json;charset=UTF-8
 observed-content-length: (none reported)
-observed-body-bytes: 2865
+observed-body-bytes: 2921
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: present
@@ -163,7 +163,7 @@ capture-headers-truncated: no
 capture-diagnostics-truncated: no
 transport-exit-status-observed: 0
 ----- body -----
-{"arkcase":{"ldapConfig.userAttributes":"cn,userAccountControl,sn,givenName,dn,distinguishedname,memberOf,sAMAccountName,userPrincipalName,uid,uidNumber,c,co,company,department,title,shadowMax,shadowLastChange,msDS-UserPasswordExpiryTimeComputed,modifyTimestamp,description,member","ldapConfig.enableEditingLdapUsers":true,"ldapConfig.authUserDn":"cn=admin,dc=arkcase,dc=org","ldapConfig.syncEnabled":true,"ldapConfig.ldapUrl":"ldap://127.0.0.1:389","ldapConfig.groupsSortingAttribute":"cn","ldapConfig.changedGroupSearchFilter":"(&(objectclass=groupOfNames)(modifyTimestamp>=%s))","ldapConfig.id":"arkcase","ldapConfig.directoryType":"openldap","ldapConfig.addGroupTemplate":{"member":"member","objectClass":"top,groupOfNames,sortableGroupofnames","cn":"cn","gidNumber":"gidNumber"},"ldapConfig.groupSearchBase":"OU=groups","ldapConfig.allChangedUsersPageFilter":"(&(objectClass=person)(uid>=%s)(modifyTimestamp>=%s))","ldapConfig.allChangedUsersFilter":"(&(objectClass=person)(modifyTimestamp>=%s))","ldapConfig.syncPageSize":500,"ldapConfig.fullSyncCron":"0 5 0 1/1 * ? *","ldapConfig.changedGroupSearchPageFilter":"(&(objectclass=groupOfNames)(cn>=%s)(modifyTimestamp>=%s))","ldapConfig.ldapAddUserConfig":{"objectClass":"top,person,user,organizationalPerson","sn":"sn","userAccountControl":512,"cn":"cn","sAMAccountName":"sAMAccountName","unicodePwd":"<REDACTED-CREDENTIAL>","givenName":"givenName","homeDirectory":"homeDirectory","userPrincipalName":"userPrincipalName","mail":"mail"},"ldapConfig.base":"dc=arkcase,dc=org","ldapConfig.allUsersSortingAttribute":"uid","ldapConfig.groupPrefix":"","ldapConfig.groupSearchFilterForUser":"(&(objectClass=groupOfNames)(member=%s))","ldapConfig.ldapAddGroupConfig":{"cn":"cn","objectClass":"top,group","sAMAccountName":"sAMAccountName"},"ldapConfig.userSearchFilter":"(&(objectClass=person)(uid=%s))","ldapConfig.addUserTemplate":{"userPassword":"<REDACTED-CREDENTIAL>","homeDirectory":"homeDirectory","mail":"mail","givenName":"givenName","objectClass":"top,person,inetOrgPerson,organizationalPerson,posixAccount,uacPerson,shadowAccount","shadowMax":99999,"shadowWarning":7,"cn":"cn","shadowLastChange":12994,"uid":"uid","uidNumber":"uidNumber","id":"arkcase","sn":"sn","gidNumber":"gidNumber","userAccountControl":"userAccountControl"},"ldapConfig.autoGenerateUserId":false,"ldapConfig.allUsersFilter":"(&(objectClass=person))","ldapConfig.groupSearchFilter":"(objectclass=groupOfNames)","ldapConfig.userPrefix":"","ldapConfig.partialSyncCron":"0 0/1 * 1/1 * ? *","ldapConfig.allUsersPageFilter":"(&(objectClass=person)(uid>=%s))","ldapConfig.userIdAttributeName":"uid","ldapConfig.groupControlGroup":"","ldapConfig.userDomain":"arkcase.org","ldapConfig.userControlGroup":"","ldapConfig.authUserPassword":"<REDACTED-CREDENTIAL>","ldapConfig.userSearchBase":"OU=users","ldapConfig.groupSearchPageFilter":"(&(objectclass=groupOfNames)(cn>=%s))"}}
+{"arkcase":{"ldapConfig.userAttributes":"cn,entryUUID,userAccountControl,sn,givenName,dn,distinguishedname,memberOf,sAMAccountName,userPrincipalName,uid,uidNumber,c,co,company,department,title,shadowMax,shadowLastChange,msDS-UserPasswordExpiryTimeComputed,modifyTimestamp,description,member","ldapConfig.enableEditingLdapUsers":true,"ldapConfig.authUserDn":"cn=admin,dc=arkcase,dc=org","ldapConfig.syncEnabled":true,"ldapConfig.ldapUrl":"ldap://127.0.0.1:53389","ldapConfig.groupsSortingAttribute":"entryUUID","ldapConfig.changedGroupSearchFilter":"(&(objectclass=groupOfNames)(modifyTimestamp>=%s))","ldapConfig.id":"arkcase","ldapConfig.directoryType":"openldap","ldapConfig.addGroupTemplate":{"member":"member","objectClass":"top,groupOfNames,sortableGroupofnames","cn":"cn","gidNumber":"gidNumber"},"ldapConfig.groupSearchBase":"OU=groups","ldapConfig.allChangedUsersPageFilter":"(&(objectClass=person)(entryUUID>=%s)(modifyTimestamp>=%s))","ldapConfig.allChangedUsersFilter":"(&(objectClass=person)(modifyTimestamp>=%s))","ldapConfig.syncPageSize":500,"ldapConfig.fullSyncCron":"0 5 0 1/1 * ? *","ldapConfig.changedGroupSearchPageFilter":"(&(objectclass=groupOfNames)(entryUUID>=%s)(modifyTimestamp>=%s))","ldapConfig.ldapAddUserConfig":{"objectClass":"top,person,user,organizationalPerson","sn":"sn","userAccountControl":512,"cn":"cn","sAMAccountName":"sAMAccountName","unicodePwd":"<REDACTED-CREDENTIAL>","givenName":"givenName","homeDirectory":"homeDirectory","userPrincipalName":"userPrincipalName","mail":"mail"},"ldapConfig.base":"dc=arkcase,dc=org","ldapConfig.allUsersSortingAttribute":"entryUUID","ldapConfig.groupPrefix":"","ldapConfig.groupSearchFilterForUser":"(&(objectClass=groupOfNames)(member=%s))","ldapConfig.ldapAddGroupConfig":{"cn":"cn","objectClass":"top,group","sAMAccountName":"sAMAccountName"},"ldapConfig.userSearchFilter":"(&(objectClass=person)(uid=%s))","ldapConfig.addUserTemplate":{"userPassword":"<REDACTED-CREDENTIAL>","homeDirectory":"homeDirectory","mail":"mail","givenName":"givenName","objectClass":"top,person,inetOrgPerson,organizationalPerson,posixAccount,uacPerson,shadowAccount","shadowMax":99999,"shadowWarning":7,"cn":"cn","shadowLastChange":12994,"uid":"uid","uidNumber":"uidNumber","id":"arkcase","sn":"sn","gidNumber":"gidNumber","userAccountControl":"userAccountControl"},"ldapConfig.autoGenerateUserId":false,"ldapConfig.allUsersFilter":"(&(objectClass=person))","ldapConfig.groupSearchFilter":"(objectclass=groupOfNames)","ldapConfig.userPrefix":"","ldapConfig.partialSyncCron":"0 0/30 * 1/1 * ? *","ldapConfig.allUsersPageFilter":"(&(objectClass=person)(entryUUID>=%s))","ldapConfig.userIdAttributeName":"uid","ldapConfig.groupControlGroup":"","ldapConfig.userDomain":"arkcase.org","ldapConfig.userControlGroup":"","ldapConfig.authUserPassword":"<REDACTED-CREDENTIAL>","ldapConfig.userSearchBase":"OU=users","ldapConfig.groupSearchPageFilter":"(&(objectclass=groupOfNames)(entryUUID>=%s))"}}
 ----- end body -----
 ----- transport-diagnostics -----
 (none)
@@ -188,7 +188,7 @@ Date: <HTTP-DATE>
 
 ===== ldap-directory-registered =====
 request-method: GET
-request-url: http://localhost:20040/arkcase/api/latest/ldap/arkcase/editingEnabled
+request-url: http://localhost:53080/arkcase/api/latest/ldap/arkcase/editingEnabled
 auth-mode: basic
 redirects-followed: 0
 redirect-target-reported: (none)

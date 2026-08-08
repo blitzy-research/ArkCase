@@ -1,21 +1,34 @@
 static audit gate — captured output
 
 produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_static_audit
+measurement-engine: measured by docs/migration/smoke-evidence/capture-static-audit.sh --side after, the single measurement engine for this gate
+measurement-engine-side: after
+measurement-engine-invoked: yes
+declared-base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
+capture-side: migrated
 authoritative-presentation: docs/migration/static-audit-output.md
 gate-state: PASSED
+gate-expectation-for-this-side: the after side must report zero of each; a non-zero count here is a gate failure
 
-search-root: .
+search-root: <REPO-ROOT>
+search-basis: tracked files enumerated by git ls-files, so an untracked tree - a scratch checkout, an extracted archive, a vendored copy - cannot move this gate in either direction
 search-pattern: sun.misc\|com.sun.
 search-include: *.java
 search-pruned-directories: target, node_modules, .git, blitzy_adhoc_test_*
 tool: grep (GNU grep) 3.11
-java-files-searched: 3466
+java-files-searched: 3465
 
 command, reproducible verbatim from the repository root:
-  grep -rn -e 'sun.misc\|com.sun.' --include='*.java' --exclude-dir=target \
-      --exclude-dir=node_modules --exclude-dir=.git . \
+  git ls-files -z -- '*.java' \
+      | xargs -0 -r grep -n -e 'sun.misc\|com.sun.' \
       | grep -F '/src/main/java/' | LC_ALL=C sort
   and the same with /src/test/java/ for the test-source count.
+  The prompt states this gate as a recursive grep.  Enumerating the
+  TRACKED files instead answers the identical question over the
+  identical file set, and answers it correctly on a working tree that
+  also holds untracked trees: the recursive form counts a scratch
+  checkout of an older revision as source, which failed this gate
+  against a migrated tree containing no occurrence at all.
 
 hits-whole-tree: 0
 hits-main-source: 0

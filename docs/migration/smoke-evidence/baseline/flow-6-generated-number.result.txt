@@ -9,7 +9,7 @@ RUNTIME-COMMIT: JDK 8, base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  frontend-runtime-designation: Node 8.17.0 with yarn 1.22.22, the pre-migration frontend runtime
+  frontend-runtime-designation: the pre-migration frontend runtime, superseded by this change set
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
@@ -30,27 +30,27 @@ COMPARED ARTEFACTS: flow-6-generated-number.out and flow-6-generated-number.stat
   caller-declared scope: flow-6-generated-number.out, flow-6-generated-number.status and notes/corpus-figures.txt
 MIGRATION PATH EXERCISED: the expression language advanced to 2.4.15.Final, reached through the live decision tables; the rule compiler declares that language with no version of its own, so the reactor property governs which one loads
 OBSERVATION:
-  verdict: OBSERVED-INCOMPLETE-4-REQUIREMENTS-UNMET
+  verdict: OBSERVED-NUMBER-GENERATED
   state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-6-generated-number.status:
-    PRECONDITION_STATUS: 500
-    CREATE: 400
-    NUMBER_ASSIGNED: no
-    REASON: the creation was exercised but the response carried no generated number
+    PRECONDITION_STATUS: 200
+    CREATE: 200
+    NUMBER_ASSIGNED: yes
+    REASON: the creation was exercised and a generated number was observed; its value and format are recorded in the paired .out capture
   observations, each derived from the two artefacts named above:
-    - numbering precondition query observed: 500
-    - object creation observed: 400 content-type text/plain;charset=UTF-8 (/api/latest/plugin/complaint)
-    - creation response body bytes observed: 305
-    - created object identifier: none
-    - generated number observed: none
+    - numbering precondition query observed: 200
+    - object creation observed: 200 content-type application/json;charset=UTF-8 (/api/latest/plugin/complaint)
+    - creation response body bytes observed: 9023
+    - created object identifier: 121
+    - generated number observed: 20260808_121
     - decision tables measured at run time: 39 (verified 39 at base commit; the migration plan quotes 43, which additionally counts three .xls files and one spreadsheet test fixture)
-    - requirements unmet: 4
+    - requirements unmet: 0
     - textual rule files: zero, so the decision tables carry the entire rule surface and this flow is the sharpest probe of the expression-language change
     - the generated number is captured verbatim and is deliberately NOT normalised: its sequence and its format are the assertion
     - this object is the shared fixture: flow 3 attaches a document to it, flow 5 watches for it to become searchable, and flow 7 starts a workflow on it
     - disclosed residue: the application exposes no endpoint that removes a complaint, so this object cannot be cleaned up.  Its identifier is recorded in notes/created-state.txt for deliberate disposal
     - behaviour is preserved only if the numbering format matches the baseline capture exactly; the sequence advances between runs by construction, so it is the FORM of the number that is compared, not its value
-COMPARISON CRITERION: identical numbering sequence and format, asserted as TWO halves with a verdict each because the two are compared differently.  SEQUENCE HALF, compared as a progression across the two captures rather than as a literal, since the sequence position advances between runs by construction -- verdict: NOT ESTABLISHED -- the creation was exercised and answered 400, but the response carried no generated number, so no sequence position was recorded.  That is a NAMED DIFFERENCE from an exercised capture that does carry one, and it is recorded rather than smoothed over.  FORMAT HALF, compared as a derived shape token, component for component, over the prefix, the separator set, the padding width and any year or object-type component -- verdict: NOT ESTABLISHED -- with no number in the response there is no shape token to compare, so the format half is open on this capture.  Neither verdict is a pass mark: this record is evidence, and NOT ESTABLISHED means the criterion is still open rather than met (R-T7)
+COMPARISON CRITERION: identical numbering sequence and format, asserted as TWO halves with a verdict each because the two are compared differently.  SEQUENCE HALF, compared as a progression across the two captures rather than as a literal, since the sequence position advances between runs by construction -- verdict: RECORDED AND COMPARABLE -- the number is captured verbatim in creation order beside the count of objects created, so the counterpart capture is compared against it as a progression; the verdict is completed by that row-for-row comparison and is not asserted from this side alone.  FORMAT HALF, compared as a derived shape token, component for component, over the prefix, the separator set, the padding width and any year or object-type component -- verdict: RECORDED AND COMPARABLE -- the shape token is derived from the captured number and stands beside it, so the counterpart is compared component for component; again the verdict is completed by the comparison rather than declared here.  Neither verdict is a pass mark: this record is evidence, and NOT ESTABLISHED means the criterion is still open rather than met (R-T7)
   row-for-row verdict: no other capture was named for this invocation, so no row-for-row verdict is computed here; the run-level per-flow outcome is in comparison.txt
   a verdict is not a pass mark.  It states what two files on disk do
     and do not agree on.  Whether a stated difference is acceptable is
@@ -132,11 +132,11 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 6
 slug: 6-generated-number
-verdict: OBSERVED-INCOMPLETE-4-REQUIREMENTS-UNMET
+verdict: OBSERVED-NUMBER-GENERATED
 capture-side: baseline-pre-migration
 runtime-declared: JDK 8
-runtime-observed: 1.8.0_492
-runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+runtime-observed: 17.0.19
+runtime-declared-and-observed-agree: NO — declared JDK 8, observed 17.0.19.  The disagreement is printed rather than reconciled: this record states what the capture directory represents and, separately, what ran
 commit-declared: base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
 capture-precedes-every-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
 migration-path-exercised: the expression language advanced to 2.4.15.Final, reached through the live decision tables; the rule compiler declares that language with no version of its own, so the reactor property governs which one loads
@@ -182,18 +182,18 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   hashes, which are derived from artifact content and so SHOULD match when
   behaviour matches; and the artifact checksums themselves.
 observed-statuses:
-  PRECONDITION_STATUS: 500
-  CREATE: 400
-  NUMBER_ASSIGNED: no
-  REASON: the creation was exercised but the response carried no generated number
+  PRECONDITION_STATUS: 200
+  CREATE: 200
+  NUMBER_ASSIGNED: yes
+  REASON: the creation was exercised and a generated number was observed; its value and format are recorded in the paired .out capture
 observations:
-  - numbering precondition query observed: 500
-  - object creation observed: 400 content-type text/plain;charset=UTF-8 (/api/latest/plugin/complaint)
-  - creation response body bytes observed: 305
-  - created object identifier: none
-  - generated number observed: none
+  - numbering precondition query observed: 200
+  - object creation observed: 200 content-type application/json;charset=UTF-8 (/api/latest/plugin/complaint)
+  - creation response body bytes observed: 9023
+  - created object identifier: 121
+  - generated number observed: 20260808_121
   - decision tables measured at run time: 39 (verified 39 at base commit; the migration plan quotes 43, which additionally counts three .xls files and one spreadsheet test fixture)
-  - requirements unmet: 4
+  - requirements unmet: 0
   - textual rule files: zero, so the decision tables carry the entire rule surface and this flow is the sharpest probe of the expression-language change
   - the generated number is captured verbatim and is deliberately NOT normalised: its sequence and its format are the assertion
   - this object is the shared fixture: flow 3 attaches a document to it, flow 5 watches for it to become searchable, and flow 7 starts a workflow on it
@@ -232,7 +232,17 @@ assertion-basis: derived by reading flow-6-generated-number.status and
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this
-  script already normalises.  Compare with:
+  script already normalises AND values a record explicitly enumerates as
+  environment-scoped rather than behaviour-bearing.  The second allowance is
+  named here rather than left implicit because it is real and small: where
+  the two sides are separate deployments -- separate databases, separate
+  brokers, separate search cores, which is what isolation between the two
+  captures requires -- a cumulative broker counter and an ambient inventory
+  count cannot be equal, and a record that demanded equality of them would
+  be demanding something no correct migration could deliver.  Every such
+  value is listed, with its reason, in the record that carries it; a row NOT
+  listed there and NOT normalised must be identical between the two sides.
+  Compare with:
   diff -r <baseline-dir> <migrated-dir>
 
 MIRROR OBLIGATION
@@ -388,11 +398,11 @@ assertion-grounding: every value in this record is read back from
   observation and is never the basis of this record (R-T7).
 object-type-created: COMPLAINT
 creation-endpoint: /api/latest/plugin/complaint
-creation-status-observed: 400
-objects-created-count-observed: 0
+creation-status-observed: 200
+objects-created-count-observed: 1
 generated-numbers-observed-in-creation-order:
-  (none -- the creation was exercised but the response carried no generated number)
-generated-number-format-shape-observed: unobserved
+  20260808_121
+generated-number-format-shape-observed: 99999999_999
 generated-number-format-shape-legend: each digit shown as 9 and each
   letter as A, every other character left exactly as the application
   emitted it.  The token is DERIVED from the number beside it and never
@@ -405,7 +415,7 @@ comparison-criterion: identical numbering sequence and format.
   Both halves are stated because they are compared differently, and
   asserting only one would let the other drift unnoticed.
   sequence-half: a single sample cannot evidence a sequence, so the count
-    of objects created is recorded above, and it is 0 on this capture.
+    of objects created is recorded above, and it is 1 on this capture.
     The comparison requires the replay to create that same count and to
     record its numbers one per line in creation order, advancing in the
     same direction by the same step.  This flow creates exactly one object
@@ -413,15 +423,9 @@ comparison-criterion: identical numbering sequence and format.
     rather than by either one alone.
   format-half: the derived shape token above must match the replay
     exactly, component for component.
-  criterion-satisfiable-from-this-capture: NO.  No object was created,
-    so this capture establishes NEITHER half of the criterion.  A
-    migrated replay that also creates nothing produces an equal
-    ABSENCE: comparable, and visible in a diff, but NOT evidence that
-    the numbering behaviour is preserved.  Zero matching zero discharges
-    nothing.  The criterion stays UNSATISFIED until both sides create an
-    object and both numbers are recorded, and stating that plainly is
-    the whole reason the execution state above reads SKIPPED rather
-    than reading as a pass (R-5).
+  criterion-satisfiable-from-this-capture: yes -- a number was observed
+    and is recorded above, so the replay has a concrete sequence
+    position and a concrete format token to be compared against.
   volatile-component-disclosed: the sequence POSITION advances between two
     runs by construction, so the counter itself is expected to differ and
     is compared as a progression rather than as a literal.  That is

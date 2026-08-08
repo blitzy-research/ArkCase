@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.email.AcmObjectPatternMailFilterTest" time="1.784" tests="2" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.email.AcmObjectPatternMailFilterTest" time="2.916" tests="2" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,60 +18,60 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="acceptNoMatch" classname="com.armedia.acm.services.email.AcmObjectPatternMailFilterTest" time="1.688">
-    <system-out><![CDATA[2026-08-07 07:26:31,182 main DEBUG Apache Log4j Core 2.17.1 initializing configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml]
-2026-08-07 07:26:31,201 main DEBUG Installed 4 script engines
-2026-08-07 07:26:31,272 main DEBUG BeanShell Engine version: 1.0, language: BeanShell, threading: MULTITHREADED, compile: true, names: [beanshell, bsh, java], factory class: bsh.engine.BshScriptEngineFactory
-2026-08-07 07:26:31,303 main DEBUG Groovy Scripting Engine version: 2.0, language: Groovy, threading: MULTITHREADED, compile: true, names: [groovy, Groovy], factory class: org.codehaus.groovy.jsr223.GroovyScriptEngineFactory
-2026-08-07 07:26:31,304 main DEBUG MVEL (MVFLEX Expression Language) version: 2.3, language: mvel, threading: THREAD-ISOLATED, compile: true, names: [mvel], factory class: org.mvel2.jsr223.MvelScriptEngineFactory
-2026-08-07 07:26:31,336 main DEBUG juel version: 1.0, language: JSP 2.1 EL, threading: MULTITHREADED, compile: true, names: [juel], factory class: org.activiti.engine.impl.scripting.JuelScriptEngineFactory
-2026-08-07 07:26:31,336 main DEBUG PluginManager 'Core' found 128 plugins
-2026-08-07 07:26:31,337 main DEBUG PluginManager 'Level' found 0 plugins
-2026-08-07 07:26:31,341 main DEBUG PluginManager 'Lookup' found 17 plugins
-2026-08-07 07:26:31,370 main DEBUG Building Plugin[name=layout, class=org.apache.logging.log4j.core.layout.PatternLayout].
-2026-08-07 07:26:31,380 main DEBUG PluginManager 'TypeConverter' found 26 plugins
-2026-08-07 07:26:31,393 main DEBUG PatternLayout$Builder(pattern="%highlight{%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n}", PatternSelector=null, Configuration({REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml), Replace=null, charset="null", alwaysWriteExceptions="null", disableAnsi="null", noConsoleNoAnsi="null", header="null", footer="null", )
-2026-08-07 07:26:31,394 main DEBUG PluginManager 'Converter' found 49 plugins
-2026-08-07 07:26:31,420 main DEBUG Building Plugin[name=appender, class=org.apache.logging.log4j.core.appender.ConsoleAppender].
-2026-08-07 07:26:31,429 main DEBUG ConsoleAppender$Builder(target="SYSTEM_OUT", follow="null", direct="null", , bufferedIo="null", bufferSize="null", immediateFlush="null", , ignoreExceptions="null", PatternLayout(%highlight{%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n}), name="Console", Configuration({REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml), , Filter=null, ={}, )
-2026-08-07 07:26:31,432 main DEBUG Starting OutputStreamManager SYSTEM_OUT.false.false
-2026-08-07 07:26:31,432 main DEBUG Building Plugin[name=appenders, class=org.apache.logging.log4j.core.config.AppendersPlugin].
-2026-08-07 07:26:31,433 main DEBUG createAppenders(={Console})
-2026-08-07 07:26:31,433 main DEBUG Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
-2026-08-07 07:26:31,436 main DEBUG createAppenderRef(ref="Console", level="DEBUG", Filter=null)
-2026-08-07 07:26:31,437 main DEBUG Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
-2026-08-07 07:26:31,438 main DEBUG createLogger(additivity="false", level="DEBUG", name="com.armedia", includeLocation="null", ={Console}, ={}, Configuration({REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml), Filter=null)
-2026-08-07 07:26:31,441 main DEBUG Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
-2026-08-07 07:26:31,441 main DEBUG createAppenderRef(ref="Console", level="INFO", Filter=null)
-2026-08-07 07:26:31,442 main DEBUG Building Plugin[name=root, class=org.apache.logging.log4j.core.config.LoggerConfig$RootLogger].
-2026-08-07 07:26:31,442 main DEBUG createLogger(additivity="false", level="INFO", includeLocation="null", ={Console}, ={}, Configuration({REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml), Filter=null)
-2026-08-07 07:26:31,443 main DEBUG Building Plugin[name=loggers, class=org.apache.logging.log4j.core.config.LoggersPlugin].
-2026-08-07 07:26:31,444 main DEBUG createLoggers(={com.armedia, root})
-2026-08-07 07:26:31,445 main DEBUG Configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml] initialized
-2026-08-07 07:26:31,445 main DEBUG Starting configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml]
-2026-08-07 07:26:31,446 main DEBUG Started configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml] OK.
-2026-08-07 07:26:31,446 main DEBUG Shutting down OutputStreamManager SYSTEM_OUT.false.false-1
-2026-08-07 07:26:31,446 main DEBUG OutputStream closed
-2026-08-07 07:26:31,446 main DEBUG Shut down OutputStreamManager SYSTEM_OUT.false.false-1, all resources released: true
-2026-08-07 07:26:31,447 main DEBUG Appender DefaultConsole-1 stopped with status true
-2026-08-07 07:26:31,447 main DEBUG Stopped org.apache.logging.log4j.core.config.DefaultConfiguration@77d4ac52 OK
-2026-08-07 07:26:31,496 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6
-2026-08-07 07:26:31,499 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=StatusLogger
-2026-08-07 07:26:31,501 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=ContextSelector
-2026-08-07 07:26:31,504 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Loggers,name=com.armedia
-2026-08-07 07:26:31,504 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Loggers,name=
-2026-08-07 07:26:31,506 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Appenders,name=Console
-2026-08-07 07:26:31,511 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
-2026-08-07 07:26:31,511 main DEBUG Reconfiguration complete for context[name=1dbd16a6] at URI {REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml (org.apache.logging.log4j.core.LoggerContext@4a5d5b38) with optional ClassLoader: null
-2026-08-07 07:26:31,512 main DEBUG Shutdown hook enabled. Registering a new one.
-2026-08-07 07:26:31,513 main DEBUG LoggerContext[name=1dbd16a6, org.apache.logging.log4j.core.LoggerContext@4a5d5b38] started OK.
-&amp#27;[36m2026-08-07 07:26:31,528 [DEBUG] [main] com.armedia.acm.services.email.filter.AcmObjectPatternMailFilter - Message with subject 'Invitation to happy hour tonight' matches required pattern: 'false'
-&amp#27;[m2026-08-07 07:26:31,535 main DEBUG AsyncLogger.ThreadNameStrategy=UNCACHED (user specified null, default is UNCACHED)
-2026-08-07 07:26:31,535 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
+  <testcase name="acceptNoMatch" classname="com.armedia.acm.services.email.AcmObjectPatternMailFilterTest" time="2.777">
+    <system-out><![CDATA[2026-08-07 21:37:06,955 main DEBUG Apache Log4j Core 2.17.1 initializing configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml]
+2026-08-07 21:37:06,975 main DEBUG Installed 4 script engines
+2026-08-07 21:37:07,032 main DEBUG BeanShell Engine version: 1.0, language: BeanShell, threading: MULTITHREADED, compile: true, names: [beanshell, bsh, java], factory class: bsh.engine.BshScriptEngineFactory
+2026-08-07 21:37:07,062 main DEBUG Groovy Scripting Engine version: 2.0, language: Groovy, threading: MULTITHREADED, compile: true, names: [groovy, Groovy], factory class: org.codehaus.groovy.jsr223.GroovyScriptEngineFactory
+2026-08-07 21:37:07,062 main DEBUG MVEL (MVFLEX Expression Language) version: 2.3, language: mvel, threading: THREAD-ISOLATED, compile: true, names: [mvel], factory class: org.mvel2.jsr223.MvelScriptEngineFactory
+2026-08-07 21:37:07,083 main DEBUG juel version: 1.0, language: JSP 2.1 EL, threading: MULTITHREADED, compile: true, names: [juel], factory class: org.activiti.engine.impl.scripting.JuelScriptEngineFactory
+2026-08-07 21:37:07,084 main DEBUG PluginManager 'Core' found 128 plugins
+2026-08-07 21:37:07,084 main DEBUG PluginManager 'Level' found 0 plugins
+2026-08-07 21:37:07,088 main DEBUG PluginManager 'Lookup' found 17 plugins
+2026-08-07 21:37:07,107 main DEBUG Building Plugin[name=layout, class=org.apache.logging.log4j.core.layout.PatternLayout].
+2026-08-07 21:37:07,115 main DEBUG PluginManager 'TypeConverter' found 26 plugins
+2026-08-07 21:37:07,126 main DEBUG PatternLayout$Builder(pattern="%highlight{%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n}", PatternSelector=null, Configuration({REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml), Replace=null, charset="null", alwaysWriteExceptions="null", disableAnsi="null", noConsoleNoAnsi="null", header="null", footer="null", )
+2026-08-07 21:37:07,127 main DEBUG PluginManager 'Converter' found 49 plugins
+2026-08-07 21:37:07,151 main DEBUG Building Plugin[name=appender, class=org.apache.logging.log4j.core.appender.ConsoleAppender].
+2026-08-07 21:37:07,157 main DEBUG ConsoleAppender$Builder(target="SYSTEM_OUT", follow="null", direct="null", , bufferedIo="null", bufferSize="null", immediateFlush="null", , ignoreExceptions="null", PatternLayout(%highlight{%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] [%t] %c - %m%n}), name="Console", Configuration({REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml), , Filter=null, ={}, )
+2026-08-07 21:37:07,159 main DEBUG Starting OutputStreamManager SYSTEM_OUT.false.false
+2026-08-07 21:37:07,160 main DEBUG Building Plugin[name=appenders, class=org.apache.logging.log4j.core.config.AppendersPlugin].
+2026-08-07 21:37:07,161 main DEBUG createAppenders(={Console})
+2026-08-07 21:37:07,161 main DEBUG Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
+2026-08-07 21:37:07,164 main DEBUG createAppenderRef(ref="Console", level="DEBUG", Filter=null)
+2026-08-07 21:37:07,164 main DEBUG Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+2026-08-07 21:37:07,165 main DEBUG createLogger(additivity="false", level="DEBUG", name="com.armedia", includeLocation="null", ={Console}, ={}, Configuration({REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml), Filter=null)
+2026-08-07 21:37:07,167 main DEBUG Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
+2026-08-07 21:37:07,168 main DEBUG createAppenderRef(ref="Console", level="INFO", Filter=null)
+2026-08-07 21:37:07,168 main DEBUG Building Plugin[name=root, class=org.apache.logging.log4j.core.config.LoggerConfig$RootLogger].
+2026-08-07 21:37:07,168 main DEBUG createLogger(additivity="false", level="INFO", includeLocation="null", ={Console}, ={}, Configuration({REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml), Filter=null)
+2026-08-07 21:37:07,169 main DEBUG Building Plugin[name=loggers, class=org.apache.logging.log4j.core.config.LoggersPlugin].
+2026-08-07 21:37:07,170 main DEBUG createLoggers(={com.armedia, root})
+2026-08-07 21:37:07,171 main DEBUG Configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml] initialized
+2026-08-07 21:37:07,171 main DEBUG Starting configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml]
+2026-08-07 21:37:07,171 main DEBUG Started configuration XmlConfiguration[location={REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml] OK.
+2026-08-07 21:37:07,172 main DEBUG Shutting down OutputStreamManager SYSTEM_OUT.false.false-1
+2026-08-07 21:37:07,172 main DEBUG OutputStream closed
+2026-08-07 21:37:07,172 main DEBUG Shut down OutputStreamManager SYSTEM_OUT.false.false-1, all resources released: true
+2026-08-07 21:37:07,173 main DEBUG Appender DefaultConsole-1 stopped with status true
+2026-08-07 21:37:07,173 main DEBUG Stopped org.apache.logging.log4j.core.config.DefaultConfiguration@51bddd98 OK
+2026-08-07 21:37:07,222 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6
+2026-08-07 21:37:07,224 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=StatusLogger
+2026-08-07 21:37:07,226 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=ContextSelector
+2026-08-07 21:37:07,227 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Loggers,name=com.armedia
+2026-08-07 21:37:07,228 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Loggers,name=
+2026-08-07 21:37:07,229 main DEBUG Registering MBean org.apache.logging.log4j2:type=1dbd16a6,component=Appenders,name=Console
+2026-08-07 21:37:07,233 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
+2026-08-07 21:37:07,233 main DEBUG Reconfiguration complete for context[name=1dbd16a6] at URI {REACTOR-ROOT}/acm-services/acm-service-email/target/test-classes/log4j2.xml (org.apache.logging.log4j.core.LoggerContext@61d6c8c4) with optional ClassLoader: null
+2026-08-07 21:37:07,234 main DEBUG Shutdown hook enabled. Registering a new one.
+2026-08-07 21:37:07,234 main DEBUG LoggerContext[name=1dbd16a6, org.apache.logging.log4j.core.LoggerContext@61d6c8c4] started OK.
+&amp#27;[36m2026-08-07 21:37:07,256 [DEBUG] [main] com.armedia.acm.services.email.filter.AcmObjectPatternMailFilter - Message with subject 'Invitation to happy hour tonight' matches required pattern: 'false'
+&amp#27;[m2026-08-07 21:37:07,261 main DEBUG AsyncLogger.ThreadNameStrategy=UNCACHED (user specified null, default is UNCACHED)
+2026-08-07 21:37:07,262 main DEBUG org.apache.logging.log4j.core.util.SystemClock supports precise timestamps.
 ]]></system-out>
   </testcase>
   <testcase name="acceptMatch" classname="com.armedia.acm.services.email.AcmObjectPatternMailFilterTest" time="0.0">
-    <system-out><![CDATA[&amp#27;[36m2026-08-07 07:26:31,539 [DEBUG] [main] com.armedia.acm.services.email.filter.AcmObjectPatternMailFilter - Message with subject 'Case 20150511_123123 some random text here and numbers 123123' matches required pattern: 'true'
+    <system-out><![CDATA[&amp#27;[36m2026-08-07 21:37:07,268 [DEBUG] [main] com.armedia.acm.services.email.filter.AcmObjectPatternMailFilter - Message with subject 'Case 20150511_123123 some random text here and numbers 123123' matches required pattern: 'true'
 &amp#27;[m]]></system-out>
   </testcase>
 </testsuite>

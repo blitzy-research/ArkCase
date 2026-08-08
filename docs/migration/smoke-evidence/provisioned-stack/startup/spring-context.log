@@ -1,0 +1,23 @@
+startup-log-region: spring-context.log
+region-describes: Spring context initialisation, including the aspect auto-proxying that AAP 0.9.4 requires to be observed
+region-mandatory: yes
+region-pattern: ContextLoader|Root WebApplicationContext|Initializing Spring|Refreshing .*ApplicationContext|AnnotationAwareAspectJAutoProxy|aspectj|DispatcherServlet|Initializing Servlet
+region-pattern-flags: grep -E -i, applied to the extracted window only
+window-source: /opt/tomcat/current/logs/catalina.out
+window-source-sha256: 1581c892796e20ced0c0794c820691c049f388b1289efa0819de6ce73f15f0c1
+window-boots-present-in-source: 1
+window-sha256: 62917e5d4a84290b6d2ebb6c2eea2a399794d09108320f9fe43b47104c9bf731
+window-start-line: 1
+window-end-line: 32062
+window-start-byte-offset: 0
+window-end-byte-offset: 9273924
+window-lines: 32062
+matched-lines: 4
+line-cap: 2000
+capture-truncated: no
+----- region -----
+[32m<TIMESTAMP>,775 [INFO ] [main] org.springframework.web.context.ContextLoader - Root WebApplicationContext: initialization started
+[m[32m<TIMESTAMP>,377 [INFO ] [main] org.springframework.web.context.ContextLoader - Root WebApplicationContext initialized in 131596 ms
+[m[32m<TIMESTAMP>,851 [INFO ] [main] org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'Spring MVC Dispatcher Servlet'
+[m[32m<TIMESTAMP>,469 [INFO ] [main] org.springframework.web.servlet.DispatcherServlet - Completed initialization in 144618 ms
+----- end region -----

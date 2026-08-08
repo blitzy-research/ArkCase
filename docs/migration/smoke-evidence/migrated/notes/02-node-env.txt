@@ -1,0 +1,94 @@
+the interpreter this side ran on — the one variable the artifact residual is attributed to
+
+subject: the Node and npm environment of record for THIS side of the comparison
+RUNTIME: Java 17.  Backend runtime of record: 17.0.19+10-1-25.10.2-Ubuntu.
+BASE-COMMIT: c8f6226105
+MIRRORS: docs/migration/smoke-evidence/baseline/notes/02-node-env.txt
+ESTABLISHES: which JavaScript interpreter and which package manager produced
+  the artifacts on this side, read out of the toolchain probe rather than
+  declared, so that a difference between the two sides can be attributed
+COMPANIONS: 01-artifact-comparison-scope.txt, which fixes what is compared;
+  ../env/toolchain.txt, the probe output this note reads
+
+why the interpreter needs a file of its own
+===========================================
+The whole frontend half of this migration is a change of interpreter and
+package manager.  If the two sides' artifacts differ, the candidate causes are
+the interpreter, the package manager, the dependency graph, the pipeline
+configuration and the application source — and only one of those can be ruled
+in or out by inspection.  Recording the interpreter as MEASURED, per side, is
+what makes the attribution in ../artifacts/diff-result.txt checkable instead of
+asserted.
+
+measured on this side, read out of ../env/toolchain.txt
+======================================================
+  node -v                v20.20.2
+  npm -v                 10.8.2
+  package manager used   npm
+  install performed      a clean lockfile install (npm ci)
+
+This side is the Java 17 and Node 20 side.
+
+what the repository declares, as distinct from what ran
+======================================================
+Declaration and observation are different things and are kept apart here on
+purpose — a manifest field is a wish, a probe is a fact.
+
+  .nvmrc                             20
+  package.json engines.node          >=20 <21
+  package.json engines.npm           >=10 <11
+
+All three describe the interpreter this side actually ran, so on this side
+declaration and observation agree.  At the base commit the same manifest
+declared no node or npm constraint at all — it constrained yarn instead —
+and carried no .nvmrc, so there was nothing there to agree or disagree with.
+
+there is NO application-side version gate, and this note says so rather than
+implying one
+============================================================================
+It would be reasonable to assume the deployment refuses to start on the wrong
+interpreter.  It does not.  A search of the angular starter module's main source
+for a node or npm version check returns ZERO matches: the resource copier
+resolves its launchers and runs them, and it does not compare the interpreter it
+found against a required major version.  The only constraint expressed anywhere
+is the engines field above, which npm treats as a WARNING and not an error.
+
+That is recorded because the alternative — leaving a reader to assume a gate
+exists — would misplace where the guarantee comes from.  The guarantee comes
+from the pinned interpreter in .nvmrc, the CI image, and the observation below;
+not from a runtime check.
+
+what the deployment actually observed, on this side
+===================================================
+The startup region at ../startup/frontend-build.log carries the package
+manager's own report of the interpreter it was running under, emitted while it
+warned about a retained legacy package whose declared engine range excludes
+this interpreter:
+
+    npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+
+That is the package manager naming its own interpreter, which is stronger
+evidence than any field this repository could declare.  The same region
+records the three commands the copier issued and the status each exited on:
+the lockfile install, the module-config task and the unchanged default task
+graph, all three exit code 0.
+
+read this note together with
+============================
+../env/toolchain.txt — the probe output of record, which this note reads
+01-artifact-comparison-scope.txt — the set the interpreter difference is
+  measured over
+../artifacts/diff-result.txt — where the residual difference between the two
+  interpreters is attributed, per artifact
+../startup/frontend-build.log — the startup region in which the package manager
+  and the pipeline were invoked
+03-environment-precondition.txt — what this capture does NOT cover
+
+mirror obligation
+=================
+The baseline counterpart carries this exact filename — 02-node-env.txt, character
+for character — at the mirrored path under baseline/notes/, so that diff -r over
+the two trees is mechanical.  A CONTENT difference at this filename is expected
+and correct: the two sides state different runtimes, different interpreters and
+different measured figures.  A STRUCTURAL difference — this file present on one
+side only — is not, and means the mirror has been broken.

@@ -1,0 +1,69 @@
+startup-log-region: workflow-engine-init.log
+region-describes: process-engine initialisation and process-definition loading, the observable side of the flow 7 residual risk
+region-mandatory: yes
+region-pattern: activiti|ProcessEngine|bpmn|process definition|deployment|ProcessEngineConfiguration
+region-pattern-flags: grep -E -i, applied to the extracted window only
+window-source: /opt/tomcat/current/logs/catalina.out
+window-source-sha256: 1581c892796e20ced0c0794c820691c049f388b1289efa0819de6ce73f15f0c1
+window-boots-present-in-source: 1
+window-sha256: 62917e5d4a84290b6d2ebb6c2eea2a399794d09108320f9fe43b47104c9bf731
+window-start-line: 1
+window-end-line: 32062
+window-start-byte-offset: 0
+window-end-byte-offset: 9273924
+window-lines: 32062
+matched-lines: 50
+line-cap: 2000
+capture-truncated: no
+----- region -----
+[m[36m<TIMESTAMP>,573 [DEBUG] [main] com.armedia.acm.activiti.services.ActivitiTaskScheduler - Application has started - now accepting tasks.
+[m[36m<TIMESTAMP>,573 [DEBUG] [main] com.armedia.acm.activiti.services.ActivitiTaskScheduler - Initializing ExecutorService 'activitiTaskScheduler'
+[m[32m<TIMESTAMP>,456 [INFO ] [main] org.activiti.engine.impl.ProcessEngineImpl - ProcessEngine default created
+[m[32m<TIMESTAMP>,463 [INFO ] [main] org.activiti.engine.impl.jobexecutor.JobExecutor - Starting up the JobExecutor[org.activiti.spring.SpringJobExecutor].
+[m[32m<TIMESTAMP>,464 [INFO ] [Thread-124] org.activiti.engine.impl.jobexecutor.AcquireJobsRunnable - JobExecutor[org.activiti.spring.SpringJobExecutor] starting to acquire jobs
+[m[36m<TIMESTAMP>,077 [DEBUG] [main] com.armedia.acm.data.SpringEntityListenerConfigurer - Entity class: com.armedia.acm.activiti.model.AcmProcessDefinition; has descriptor? true
+[m[32m<TIMESTAMP>,056 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
+[m[32m<TIMESTAMP>,058 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentWorkflow_v5.bpmn20.xml]
+[m[32m<TIMESTAMP>,064 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [b60e02c94c94e73f010e7203254a930351984fe617a6f424e539cf1a978d23df] from Bpmn file
+[m[32m<TIMESTAMP>,069 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentWorkflow] from Bpmn file
+[m[32m<TIMESTAMP>,078 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [acmDocumentWorkflow]
+[m[32m<TIMESTAMP>,079 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentSingleTaskWorkflow_v2.bpmn20.xml]
+[m[32m<TIMESTAMP>,079 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [be61d110d0a35a6c8b50539d581da4dd70eded6c2062c9ca2adbe8b687741ddd] from Bpmn file
+[m[32m<TIMESTAMP>,081 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentSingleTaskWorkflow] from Bpmn file
+[m[32m<TIMESTAMP>,082 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [acmDocumentSingleTaskWorkflow]
+[m[32m<TIMESTAMP>,082 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentTaskWorkflow_v1.bpmn20.xml]
+[m[32m<TIMESTAMP>,083 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [fd3e1892974c8cf208941f0077cd4b811790db85504cfa07e4835fe39d7aef33] from Bpmn file
+[m[32m<TIMESTAMP>,084 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentTaskWorkflow] from Bpmn file
+[m[32m<TIMESTAMP>,085 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [acmDocumentTaskWorkflow]
+[m[32m<TIMESTAMP>,086 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [ArkCase Buckslip Process v4.bpmn20.xml]
+[m[32m<TIMESTAMP>,086 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [57669a5ef8a22bf0c02091dfc6e08d0752f4d055fe43eeb11c84a51ac234ac77] from Bpmn file
+[m[32m<TIMESTAMP>,088 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[ArkCaseBuckslipProcess] from Bpmn file
+[m[32m<TIMESTAMP>,089 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [ArkCaseBuckslipProcess]
+[m[32m<TIMESTAMP>,089 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [DefaultComplaintWorkflow_v5.bpmn20.xml]
+[m[32m<TIMESTAMP>,090 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [8f2ceb667963f9808d94de463a5d5e2287e865eb5625a4c7c9b9a67409309b27] from Bpmn file
+[m[32m<TIMESTAMP>,091 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[cmComplaintWorkflow] from Bpmn file
+[m[32m<TIMESTAMP>,119 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [cmComplaintWorkflow]
+[m[32m<TIMESTAMP>,120 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [Corrective Task Action Plan.bpmn20.xml]
+[m[32m<TIMESTAMP>,120 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [46a85c1db3eda82a8f232aa67df997bbe6f53960fe341ee3f4098553966e6698] from Bpmn file
+[m[32m<TIMESTAMP>,122 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[CorrectiveTaskActionPlan] from Bpmn file
+[m[32m<TIMESTAMP>,124 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [CorrectiveTaskActionPlan]
+[m[32m<TIMESTAMP>,124 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [Corrective Action Plan_v3.bpmn20.xml]
+[m[32m<TIMESTAMP>,125 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [0ad61a22e53fdd9193fb4f8c573685f42fd84084ec936db85598e591e6498b22] from Bpmn file
+[m[32m<TIMESTAMP>,126 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[CorrectiveActionPlan] from Bpmn file
+[m[32m<TIMESTAMP>,127 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [CorrectiveActionPlan]
+[m[32m<TIMESTAMP>,128 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [MediaEngineWorkFlow_v2.bpmn20.xml]
+[m[32m<TIMESTAMP>,128 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [35d000ab286e7e1a5599a61e1de57bf374f9406754a043099df5265dcf90dcdc] from Bpmn file
+[m[32m<TIMESTAMP>,130 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[MediaEngineWorkFlow] from Bpmn file
+[m[32m<TIMESTAMP>,131 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [MediaEngineWorkFlow]
+[m[32m<TIMESTAMP>,132 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Done scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
+[m[36m<TIMESTAMP>,662 [DEBUG] [main] com.armedia.acm.files.ConfigFileWatcher - file added: file://<HOME>/.arkcase/acm/activiti/temp
+[m[36m<TIMESTAMP>,662 [DEBUG] [main] com.armedia.acm.spring.SpringContextHolder - Event type: [com.armedia.acm.files.ConfigurationFileAddedEvent]. Event base filename: [activiti/temp]
+[m[36m<TIMESTAMP>,662 [DEBUG] [main] com.armedia.acm.files.ConfigFileWatcher - file added: file://<HOME>/.arkcase/acm/activiti
+[m[36m<TIMESTAMP>,662 [DEBUG] [main] com.armedia.acm.spring.SpringContextHolder - Event type: [com.armedia.acm.files.ConfigurationFileAddedEvent]. Event base filename: [activiti]
+[m07-Aug-2026 23:31:33.484 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/opt/tomcat/apache-tomcat-9.0.120/webapps/arkcase.war] has finished in [280,620] ms
+07-Aug-2026 23:31:33.763 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/examples] has finished in [274] ms
+07-Aug-2026 23:31:33.775 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/host-manager] has finished in [12] ms
+07-Aug-2026 23:31:33.786 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/manager] has finished in [11] ms
+07-Aug-2026 23:31:33.852 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/docs] has finished in [66] ms
+07-Aug-2026 23:31:33.865 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/ROOT] has finished in [13] ms
+----- end region -----

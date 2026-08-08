@@ -1,27 +1,142 @@
-entities with @Entity and @Table            : 88
-of those whose table appears in the DDL     : 88
-columns present in BOTH DDL and an @Column  : 957
-DDL columns with no matching @Column        : 132  (separate finding, not counted below)
+effective-schema versus structural-mapping measurement
 
-entities carrying at least one omission     : 86
-omitted length declarations                 : 512
-omitted nullability declarations            : 467
-omitted uniqueness declarations             : 44
-TOTAL omitted dimensions                    : 1023
+target-dbms: mysql
+roots-modelled: core, extension-foia, extension-privacy
+changelog-resources-discovered: 213
+root-changelogs-walked: 3
+  core               ddl/acm-database-changelog.xml                                           resources 181  changeSets  887
+  extension-foia     com/armedia/acm/extension/foia/ddl/acm-extension-foia-database-changelog.xml resources 202  changeSets 1003
+  extension-privacy  com/armedia/acm/extension/privacy/ddl/acm-extension-privacy-database-changelog.xml resources 202  changeSets  904
+changeSets-in-graph-order: 2794
+  applied to the model                     : 804
+  skipped, changeSet dbms excludes mysql   : 550
+  skipped, already executed from another root: 1431
+  skipped, precondition evaluated false     : 9
+  carrying failOnError="false"              : 9
+  declaring a context (would change what runs): 0
 
-top 15 entities by omission count:
-  acm_file                             29  (len  18, null   9, uniq  2)  EcmFile.java
-  acm_case_file                        26  (len  16, null   9, uniq  1)  CaseFile.java
-  acm_costsheet                        24  (len  11, null  12, uniq  1)  AcmCostsheet.java
-  acm_person                           24  (len  15, null   9, uniq  0)  Person.java
-  acm_consultation                     23  (len  13, null   9, uniq  1)  Consultation.java
-  acm_user_org                         22  (len  16, null   5, uniq  1)  UserOrg.java
-  acm_notification                     21  (len  15, null   6, uniq  0)  Notification.java
-  acm_object_association               21  (len  12, null   9, uniq  0)  ObjectAssociation.java
-  acm_comprehend_medical               20  (len   9, null  10, uniq  1)  ComprehendMedical.java
-  acm_timesheet                        20  (len   8, null  11, uniq  1)  AcmTimesheet.java
-  acm_user                             20  (len  12, null   6, uniq  2)  AcmUser.java
-  acm_file_version                     19  (len  12, null   7, uniq  0)  EcmFileVersion.java
-  acm_ocr                              19  (len   8, null  10, uniq  1)  OCR.java
-  acm_participant                      19  (len   7, null   8, uniq  4)  AcmParticipant.java
-  acm_complaint                        18  (len   7, null  10, uniq  1)  ComplaintListView.java
+EFFECTIVE SCHEMA (after creates, adds, modifies, renames and drops)
+  tables live at the end of the graph       : 195
+  tables dropped by the graph               : 5
+  columns across live tables                : 1327
+  single-column unique constraints           : 4
+  COMPOSITE unique constraints, kept composite: 20
+  composite primary keys                     : 8
+  unique indexes                             : 6
+  foreign keys                                : 75
+  tables re-created by a later changeSet       : 0
+  columns re-declared with a different type    : 0
+  operations naming a table the model does not hold: 6
+
+STRUCTURAL MAPPING (parsed per class, not per table)
+  classes carrying @Entity                   : 103
+  of those, carrying @Table(name = ...)      : 91
+  distinct tables those entities resolve to  : 88
+  @MappedSuperclass classes                  : 1
+  @Embeddable classes                        : 1
+  join / collection tables owning their own columns: 22
+  @JoinTable relationships recorded          : 16
+    with a cascade declared                  : 15
+    with orphanRemoval = true                : 3
+    whose inverse join column is declared unique: 4
+  @AttributeOverride column re-points captured: 0
+
+DIVERGENCE, over columns present in BOTH the effective schema and a mapping
+  columns compared                           : 1074
+  omitted length declarations                : 504
+  omitted nullability declarations           : 472
+  omitted uniqueness declarations            : 16
+  omitted precision/scale declarations       : 11
+  TOTAL omitted dimensions                   : 1003
+  classes carrying at least one omission     : 98
+
+  length stated on both sides but DIFFERENT  : 0
+  DDL NOT NULL against ORM nullable = true   : 0
+  effective-schema columns no mapping names  : 253
+  mapped columns absent from the schema      : 57
+  mapped tables absent from the schema       : 1
+    acm_sar_person_portal_roles
+
+CARDINALITY GAPS -- ORM declares unique = true, the effective schema does not
+  gaps found: 6
+  These are reported separately from the omission count above because they
+  are the OPPOSITE defect: the omissions are constraints the DDL states and
+  the ORM does not, whereas these are constraints the ORM states and the
+  DDL does not enforce.  A composite key over (parent, child) is NOT
+  single-column uniqueness, and reporting it as such is what hid these.
+
+  acm_billing_invoice_item.cm_billing_item_id
+    ORM        : unique = true via JoinColumn/inverseJoinColumns
+    declared in: acm-services/acm-service-billing/src/main/java/com/armedia/acm/services/billing/model/BillingInvoice.java
+    DDL        : no single-column uniqueness; declared by com/armedia/acm/ddl/tables/billing/billing-invoice-db-tables-1.0.xml::04-create-billing-invoice-item-table::sasko.tanaskoski
+    composite  : uniqueConstraint (unnamed) over (cm_billing_invoice_id, cm_billing_item_id)
+    effect     : a composite key does not constrain this column alone, so more than one row can carry the same value the ORM declares unique
+
+  acm_organization_identification.cm_identification_id
+    ORM        : unique = true via JoinColumn/inverseJoinColumns
+    declared in: acm-plugins/acm-default-plugins/acm-person-plugin/src/main/java/com/armedia/acm/plugins/person/model/Organization.java
+    DDL        : no single-column uniqueness; declared by com/armedia/acm/ddl/tables/organization/organization-db-tables-1.0.xml::33-add-organization-identification-table::nebojsha.davidovikj
+    composite  : uniqueConstraint (unnamed) over (cm_organization_id, cm_identification_id)
+    effect     : a composite key does not constrain this column alone, so more than one row can carry the same value the ORM declares unique
+
+  acm_outlook_folder_creator.cm_system_email_address
+    ORM        : unique = true via Column
+    declared in: acm-services/acm-service-ms-outlook-integration/src/main/java/com/armedia/acm/service/outlook/model/AcmOutlookFolderCreator.java
+    DDL        : no single-column uniqueness; declared by com/armedia/acm/ddl/tables/outlook/outlook-db-tables-1.0.xml::02-create-outlook-folder-tables::lazo.lazarev
+    effect     : the effective schema carries no uniqueness for this column at all
+
+  acm_person_cntct_ident.cm_identification_id
+    ORM        : unique = true via JoinColumn/inverseJoinColumns
+    declared in: acm-plugins/acm-default-plugins/acm-person-plugin/src/main/java/com/armedia/acm/plugins/person/model/PersonContact.java
+    DDL        : no single-column uniqueness; declared by com/armedia/acm/ddl/tables/person/person-contact-db-tables-1.0.xml::04-add-person-contact-identification-table::nebojsha.davidovikj
+    composite  : uniqueConstraint (unnamed) over (cm_person_contact_id, cm_identification_id)
+    effect     : a composite key does not constrain this column alone, so more than one row can carry the same value the ORM declares unique
+
+  acm_person_identification.cm_identification_id
+    ORM        : unique = true via JoinColumn/inverseJoinColumns
+    declared in: acm-plugins/acm-default-plugins/acm-person-plugin/src/main/java/com/armedia/acm/plugins/person/model/Person.java
+    DDL        : no single-column uniqueness; declared by com/armedia/acm/ddl/tables/person/person-db-tables-1.0.xml::30-rename-person-identification::nebojsha.davidovikj
+    composite  : compositePrimaryKey (unnamed) over (cm_person_id, cm_identification_id)
+    effect     : a composite key does not constrain this column alone, so more than one row can carry the same value the ORM declares unique
+
+  acm_zylab_matter_status.cm_zylab_id
+    ORM        : unique = true via Column
+    declared in: acm-tool-integrations/acm-zylab-integration/src/main/java/com/armedia/acm/tool/zylab/model/ZylabMatterCreationStatus.java
+    DDL        : no single-column uniqueness; declared by com/armedia/acm/ddl/tables/zylab-integration-database-tables.xml::01-create-acm_zylab_matter_status-table::aleksandar.acevski
+    effect     : the effective schema carries no uniqueness for this column at all
+
+TOP 15 CLASSES BY OMISSION COUNT
+  acm_person                           35  (len  15, null  18, uniq  0, prec  2)  Person.java
+  acm_file                             31  (len  20, null  11, uniq  0, prec  0)  EcmFile.java
+  acm_costsheet                        25  (len  11, null  12, uniq  1, prec  1)  AcmCostsheet.java
+  acm_case_file                        24  (len  16, null   7, uniq  1, prec  0)  CaseFile.java
+  acm_file_version                     24  (len  14, null   7, uniq  0, prec  3)  EcmFileVersion.java
+  acm_group                            23  (len  14, null   9, uniq  0, prec  0)  AcmGroup.java
+  acm_complaint                        22  (len  13, null   8, uniq  1, prec  0)  Complaint.java
+  acm_consultation                     22  (len  13, null   8, uniq  1, prec  0)  Consultation.java
+  acm_organization                     22  (len   8, null  14, uniq  0, prec  0)  Organization.java
+  acm_object_association               21  (len  12, null   9, uniq  0, prec  0)  ObjectAssociation.java
+  acm_user_org                         20  (len  16, null   3, uniq  1, prec  0)  UserOrg.java
+  acm_notification                     20  (len  16, null   4, uniq  0, prec  0)  Notification.java
+  acm_timesheet                        20  (len   8, null  11, uniq  1, prec  0)  AcmTimesheet.java
+  acm_person_cntct_cntct_method        19  (len   9, null  10, uniq  0, prec  0)  PersonContact.java
+  acm_address_contact_method           18  (len  11, null   7, uniq  0, prec  0)  PostalAddress.java
+
+WHAT THIS MODEL DOES NOT MODEL
+  opaque, text not interpreted   createProcedure        9
+  opaque, text not interpreted   sql                    103
+  data rather than schema        delete                 2
+  data rather than schema        insert                 96
+  data rather than schema        update                 30
+  preconditions that cannot be evaluated statically: 1
+  changelog placeholders left unresolved           : 0
+  properties shadowed by an earlier definition     : 75
+    of those, re-declaring the SAME value (harmless): 73
+    of those, re-declaring a DIFFERENT value        : 2
+      classNameType kept 'VARCHAR(400)', DISCARDED 'TEXT' declared in ddl/acm-database-changelog-properties.xml
+      cmObjectTypeLength kept '255', DISCARDED '200' declared in com/armedia/acm/ddl/tables/subscription/subscription-db-tables-1.0.xml
+  includeAll ordering across classpath providers is not determined by the
+    sources; this model sorts by resource name and reports resources
+    provided by more than one module: 10
+  include targets that resolved to no resource     : 0
+  this measurement is for ONE dbms (mysql) and makes no claim about another

@@ -6,9 +6,18 @@ because the only thing a baseline is for is recording a failure nobody predicted
 and an authored report can only ever contain what its author already believed.
 
 harvested-by: install-surefire-evidence.sh, committed beside this archive
-integrity: sha256-manifest.txt beside this note covers every report here and
-  this note itself.  Verify the archive has not been edited since it was
-  harvested with:  cd <this directory> && sha256sum -c sha256-manifest.txt
+harvested-from-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
+harvested-from-branch: blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614-w-053
+commit-resolves-in-this-repository: yes -- c8f6226105c28c2743281d26bf21ad73f7bb7f26 resolves to a commit object in the repository that owns this archive
+commit-reachable-from-branch: yes -- reachable from blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614-w-053; that branch's head when this harvest ran was 09c31861928d7cad945d6f3046680cefe15a039e, and later commits do not affect reachability
+working-tree-at-harvest: not-a-git-checkout -- this harvest root was EXTRACTED from the commit above rather than checked out, so it has no worktree state of its own; the tree proof below is what stands in its place
+git-status-porcelain-at-harvest: not-applicable -- an extracted tree has no index and therefore no porcelain status; see tracked-tree-proof
+tracked-tree-proof: PROVED -- all 6646 blobs the commit records were hashed out of the harvest root with git hash-object and every one matched; 0 absent, 0 differing. Build output is untracked and therefore absent from the comparison by construction
+reports-produced-by-a-build-of: same as the harvest commit above
+integrity: sha256-manifest.txt beside this note covers every file in this
+  archive -- every report, this note itself, and every file under notes/.
+  Verify the archive has not been edited since it was harvested with:
+    cd <this directory> && sha256sum -c sha256-manifest.txt
 suites-installed: 278
 aggregate: suites=278 tests=892 failures=3 errors=1 skipped=21
 build-install-phase-exit-status: 0
@@ -17,7 +26,7 @@ build-test-phase-exit-status: 0
 runtime provenance, read out of the installed reports themselves:
   java.runtime.version: 1.8.0_492-8u492-ga~us2-0ubuntu1~25.10.1-b09
   java.vm.version: 25.492-b09
-  installed JDK path recorded by the runtime: unknown
+  installed JDK path recorded by the runtime: not carried: java.home and sun.boot.library.path are machine paths and the property allowlist drops them, so this archive states the runtime by version rather than by location
 
 the two transformations applied, and their exact extent:
   1. absolute machine paths replaced with placeholders: 1112 occurrences
@@ -43,6 +52,12 @@ the two transformations applied, and their exact extent:
   exactly the angle brackets the dropped lines carried and no others, and to
   still state its own java.runtime.version -- so a report in this archive proves
   which runtime produced it without reference to any prose, including this note.
+  ONE further difference, stated rather than glossed because "byte-identical" is
+  a strong word: the runner writes no newline after the closing testsuite tag and
+  the rewriter emits one, so every installed report is exactly one trailing
+  newline longer than its source.  Nothing else differs -- that was checked by
+  reproducing the substitutions on the raw reports and comparing the whole of
+  each report from </properties> onward, for all of them, not for a sample.
 
 why the paths were replaced rather than kept:
   the baseline necessarily runs from a throwaway checkout of the base commit, so

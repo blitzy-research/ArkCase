@@ -155,17 +155,6 @@
             <artifactId>commons-io</artifactId>
         </dependency>
 
-        <!-- Eight main-source files in this module import org.apache.commons.lang3, so the module compiles
-            against it directly and declares it directly. The version is deliberately omitted: the reactor-wide
-            commons-lang3 pin in the parent dependencyManagement governs it, exactly as it governs commons-io
-            above. Before this declaration the package reached the compile classpath only as a transitive of
-            an unrelated plugin dependency, so a change to that unrelated module's dependency graph could have
-            broken this module's compilation without touching this module. -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-
         <!-- testing -->
         <dependency>
             <groupId>junit</groupId>

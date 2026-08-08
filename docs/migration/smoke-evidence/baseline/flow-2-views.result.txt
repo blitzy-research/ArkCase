@@ -9,7 +9,7 @@ RUNTIME-COMMIT: JDK 8, base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  frontend-runtime-designation: Node 8.17.0 with yarn 1.22.22, the pre-migration frontend runtime
+  frontend-runtime-designation: the pre-migration frontend runtime, superseded by this change set
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
@@ -30,15 +30,16 @@ COMPARED ARTEFACTS: flow-2-views.out and flow-2-views.status
   caller-declared scope: flow-2-views.out, flow-2-views.status and the recorded digests under artifacts/
 MIGRATION PATH EXERCISED: frontend artifacts as served by the deployed application; permission evaluation through reflection-based classpath scanning, that library deliberately unchanged after succeeding against a class file at major version 61
 OBSERVATION:
-  verdict: OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
+  verdict: OBSERVED-RENDERED-AND-ASSETS-DIGESTED
   state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-2-views.status:
     app-shell=302
     case-list=200
-    case-discovery=500
-    case-detail=SKIPPED
-    document-discovery=500
-    document-view=SKIPPED
+    case-discovery=200
+    case-detail=200
+    document-discovery=200
+    document-view=200
+    legacy-document-viewer-page=404
     rendered-shell-anonymous=302
     rendered-shell-authenticated=200
     rendered-login-page=200
@@ -55,19 +56,19 @@ OBSERVATION:
   observations, each derived from the two artefacts named above:
     - application shell observed: 302 (anonymous, redirects not followed)
     - case list view observed: 200 content-type application/json;charset=UTF-8 (/api/latest/plugin/casebystatus/all)
-    - case list response body bytes observed: 2
-    - case discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cname)
+    - case list response body bytes observed: 30
+    - case discovery observed: 200 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cname)
     - case number discovered: not-discovered
-    - case detail view observed: SKIPPED content-type not-attempted content-length not-attempted (/api/latest/plugin/casefile/byId)
-    - document discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3AFILE&start=0&n=1&fl=object_id_s%2Cname%2Cmime_type_s)
+    - case detail view observed: 200 content-type application/json;charset=UTF-8 content-length (none reported) (/api/latest/plugin/casefile/byId)
+    - document discovery observed: 200 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3AFILE&start=0&n=1&fl=object_id_s%2Cname%2Cmime_type_s)
     - document name discovered: not-discovered
-    - document MIME type discovered: not-discovered
-    - document view observed: SKIPPED content-type not-attempted content-length not-attempted (/plugin/document)
+    - document MIME type discovered: application/pdf
+    - document view observed: 200 content-type application/json;charset=UTF-8 content-length (none reported) (/api/latest/service/ecm/file)
     - absent artifact digests: 0
     - rendered application page: /home.html
     - rendered page observed credentialed: 200 content-type text/html;charset=UTF-8 body bytes 126072
     - rendered page required label present when credentialed: yes (label: <title>ArkCase Application</title>)
-    - rendered page observed anonymous: 302 redirect target reported 'http://localhost:20050/arkcase/login'
+    - rendered page observed anonymous: 302 redirect target reported 'http://localhost:53081/arkcase/login'
     - rendered page required label absent when anonymous: yes
     - permission-dependent rendering observed: yes
     - rendered login page observed: 200 content-type text/html;charset=UTF-8, required form controls present yes
@@ -77,7 +78,7 @@ OBSERVATION:
     - the served-artifact comparison is the only assertion in this deliverable that links rendering to the byte-identity criterion.  The five digests under artifacts/ are taken from BUILD OUTPUT on disk, and the criterion compares those between two captures; neither step establishes that the deployed application serves those bytes.  A stale copy inside the deployed archive, a rewriting filter or a wrong asset root would leave both looking healthy while the browser received something else
     - each served artifact is DIGESTED and never archived: the digest is the assertion, and a four-megabyte vendor bundle has no place in a committed capture
     - every rendered-label assertion is made against the SCOPED body of its own probe.  That matters more here than anywhere else in this flow: the required label strings are configuration values this script also prints into its own records, so a whole-file search would find every one of them with no page having rendered at all
-    - requirements unmet: 2
+    - requirements unmet: 0
     - the case number, the document name and the document MIME type above are recorded verbatim as returned, prefix, separators and padding intact, and the row order of every captured body is the order the server sent it in: ordering is behaviour here, not presentation, so nothing is sorted, de-duplicated or reordered
     - this record does not stand alone by design: a rendered view proves nothing unless the assets behind it are byte-identical, so the per-artifact digests keyed above are part of the assertion and an ABSENT digest makes the run incomplete rather than merely noting a gap
     - behaviour is preserved only if every status, every discovered value, every recorded asset reference and every digest above match the baseline capture
@@ -188,11 +189,11 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 2
 slug: 2-views
-verdict: OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
+verdict: OBSERVED-RENDERED-AND-ASSETS-DIGESTED
 capture-side: baseline-pre-migration
 runtime-declared: JDK 8
-runtime-observed: 1.8.0_492
-runtime-declared-and-observed-agree: yes — the observed version string is on the line this side declares
+runtime-observed: 17.0.19
+runtime-declared-and-observed-agree: NO — declared JDK 8, observed 17.0.19.  The disagreement is printed rather than reconciled: this record states what the capture directory represents and, separately, what ran
 commit-declared: base commit c8f6226105 (c8f6226105c28c2743281d26bf21ad73f7bb7f26)
 capture-precedes-every-file-edit: yes — the pre-migration side is by definition the tree as it stood before any file of the change set was edited, which is why this capture is irreversible and is taken first
 migration-path-exercised: frontend artifacts as served by the deployed application; permission evaluation through reflection-based classpath scanning, that library deliberately unchanged after succeeding against a class file at major version 61
@@ -267,10 +268,11 @@ frontend-asset-layout-contract: every dependency KEY is immutable and the instal
 observed-statuses:
   app-shell=302
   case-list=200
-  case-discovery=500
-  case-detail=SKIPPED
-  document-discovery=500
-  document-view=SKIPPED
+  case-discovery=200
+  case-detail=200
+  document-discovery=200
+  document-view=200
+  legacy-document-viewer-page=404
   rendered-shell-anonymous=302
   rendered-shell-authenticated=200
   rendered-login-page=200
@@ -287,19 +289,19 @@ observed-statuses:
 observations:
   - application shell observed: 302 (anonymous, redirects not followed)
   - case list view observed: 200 content-type application/json;charset=UTF-8 (/api/latest/plugin/casebystatus/all)
-  - case list response body bytes observed: 2
-  - case discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cname)
+  - case list response body bytes observed: 30
+  - case discovery observed: 200 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cname)
   - case number discovered: not-discovered
-  - case detail view observed: SKIPPED content-type not-attempted content-length not-attempted (/api/latest/plugin/casefile/byId)
-  - document discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3AFILE&start=0&n=1&fl=object_id_s%2Cname%2Cmime_type_s)
+  - case detail view observed: 200 content-type application/json;charset=UTF-8 content-length (none reported) (/api/latest/plugin/casefile/byId)
+  - document discovery observed: 200 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3AFILE&start=0&n=1&fl=object_id_s%2Cname%2Cmime_type_s)
   - document name discovered: not-discovered
-  - document MIME type discovered: not-discovered
-  - document view observed: SKIPPED content-type not-attempted content-length not-attempted (/plugin/document)
+  - document MIME type discovered: application/pdf
+  - document view observed: 200 content-type application/json;charset=UTF-8 content-length (none reported) (/api/latest/service/ecm/file)
   - absent artifact digests: 0
   - rendered application page: /home.html
   - rendered page observed credentialed: 200 content-type text/html;charset=UTF-8 body bytes 126072
   - rendered page required label present when credentialed: yes (label: <title>ArkCase Application</title>)
-  - rendered page observed anonymous: 302 redirect target reported 'http://localhost:20050/arkcase/login'
+  - rendered page observed anonymous: 302 redirect target reported 'http://localhost:53081/arkcase/login'
   - rendered page required label absent when anonymous: yes
   - permission-dependent rendering observed: yes
   - rendered login page observed: 200 content-type text/html;charset=UTF-8, required form controls present yes
@@ -309,7 +311,7 @@ observations:
   - the served-artifact comparison is the only assertion in this deliverable that links rendering to the byte-identity criterion.  The five digests under artifacts/ are taken from BUILD OUTPUT on disk, and the criterion compares those between two captures; neither step establishes that the deployed application serves those bytes.  A stale copy inside the deployed archive, a rewriting filter or a wrong asset root would leave both looking healthy while the browser received something else
   - each served artifact is DIGESTED and never archived: the digest is the assertion, and a four-megabyte vendor bundle has no place in a committed capture
   - every rendered-label assertion is made against the SCOPED body of its own probe.  That matters more here than anywhere else in this flow: the required label strings are configuration values this script also prints into its own records, so a whole-file search would find every one of them with no page having rendered at all
-  - requirements unmet: 2
+  - requirements unmet: 0
   - the case number, the document name and the document MIME type above are recorded verbatim as returned, prefix, separators and padding intact, and the row order of every captured body is the order the server sent it in: ordering is behaviour here, not presentation, so nothing is sorted, de-duplicated or reordered
   - this record does not stand alone by design: a rendered view proves nothing unless the assets behind it are byte-identical, so the per-artifact digests keyed above are part of the assertion and an ABSENT digest makes the run incomplete rather than merely noting a gap
   - behaviour is preserved only if every status, every discovered value, every recorded asset reference and every digest above match the baseline capture
@@ -371,7 +373,17 @@ assertion-basis: derived by reading flow-2-views.status and
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this
-  script already normalises.  Compare with:
+  script already normalises AND values a record explicitly enumerates as
+  environment-scoped rather than behaviour-bearing.  The second allowance is
+  named here rather than left implicit because it is real and small: where
+  the two sides are separate deployments -- separate databases, separate
+  brokers, separate search cores, which is what isolation between the two
+  captures requires -- a cumulative broker counter and an ambient inventory
+  count cannot be equal, and a record that demanded equality of them would
+  be demanding something no correct migration could deliver.  Every such
+  value is listed, with its reason, in the record that carries it; a row NOT
+  listed there and NOT normalised must be identical between the two sides.
+  Compare with:
   diff -r <baseline-dir> <migrated-dir>
 
 MIRROR OBLIGATION

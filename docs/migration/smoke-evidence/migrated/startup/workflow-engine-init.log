@@ -3,485 +3,108 @@ region-describes: process-engine initialisation and process-definition loading, 
 region-mandatory: yes
 region-pattern: activiti|ProcessEngine|bpmn|process definition|deployment|ProcessEngineConfiguration
 region-pattern-flags: grep -E -i, applied to the extracted window only
-window-source: /tmp/p9-runtime-w004/tomcat/logs/catalina.out
-window-source-sha256: 6ca537628d2fe6aaa3a71a6ed7522063af32ef62242fe8b651198ae81abb340e
+window-source: <REPO-ROOT>/.blitzy-scratch/rt/mig/tomcat/logs/catalina.out
+window-source-sha256: a1aa8e7adf21e001c3799930cc329c902726b3af646cabad4cc4f3ff2a9687f2
 window-boots-present-in-source: 1
-window-sha256: 065aa7803725fceb4a3f247710d1031618daa667b5492324cf982448aada17cb
+window-sha256: 595de21779d66fe116127ff88d4b465de96a3fb27f9a15ef3d18b71cce003100
 window-start-line: 2
-window-end-line: 4934
+window-end-line: 2803
 window-start-byte-offset: 374
-window-end-byte-offset: 759974
-window-lines: 4933
-matched-lines: 41
-line-cap: 2000
+window-end-byte-offset: 621377
+window-lines: 2802
+matched-lines: 91
+line-cap: 8000
 capture-truncated: no
 ----- region -----
-[m[36m<TIMESTAMP>,409 [DEBUG] [main] com.armedia.acm.activiti.services.ActivitiTaskScheduler - Application has started - now accepting tasks.
-[m[36m<TIMESTAMP>,675 [DEBUG] [main] com.armedia.acm.activiti.services.ActivitiTaskScheduler - Initializing ExecutorService 'activitiTaskScheduler'
-[32m<TIMESTAMP>,526 [INFO ] [main] org.activiti.engine.impl.ProcessEngineImpl - ProcessEngine default created
-[m[32m<TIMESTAMP>,720 [INFO ] [main] org.activiti.engine.impl.jobexecutor.JobExecutor - Starting up the JobExecutor[org.activiti.spring.SpringJobExecutor].
-[m[32m<TIMESTAMP>,722 [INFO ] [Thread-124] org.activiti.engine.impl.jobexecutor.AcquireJobsRunnable - JobExecutor[org.activiti.spring.SpringJobExecutor] starting to acquire jobs
-[m[36m<TIMESTAMP>,867 [DEBUG] [main] com.armedia.acm.data.SpringEntityListenerConfigurer - Entity class: com.armedia.acm.activiti.model.AcmProcessDefinition; has descriptor? true
-[32m<TIMESTAMP>,472 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
-[m[32m<TIMESTAMP>,474 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentWorkflow_v5.bpmn20.xml]
-[m[32m<TIMESTAMP>,479 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [b60e02c94c94e73f010e7203254a930351984fe617a6f424e539cf1a978d23df] from Bpmn file
-[m[32m<TIMESTAMP>,484 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentWorkflow] from Bpmn file
-[m[32m<TIMESTAMP>,493 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [acmDocumentWorkflow]
-[m[32m<TIMESTAMP>,494 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentSingleTaskWorkflow_v2.bpmn20.xml]
-[m[32m<TIMESTAMP>,495 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [be61d110d0a35a6c8b50539d581da4dd70eded6c2062c9ca2adbe8b687741ddd] from Bpmn file
-[m[32m<TIMESTAMP>,496 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentSingleTaskWorkflow] from Bpmn file
-[m[32m<TIMESTAMP>,497 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [acmDocumentSingleTaskWorkflow]
-[m[32m<TIMESTAMP>,497 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentTaskWorkflow_v1.bpmn20.xml]
-[m[32m<TIMESTAMP>,498 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [fd3e1892974c8cf208941f0077cd4b811790db85504cfa07e4835fe39d7aef33] from Bpmn file
-[m[32m<TIMESTAMP>,499 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentTaskWorkflow] from Bpmn file
-[m[32m<TIMESTAMP>,500 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [acmDocumentTaskWorkflow]
-[m[32m<TIMESTAMP>,501 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [ArkCase Buckslip Process v4.bpmn20.xml]
-[m[32m<TIMESTAMP>,501 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [57669a5ef8a22bf0c02091dfc6e08d0752f4d055fe43eeb11c84a51ac234ac77] from Bpmn file
-[m[32m<TIMESTAMP>,502 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[ArkCaseBuckslipProcess] from Bpmn file
-[m[32m<TIMESTAMP>,503 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [ArkCaseBuckslipProcess]
-[m[32m<TIMESTAMP>,504 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [DefaultComplaintWorkflow_v5.bpmn20.xml]
-[m[32m<TIMESTAMP>,505 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [8f2ceb667963f9808d94de463a5d5e2287e865eb5625a4c7c9b9a67409309b27] from Bpmn file
-[m[32m<TIMESTAMP>,505 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[cmComplaintWorkflow] from Bpmn file
-[m[32m<TIMESTAMP>,506 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [cmComplaintWorkflow]
-[m[32m<TIMESTAMP>,507 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [Corrective Task Action Plan.bpmn20.xml]
-[m[32m<TIMESTAMP>,508 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [46a85c1db3eda82a8f232aa67df997bbe6f53960fe341ee3f4098553966e6698] from Bpmn file
-[m[32m<TIMESTAMP>,508 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[CorrectiveTaskActionPlan] from Bpmn file
-[m[32m<TIMESTAMP>,509 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [CorrectiveTaskActionPlan]
-[m[32m<TIMESTAMP>,510 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [Corrective Action Plan_v3.bpmn20.xml]
-[m[32m<TIMESTAMP>,510 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [0ad61a22e53fdd9193fb4f8c573685f42fd84084ec936db85598e591e6498b22] from Bpmn file
-[m[32m<TIMESTAMP>,511 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[CorrectiveActionPlan] from Bpmn file
-[m[32m<TIMESTAMP>,512 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [CorrectiveActionPlan]
-[m[32m<TIMESTAMP>,513 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [MediaEngineWorkFlow_v2.bpmn20.xml]
-[m[32m<TIMESTAMP>,513 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [35d000ab286e7e1a5599a61e1de57bf374f9406754a043099df5265dcf90dcdc] from Bpmn file
-[m[32m<TIMESTAMP>,514 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[MediaEngineWorkFlow] from Bpmn file
-[m[32m<TIMESTAMP>,515 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - not deploying, since process already exists [MediaEngineWorkFlow]
-[m[32m<TIMESTAMP>,516 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Done scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
-[m07-Aug-2026 04:34:09.002 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/tmp/p9-runtime-w004/tomcat/webapps/arkcase.war] has finished in [158,391] ms
+[m[36m<TIMESTAMP>,857 [DEBUG] [main] com.armedia.acm.activiti.services.ActivitiTaskScheduler - Application has started - now accepting tasks.
+[m[36m<TIMESTAMP>,857 [DEBUG] [main] com.armedia.acm.activiti.services.ActivitiTaskScheduler - Initializing ExecutorService 'activitiTaskScheduler'
+[m[32m<TIMESTAMP>,875 [INFO ] [main] org.activiti.engine.impl.ProcessEngineImpl - ProcessEngine default created
+[m[32m<TIMESTAMP>,877 [INFO ] [main] org.activiti.engine.impl.jobexecutor.JobExecutor - Starting up the JobExecutor[org.activiti.spring.SpringJobExecutor].
+[m[32m<TIMESTAMP>,878 [INFO ] [Thread-124] org.activiti.engine.impl.jobexecutor.AcquireJobsRunnable - JobExecutor[org.activiti.spring.SpringJobExecutor] starting to acquire jobs
+[m[36m<TIMESTAMP>,021 [DEBUG] [main] com.armedia.acm.data.SpringEntityListenerConfigurer - Entity class: com.armedia.acm.activiti.model.AcmProcessDefinition; has descriptor? true
+[m[32m<TIMESTAMP>,516 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
+[m[32m<TIMESTAMP>,517 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentWorkflow_v5.bpmn20.xml]
+[m[32m<TIMESTAMP>,523 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [b60e02c94c94e73f010e7203254a930351984fe617a6f424e539cf1a978d23df] from Bpmn file
+[m[32m<TIMESTAMP>,528 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentWorkflow] from Bpmn file
+[m[36m<TIMESTAMP>,601 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,602 [INFO ] [main] org.activiti.engine.impl.bpmn.deployer.BpmnDeployer - Processing resource acmDocumentWorkflow.bpmn20.xml
+[m[32m<TIMESTAMP>,719 [INFO ] [main] com.armedia.acm.activiti.ActivitiProcessParseHandler - parse handler called for Process ACM Document Approval Process - Review
+[m[32m<TIMESTAMP>,741 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task Review ${taskName}
+[m[32m<TIMESTAMP>,756 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task Rework ${taskName}
+[m[36m<TIMESTAMP>,040 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,091 [INFO ] [main] com.armedia.acm.services.sequence.annotation.AcmSequenceAnnotationReader - Added sequence attributes for object [com.armedia.acm.activiti.model.AcmProcessDefinition]
+[m[32m<TIMESTAMP>,192 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentSingleTaskWorkflow_v2.bpmn20.xml]
+[m[32m<TIMESTAMP>,192 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [be61d110d0a35a6c8b50539d581da4dd70eded6c2062c9ca2adbe8b687741ddd] from Bpmn file
+[m[32m<TIMESTAMP>,194 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentSingleTaskWorkflow] from Bpmn file
+[m[36m<TIMESTAMP>,197 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,197 [INFO ] [main] org.activiti.engine.impl.bpmn.deployer.BpmnDeployer - Processing resource acmDocumentSingleTaskWorkflow.bpmn20.xml
+[m[33m<TIMESTAMP>,209 [WARN ] [main] org.activiti.engine.impl.bpmn.parser.BpmnParse - Following warnings encountered during process validation: [Validation set: 'activiti-executable-process' | Problem: 'activiti-di-invalid-reference'] : Invalid reference in diagram interchange definition: could not find sid-<UUID> - [Extra info : ]
+[Validation set: 'activiti-executable-process' | Problem: 'activiti-di-invalid-reference'] : Invalid reference in diagram interchange definition: could not find sid-<UUID> - [Extra info : ]
+[Validation set: 'activiti-executable-process' | Problem: 'activiti-di-invalid-reference'] : Invalid reference in diagram interchange definition: could not find sid-<UUID> - [Extra info : ]
+[Validation set: 'activiti-executable-process' | Problem: 'activiti-di-invalid-reference'] : Invalid reference in diagram interchange definition: could not find sid-<UUID> - [Extra info : ]
+[Validation set: 'activiti-executable-process' | Problem: 'activiti-di-invalid-reference'] : Invalid reference in diagram interchange definition: could not find sid-<UUID> - [Extra info : ]
+[m[32m<TIMESTAMP>,209 [INFO ] [main] com.armedia.acm.activiti.ActivitiProcessParseHandler - parse handler called for Process ACM Document Workflow - Single Task
+[m[32m<TIMESTAMP>,209 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task ${currentTaskName}
+[m[33m<TIMESTAMP>,210 [WARN ] [main] org.activiti.engine.impl.bpmn.parser.BpmnParse - Invalid reference in diagram interchange definition: could not find sid-<UUID>
+[m[33m<TIMESTAMP>,210 [WARN ] [main] org.activiti.engine.impl.bpmn.parser.BpmnParse - Invalid reference in diagram interchange definition: could not find sid-<UUID>
+[m[33m<TIMESTAMP>,210 [WARN ] [main] org.activiti.engine.impl.bpmn.parser.BpmnParse - Invalid reference in diagram interchange definition: could not find sid-<UUID>
+[m[33m<TIMESTAMP>,210 [WARN ] [main] org.activiti.engine.impl.bpmn.parser.BpmnParse - Invalid reference in diagram interchange definition: could not find sid-<UUID>
+[m[33m<TIMESTAMP>,210 [WARN ] [main] org.activiti.engine.impl.bpmn.parser.BpmnParse - Invalid reference in diagram interchange definition: could not find sid-<UUID>
+[m[36m<TIMESTAMP>,227 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,240 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [acmDocumentTaskWorkflow_v1.bpmn20.xml]
+[m[32m<TIMESTAMP>,240 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [fd3e1892974c8cf208941f0077cd4b811790db85504cfa07e4835fe39d7aef33] from Bpmn file
+[m[32m<TIMESTAMP>,242 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[acmDocumentTaskWorkflow] from Bpmn file
+[m[36m<TIMESTAMP>,243 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,243 [INFO ] [main] org.activiti.engine.impl.bpmn.deployer.BpmnDeployer - Processing resource acmDocumentTaskWorkflow.bpmn20.xml
+[m[32m<TIMESTAMP>,254 [INFO ] [main] com.armedia.acm.activiti.ActivitiProcessParseHandler - parse handler called for Process ACM Document Approval Process
+[m[32m<TIMESTAMP>,254 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task ${taskName}
+[m[32m<TIMESTAMP>,254 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task Rework ${taskName}
+[m[36m<TIMESTAMP>,278 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,291 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [ArkCase Buckslip Process v4.bpmn20.xml]
+[m[32m<TIMESTAMP>,291 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [57669a5ef8a22bf0c02091dfc6e08d0752f4d055fe43eeb11c84a51ac234ac77] from Bpmn file
+[m[32m<TIMESTAMP>,293 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[ArkCaseBuckslipProcess] from Bpmn file
+[m[36m<TIMESTAMP>,294 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,294 [INFO ] [main] org.activiti.engine.impl.bpmn.deployer.BpmnDeployer - Processing resource ArkCaseBuckslipProcess.bpmn20.xml
+[m[32m<TIMESTAMP>,307 [INFO ] [main] com.armedia.acm.activiti.ActivitiProcessParseHandler - parse handler called for Process ArkCase Buckslip Process
+[m[32m<TIMESTAMP>,308 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task ${currentTaskName}
+[m[36m<TIMESTAMP>,333 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,345 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [DefaultComplaintWorkflow_v5.bpmn20.xml]
+[m[32m<TIMESTAMP>,346 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [8f2ceb667963f9808d94de463a5d5e2287e865eb5625a4c7c9b9a67409309b27] from Bpmn file
+[m[32m<TIMESTAMP>,347 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[cmComplaintWorkflow] from Bpmn file
+[m[36m<TIMESTAMP>,349 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,349 [INFO ] [main] org.activiti.engine.impl.bpmn.deployer.BpmnDeployer - Processing resource cmComplaintWorkflow.bpmn20.xml
+[m[32m<TIMESTAMP>,356 [INFO ] [main] com.armedia.acm.activiti.ActivitiProcessParseHandler - parse handler called for Process Complaint review and approval process
+[m[32m<TIMESTAMP>,356 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task Approve Complaint '${complaintTitle}'
+[m[36m<TIMESTAMP>,357 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,365 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [Corrective Task Action Plan.bpmn20.xml]
+[m[32m<TIMESTAMP>,366 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [46a85c1db3eda82a8f232aa67df997bbe6f53960fe341ee3f4098553966e6698] from Bpmn file
+[m[32m<TIMESTAMP>,367 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[CorrectiveTaskActionPlan] from Bpmn file
+[m[36m<TIMESTAMP>,368 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,368 [INFO ] [main] org.activiti.engine.impl.bpmn.deployer.BpmnDeployer - Processing resource CorrectiveTaskActionPlan.bpmn20.xml
+[m[32m<TIMESTAMP>,376 [INFO ] [main] com.armedia.acm.activiti.ActivitiProcessParseHandler - parse handler called for Process Corrective Action Plan
+[m[32m<TIMESTAMP>,376 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task ${taskName}
+[m[32m<TIMESTAMP>,376 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task ${taskName}
+[m[36m<TIMESTAMP>,381 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,390 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [Corrective Action Plan_v3.bpmn20.xml]
+[m[32m<TIMESTAMP>,391 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [0ad61a22e53fdd9193fb4f8c573685f42fd84084ec936db85598e591e6498b22] from Bpmn file
+[m[32m<TIMESTAMP>,392 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[CorrectiveActionPlan] from Bpmn file
+[m[36m<TIMESTAMP>,393 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,394 [INFO ] [main] org.activiti.engine.impl.bpmn.deployer.BpmnDeployer - Processing resource CorrectiveActionPlan.bpmn20.xml
+[m[32m<TIMESTAMP>,401 [INFO ] [main] com.armedia.acm.activiti.ActivitiProcessParseHandler - parse handler called for Process Corrective Action Plan - Review
+[m[32m<TIMESTAMP>,401 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task Review Document "${OBJECT_NAME}"
+[m[32m<TIMESTAMP>,401 [INFO ] [main] com.armedia.acm.activiti.ActivitiUserTaskParseHandler - parse handler called for user task Finalize Document "${OBJECT_NAME}"
+[m[36m<TIMESTAMP>,408 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,418 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Found resource [MediaEngineWorkFlow_v2.bpmn20.xml]
+[m[32m<TIMESTAMP>,419 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - Digest [35d000ab286e7e1a5599a61e1de57bf374f9406754a043099df5265dcf90dcdc] from Bpmn file
+[m[32m<TIMESTAMP>,420 [INFO ] [main] com.armedia.acm.activiti.services.AcmBpmnServiceImpl - extracted id[MediaEngineWorkFlow] from Bpmn file
+[m[36m<TIMESTAMP>,422 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,422 [INFO ] [main] org.activiti.engine.impl.bpmn.deployer.BpmnDeployer - Processing resource MediaEngineWorkFlow.bpmn20.xml
+[m[32m<TIMESTAMP>,433 [INFO ] [main] com.armedia.acm.activiti.ActivitiProcessParseHandler - parse handler called for Process MediaEngineWorkFlow
+[m[36m<TIMESTAMP>,492 [DEBUG] [main] com.armedia.acm.audit.listeners.AcmActivitiEntityEventListener - Activiti entity created event handling
+[m[32m<TIMESTAMP>,506 [INFO ] [main] com.armedia.acm.activiti.services.ActivityClassPathBpmnDeployer - Done scanning for resources matching [classpath*:/activiti/acm*.bpmn20.xml,classpath*:/activiti/ArkCase*.bpmn20.xml,classpath*:/activiti/DefaultComplaint*.bpmn20.xml,classpath*:/activiti/Corrective*.bpmn20.xml,classpath*:/activiti/Media*.bpmn20.xml]
+[m[36m<TIMESTAMP>,039 [DEBUG] [main] com.armedia.acm.files.ConfigFileWatcher - file added: file://<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/acm/activiti/temp
+[m[36m<TIMESTAMP>,039 [DEBUG] [main] com.armedia.acm.spring.SpringContextHolder - Event type: [com.armedia.acm.files.ConfigurationFileAddedEvent]. Event base filename: [activiti/temp]
+[m[36m<TIMESTAMP>,039 [DEBUG] [main] com.armedia.acm.files.ConfigFileWatcher - file added: file://<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/acm/activiti
+[m[36m<TIMESTAMP>,039 [DEBUG] [main] com.armedia.acm.spring.SpringContextHolder - Event type: [com.armedia.acm.files.ConfigurationFileAddedEvent]. Event base filename: [activiti]
+[m08-Aug-2026 04:58:58.831 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [<REPO-ROOT>/.blitzy-scratch/rt/mig/tomcat/webapps/arkcase.war] has finished in [162,460] ms
 ----- end region -----
-ANNOTATION (NOT CAPTURED OUTPUT)
-  Every line above the end-of-region delimiter is script-produced capture and is
-  byte-identical to what the capture wrote.  Every line below this heading is
-  annotation added on review.  The two are kept apart deliberately: the brief for
-  this file requires the region to be CAPTURED rather than summarised, so nothing
-  below ever contributes a log line, a deployment line or a count to the region,
-  and no reader can mistake annotation for observation.
-
-CAPTURE STATUS AND PROVENANCE, RE-VERIFIED RATHER THAN TRUSTED
-  CAPTURE STATUS is CAPTURED.  The region was mined from a real Java 17 container
-  startup, not composed.  That is not asserted here, it is re-derived: the window
-  source named in the header is still on disk, so the byte range recorded above
-  was re-extracted and re-hashed, and it reproduces the window-sha256 recorded in
-  the header bit for bit.  Re-running the recorded region pattern over that same
-  byte range reproduces matched-lines 41 exactly.  The header says
-  capture-truncated no, and that is consistent with the region ending on the
-  container's deployment-finished line.
-  The same two derivations were run against the counterpart capture and they also
-  reproduce its recorded window digest and its matched-lines figure of 41.  Both
-  sides therefore mined one bounded single-boot window each, which is what makes
-  a count-for-count comparison mean anything.
-  The runtime each window ran on is recorded by the container itself inside the
-  window rather than claimed here: this side reports JVM version 17.0.19, and the
-  pre-migration side reports a 1.8.0 series JVM.  Written as prose, the older
-  runtime is called JDK 8 throughout this evidence tree.
-  Commit provenance, stated without invention.  The pre-migration base commit is
-  c8f6226105c28c2743281d26bf21ad73f7bb7f26, confirmed by ancestry to be an
-  ancestor of this branch head.  The capture run itself executed against tree
-  c24e049e28a270636fd5c3d38a9b5ea77bd36060, which is necessarily an ancestor of
-  the commit that records this file.  No hash here is guessed; each was read from
-  the repository.
-
-MIRROR OBLIGATION, AND WHY NO HEADER FIELD WAS ADDED
-  This file mirrors its pre-migration counterpart mechanically: same filename,
-  same header field set, same field order, same two region delimiters, each
-  appearing exactly once.  A field-name comparison between the two files returns
-  no difference, and that is the property that lets the whole capture directory be
-  compared with a recursive diff instead of by reading.
-  That mirror was chosen over a differently-shaped header schema that the brief
-  for this file also proposed.  The two could not both be satisfied, and the
-  disagreement is recorded here rather than resolved silently.  The proposed
-  schema would have introduced header fields the counterpart does not carry, and
-  it described the counterpart as already carrying three of them.  The
-  counterpart does not: it carries the window-provenance schema reproduced above,
-  and its delimiters are named region rather than capture.  Because the mirror
-  obligation is also the one constraint a reviewer can check mechanically, the
-  mirror won and the substantive content the schema was meant to carry is
-  recorded in this annotation instead.
-  Every line of this annotation is written so that none of it parses as a header
-  field.  That is deliberate and it is load-bearing twice over: it keeps the
-  field-name comparison against the counterpart returning no difference, and it
-  keeps the capture script's own readers intact, since they either read a single
-  named header field or read strictly between the two region delimiters.  Nothing
-  below this heading can perturb either.
-
-WHAT THIS REGION ACTUALLY OBSERVED
-  These are observations, read back from the region above.
-  ENGINE CONSTRUCTED                     1 process engine reached a usable state
-  CLASSPATH DEFINITIONS FOUND            8
-  DEFINITION KEYS EXTRACTED              8
-  ALREADY PRESENT, SO NOT REDEPLOYED     8
-  NEWLY DEPLOYED IN THIS BOOT            0
-  WARN LINES IN REGION                   0
-  ERROR LINES IN REGION                  0
-  MATCHED LINES IN REGION                41
-  The eight keys, in the order the region records them, are acmDocumentWorkflow,
-  acmDocumentSingleTaskWorkflow, acmDocumentTaskWorkflow, ArkCaseBuckslipProcess,
-  cmComplaintWorkflow, CorrectiveTaskActionPlan, CorrectiveActionPlan and
-  MediaEngineWorkFlow.  The counterpart capture records the same eight keys, in
-  the same order, with the same eight already-present decisions and the same
-  matched-lines figure.  On every value this region can compare, the two runtimes
-  agree.
-  One nuance matters and is easy to lose: the engine did not deploy eight
-  definitions during this boot.  It reconciled eight and skipped all eight because
-  they were already present from an earlier boot, so the newly-deployed figure is
-  zero.  Reconciled and deployed are different measurements and are reported
-  separately above.
-
-WHAT THIS REGION DID NOT OBSERVE
-  The engine's own repository was never queried for a definition total anywhere in
-  this window, so no engine-side total exists in this capture.
-  DEFINITIONS EXPECTED, FROM THE CORPUS        36
-  DEFINITIONS LOADED, ENGINE REPOSITORY TOTAL  UNOBSERVED
-  The second figure reads UNOBSERVED and not 36.  The two figures are reported
-  separately precisely so that expected and observed stay separable, and copying
-  the expected figure across into the observed one would destroy the only thing
-  this file exists to establish.  An engine bean that constructs without throwing
-  is not evidence that definitions loaded; only a count is, and this capture does
-  not carry one.
-  A live count could not be taken afterwards either.  Nothing is serving on the
-  application port in this environment and three of the six reference services are
-  not provisioned here at all.  Even had a count been obtainable, it would have
-  come from a different boot than the byte-pinned window above, and splicing it in
-  would have misrepresented the capture's provenance.  Recording UNOBSERVED is the
-  honest outcome and it is consistent with the classification below.
-  A related conflation is flagged so it is not read into this file.  A count of
-  region lines that merely mention a definition file is not a count of definitions.
-  This annotation reports the reconciliation figure of eight and the newly-deployed
-  figure of zero, both observed, and reports the engine repository total as
-  unobserved.  It asserts no other definition count.
-
-RISK CLASSIFICATION
-  RESIDUAL UNVERIFIED RISK, ASSIGNED TO THIS GATE, NOT CLEARED.
-  The wording is deliberate and is not softened.  The workflow engine is the
-  oldest load-bearing component in the reactor, a 2014-vintage release, and it
-  could not be bootstrapped for testing in isolation without a database, so it was
-  assigned to the deployment and smoke gates rather than declared safe.  Nothing
-  in this capture may be read as verifying it, and nothing below reclassifies it.
-  Its version is deliberately unchanged.  No compatibility failure was
-  demonstrated for it, and a version change without a demonstrated compatibility
-  reason is out of scope, so bumping the oldest load-bearing component in the
-  reactor would itself be a rule violation and a far larger behavioural risk than
-  the one this gate manages.  The honest corollary is stated with it, because the
-  first half alone would flatter the result: not having demonstrated a failure is
-  not the same as having demonstrated safety.  That gap is exactly what the word
-  residual denotes, and it is why the classification stays not cleared even though
-  every observed value on this side matches the pre-migration side.
-
-DEFINITIONS EXPECTED, RE-DERIVED RATHER THAN ADOPTED
-  Two command forms were run over this tree and both return 36.  The first is the
-  plain form, a find for definition files with installed dependencies excluded.
-  The second additionally prunes build-output and repository-metadata directories.
-  They agree here because this working tree currently carries no build copies of
-  definition resources; on a built tree the plain form would additionally count the
-  build copies, which is a property of the working tree and not of the corpus.
-  The breakdown is recorded so a reviewer can localise any shortfall rather than
-  merely observe one, and the source set each figure belongs to is stated because
-  it is what makes a difference explicable.
-  complaint plugin                          1   main source
-  task plugin                               5   3 main source, 2 test source
-  personnel security plugin                 1   main source
-  document management service               3   main source
-  media engine service                      1   main source
-  transcription service                     1   main source
-  freedom-of-information application       11   main source
-  privacy application                       8   main source
-  workflow engine configuration module      5   test source
-  TOTAL                                    36   29 main source, 7 test source
-  The corpus figure therefore includes seven test-source definitions, which no
-  deployed application is ever expected to load.  Any comparison that treats 36 as
-  a deployment target without saying so is comparing two different things.
-
-WHY EIGHT IS NOT A SHORTFALL AGAINST THIRTY-SIX
-  This is the explanation the previous section is owed, and it is established
-  rather than assumed, because presenting a mismatch as a failure without
-  establishing that the missing definitions were ever expected to deploy would be
-  the more serious error.
-  The startup deployer does not scan the corpus.  It scans five classpath name
-  patterns, and the region above records them verbatim: definition resources whose
-  names begin with acm, ArkCase, DefaultComplaint, Corrective or Media.  Exactly
-  nine of the 36 corpus basenames match those five patterns.  The ninth is a
-  test-source copy of the default complaint workflow belonging to the workflow
-  engine configuration module, which is not on a deployed runtime classpath.
-  Eight is therefore the complete and expected set for this mechanism, and the
-  observed eight is a match rather than a deficit.
-  The remaining 27 main-source definitions are not reachable by this scan at all.
-  They are administered through the engine's own definition service rather than by
-  the startup classpath scan, so their absence from this region is by design.
-  This is an expectation about mechanism, derived from the scan patterns the region
-  records and from the corpus census above.  It is not an observation that those 27
-  were loaded by some other route; this capture observed no such thing.
-
-THE STARTUP-WINDOW TIMING TRAP, AND HOW IT WAS AVOIDED
-  The engine reconciles its definitions during the first-startup window, and the
-  repository documents that window twice.  The deployment step in README.md:L175
-  states that the first startup will take 5 - 10 minutes, and docs/setup.md:L133
-  repeats it in the same terms.  Both anchors are cited because both exist and a
-  single citation would look like a transcription rather than a check.
-  Those two line numbers were re-derived for this file rather than copied from the
-  brief, which cited README.md:L141 and docs/setup.md:L108.  Both of those anchors
-  are now stale: this migration updates both documents, so the line numbers moved.
-  Recording the correction here keeps the citation checkable instead of merely
-  plausible.
-  Why the trap matters: a capture cut before that window closes yields a definition
-  figure that measures capture timing rather than engine behaviour, and it would be
-  indistinguishable from a genuine shortfall.  This capture spans the whole window.
-  The evidence for that claim is structural rather than promised.  The window was
-  taken as one bounded byte range over a source containing exactly one boot, the
-  header records capture-truncated no, and the final line of the region is the
-  container's own deployment-finished line for the application archive, so the
-  region runs to the end of deployment rather than stopping inside it.
-  How the window was determined to have closed: the container's startup-completed
-  line, which is the last event of the boot.  That observation belongs to the
-  readiness region and is not duplicated here; it is recorded in
-  readiness-poll.log in this same startup directory, which was mined from the very
-  same single window as this region and carries the identical window digest.
-  Cross-referenced by filename, not reproduced.
-  The measured deployment on this side was faster than the documented 5 to 10
-  minute range.  That is not a finding and is not treated as one: the criterion is
-  that the capture spans to the startup-completed line, not that it lasted a
-  particular time.  Elapsed figures are inter-run noise and the counterpart's
-  differ too.
-
-THREE FINDINGS THAT BOUND THE CONCERN, AND DO NOT CLEAR IT
-  Stated first, because it governs all three: these findings BOUND the residual
-  concern.  They do not eliminate it, and no combination of them discharges this
-  gate.  The engine still could not be executed before deployment, which is why the
-  classification above stays not cleared.  Findings one to three are expectations
-  derived from configuration and dependency analysis, not observations from this
-  capture.
-  FINDING 1, and it is the one that has to be stated carefully, because the
-  inference originally drawn from it is withdrawn as false.  The two measurements
-  are true and were re-derived over this tree: the definition corpus declares zero
-  script-task elements and zero script-format attributes.  The inference drawn from
-  those two zeros, that the engine therefore never requests a scripting engine, is
-  FALSE and is withdrawn here rather than quietly dropped.  The engine also reaches
-  a scripting engine through a task listener, which a census of script tasks and
-  script formats cannot see.  One main-source definition, the personnel security
-  background investigation definition version 11, declares seven complete-event
-  script task listeners, at lines 46, 66, 86, 108, 119, 142 and 153, each carrying
-  a language field whose value is javascript, at lines 48, 68, 88, 110, 121, 144
-  and 155.  The platform's removal of its bundled scripting engine therefore does
-  reach the engine along that path.  That is a platform-removal matter rather than
-  an engine-version matter, and the lesson is worth stating plainly: a
-  pattern-based census over configuration is only as good as its knowledge of every
-  element that can reach the capability being censused.  The repository itself
-  records the same conclusion, in the comment block at pom.xml:L184-L194, which
-  registers the one main definition resource whose task listeners request the
-  engine.
-  FINDING 2.  The engine's persistence layer reflects over the application's own
-  domain classes, through ordinary unrestricted reflection, rather than over
-  platform internals.  Strong encapsulation does not bite on that path.
-  FINDING 3.  It reads no class bytes and touches no encapsulated platform
-  package.  This is also why the register of production launch-configuration
-  exceptions for encapsulated-package access is earned empty rather than assumed
-  empty: no package needs opening on this engine's behalf.  That register is
-  referred to here BY TITLE ONLY, and never by filename or path, because its
-  filename embeds a token this evidence tree carries nowhere at any depth.
-  Findings 2 and 3 remain sound.  Finding 1 survives only as its two measurements;
-  its inference does not.  A reader who takes all three as clearance has
-  misread this section.
-
-THE SCRIPTING-ENGINE DEFECT, REGISTERED AND NOT FIXED
-  Recorded because it was discovered, and left alone because the governing rule
-  says discovered pre-existing defects are documented rather than repaired.
-  Nothing in this file proposes, implies or performs a repair.
-  THE TWO CALL SITES, re-derived over this tree, are exactly two:
-  acm-standard-applications/acm-foia/src/main/java/gov/foia/service/JavaScriptEvaluatingPredicate.java
-  at line 94, and the privacy application's counterpart at
-  acm-standard-applications/acm-privacy/src/main/java/gov/privacy/service/JavaScriptEvaluatingPredicate.java
-  at line 98.  Each asks the script-engine manager for an engine by name.
-  WHY IT FAILS SILENTLY, which is what makes it dangerous.  The platform removed
-  the engine implementation while leaving the scripting API in place, so both files
-  compile cleanly at the new release level.  The lookup returns nothing at run
-  time and the next dereference throws.  Neither a compiler nor the change set's
-  static audit over main source would surface it, because there is nothing
-  textually wrong with either file.
-  WHY BOTH COPIES ARE PROVABLY UNREACHABLE DEAD CODE.  In
-  acm-standard-applications/acm-foia/src/main/resources/spring/spring-extension-library-foia.xml
-  the XML comment region OPENS at line 131 and CLOSES at line 141.  Both
-  declarations inside it are therefore commented out: the alternative
-  folder-name-equals predicate declared at line 131 and the script-evaluating
-  predicate declared at line 139.  There is NO ACTIVE DECLARATION of either at
-  all.  The sole consumer, a bean reference at line 150, sits inside a commented
-  property block spanning lines 148 to 152.  The privacy application has NO XML
-  reference whatsoever, and its apparent cross-module references are declaration
-  examples inside documentation comments.
-  That reading was verified line by line for this file, and it corrects a
-  description elsewhere in the migration plan which treats line 131 as an active
-  declaration of a different, non-scripting predicate class.  Line 131 is where
-  the comment opens.  Getting this backwards would turn a proof of unreachability
-  into a claim that something live had been left broken.
-  ONE CLAIM IS NARROWED HONESTLY.  It is often stated that no build file,
-  configuration file or script anywhere names the engine.  Over this tree that is
-  no longer literally true, and the difference is recorded rather than smoothed
-  over: the same search now returns two further matches beyond the two call sites,
-  one in the root build file's comment block at pom.xml:L184-L194 and one as a
-  version-property key inside this evidence tree's own advisory capture script.
-  Neither is engine wiring.  The first is a comment that deliberately declines to
-  pin the engine and forbids adding it; the second merely names a property key.
-  The operative fact is unchanged and was verified directly: NO standalone
-  scripting-engine artifact is declared as a dependency anywhere in the reactor.
-  THE DECISION AND ITS TWO JUSTIFICATIONS.  No standalone scripting engine was
-  added.  First, doing so would introduce a production dependency solely to
-  support code that cannot execute, which is not a compatibility-blocking upgrade
-  and is therefore out of scope.  Second, it would convert provably dead code into
-  live code, which is a behaviour CHANGE measured against pre-migration behaviour,
-  and pre-migration behaviour is the tie-breaker.  The defect is registered
-  instead.
-  A CAUTION FOR ANY READER RECONCILING THIS WITH FINDING 1.  The two dead call
-  sites above and the seven task listeners in finding 1 are different paths with
-  opposite pre-migration behaviour: the call sites never ran, the listeners did.
-  This file records both and repairs neither.  It makes no claim that the listener
-  path has been restored, and no such restoration exists in this tree.
-
-NORMALISATION APPLIED TO THE REGION
-  Stripped, as inter-run noise: timestamps; thread names and identifiers;
-  engine-assigned deployment, process-instance and execution identifiers; job and
-  timer identifiers; database connection identifiers; elapsed-time figures.
-  Preserved, because each is what a criterion compares: every process-definition
-  key; every definition resource name and version suffix; every count; and the
-  full text of any WARN or ERROR line, of which this region contains none.
-  Counts are exempted from normalisation explicitly.  A pipeline that strips digits
-  as volatile would erase the only evidence this file carries, so the reconciliation
-  figure, the newly-deployed figure, the matched-lines figure and the corpus figures
-  are all exempt and survive intact.
-  Two absolute paths survive inside the region, in the container's own deployment
-  lines, and they are left as captured.  Rewriting bytes inside a byte-pinned
-  region would break the digest re-derivation that proves this capture genuine,
-  which is a worse outcome than retaining a scratch directory name.  The
-  counterpart capture retains the equivalent path for its own runtime directory, so
-  the two differ there by capture-environment provenance rather than by behaviour.
-
-REDACTION APPLIED
-  The fixed placeholder in this tree is <REDACTED>, following the convention at
-  docs/setup.md:L144.  Nothing in this region required it: the region carries no
-  credential, no connection string and no session identifier, and it was scanned
-  for credential-shaped assignments before this annotation was written.
-  The documented administrator credential is recorded at README.md:L189, an anchor
-  also re-derived for this file because the brief's anchor for it was stale.  Its
-  password VALUE appears nowhere in this file and nowhere else in this capture
-  directory; that was verified by searching for the value itself rather than for
-  the word password.
-  THE RULE APPLIED TO PROCESS VARIABLES, stated so it can be checked: variable
-  NAMES are preserved because a name is what a comparison matches, and variable
-  VALUES are redacted unless a value is demonstrably a non-sensitive control value
-  needed as evidence, on the grounds that a value may carry personal or
-  case-sensitive data.  This region contains no process-variable output, so the
-  rule had nothing to act on here; it is stated because the reader is entitled to
-  know which rule was in force.
-  The production launch configuration is described and cited, never reproduced.
-  It lives at README.md:L149 and is duplicated in docs/setup.md.  It is not
-  imported here for two reasons: it contains credential-shaped values, and it
-  contains a pre-existing unbalanced-quotation defect which the governing rule
-  forbids repairing.  Copying it would either propagate that defect or silently
-  repair it, and both are wrong.
-
-GOVERNING RULES AND PROVENANCE
-  TWO PROVENANCE FACTS, stated together, because either one alone misleads.
-  First, there is NO on-disk user rules document for this project: the project's
-  rules facility was queried and returned, verbatim, "No user rules provided.",
-  and that read was complete rather than partial.  Second, rules are nonetheless
-  present and binding: the migration requirements embed an explicit numbered block
-  of seven rules that governs this work in full, exactly as an external rules
-  document would, plus seven transformation rules that are the operational form of
-  the preserve and exclude lists.  Fourteen constraints apply.
-  Reporting only the first would imply that enterprise best practice is the sole
-  standard here, which is wrong.  Reporting only the second would misrepresent
-  where the rules came from.  Best practice is applied on top of them, never as a
-  substitute, and the absence of a rules document is not licence to lower the bar.
-  The identifiers used to cite those rules across this evidence tree are the
-  migration plan's OWN navigational convention, not quoted rule titles.  No rule
-  is invented here and none is softened.
-  BASELINE BEHAVIOUR IS THE TIE-BREAKER.  This is the rule that creates this file.
-  It makes the application's observed behaviour at the pre-migration base commit
-  the tie-breaker for any ambiguity, and it requires each resolution to be
-  documented.  It is PARAPHRASED here rather than quoted, and that choice is
-  disclosed rather than made silently: the rule's own text names the older runtime
-  with a phrase this documentation tree's wording gate forbids, so a verbatim quote
-  would require substituting JDK 8 into it.  Paraphrase avoids the substitution
-  entirely.  The clause requiring each resolution to be documented is what this
-  annotation discharges, and the comparison target for this gate is identical
-  process instantiation AND identical task assignment.  Both halves are named
-  because a start request can answer successfully while no instance was created and
-  no task assigned, so the criterion is a matching definition key, a matching task
-  name and a matching assignee, not merely a successful response.
-  EVIDENCE OVER EXIT STATUS, applied at full strength.  No verdict in this file
-  rests on a process exit status.  Every figure above was read back from the region
-  after it was written, or re-derived by command over this tree.  The point is
-  applied literally to this gate: an engine bean that constructs without throwing
-  is not evidence that definitions deployed, so construction is reported as
-  construction and the definition figures are reported separately, one observed and
-  one unobserved.
-  DOCUMENT DISCOVERED DEFECTS, DO NOT FIX THEM.  Applied to the scripting-engine
-  defect above, to the unbalanced-quotation defect in the launch configuration, and
-  to the out-of-scope observations below.  The change set invokes this rule's escape
-  clause exactly twice and NEITHER invocation is in this folder, which keeps the
-  exception count auditable and stops it growing quietly.
-  JUSTIFIED CHANGES, AND ITS CONTRAPOSITIVE.  Every dependency change in this
-  migration owes a specific compatibility reason, and the contrapositive binds just
-  as hard: a change without such a reason is out of scope.  The engine's unchanged
-  version is that contrapositive in action, together with the corollary recorded in
-  the classification section above.  Operationally the same rule fenced this file's
-  production: no tool was installed to write or verify it, and every derivation
-  above used the standard command set already present.
-  NOTHING SILENTLY SKIPPED.  The engine repository total is recorded as UNOBSERVED
-  in plain words rather than omitted or filled with a plausible figure, and the
-  reason it could not be observed is stated.  No test is excluded by anything in
-  this file.
-  NO ENCAPSULATED-PACKAGE ACCESS IN PRODUCTION LAUNCH CONFIGURATION.  The audited
-  configuration declares no module-access JVM argument, meaning an argument that
-  opens or exports an otherwise-encapsulated platform package to the unnamed
-  module, and both the deployment document and the setup document positively state
-  so.  The corresponding register is delivered empty with that positive statement,
-  and it is referred to in this file BY TITLE ONLY.  This file itself carries zero
-  such arguments in any form.
-  NAMESPACE INVARIANCE.  Nothing in this file references the successor namespace, a
-  newer framework generation, a typed dialect of the frontend language or a module
-  bundler.  All are excluded from this migration and none is happening.
-
-OUT-OF-SCOPE OBSERVATIONS, RECORDED AND NOT FIXED
-  Recorded because they were found while verifying this file, and left untouched
-  because they belong to other files and repairing them here would exceed this
-  file's scope.
-  A recursive search for module-access JVM arguments across the documentation tree
-  does not return zero, although THIS FILE returns zero.  The matches are prose
-  descriptions in three deliverable documents and in the two runtime documents, all
-  of which state that no such argument is required, plus seven lines inside the
-  full container capture in this same startup directory.  Those seven are genuine
-  captured lines in which the container echoed its own invocation arguments for the
-  validation runtime.  They are real evidence of how the validation container was
-  launched, they are not the audited production launch configuration, and deleting
-  them would falsify a capture.  Left as captured.
-  The counterpart flow record for this gate publishes a definition figure derived
-  by counting region lines that mention a definition file.  That is a line count
-  rather than a definition count.  This file does not adopt it, does not repeat it
-  and asserts no engine-side definition total of its own.
-  Two citation anchors used by the brief for this file are stale because this
-  migration edits the documents they point into.  The corrected anchors are used
-  above and the corrections are stated where they occur rather than applied
-  silently.
-
-CROSS-REFERENCES, BY FILENAME ONLY, NEVER DUPLICATED
-  Container and application startup lines are in catalina.out.log.  Readiness
-  polling and the startup-completed line the window closes on are in
-  readiness-poll.log.  Context, aspect and directory-service initialisation are in
-  spring-context.log and ldap-context-source.log.  Annotation scanning is in
-  reflection-scan.log.  Persistence initialisation is in jpa-init.log.  Messaging
-  initialisation is in messaging-init.log.  Asset-pipeline output is in
-  frontend-build.log.  The error scan is in errors.log.  All are in this same
-  startup directory.
-  This gate's own execution result, including whether a process instance was
-  created and a task assigned, belongs to the flow 7 records in the parent
-  directory and is not restated here.  This file supplies only the initialisation
-  evidence that flow cites by name.  Toolchain provenance, artifact digests and
-  test-report archives belong to the sibling directories and are neither reproduced
-  nor recomputed here.

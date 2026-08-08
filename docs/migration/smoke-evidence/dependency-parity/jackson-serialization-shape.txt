@@ -60,3 +60,46 @@ THE ORDER DIFFERENCES, IN FULL
   gov.privacy.model.SubjectAccessRequest
     2.10.3  id personAssociations originator caseNumber caseType title status details caseDetailsSummary incidentDate created creator modified modifier closed disposition priority external className participants dueDate changeCaseStatus hasAnyAssociatedTimesheets approvers ecmFolderPath organizationAssociations milestones restricted childObjects container courtroomName responsibleOrganization nextCourtDate lock queue queueEnterDate responseDueDate previousQueue securityField legacySystemId deniedFlag receivedDate holdEnterDate requestType releasedDate componentAgency returnReason requestSource recordSearchDateFrom recordSearchDateTo requestCategory deliveryMethodOfResponse swornStatement understandProcessingRequirementStatement informationAgreementStatement accurateAndAuthorizedStatement signature signatureDate originalRequestNumber sarconfiguration subject acmObjectNumber references acmObjectOriginator
     2.12.7  id personAssociations originator caseNumber caseType title status details caseDetailsSummary incidentDate created creator modified modifier closed disposition priority external className participants dueDate changeCaseStatus hasAnyAssociatedTimesheets approvers ecmFolderPath organizationAssociations milestones restricted childObjects container courtroomName responsibleOrganization nextCourtDate lock queue queueEnterDate responseDueDate previousQueue securityField legacySystemId deniedFlag receivedDate holdEnterDate requestType releasedDate componentAgency returnReason requestSource recordSearchDateFrom recordSearchDateTo requestCategory deliveryMethodOfResponse swornStatement understandProcessingRequirementStatement informationAgreementStatement accurateAndAuthorizedStatement signature signatureDate originalRequestNumber subject sarconfiguration acmObjectNumber references acmObjectOriginator
+
+RECONCILIATION WITH THE MULTI-TRIAL ORDER PROBE — THE NINE ARE REFLECTION NOISE
+  This file records ONE run per version.  That is sufficient for the two findings it exists to
+  establish, because a serializer class and a property NAME SET do not vary between runs of the
+  same version -- and both of those differences are zero here.  It is NOT sufficient for the
+  third row, property ORDER, and this section says so rather than leaving the nine to be read as
+  version-attributable.
+  Jackson collects getter-only properties in Class.getDeclaredMethods() order, which the JVM does
+  not guarantee to be stable between runs of the SAME version.  A single run per version therefore
+  cannot separate a version effect from that instability.  The probe at
+  smoke-evidence/jackson-order/ was built to make that separation: it runs SIX trials per version
+  over the same two versions, 2.10.3 and 2.12.7, and attributes a difference to the upgrade only
+  when a class's order is identical across all six runs of each version AND the two differ.  It
+  finds ZERO such classes, out of 2302 compared.  Where the two probes address the same question,
+  that one governs, and this row is superseded by it.
+  Each of the nine listed above is accounted for individually against that probe, so the claim is
+  checkable class by class rather than in aggregate:
+    AcmSpringActiveProfile          measured UNSTABLE at both versions (3 distinct orders each)
+    FrevvoFormUrl                   measured UNSTABLE at both versions (3 distinct orders each)
+    AcmObjectDiff                   measured UNSTABLE at both versions (2 distinct orders each)
+    AcmJobState                     measured UNSTABLE at both versions (2 distinct orders each)
+    MDCThreadPoolExecutor           measured UNSTABLE at both versions (2 distinct orders each)
+    ArkCaseCMISComponent            measured STABLE at both, and the two orders are IDENTICAL
+    ConfigurationServiceBootClient  measured STABLE at both, and the two orders are IDENTICAL
+    gov.privacy.model.SubjectAccessRequest
+                                    measured STABLE at both, and the two orders are IDENTICAL --
+                                    one digest, 249b335e50d2, in every one of the twelve trials
+    AcmDiff                         an ABSTRACT class, never serialised as itself; it produced no
+                                    comparable property model in the multi-trial harness.  Four of
+                                    its concrete subclasses -- AcmObjectDiff,
+                                    AcmCollectionElementAdded, AcmCollectionElementRemoved and
+                                    AcmObjectReplaced -- are measured UNSTABLE at both versions,
+                                    so the instability observed here is theirs.
+  Read together: five of the nine are demonstrably unstable irrespective of version, three are
+  demonstrably identical between versions and the single run above simply happened to catch two
+  different reflection orderings, and the ninth is an abstract type whose subclasses carry the
+  instability.  None of the nine is a change this dependency advance made.
+  The last of the three matters most, because gov.privacy.model.SubjectAccessRequest is a live
+  request type rather than an internal bean: this file shows two adjacent members transposed
+  between two single runs, and the multi-trial probe shows the same type producing one identical
+  order in all twelve.  Nothing about that type's serialised shape changes across the advance.
+  The 26 classes that ARE unstable at either version are registered as a pre-existing defect,
+  unfixed, at docs/migration/pre-existing-defects.md entry 67.

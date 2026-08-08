@@ -2,13 +2,13 @@ which frontend build produced this side of the artifact comparison
 
 produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_frontend_provenance
 
-frontend-resources-directory: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-004_575ea9/blitzy_adhoc_test_buildA/acm-standard-applications/arkcase/src/main/webapp/resources
-artifact-directory-configured: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-004_575ea9/blitzy_adhoc_test_buildA/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
-artifact-directory-resolved: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-004_575ea9/blitzy_adhoc_test_buildA/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
-home-html-probed: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-004_575ea9/blitzy_adhoc_test_buildA/acm-standard-applications/arkcase/src/main/webapp/resources/home.html
+frontend-resources-directory: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-053_196589/.blitzy-scratch/fe/A-base-node8/acm-standard-applications/arkcase/src/main/webapp/resources
+artifact-directory-configured: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-053_196589/.blitzy-scratch/fe/A-base-node8/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
+artifact-directory-resolved: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-053_196589/.blitzy-scratch/fe/A-base-node8/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
+home-html-probed: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-053_196589/.blitzy-scratch/fe/A-base-node8/acm-standard-applications/arkcase/src/main/webapp/resources/home.html
 lockfile-in-the-resources-directory: absent
-node-on-path-at-capture-time: v8.17.0
-npm-on-path-at-capture-time: 6.13.4
+node-on-path-at-capture-time: v20.20.2
+npm-on-path-at-capture-time: 10.8.2
 artifact-age-in-whole-days-at-capture-time: 0
 artifact-directory-is-the-in-tree-default: no
 artifact-directory-reproduction: this side digested a build OUTSIDE the working tree, and the directory it digested is scratch - it does not survive the run that produced it, so the path above identifies what was measured rather than somewhere a reader can look. The build itself IS reproducible from a committed script: docs/migration/smoke-evidence/historical-frontend/capture-historical-frontend.sh extracts the base commit, installs with the package manager and on the runtime the base commit used, runs the unchanged task graph and prints the six digests. Run it and compare against artifacts/ in this capture directory

@@ -9,7 +9,7 @@ RUNTIME-COMMIT: Java 17, the migrated head, the change set applied on top of bas
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  frontend-runtime-designation: Node 20.20.2 with npm 10.8.2
+  frontend-runtime-designation: Node 20 LTS with npm 10
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
@@ -27,29 +27,41 @@ COMPARED ARTEFACTS: flow-8-queue-transition.out and flow-8-queue-transition.stat
     of the same names in the other capture directory, the sibling of
     this one.  The verdict of that comparison is recorded on the
     COMPARISON CRITERION line below.
-  caller-declared scope: flow-8-queue-transition.out and flow-8-queue-transition.status, re-read from disk
+  caller-declared scope: flow-8-queue-transition.out, flow-8-queue-transition.status and notes/corpus-figures.txt
 MIGRATION PATH EXERCISED: two paths converge here: (1) the decision tables governing queue entry and exit, reached through the same expression language advanced for flow 6 - routing rather than numbering; and (2) one of the three compiler-visible JDK-internal call sites being rewritten, the string-utility import and emptiness check on the queue correspondence path
 OBSERVATION:
-  verdict: NOT-EXERCISED-NO-CASE-FILE-AVAILABLE
+  verdict: OBSERVED-QUEUE-ROUTING-EVALUATED-NOT-APPLIED
   state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-8-queue-transition.status:
     queue-definitions=200
-    case-discovery=500
-    TRANSITION: not-attempted-no-case-file
+    case-discovery=200
+    next-possible-queues=200
+    TRANSITION: not-attempted-the-rules-computed-no-destination
     FROM_QUEUE: none
-    TO_QUEUE: not-observed-no-case-file
+    TO_QUEUE: none
     QUEUE_OBSERVED_AFTER_TRANSITION: not-attempted
     QUEUE_OBSERVED_AFTER_RESTORE: not-attempted
-    NEXT_QUEUES_COUNT: not-observed
-    NEXT_QUEUES: not-observed
-    OBJECT_ID: none
+    NEXT_QUEUES_COUNT: 0
+    NEXT_QUEUES: none
+    OBJECT_ID: 101
     OBJECT_NUMBER: none
-    REASON: the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against
   observations, each derived from the two artefacts named above:
     - queue definitions observed: 200 (/api/latest/plugin/queues)
-    - case discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname)
-    - a routing decision is a function of a real object in a real queue; with no case file to evaluate against, the rules cannot be run, and listing queue definitions instead would be a lookup rather than an evaluation
-    - requirements unmet: 1
+    - case discovery observed: 200 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname)
+    - case file evaluated: 101
+    - case number of the object evaluated: none
+    - queue the case file was found in: none
+    - routing evaluation observed: 200 (/api/latest/plugin/casefile/nextPossibleQueues)
+    - next queue computed by the rules: none
+    - candidate queues computed by the rules, in the order returned: none
+    - candidate queue count: 0
+    - transition observed: not-attempted-the-rules-computed-no-destination
+    - restore observed: not-attempted
+    - requirements unmet: 0
+    - the next-possible-queues endpoint is not a lookup: it runs the case-file next-possible-queues business rule, so its response IS the routing decision the decision tables produced through the expression language
+    - when mutation is permitted the computed queue is actually applied and then reversed, so the decision is observed being acted on and the application is left as it was found
+    - queue names are captured verbatim and are deliberately NOT normalised: a routing decision that lands in a different queue is a regression, and normalising the name would erase it
+    - behaviour is preserved only if the computed next queue, the candidate set and every queue name match the baseline capture exactly
 COMPARISON CRITERION: identical routing decision
   row-for-row verdict: MATCH on every recorded row - this flow's status file is identical to the other capture's, so the two sides agree row for row.  The captured transcript differs, which is expected of a transcript rather than of a row set - it carries per-run values the normalisation pipeline replaces and provenance that legitimately varies - which is why the row set, not the transcript, carries the verdict
   a verdict is not a pass mark.  It states what two files on disk do
@@ -120,12 +132,8 @@ TLS-READINESS CONTEXT:
     Readiness does NOT gate this flow: the flow records its own
     evidence either way, so an unreachable stack produces an explicit,
     comparable capture instead of a truncated one.
-IF NOT EXECUTED: the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against and neither migration path was exercised
-  The paired flow-8-queue-transition.status carries the matching SKIPPED marker
-  and flow-8-queue-transition.out carries an explicit section recording the same
-  absence, so the gap is visible in a directory diff rather than
-  missing from it.  R-5 forbids a silent omission: an unexecuted
-  flow is reported, never dropped, and this is not a pass mark.
+IF NOT EXECUTED: not applicable - this flow executed and its
+  observations above are captured rather than declared absent.
 SOURCE-EDIT NOTE:
   This flow is the ONLY one of the eight that traverses a genuinely
   rewritten line of application source, so this baseline is the reference
@@ -217,7 +225,7 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 8
 slug: 8-queue-transition
-verdict: NOT-EXERCISED-NO-CASE-FILE-AVAILABLE
+verdict: OBSERVED-QUEUE-ROUTING-EVALUATED-NOT-APPLIED
 capture-side: migrated-post-migration-replay
 runtime-declared: Java 17
 runtime-observed: 17.0.19
@@ -226,7 +234,7 @@ commit-declared: the migrated head, the change set applied on top of base commit
 capture-precedes-every-file-edit: no — this is the replay side, taken with the change set applied, and it is compared against the pre-migration capture rather than standing on its own
 migration-path-exercised: two paths converge here: (1) the decision tables governing queue entry and exit, reached through the same expression language advanced for flow 6 - routing rather than numbering; and (2) one of the three compiler-visible JDK-internal call sites being rewritten, the string-utility import and emptiness check on the queue correspondence path
 comparison-criterion: Identical routing decision.
-compared-artefacts: flow-8-queue-transition.out and flow-8-queue-transition.status, re-read from disk
+compared-artefacts: flow-8-queue-transition.out, flow-8-queue-transition.status and notes/corpus-figures.txt
 transport-trust-mode: verify-default-trust-store
 transport-certificate-context: the deployed application serves a self-signed
   TLS certificate, recorded at the base commit in README.md:L45, so a real run
@@ -268,22 +276,34 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   behaviour matches; and the artifact checksums themselves.
 observed-statuses:
   queue-definitions=200
-  case-discovery=500
-  TRANSITION: not-attempted-no-case-file
+  case-discovery=200
+  next-possible-queues=200
+  TRANSITION: not-attempted-the-rules-computed-no-destination
   FROM_QUEUE: none
-  TO_QUEUE: not-observed-no-case-file
+  TO_QUEUE: none
   QUEUE_OBSERVED_AFTER_TRANSITION: not-attempted
   QUEUE_OBSERVED_AFTER_RESTORE: not-attempted
-  NEXT_QUEUES_COUNT: not-observed
-  NEXT_QUEUES: not-observed
-  OBJECT_ID: none
+  NEXT_QUEUES_COUNT: 0
+  NEXT_QUEUES: none
+  OBJECT_ID: 101
   OBJECT_NUMBER: none
-  REASON: the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against
 observations:
   - queue definitions observed: 200 (/api/latest/plugin/queues)
-  - case discovery observed: 500 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname)
-  - a routing decision is a function of a real object in a real queue; with no case file to evaluate against, the rules cannot be run, and listing queue definitions instead would be a lookup rather than an evaluation
-  - requirements unmet: 1
+  - case discovery observed: 200 (/api/latest/plugin/search/advancedSearch?q=object_type_s%3ACASE_FILE&start=0&n=1&fl=object_id_s%2Cqueue_name_s%2Cname)
+  - case file evaluated: 101
+  - case number of the object evaluated: none
+  - queue the case file was found in: none
+  - routing evaluation observed: 200 (/api/latest/plugin/casefile/nextPossibleQueues)
+  - next queue computed by the rules: none
+  - candidate queues computed by the rules, in the order returned: none
+  - candidate queue count: 0
+  - transition observed: not-attempted-the-rules-computed-no-destination
+  - restore observed: not-attempted
+  - requirements unmet: 0
+  - the next-possible-queues endpoint is not a lookup: it runs the case-file next-possible-queues business rule, so its response IS the routing decision the decision tables produced through the expression language
+  - when mutation is permitted the computed queue is actually applied and then reversed, so the decision is observed being acted on and the application is left as it was found
+  - queue names are captured verbatim and are deliberately NOT normalised: a routing decision that lands in a different queue is a regression, and normalising the name would erase it
+  - behaviour is preserved only if the computed next queue, the candidate set and every queue name match the baseline capture exactly
 pre-existing-condition-in-the-reference-stack: the VirtualViewer service is
   EXPECTED to answer HTTP 503.  That is a documented pre-existing condition at
   the base commit, recorded in TWO places — README.md:L53 and
@@ -317,7 +337,17 @@ assertion-basis: derived by reading flow-8-queue-transition.status and
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this
-  script already normalises.  Compare with:
+  script already normalises AND values a record explicitly enumerates as
+  environment-scoped rather than behaviour-bearing.  The second allowance is
+  named here rather than left implicit because it is real and small: where
+  the two sides are separate deployments -- separate databases, separate
+  brokers, separate search cores, which is what isolation between the two
+  captures requires -- a cumulative broker counter and an ambient inventory
+  count cannot be equal, and a record that demanded equality of them would
+  be demanding something no correct migration could deliver.  Every such
+  value is listed, with its reason, in the record that carries it; a row NOT
+  listed there and NOT normalised must be identical between the two sides.
+  Compare with:
   diff -r <baseline-dir> <migrated-dir>
 
 MIRROR OBLIGATION

@@ -1,0 +1,22 @@
+===== cross-file count reconciliation =====
+
+THREE DIFFERENT QUANTITIES THAT ONE CAPTURE ONCE PUBLISHED UNDER ONE NAME:
+  the number of process definitions THE ENGINE holds, read from its own
+    repository table by a read-only SELECT;
+  the number of definition FILES in the repository tree;
+  the number of LINES of the captured startup region that matched a
+    definition deployment.
+A capture was found stating 41 in one file, 34 in another and UNOBSERVED in
+the authoritative region, all under the label definitions-loaded-by-the-
+engine.  Each now has its own name; this reconciles the files that state
+them.
+
+engine-repository-count      (status DEFINITIONS_LOADED):                  8
+definition-files-on-disk     (status DEFINITIONS_ON_DISK):                  36
+startup-region-matched-lines (status DEFINITIONS_STARTUP_EVIDENCE_LINES):   34
+startup-region-matched-lines re-measured from the region itself:            34
+
+AGREE: the result record states the same engine-repository count as the
+status file.
+
+mismatches: 0

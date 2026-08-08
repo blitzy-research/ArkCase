@@ -1,0 +1,140 @@
+per-report reading notes — baseline half (JDK 8, base commit c8f6226105)
+
+scope of this note: one of the 278 archived baseline Surefire reports in the
+sibling module directories, acm-service-ecm / EcmFileServiceImplTest.  It records
+the per-report disclosures a reader needs in order to cite that report correctly.
+It changes no evidence: not one counter, testcase, method name, elapsed time,
+property or captured console byte in any report was altered to produce this file.
+
+
+WHY THESE DISCLOSURES LIVE HERE AND NOT INSIDE THE REPORT
+
+The reports are machine output.  This archive's design is that each report carries
+its provenance NATIVELY — it states its own java.runtime.version and
+java.class.version in the properties the runner wrote — and that no prose sits
+ahead of any <testsuite> element.  A comment is precisely what an authored report
+can fake; a native class-file version of 52.0 is precisely what it cannot.
+Confirm the runtime from those properties rather than from any prose, including
+this file.
+
+An earlier revision of this archive prepended an XML comment to every report and
+that form was withdrawn for exactly that reason.  The withdrawal was incomplete:
+one baseline report and eight migrated reports were left carrying authored
+narrative between their XML declaration and their root element, which contradicted
+three published checks over this archive —
+
+  surefire-evidence-archive.md, re-runnable check 3:
+    grep -rl '<!--' docs/migration/smoke-evidence/*/surefire \
+      --include='TEST-*.xml' | wc -l          # expect 0, actually returned 9
+  surefire-evidence-archive.md, baseline bullet:
+    "Zero XML comments and zero prose bytes ahead of any <testsuite> element"
+  baseline-test-failures.md:
+    "Each report carries its provenance natively rather than in a comment ahead
+     of its root element"
+
+The nine comments have been removed and the disclosures they carried that are not
+recorded elsewhere are reproduced below and in the migrated half's sibling note,
+so the conversion the documentation already described is now actually complete.
+Nothing was discarded to reach that state: authored narrative was relocated, and
+no runner output was touched.
+
+why the author put it there in the first place, recorded because the reason is
+sound and the fix is not to repeat it: a module directory admits report XML and
+nothing else — no index, no summary, no notes file — so there was no room beside
+the report for a companion.  The prose home is one level up, which is where this
+file and its sibling property-allowlist note sit.
+
+what this file is NOT: it is not digest-bound.  sha256-manifest.txt covers the 278
+reports and run-provenance.txt, and it deliberately does not cover either note in
+this directory.  The reports are the evidence and they are tamper-evident; these
+notes are reading guidance and carry no figure that is not re-derivable from the
+reports themselves.
+
+
+acm-service-ecm / EcmFileServiceImplTest
+
+WHAT IT IS.  An EXECUTED unit-test report, written by the runner and archived
+unchanged, captured on JDK 8 at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+before any migration edit — the only state that can serve as a baseline.  The
+runner already names its output TEST-<fully qualified class name>.xml, so the file
+was RELOCATED into the archive and NEVER RENAMED.
+
+NO RUNTIME WAS INSTALLED to produce it, and none was needed.  Re-running the suite
+from the present tree would NOT yield a baseline, because the tree now carries the
+migrated build configuration and any run of it describes the migrated side.  That
+is why the executed base-commit report is preserved rather than regenerated.  The
+attempt to re-capture it independently, and the exact reason that attempt could
+not succeed in this checkout, are recorded in the sibling note
+property-allowlist-line-continuation.txt.
+
+WHAT THE ZERO COUNTERS MEAN.  tests=8 failures=0 errors=0 skipped=0 are the
+counters the runner wrote for a run that actually happened, and the absence of
+failure, error and skipped elements is an OBSERVED result rather than an
+assumption or a tidied one.  No pass or fail claim is made beyond what the runner
+recorded.
+
+THAT A BASELINE FAILURE IS ARCHIVED AS FAILING IS CHECKABLE, NOT PROMISED.  Had
+any of these eight tests failed at the base commit, its failure body and full
+stack trace would stand in the report verbatim, because a baseline failure
+archived as failing is the only thing that can ever justify a test exclusion.
+The archive does exactly that, and a reader can confirm it without trusting this
+sentence: a sibling report in this same module directory,
+TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml,
+carries failures=3 of tests=4 with all three failure bodies and their stack traces
+intact — verified by parsing it, which
+reports three failure children, each of whose bodies contains stack frames.  The
+register page docs/migration/baseline-test-failures.md publishes the recursive
+search that lists every report in this half carrying a red child element; it
+returns that report together with FolderCompressorTest under
+acm-service-compress-folder, the two files behind the four rows of the baseline
+failure register.  That search is quoted there and deliberately not repeated here,
+because this note lives inside the tree it searches and repeating the pattern would
+make this file a third match and break the published count.
+
+TESTCASE ORDER IS RUNNER ORDER, DELIBERATELY NOT SOURCE ORDER.  The eight testcase
+elements stand in the order the runner emitted them, which is the reflection order
+of the run.  Nothing was fixed, skipped or reordered.
+
+ATTRIBUTE ORDER DIFFERS BETWEEN THE TWO HALVES, and it is worth knowing before a
+comparison is written.  The runner that produced this half emits, on the testsuite
+element, tests= failures= name= time= errors= skipped= and nothing else, and it
+emits classname= before name= on each testcase.  The pinned runner on the migrated
+side emits two schema-location attributes first and then
+version= name= time= tests= errors= skipped= failures=, and it emits name= before
+classname=.  A text-matching comparison keyed on one of those orders silently
+finds nothing on the other side, so any comparison over these reports must parse
+them rather than grep them.  The name sets and the emission order of the testcases
+themselves pair exactly.
+
+WHAT IS DELIBERATELY ABSENT.  This report covers unit tests only.  The module's
+seven integration-test classes produce no report in this archive by design, not by
+omission: the integration runner binds its integration-test and verify goals with
+no explicit phase, so both default to phases after test, and a run that stops at
+test never reaches them.  EcmFileDaoIT and EcmFileVersionDaoIT exercise the same
+file and version domain as this suite, and their absence is still by design.  For
+the same reason the single pre-existing ignore annotation in this module, which
+sits on an integration-test class, is not representable here and no skipped
+element is invented for it: an absent integration test is neither a pass nor a
+failure, and it can never justify an exclusion.  The module's non-test helper
+class is absent for its own reason — it matches none of the runner include
+patterns.
+
+WHY THIS SUITE IS WORTH A BASELINE.  It is the module's core file-service suite:
+deletion of one version that must leave the other versions intact, deletion of all
+versions, the record-status guard that must throw, the single-version edge case,
+and then move, folder creation, metadata update and the update-failure path.  It
+is one of the 19 unit-test files in this module that exercise the class-proxying
+mocking library whose floor advance has the widest build-configuration footprint
+of the migration, so this report is part of the before-picture for that change.
+Its delete, move and create outcomes also underwrite the document round-trip smoke
+flow, where a difference would be a wire-behaviour regression rather than a
+cosmetic one.  Every assertion in the suite is unmodified by the migration, and
+the class keeps its javax.persistence import unchanged.
+
+THE ORPHANED PROPERTY FRAGMENT in this report's properties block is a registered
+pre-existing defect, present in all 278 baseline reports and in none of the 284
+migrated ones, and it is documented in full in the sibling note
+property-allowlist-line-continuation.txt.  It is not repeated here.
+
+IF THIS SUITE IS EVER RE-HARVESTED, replace the report with the unmodified
+installed report rather than editing it in place.

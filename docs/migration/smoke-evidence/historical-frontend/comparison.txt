@@ -28,8 +28,35 @@ HOW THE HISTORICAL SIDE WAS PRODUCED
   host condition, not a Node 8 condition, and a different cause from the Node 20 failure of the same
   package.  It did not stop the pipeline: the Gruntfile declares no Sass task, and all five artifacts
   were produced.  And profiles.js, which config/config.js requires and which is not tracked at the
-  base commit, was written with exactly the content the deployed runtime writes for it, because
-  without it the build cannot start at all.
+  base commit, has to be supplied by the harness.
+
+THE ONE INPUT THAT WAS NOT THE SAME ON BOTH SIDES, AND NOW IS
+  This has to be stated before the results, because it is a correction to how an earlier revision of
+  this capture was taken rather than a footnote to it.
+
+  profiles.js is a behaviour-bearing BUILD INPUT, not a formality: config/config.js requires it and
+  uses what it exports to add entries to, and remove entries from, the asset lists the pipeline
+  concatenates.  An earlier revision of capture-historical-frontend.sh wrote it from a literal,
+  profiles: [ 'custom' ], while the migrated side built against the TRACKED profiles.js, whose array
+  is EMPTY.  So the two sides of the comparison received different values for an input that can change
+  which files are bundled - which means the comparison varied two things and attributed the result to
+  one.  That was a real defect in the harness and it is fixed: the script now COPIES the tracked file,
+  refuses to run if it is absent, and records its digest.  Both sides now report
+  profiles-js-sha256 287359f9070c4db1dd96c1ef29febd75a18aabfbd9f7a4ee0a6924c816d683d2, 36 bytes.
+
+  Using the migrated tree's tracked file to build the base-commit tree does not contaminate the
+  baseline.  The base commit has NO profiles.js at all, so any content used here is supplied by the
+  harness rather than taken from that commit; given that, the only defensible choice is the content
+  the other side uses.
+
+  AND THE CORRECTION CHANGED NOTHING, WHICH IS ITSELF THE FINDING.  Re-run with the identical input,
+  the historical build produced all five digests and all ten cache-busted filenames byte-identical to
+  the table below.  So the earlier input mismatch was inert here, and it is now inert BY MEASUREMENT
+  rather than by assumption.  The mechanism is visible in the tree: config/config.js globs
+  <profile>_modules, <profile>_directives and <profile>_services, and no such directory exists in the
+  frontend tree at either revision, so an empty profile list and a one-element profile list both
+  select nothing.  That reasoning is offered as the explanation, not as the evidence - the evidence is
+  that the digests did not move.
 
   The build exited ZERO while warning about a missing modules_config/config/modules.json and printing
   "Used --force, continuing" - the forced-execution setting masking a task failure, in a real run, on
@@ -80,9 +107,11 @@ application.min.js — the entire difference, exactly
   an escaped forward slash inside a character class differently: Node 8 keeps \/ where Node 20 emits
   /.  Inside a character class the two denote the same character, so the two patterns match exactly
   the same strings.
-  This is asserted mechanically, not by eye: replacing every \/ with / in BOTH files makes the two
-  2,011,9xx-byte bundles compare EQUAL, and the count of \/ falls from 17 to 15.  There is no other
-  difference anywhere in the bundle.
+  This is asserted mechanically, not by eye, and it was re-asserted on the re-run: replacing every \/
+  with / in BOTH files makes the two bundles compare EQUAL.  Measured on the fresh pair - historical
+  2,011,927 bytes, migrated 2,011,925 bytes, delta -2; \/ occurrences 17 against 15; both files 64
+  lines; exactly ONE line differs, line 42, with the first divergence at column 3704, inside the
+  character class quoted above.  There is no other difference anywhere in the bundle.
 
 application.min.css — what differs, and what does not
   789 bytes, and the difference is how clean-css GROUPS selectors, not which declarations exist.
@@ -93,15 +122,30 @@ application.min.css — what differs, and what does not
     migrated    the same box-sizing:border-box merged into .ui-button-icon-only{width:2em;box-sizing:border-box;…}
     historical  .btn,.ui-grid-header-cell,.ui-grid-pager-control button{-moz-user-select:none;-ms-user-select:none}
     migrated    .btn,.ui-button,.ui-grid-header-cell{-moz-user-select:none} plus the rest merged elsewhere
-  A declaration-level comparison was run over both files, flattening every rule into
-  (selector, property, value) triples: 13,455 on the historical side and 13,454 on the migrated
-  side, agreeing on 13,340 distinct triples, with five reported one-sided.  Each of those five was
-  checked BY HAND against both files and found present on BOTH sides in a differently grouped rule -
-  they are the rules that sit immediately after a preserved licence comment, which is the one place
-  the hand-rolled extractor mis-attributes a selector.  That limitation is disclosed here rather
-  than presented as a result: the correct statement is that no declaration was found on one side and
-  absent on the other, not that a parser proved set equality.  The 28 distinct @media preludes are
-  identical on both sides.
+  A declaration-level comparison was re-run over the fresh pair, flattening every rule into
+  (selector, property, value) triples after stripping comments.  It comes out cleaner than the earlier
+  hand-rolled attempt recorded here, and the earlier figures - 13,455 against 13,454 triples with five
+  reported one-sided - are superseded by these:
+    declaration instances                 13,478 on BOTH sides, identical count
+    distinct (selector, property, value)  13,364 on BOTH sides, 13,362 shared
+    reported one-sided                    2 each way
+  All four of those reported-one-sided rows are the SAME two declarations - .btn{-moz-user-select:none}
+  and .ui-button-icon-only{box-sizing:border-box} - appearing once with the selector correctly
+  extracted and once with a leading  charset "UTF-8";  glued to it.  That is the extractor
+  mis-attributing the first selector after the preserved @charset directive, on whichever side it
+  happens to fall, and both declarations are present on both sides.  The limitation is disclosed here
+  rather than presented as a result: the correct statement is that no declaration was found on one side
+  and absent on the other, not that a CSS parser proved set equality.  The 28 distinct @media preludes
+  are an identical set on both sides.
+  THAT LIMITATION IS NOW LIFTED, by a different program rather than by patching this one.
+  ../verify-artifact-equivalence.js reads both bundles with a reader that tracks strings, comments
+  and nesting, reports how many declarations it could NOT split into property and value (zero on
+  both sides), and expands every selector group so each selector carries its own ordered list.  It
+  measures 5,648 selector keys on each side and 13,457 declarations on each side, no selector present
+  on one side only, and no selector receiving a different SET of declarations.  It then goes past set
+  equality to the question set equality leaves open: of the 161 selectors whose declaration ORDER
+  differs, whether any pair that could interact was reordered.  None was.  Its output is archived
+  beside this file as artifact-equivalence.txt.
 
 WHAT THIS MEANS FOR THE ARTIFACT CRITERION, STATED PLAINLY
   Read strictly - five artifacts byte-identical to a build on the ORIGINAL runtime - the criterion is
@@ -114,25 +158,74 @@ WHAT THIS MEANS FOR THE ARTIFACT CRITERION, STATED PLAINLY
   replaced: both minifiers install and run on Node 20 at the versions the lockfile pins, so a
   version change to either would be a dependency change with no compatibility justification, which
   the governing rules forbid - and it would change the output further rather than restore it.
-  The residual difference is therefore recorded as an accepted, evidenced deviation rather than
-  eliminated, and it is registered in ambiguity-resolutions.md and pre-existing-defects.md.
+  The residual difference is therefore recorded as an evidenced deviation RAISED FOR OWNER
+  RATIFICATION rather than eliminated - and NOT as an accepted one, because byte identity across
+  the five artifacts is a criterion the governing plan states and nothing in this work has the
+  authority to relax it.  It is registered in ambiguity-resolutions.md, whose entry 6a states the
+  two options an owner is being asked to choose between, and in pre-existing-defects.md.
+  Two things have also been established since this file was written, both narrowing the cause
+  further, and both archived beside it.  The elimination is now three-sided: the base-commit tree
+  built on the TARGET runtime produces the migrated bytes exactly, so a tree containing none of the
+  change set produces the same differing bytes.  And the mechanism is now isolated at the library
+  level in minifier-engine-dependence.txt: both minifier trees compare identical file by file, and
+  calling each directly over one input under each runtime reproduces the script bundle's delta
+  exactly and a delta of the same character for the stylesheet.  The two engine behaviours are a
+  pattern re-serialised through RegExp, and a sort whose comparators return a boolean and therefore
+  never report "less than", leaving the permutation to the engine.
 
 REPRODUCING THIS, AND THE FACT THAT IT WAS REPRODUCED
   ./capture-historical-frontend.sh [staging-directory]
   With nvm available it selects the Node 8 line (refusing to run on any other, since building on the
   new runtime would make this the same measurement as the migrated one), bootstraps yarn 1.22.22,
-  extracts the frontend subtree of the base commit itself with git archive, writes profiles.js with
-  the content the deployed runtime emits, runs the base-commit install command and the unmodified
-  Grunt default task, and prints the digest table.  Everything it writes goes into the staging
-  directory; it writes NOTHING into this committed directory, so running it cannot damage the
-  evidence it exists to let a reader check.  An earlier revision did both of the wrong things here -
-  it required the tree to have been extracted beside it by hand, and it overwrote the committed
-  digest table on being run - and both are fixed.
-  The migrated side is  npm ci && npm run build  in the frontend directory on Node 20.
+  extracts the frontend subtree of the base commit itself with git archive, COPIES the tracked
+  profiles.js from the migrated tree so both sides of the comparison receive the identical bytes,
+  runs the base-commit install command and the unmodified Grunt default task, writes build-inputs.txt
+  recording every input digest, and prints the digest table.  It REFUSES TO RUN if the tracked
+  profiles.js is absent, so it cannot silently fall back to a value the other side does not use.
+  Everything it writes goes into the staging directory; it writes NOTHING into this committed
+  directory, so running it cannot damage the evidence it exists to let a reader check.  Three earlier
+  revisions of it did the wrong thing here - it required the tree to have been extracted beside it by
+  hand, it overwrote the committed digest table on being run, and it wrote profiles.js from a literal
+  instead of from the tracked file - and all three are fixed.
+  The migrated side is  npm ci && npm run build  in the frontend directory on Node 20, taken after
+  git clean -xfd  over that subtree so the install and the build both start from a clean state.
 
   It was then RUN, from a clean staging directory, and the result is the reason this paragraph is
   here rather than an instruction on its own: all five digests came out byte-identical to
   artifact-digests-node8.txt, and so did all ten cache-busted filenames.  The historical baseline is
   therefore independently reproducible rather than a single observation that has to be taken on
   trust.  Run provenance of that reproduction: node v8.17.0, npm 6.13.4, yarn 1.22.22,
-  install-exit=1 (node-sass native build, the documented condition below), build-exit=0.
+  install-exit=1 (node-sass native build, the condition recorded under HOW THE HISTORICAL SIDE WAS
+  PRODUCED above), build-exit=0.
+
+  IT WAS RUN AGAIN, AND SO WERE THE OTHER TWO, AFTER THE PROFILES.JS CORRECTION AND AT THE FINAL
+  IMPLEMENTATION.  All three builds were re-taken from clean trees, in one sitting, with the identical
+  tracked profiles.js on every side, NODE_ENV unset on every side, and each build run from the same
+  relative path within its own tree.  The migrated side was taken after  git clean -xfd  over the
+  frontend subtree, so it began with no node_modules and no assets/dist, and installed with  npm ci
+  from the committed lockfile - which added 797 packages, left the lockfile unmodified, and resolved
+  all 87 literal installed-package paths that config/env/all.js names.  Every one of the three digest
+  tables in this directory was reproduced EXACTLY, including all ten cache-busted filenames in each:
+
+    A  base-commit tree, yarn 1.22.22, node v8.17.0    == artifact-digests-node8.txt
+    B  base-commit tree, yarn 1.22.22, node v20.20.2   == artifact-digests-node20-basecommit-yarn.txt
+    C  migrated tree, npm 10.8.2 from the committed lockfile, node v20.20.2
+                                                       == artifact-digests-node20.txt
+                                                       == ../migrated/artifacts/*.sha256
+
+  B and C agree on all five artifacts, on the source map, and on all ten cache-busted filenames, which
+  a directory listing comparison confirms outright.  A and C differ in exactly the two minifier outputs
+  and in the source map derived from one of them; the listing comparison names those three files and
+  nothing else.  So the artifact-by-artifact result above, and the engine attribution that follows it,
+  are measurements taken at the delivered implementation with corrected inputs - not conclusions
+  inherited from an earlier revision of the tree.
+
+  Build inputs recorded on each side, so that "the same inputs" is checkable rather than asserted:
+  profiles.js digest and byte count, manifest digest, lockfile name and digest, Gruntfile digest, asset
+  configuration digest, NODE_ENV, NODE_APP_INSTANCE, the build working directory, the relative path
+  within the tree, and whether assets/dist existed before the build.  The historical side writes them
+  to build-inputs.txt in its staging directory; the migrated side records them in
+  ../migrated/notes/frontend-comparison-provenance.txt.  The Gruntfile and asset-configuration digests
+  are identical on both sides, which is the mechanical form of the claim that the pipeline itself is
+  frozen: gruntfile-sha256 922b5e227665724bfae3486f8792637ac8380d6b4138f711d7ef3920d552129a and
+  asset-config-sha256 69c17bed7112fae50c7c69bff8f149045c3e6abe02c7caca0b46ecea5c61b18b on A, B and C.

@@ -1,0 +1,154 @@
+restoration of runner-written report content to this archive
+
+subject: ten report files in this evidence tree that stopped being runner output, and
+  the restoration that made them runner output again
+RUNTIME: Java 17.  Read out of the archived reports themselves rather than taken from
+  prose: every installed report in this archive retains its own java.runtime.version,
+  and across the archive it is 17.0.19+10-1-25.10.2-Ubuntu.
+BASE-COMMIT: c8f6226105
+IMMUTABLE-SOURCE-COMMIT: fc44276779
+MIRRORS: docs/migration/smoke-evidence/baseline/surefire/notes/report-restoration.txt
+ESTABLISHES: that no file under ../ carries authored prose, and that the five reports in
+  this archive whose runner-written content had been replaced now carry it again
+
+why this note exists instead of a comment inside the reports
+===========================================================
+A previous revision of this evidence tree recorded per-report provenance by prepending
+an XML comment to the report it described.  Ten files were treated that way, one under
+the pre-migration archive and nine under this one.  That was the wrong place for it, and
+for two reasons rather than one.
+
+The first is that it falsified two published claims.  This archive's own page states that
+the reports carry zero XML comments and zero prose bytes ahead of any testsuite element,
+and the baseline failure register states that each report carries its provenance natively
+rather than in a comment ahead of its root element.  Both were true of every report except
+the ten, and a claim that holds for all but ten files is not a claim, it is an error.
+
+The second is worse, and it is the reason the comments could not simply be left with the
+claims relaxed.  In five of the nine files under this archive the comment did not sit
+above unmodified runner output: the runner-written content had been REPLACED by authored
+text.  Two lost their entire native property block, so they no longer stated the runtime
+that produced them -- which is exactly the one thing an authored report cannot fake and
+therefore the one thing the property allowlist exists to preserve.  Two more lost runner
+attributes and system-out content, including a complete stack trace and a validator
+banner.  One lost its only testcase element, with its system-out, while its testsuite
+element continued to declare tests="1".  A digest manifest regenerated over files in that
+state authenticates the alteration rather than the run.
+
+what was restored, and from where
+=================================
+Every one of the ten files is byte-recoverable from commit fc44276779, whose tree carries
+this archive in the form install-surefire-evidence.sh installed it.  That commit IS a
+commit object in this repository, so the source of the restoration can be checked rather
+than trusted:
+
+  git cat-file -e fc44276779^{commit}
+  git show fc44276779:docs/migration/smoke-evidence/migrated/surefire/<module>/<report>
+
+The ten split into two groups, and the split was measured from the diff that damaged them
+rather than assumed:
+
+  COMMENT PREPENDED, CONTENT UNTOUCHED -- five files.  For each of these, deleting the
+  comment block restores the source bytes EXACTLY.  That was verified per file by
+  comparing the stripped result against the immutable source, byte for byte and length
+  for length, before anything was written.  Four are under this archive:
+
+    acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.model.EcmFileJsonSchemaValidTest.xml
+    acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoFileFolderServiceMoveAuditResponseReaderTest.xml
+    acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmNodeDeletedEventHandlerTest.xml
+    acm-service-email-smtp/TEST-com.armedia.acm.services.email.smtp.SmtpServiceTest.xml
+
+  The fifth is under the pre-migration archive and is accounted for in the mirrored note.
+
+  CONTENT REPLACED OR TRUNCATED -- five files, all in this archive's acm-service-ecm
+  directory.  These were restored whole from the immutable source, because there was no
+  authored text to peel off: the authored text WAS the file body.
+
+    TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceCreateNodeAuditResponseReaderTest.xml
+    TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceUpdateMetadataAuditResponseReaderTest.xml
+    TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest.xml
+    TEST-com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIControllerTest.xml
+    TEST-com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest.xml
+
+the restoration was corroborated by a fresh run, not only by a commit
+=====================================================================
+Recovering bytes from a commit proves the bytes were once committed.  It does not on its
+own prove they are runner output.  So the five restored reports were checked against a
+live invocation of the runner on this host, on Java 17:
+
+  mvn -o -pl acm-services/acm-service-ecm,acm-services/acm-service-email-smtp test \
+      -Dmaven.test.failure.ignore=true -Djacoco.haltOnFailure=false
+
+That invocation reported BUILD SUCCESS and wrote its own reports to the two modules'
+build output directories.  For all five restored files the recovered report and the fresh
+runner report agree exactly on the tests, failures, errors and skipped counters, on the
+full set of testcase names, and on the number of system-out and system-err elements:
+
+  AlfrescoNodeServiceCreateNodeAuditResponseReaderTest        1 test   0 out  0 err
+  AlfrescoNodeServiceUpdateMetadataAuditResponseReaderTest    1 test   0 out  0 err
+  EcmFileCreatedEventHandlerTest                              4 tests  4 out  0 err
+  FolderDocumentCountAPIControllerTest                        1 test   1 out  0 err
+  UpdateFileTypeAPIControllerTest                             3 tests  3 out  1 err
+
+The one difference is the property count, and it is the documented normalisation rather
+than a discrepancy: the fresh runner reports carry 52 and 53 native system properties,
+the installed reports carry the 16 the installer's PROPERTY_ALLOWLIST retains.  The
+dropped properties are machine descriptions -- both classpaths, the launcher command
+line, the user name, the home directory, the temporary directory, the boot and native
+library paths and java.home -- and the allowlist is enumerated in run-provenance.txt
+beside this note.  java.runtime.version and java.class.version are retained, natively,
+in every one.
+
+what this note does NOT claim
+=============================
+It does not claim the restored reports came from the fresh run above.  They did not; they
+came from the immutable source commit, and the fresh run is a corroboration of their
+shape, not their origin.  Substituting the fresh reports would have replaced evidence
+about the harvest with evidence about today, and would have changed the 933 recorded test
+methods of the harvest into a number nobody had compared against the pre-migration
+side.  (933 is the harvest figure; the withdrawal recorded above brings the archive
+as committed to 893.)
+
+It does not claim the archive is unchanged since it was first installed.  Ten files were
+edited by a later revision and have now been put back; that is what this note records.
+The digest manifest beside it was regenerated over the restored archive, so
+`sha256sum -c sha256-manifest.txt` now authenticates runner output rather than authored
+text -- which is the property the manifest was always supposed to have.
+
+state of the archive after the restoration, measured
+====================================================
+  reports in this archive                                    284
+  reports carrying a native java.runtime.version             284
+  reports carrying a native java.class.version               284
+  reports carrying any XML comment                              0
+  prose bytes ahead of any testsuite element                    0
+  aggregate over the archive    suites=284 tests=933 failures=3 errors=1 skipped=21
+
+  SUPERSEDED SIZE, and only the size.  Five reports were withdrawn from this archive
+  after the measurement above was taken, because the five test classes that produced
+  them were withdrawn from the change set: the four Active Directory context-source
+  tests and the angular-starter wiring test.  Measured over the directory as it now
+  stands:
+      reports in this archive                                  279
+      reports carrying a native java.runtime.version           279
+      reports carrying a native java.class.version             279
+      reports carrying any XML comment                            0
+      prose bytes ahead of any testsuite element                  0
+      aggregate over the archive  suites=279 tests=893 failures=3 errors=1 skipped=21
+  None of the ten files this note is about is among the five, so nothing the restoration
+  established is weakened by the removal, and the four failure and error rows are the
+  same four.  run-provenance.txt beside this note carries the withdrawal in full.
+
+The aggregate is unchanged by the restoration.  That is the invariance witness: a text
+transformation that leaves the four runner counters untouched has demonstrably not altered
+a recorded outcome.  The three failures and one error remain the four rows registered in
+docs/migration/baseline-test-failures.md, and nothing here softens one.
+
+mirror obligation
+=================
+The pre-migration counterpart carries this exact filename -- report-restoration.txt,
+character for character -- at the mirrored path under baseline/surefire/notes/, so that a
+recursive diff over the two trees is mechanical.  A CONTENT difference at this filename is
+expected and correct: the two sides restored a different number of files and state
+different runtimes and different archive sizes.  A STRUCTURAL difference -- this file
+present on one side only -- is not, and means the mirror has been broken.

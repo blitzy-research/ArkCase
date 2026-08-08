@@ -1,0 +1,17 @@
+database access for the schema and engine observations
+
+configured-kind: mysql
+configured-endpoint: arkcase@127.0.0.1:3306/arkcase
+client: mysql
+client-reached-through: docker exec -i arkcase-w011-mariadb
+reachable: yes
+probe-detail: SELECT 1 answered 1 from arkcase@127.0.0.1:3306/arkcase
+credential-handling: written to a mode-600 client options file inside
+  this run temporary directory and passed by reference, so it never
+  appears on a command line where a process listing would expose it.
+  The value itself is replaced by a fixed placeholder on every write
+  path in this script.
+statements-issued: SELECT only.  This script contains no INSERT, UPDATE,
+  DELETE or DDL over this connection on any path, and the state-mutation
+  policy that gates the HTTP flows deliberately does not unlock one: a
+  capture that altered the state it was measuring would be worthless.

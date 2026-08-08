@@ -16,13 +16,21 @@ nav:
   # under one heading instead of being interleaved with the pages above.
   #
   # WHAT BELONGS UNDER THIS HEADING.  The six rule-mandated registers, in the
-  # order the migration plan enumerates them, plus the Surefire evidence
-  # archive that Baseline Test Failures cites for its per-suite figures.  The
-  # count is part of the contract rather than an editorial choice, so a page
-  # that is not one of the six and is not cited as the evidence behind one of
-  # them does not belong here: Frontend Dependency Security is supporting
-  # documentation owned by a separate deliverable, and is reached from the
-  # registers that link to it rather than from this list.
+  # order the migration plan enumerates them, followed by three further pages
+  # that are listed because a register cites them as its supporting evidence:
+  # Backend Dependency Security, Frontend Dependency Security, and the smoke
+  # capture taken with the reference services provisioned, which Ambiguity
+  # Resolutions cites for the flows the baseline-against-migrated pair leaves
+  # unexercised.  Nine entries, and the arithmetic is stated because two earlier
+  # revisions of this comment each described a list they did not match.
+  #
+  # The admission test is the contract rather than an editorial choice: a page
+  # belongs here only if it is one of the six, or is cited as the evidence
+  # behind one of them.  Two pages under docs_dir are deliberately NOT listed -
+  # the Surefire evidence archive that Baseline Test Failures cites for its
+  # per-suite figures, and the WAR packaging evidence - because both are
+  # reached by cross-reference from the register that cites them, and those
+  # links are load-bearing for exactly that reason.
   #
   # Paths are relative to docs_dir, so they carry no docs/ prefix.  MkDocs
   # builds every Markdown page under docs_dir whether or not nav references
@@ -33,10 +41,12 @@ nav:
       - Dependency Change Inventory: migration/dependency-change-inventory.md
       - JDK Access Exceptions: migration/add-opens-exceptions.md
       - Baseline Test Failures: migration/baseline-test-failures.md
-      - Surefire Evidence Archive: migration/surefire-evidence-archive.md
       - Pre-existing Defects: migration/pre-existing-defects.md
       - Ambiguity Resolutions: migration/ambiguity-resolutions.md
       - Static Audit Output: migration/static-audit-output.md
+      - Backend Dependency Security: migration/backend-dependency-security.md
+      - Frontend Dependency Security: migration/frontend-dependency-security.md
+      - Smoke Evidence With Services Provisioned: migration/smoke-evidence/provisioned-stack/README.md
 
 markdown_extensions:
   - admonition

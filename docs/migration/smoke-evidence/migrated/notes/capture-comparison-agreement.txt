@@ -1,0 +1,28 @@
+===== recorded comparison verdicts, re-checked at the end of the run =====
+counterpart-capture: <REPO-ROOT>/docs/migration/smoke-evidence/baseline
+
+WHY RE-CHECK SOMETHING THIS RUN COMPUTED.  Each flow computes its
+row-for-row verdict by diffing its own status file against the
+counterpart's, at the moment that flow finishes.  If the counterpart
+capture is re-taken afterwards, the recorded verdict then describes a file
+that no longer exists -- which is how a result record came to assert
+DIFFERENCE for a status file that was byte-identical to its counterpart.
+Re-checking at the end compares the recorded verdict with the files as
+they now stand.
+
+Neither file is rewritten.  Which of the two is the stale one is not
+something this audit can determine, and guessing would be worse than
+reporting the disagreement.
+
+  flow 1  login                   recorded: MATCH       re-checked: MATCH  AGREE
+  flow 2  views                   recorded: MATCH       re-checked: MATCH  AGREE
+  flow 3  alfresco-roundtrip      recorded: MATCH       re-checked: MATCH  AGREE
+  flow 4  solr-search             recorded: DIFFERENCE  re-checked: DIFFERENCE  AGREE
+  flow 5  activemq-event          recorded: MATCH       re-checked: MATCH  AGREE
+  flow 6  generated-number        recorded: MATCH       re-checked: MATCH  AGREE
+  flow 7  workflow-start          recorded: MATCH       re-checked: MATCH  AGREE
+  flow 8  queue-transition        recorded: MATCH       re-checked: MATCH  AGREE
+
+VERDICT: every recorded row-for-row verdict still holds against the
+counterpart as it now stands.
+disagreements: 0

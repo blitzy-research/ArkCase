@@ -3,22 +3,22 @@ region-describes: container readiness: deployment completion and the startup-com
 region-mandatory: yes
 region-pattern: Server startup in|Deployment of web application|has finished in|Deploying web application|Starting ProtocolHandler|Initializing ProtocolHandler
 region-pattern-flags: grep -E -i, applied to the extracted window only
-window-source: /tmp/p9-runtime-w004/tomcat/logs/catalina.out
-window-source-sha256: 6ca537628d2fe6aaa3a71a6ed7522063af32ef62242fe8b651198ae81abb340e
+window-source: <REPO-ROOT>/.blitzy-scratch/rt/mig/tomcat/logs/catalina.out
+window-source-sha256: a1aa8e7adf21e001c3799930cc329c902726b3af646cabad4cc4f3ff2a9687f2
 window-boots-present-in-source: 1
-window-sha256: 065aa7803725fceb4a3f247710d1031618daa667b5492324cf982448aada17cb
+window-sha256: 595de21779d66fe116127ff88d4b465de96a3fb27f9a15ef3d18b71cce003100
 window-start-line: 2
-window-end-line: 4934
+window-end-line: 2803
 window-start-byte-offset: 374
-window-end-byte-offset: 759974
-window-lines: 4933
+window-end-byte-offset: 621377
+window-lines: 2802
 matched-lines: 5
-line-cap: 2000
+line-cap: 8000
 capture-truncated: no
 ----- region -----
-07-Aug-2026 04:31:30.504 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-20040"]
-07-Aug-2026 04:31:30.608 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/tmp/p9-runtime-w004/tomcat/webapps/arkcase.war]
-[m07-Aug-2026 04:34:09.002 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/tmp/p9-runtime-w004/tomcat/webapps/arkcase.war] has finished in [158,391] ms
-07-Aug-2026 04:34:09.004 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-20040"]
-07-Aug-2026 04:34:09.012 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [158493] milliseconds
+08-Aug-2026 04:56:16.311 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-53080"]
+08-Aug-2026 04:56:16.368 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [<REPO-ROOT>/.blitzy-scratch/rt/mig/tomcat/webapps/arkcase.war]
+[m08-Aug-2026 04:58:58.831 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [<REPO-ROOT>/.blitzy-scratch/rt/mig/tomcat/webapps/arkcase.war] has finished in [162,460] ms
+08-Aug-2026 04:58:58.833 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-53080"]
+08-Aug-2026 04:58:58.840 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [162514] milliseconds
 ----- end region -----

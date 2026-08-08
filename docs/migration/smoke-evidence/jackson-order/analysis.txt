@@ -1,23 +1,20 @@
-runs: 2.7.2=6  2.12.7=6
-classes compared in both: 2136
-classes whose order is UNSTABLE run-to-run (reflection-order noise): 13
-    NOISE  com.armedia.acm.configuration.client.ConfigurationServiceBootClient  (2.7.2:1 distinct, 2.12.7:3 distinct)
-    NOISE  com.armedia.acm.objectdiff.model.AcmObjectDiff  (2.7.2:2 distinct, 2.12.7:3 distinct)
-    NOISE  com.armedia.acm.plugins.admin.web.api.EmailSenderConfigurationAPIController  (2.7.2:1 distinct, 2.12.7:2 distinct)
-    NOISE  com.armedia.acm.quartz.scheduler.AcmSchedulerService  (2.7.2:1 distinct, 2.12.7:2 distinct)
-    NOISE  com.armedia.acm.service.stateofarkcase.service.ErrorsLogFileService  (2.7.2:1 distinct, 2.12.7:2 distinct)
-    NOISE  com.armedia.acm.services.config.model.ConfigBean  (2.7.2:1 distinct, 2.12.7:2 distinct)
-    NOISE  com.armedia.acm.services.config.model.ConfigMap  (2.7.2:1 distinct, 2.12.7:2 distinct)
-    NOISE  com.armedia.acm.services.email.smtp.InputStreamDataSource  (2.7.2:1 distinct, 2.12.7:2 distinct)
-    NOISE  com.armedia.acm.services.users.model.AcmRoleToGroupMapping  (2.7.2:1 distinct, 2.12.7:2 distinct)
-    NOISE  com.armedia.acm.web.api.MDCThreadPoolExecutor  (2.7.2:2 distinct, 2.12.7:2 distinct)
-    NOISE  com.itextpdf.text.pdf.ColumnText  (2.7.2:2 distinct, 2.12.7:1 distinct)
-    NOISE  gov.privacy.service.AcknowledgementDocumentService  (2.7.2:2 distinct, 2.12.7:1 distinct)
-    NOISE  gov.privacy.service.SARService  (2.7.2:3 distinct, 2.12.7:1 distinct)
-classes with a STABLE order that DIFFERS between versions: 2
-    DIFF   com.armedia.acm.calendar.config.model.PurgeOptionsDeserializer
-      2.7.2    nullValue,knownPropertyNames,delegatee,cachable,emptyValue,objectIdReader
-      2.12.7   nullValue,knownPropertyNames,delegatee,cachable,nullAccessPattern,emptyAccessPattern,emptyValue,objectIdReader
-    DIFF   com.armedia.acm.calendar.service.ZonedDateTimeDeserializer
-      2.7.2    nullValue,knownPropertyNames,delegatee,cachable,emptyValue,objectIdReader
-      2.12.7   nullValue,knownPropertyNames,delegatee,cachable,nullAccessPattern,emptyAccessPattern,emptyValue,objectIdReader
+runs: 2.10.3=6  2.12.7=6
+classes compared in both: 2305
+classes whose order is UNSTABLE run-to-run (reflection-order noise): 16
+    NOISE  com.armedia.acm.calendar.config.model.PurgeOptionsDeserializer  (2.10.3:2 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.calendar.service.ZonedDateTimeDeserializer  (2.10.3:2 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.configuration.client.ConfigurationServiceBootClient  (2.10.3:1 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.objectdiff.model.AcmObjectDiff  (2.10.3:2 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.service.stateofarkcase.service.ErrorsLogFileService  (2.10.3:1 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.services.email.smtp.InputStreamDataSource  (2.10.3:2 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.services.participants.model.AcmParticipant  (2.10.3:2 distinct, 2.12.7:1 distinct)
+    NOISE  com.armedia.acm.services.sequence.dao.AcmSequenceRegistryDao  (2.10.3:2 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.services.users.model.ldap.ActiveDirectoryUserAccountControl  (2.10.3:1 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.services.users.model.ldap.LdapGroup  (2.10.3:1 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.webdav.AcmFileResource  (2.10.3:5 distinct, 2.12.7:6 distinct)
+    NOISE  com.armedia.acm.webdav.AcmFolderResource  (2.10.3:2 distinct, 2.12.7:2 distinct)
+    NOISE  com.armedia.acm.webdav.AcmOptionsResource  (2.10.3:5 distinct, 2.12.7:4 distinct)
+    NOISE  com.armedia.acm.webdav.AcmRootResource  (2.10.3:3 distinct, 2.12.7:4 distinct)
+    NOISE  com.armedia.acm.webdav.AcmTempFileResource  (2.10.3:5 distinct, 2.12.7:6 distinct)
+    NOISE  com.itextpdf.text.pdf.ColumnText  (2.10.3:1 distinct, 2.12.7:2 distinct)
+classes with a STABLE order that DIFFERS between versions: 0

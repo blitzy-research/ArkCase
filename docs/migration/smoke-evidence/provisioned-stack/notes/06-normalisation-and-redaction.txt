@@ -1,0 +1,100 @@
+normalisation and redaction — the live substitution ledger for this capture
+
+produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_redaction_ledger
+pipeline: sanitise = redact_literal | redact_patterns | normalise
+
+rule inventory, counted from this script own source rather than stated:
+  literal-substitution-pairs: 6
+  pattern-redaction-expressions: 11
+  normalisation-expressions: 35
+  redaction-token: <REDACTED-CREDENTIAL>
+
+what the literal stage substitutes, BY NAME and never by value:
+  the configured administrator password  -> the redaction token
+  the resolved capture root              -> <CAPTURE-DIR>
+  the capture output directory           -> <CAPTURE-DIR>
+  the absolute repository root           -> <REPO-ROOT>
+  the running account home directory     -> <HOME>
+  the scratch directory for this run     -> <TMPDIR>
+  The four path substitutions are boundary-aware: a longer name that
+  merely begins with one of these paths is left verbatim, so a file called
+  <root>-backup is not rewritten as if it were inside <root>.
+
+live self-test of the pipeline.  Every probe below is SYNTHETIC — no probe
+value here is a real credential, a real identifier or a real response.
+Each is pushed through the live pipeline and both sides are recorded, so
+this ledger states what the pipeline DID rather than what it should do.
+
+read the in: column knowing that it is DOUBLE-SANITISED.  The assertion
+itself runs on the raw probe value, which is how a rule can be observed to
+fire at all; but this whole block is then written through the same pipeline
+as every other capture byte, so a credential-shaped probe appears redacted
+in its own input column too.  That is deliberate defence in depth rather
+than a display fault: the file is a committed artefact, and no code path
+that writes into it gets to opt out of the sanitiser — not even the one
+testing the sanitiser.  The rule is still demonstrably firing, because the
+out: column shows the whole matched span replaced rather than just the
+probe value substituted.
+
+  FIRED     authorization header               expected <REDACTED-CREDENTIAL>
+            in:  authorization: Basic <REDACTED-CREDENTIAL>
+            out: authorization: <REDACTED-CREDENTIAL>
+  FIRED     set-cookie header                  expected <REDACTED-CREDENTIAL>
+            in:  set-cookie: JSESSIONID=<REDACTED-CREDENTIAL>; Path=/arkcase
+            out: set-cookie: <REDACTED-CREDENTIAL>
+  FIRED     bearer token in a body             expected <REDACTED-CREDENTIAL>
+            in:  {"authorization":"Bearer <REDACTED-CREDENTIAL>"}
+            out: {"authorization":"Bearer <REDACTED-CREDENTIAL>"}
+  FIRED     key=value secret                   expected <REDACTED-CREDENTIAL>
+            in:  client_secret=<REDACTED-CREDENTIAL>
+            out: client_secret=<REDACTED-CREDENTIAL>
+  FIRED     credential in a URL authority      expected <REDACTED-CREDENTIAL>
+            in:  request-url: https://<REDACTED-CREDENTIAL>@example.invalid/arkcase
+            out: request-url: https://<REDACTED-CREDENTIAL>@example.invalid/arkcase
+  FIRED     ISO-8601 timestamp                 expected <TIMESTAMP>
+            in:  created: <TIMESTAMP>
+            out: created: <TIMESTAMP>
+  FIRED     UUID                               expected <UUID>
+            in:  identifier: <UUID>
+            out: identifier: <UUID>
+  FIRED     broker message identifier          expected <BROKER-MESSAGE-ID>
+            in:  jms-message-id: <BROKER-MESSAGE-ID>
+            out: jms-message-id: <BROKER-MESSAGE-ID>
+  FIRED     index query time                   expected <QUERY-TIME
+            in:  {"QTime":<QUERY-TIME>,"status":0}
+            out: {"QTime":<QUERY-TIME>,"status":0}
+  FIRED     capture directory path             expected <CAPTURE-DIR>
+            in:  capture-dir: <CAPTURE-DIR>
+            out: capture-dir: <CAPTURE-DIR>
+  FIRED     workspace root with scratch segment expected <WORKSPACE>/pom.xml
+            in:  probed: <WORKSPACE>/pom.xml
+            out: probed: <WORKSPACE>/pom.xml
+  FIRED     query-parameter filter-chain pattern expected [pattern='<REDACTED-CREDENTIAL>']
+            in:  DefaultSecurityFilterChain - Will not secure Regex [pattern='<REDACTED-CREDENTIAL>']
+            out: DefaultSecurityFilterChain - Will not secure Regex [pattern='<REDACTED-CREDENTIAL>']
+  FIRED     path filter-chain pattern is preserved expected [pattern='^/api/.*$']
+            in:  DefaultSecurityFilterChain - Will secure Regex [pattern='^/api/.*$']
+            out: DefaultSecurityFilterChain - Will secure Regex [pattern='^/api/.*$']
+
+the one test recorded as an OUTCOME ONLY:
+  configured-password-survived-the-pipeline: no — replaced by <REDACTED-CREDENTIAL>
+  Its probe and its output are deliberately not printed.  Recording them
+  would place the credential in the capture in order to demonstrate that
+  the capture holds no credential.
+
+self-test-rules-that-did-not-fire: 0
+
+what must survive VERBATIM, because it is the behaviour under observation:
+  HTTP status codes, content types and body forms
+  the generated object number FORM (its shape, not its value)
+  the process definition KEY, the task key, name and assignee
+  queue names before and after a transition
+  the five frontend artifact digests
+  every archived unit-test suite name and its counts
+A normalisation that reached any of these would erase the comparison it
+exists to make possible, which is why the normalisation expressions are
+anchored to named keys and structural shapes rather than applied broadly.
+
+NOT IN SCOPE HERE: any verdict.  The cross-capture outcome is in
+comparison.txt, the per-flow observations in the eight flow-*.result.txt
+records, and the capture completeness verdict in notes/completeness.txt.

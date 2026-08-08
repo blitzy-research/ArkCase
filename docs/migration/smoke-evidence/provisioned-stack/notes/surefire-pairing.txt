@@ -1,0 +1,339 @@
+archived unit-test report pairing
+
+contract-file: <REPO-ROOT>/docs/migration/smoke-evidence/expected-suites.txt
+contract-state: read
+archive-carried-into-this-run: no
+archive-carried-from: absent: /tmp/smoke-final/migrated/surefire does not exist
+archive-reports-carried: 0
+archive-carry-verification: not-applicable: there was no installed archive to carry
+suites-required-on-both-sides: 278
+suites-present-in-this-capture: 0
+suites-missing-from-this-capture: 278
+suites-present-but-not-in-the-contract: 0
+suites-lost-baseline-only: 0
+suites-added-migrated-only: 6
+
+A suite archived at baseline with no migrated counterpart proves nothing:
+something that used to run either stopped running or stopped being archived,
+and there is no longer anything to compare it against.  A missing required
+suite, an unlisted suite, or any lost suite therefore makes this capture
+INCOMPLETE rather than merely noteworthy.
+
+A suite archived only on the migrated side is an ADDITION, not a hole.  It has
+no baseline counterpart for one of exactly two reasons: either the class did
+not exist at the base commit, or it existed and the baseline runner did not
+select it -- the baseline built with the implicitly bound surefire 2.12.4,
+whose default includes match no class name ending in "Tests", while the pinned
+3.5.2 does.  Which reason applies to which suite cannot be read out of the
+archive, so it is recorded per suite in docs/migration/baseline-test-failures.md
+rather than assumed here.  Demanding a counterpart either way would make every
+newly added test an evidence gap.  Additions are listed by name below instead,
+which is what keeps them accountable.
+
+why the four archive-carry lines above exist.  The archive under surefire/ is
+not written by the capture producer at all: install-surefire-evidence.sh
+installs it from a raw test harvest, with its own checksum manifest and its own
+run provenance.  A full capture, however, writes into a fresh staging directory
+and is then moved into place over the destination, which is what makes a
+published capture exactly one run output.  Two things followed from that, both
+observed: the pairing check read an empty staging subtree and recorded every
+required suite as missing, and publication deleted the installed archive.  The
+archive is therefore carried into the staging tree before anything asserts on
+it, and the carried copy is re-verified against the digests the archive ships
+for itself.  A failed or unverifiable carry makes this capture INCOMPLETE,
+because an archive that did not reach the staging tree is one this run is about
+to remove.
+
+suites required by the contract but missing here:
+  - acm-activiti-configuration/TEST-com.armedia.acm.activiti.services.AcmBpmnServiceTest.xml
+  - acm-admin-plugin/TEST-com.armedia.acm.plugins.admin.web.api.GetTranscribeConfigurationAPIControllerTest.xml
+  - acm-admin-plugin/TEST-com.armedia.acm.plugins.admin.web.api.RolesPrivilegesServiceTest.xml
+  - acm-admin-plugin/TEST-com.armedia.acm.plugins.admin.web.api.SaveTranscribeConfigurationAPIControllerTest.xml
+  - acm-alfresco-rma-integration/TEST-com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileClosedListenerTest.xml
+  - acm-alfresco-rma-integration/TEST-com.armedia.acm.plugins.alfrescorma.service.AcmCaseFileStatusChangedListenerTest.xml
+  - acm-alfresco-rma-integration/TEST-com.armedia.acm.plugins.alfrescorma.service.AcmComplaintClosedListenerTest.xml
+  - acm-alfresco-rma-integration/TEST-com.armedia.acm.plugins.alfrescorma.service.AcmComplaintFolderListenerTest.xml
+  - acm-alfresco-rma-integration/TEST-com.armedia.acm.plugins.alfrescorma.service.AcmFileDeclareRequestListenerTest.xml
+  - acm-alfresco-rma-integration/TEST-com.armedia.acm.plugins.alfrescorma.service.AcmFileListenerTest.xml
+  - acm-alfresco-rma-integration/TEST-com.armedia.acm.plugins.alfrescorma.service.AcmFolderDeclareRequestListenerTest.xml
+  - acm-audit-plugin/TEST-com.armedia.acm.plugins.audit.api.GetAuditByObjectTypeAndObjectIdAPIControllerTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.dao.QueuePropertyFileChangeWatcherTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.dao.SpelTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.CaseFileAccessControlRulesTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.CaseFileEventListenerTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.CaseFileStartBusinessProcessRuleTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.EnterQueueBusinessRuleTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.LeaveCurrentQueueBusinessRuleTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.MergeCaseServiceImplTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.OnEnterQueueBusinessRuleTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.OnLeaveQueueBusinessRuleTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.SaveCaseFileRulesTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.SplitCaseFileRulesTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.service.SplitCaseFileServiceTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.web.api.GetCasesByStatusAPIControllerTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.web.api.GetNumberOfActiveCaseFilesByQueueAPIControllerTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.web.api.GetQueuesAPIControllerTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.web.api.ListCaseFilesByUserAPIControllerTest.xml
+  - acm-case-file-plugin/TEST-com.armedia.acm.plugins.casefile.web.api.SplitCaseFilesAPIControllerTest.xml
+  - acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.service.ComplaintAccessControlRulesTest.xml
+  - acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.service.ComplaintCaptureFileEventListenerTest.xml
+  - acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.service.ComplaintEventListenerTest.xml
+  - acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.web.api.ComplaintWorkflowAPIControllerTest.xml
+  - acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.web.api.CreateComplaintAPIControllerTest.xml
+  - acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.web.api.FindComplaintByIdAPIControllerTest.xml
+  - acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.web.api.FindComplaintsByUserAPIControllerTest.xml
+  - acm-complaint-plugin/TEST-com.armedia.acm.plugins.complaint.web.api.GetComplaintListOfValuesAPIControllerTest.xml
+  - acm-comprehend-medical/TEST-com.armedia.acm.tool.comprehendmedical.AWSComprehendMedicalServiceTest.xml
+  - acm-configuration/TEST-com.armedia.acm.configuration.service.CollectionPropertiesConfigurationServiceImplTest.xml
+  - acm-configuration/TEST-com.armedia.acm.configuration.service.ConfigurationPropertyServiceTest.xml
+  - acm-consultation-plugin/TEST-com.armedia.acm.plugins.consultation.service.ConsultationAccessControlRulesTest.xml
+  - acm-consultation-plugin/TEST-com.armedia.acm.plugins.consultation.service.ConsultationEventListenerTest.xml
+  - acm-consultation-plugin/TEST-com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest.xml
+  - acm-consultation-plugin/TEST-com.armedia.acm.plugins.consultation.web.api.GetConsultationAPIControllerTest.xml
+  - acm-consultation-plugin/TEST-com.armedia.acm.plugins.consultation.web.api.GetConsultationByStatusAPIControllerTest.xml
+  - acm-dashboard-plugin/TEST-com.armedia.acm.plugins.dashboard.dao.WidgetDaoTest.xml
+  - acm-dashboard-plugin/TEST-com.armedia.acm.plugins.dashboard.service.DashboardPropertyReaderTest.xml
+  - acm-dashboard-plugin/TEST-com.armedia.acm.plugins.dashboard.service.DashboardServiceTest.xml
+  - acm-dashboard-plugin/TEST-com.armedia.acm.plugins.dashboard.web.api.GetDashboardConfigAPIControllerTest.xml
+  - acm-dashboard-plugin/TEST-com.armedia.acm.plugins.dashboard.web.api.GetRolesByWidgetsAPIControllerTest.xml
+  - acm-dashboard-plugin/TEST-com.armedia.acm.plugins.dashboard.web.api.GetUserPreferredWidgetsByModuleTest.xml
+  - acm-dashboard-plugin/TEST-com.armedia.acm.plugins.dashboard.web.api.GetWidgetsByUserRolesAPIControllerTest.xml
+  - acm-dashboard-plugin/TEST-com.armedia.acm.plugins.dashboard.web.api.SetDashboardConfigAPIControllerTest.xml
+  - acm-dashboard-plugin/TEST-com.armedia.acm.plugins.dashboard.web.api.SetUserPreferredWidgetsPerModuleTest.xml
+  - acm-drools-rule-monitor/TEST-com.armedia.acm.drools.SimpleStatelessSingleObjectRuleManagerTest.xml
+  - acm-encryption/TEST-com.armedia.acm.crypto.AcmCryptoUtilsImplTest.xml
+  - acm-files-folder-watcher/TEST-com.armedia.acm.files.ConfigFileWatcherTest.xml
+  - acm-files-folder-watcher/TEST-com.armedia.acm.files.capture.CaptureFileWatcherTest.xml
+  - acm-foia/TEST-com.armedia.acm.plugins.casefile.service.CaseFileEnterQueueBusinessRuleTest.xml
+  - acm-foia/TEST-com.armedia.acm.plugins.casefile.service.CaseFileNextPossibleQueuesBusinessRuleTest.xml
+  - acm-foia/TEST-com.armedia.acm.plugins.casefile.service.CaseFileOnEnterQueueBusinessRuleTest.xml
+  - acm-foia/TEST-com.armedia.acm.plugins.casefile.service.CaseFileRuleTest.xml
+  - acm-foia/TEST-com.armedia.acm.plugins.casefile.service.SplitRequestRulesTest.xml
+  - acm-foia/TEST-gov.foia.service.FOIAExemptionServiceTest.xml
+  - acm-foia/TEST-gov.foia.service.RequestAssignmentServiceTest.xml
+  - acm-foia/TEST-gov.foia.service.ResponseFolderCompressorServiceTest.xml
+  - acm-foia/TEST-gov.foia.service.ResponseFolderNotifyServiceTest.xml
+  - acm-foia/TEST-gov.foia.service.ResponseFolderServiceTest.xml
+  - acm-form-close-complaint/TEST-com.armedia.acm.form.closecomplaint.service.CloseComplaintServiceTest.xml
+  - acm-form-report-of-investigation/TEST-com.armedia.acm.forms.roi.service.ROIServiceTest.xml
+  - acm-ms-outlook-plugin/TEST-com.armedia.acm.plugins.outlook.model.MsOutlookJsonSchemaValidTest.xml
+  - acm-ms-outlook-plugin/TEST-com.armedia.acm.plugins.outlook.web.api.CreateCalendarAppointmentAPIControllerTest.xml
+  - acm-ms-outlook-plugin/TEST-com.armedia.acm.plugins.outlook.web.api.CreateContactItemAPIControllerTest.xml
+  - acm-ms-outlook-plugin/TEST-com.armedia.acm.plugins.outlook.web.api.CreateTaskItemAPIControllerTest.xml
+  - acm-object-association-plugin/TEST-com.armedia.acm.plugins.objectassociaton.web.api.ObjectAssociationAPIControllerTest.xml
+  - acm-object-converter/TEST-ObjectConverterTest.xml
+  - acm-object-diff/TEST-com.armedia.acm.objectdiff.service.AcmDiffServiceTest.xml
+  - acm-object-lock-plugin/TEST-com.armedia.acm.plugins.objectlockplugin.web.api.AcmObjectLockAPIControllerTest.xml
+  - acm-onlyoffice-plugin/TEST-com.armedia.acm.plugins.onlyoffice.service.JWTSigningServiceImplTest.xml
+  - acm-onlyoffice-plugin/TEST-com.armedia.acm.plugins.onlyoffice.web.controllers.OnlyOfficeApiControllerTest.xml
+  - acm-pdf-utilities/TEST-com.armedia.acm.pdf.service.PdfServiceImplTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.service.OrganizationServiceImplTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.service.OrganizationToSolrTransformerTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.service.PersonAssociationEventPublisherTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.service.PersonDiffTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.service.PersonServiceImplTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.DeletePersonAssocByIdAPIControllerTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.DeletePersonByIdAPIControllerTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.FindPersonAPIControllerTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.GetPersonTypesAPIControllerTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.ListPersonAPIControllerTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.ListTasksAPIControllerTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.OrganizationAPIControllerTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.PersonAssociationAPIControllerTest.xml
+  - acm-person-plugin/TEST-com.armedia.acm.plugins.person.web.api.SavePersonAPIControllerTest.xml
+  - acm-personnel-security-plugin/TEST-com.armedia.acm.plugins.personnelsecurity.casestatus.service.CaseFileStateServiceTest.xml
+  - acm-personnel-security-plugin/TEST-com.armedia.acm.plugins.personnelsecurity.cvs.model.ClearanceVerificationSystemDeterminationRecordTest.xml
+  - acm-profile-plugin/TEST-com.armedia.acm.plugins.profile.service.UserOrgServiceImplTest.xml
+  - acm-proxy-http/TEST-com.armedia.acm.proxy.http.ProxyServletTest.xml
+  - acm-report-configuration/TEST-com.armedia.acm.pentaho.config.PentahoReportUrlTest.xml
+  - acm-report-configuration/TEST-com.armedia.acm.pentaho.config.ReportNameEnumTest.xml
+  - acm-report-plugin/TEST-com.armedia.acm.plugins.report.model.ReportTest.xml
+  - acm-service-audit/TEST-com.armedia.acm.audit.listeners.AcmAuditRequestInterceptorTest.xml
+  - acm-service-authentication-token/TEST-com.armedia.acm.services.authenticationtoken.web.api.GetAuthenticationTokenAPIControllerTest.xml
+  - acm-service-calendar-integration-exchange/TEST-com.armedia.acm.calendar.service.integration.exchange.CalendarEntityHandlerTest.xml
+  - acm-service-calendar/TEST-com.armedia.acm.calendar.DateTimeAdjusterTest.xml
+  - acm-service-comprehend-medical/TEST-com.armedia.acm.services.comprehendmedical.OutputTest.xml
+  - acm-service-compress-folder/TEST-com.armedia.acm.compressfolder.FolderCompressorTest.xml
+  - acm-service-compress-folder/TEST-com.armedia.acm.compressfolder.web.api.FolderCompressorAPIControllerTest.xml
+  - acm-service-config/TEST-com.armedia.acm.services.config.lookups.model.InverseValuesLookupTest.xml
+  - acm-service-config/TEST-com.armedia.acm.services.config.lookups.model.NestedLookupTest.xml
+  - acm-service-config/TEST-com.armedia.acm.services.config.lookups.model.StandardLookupTest.xml
+  - acm-service-config/TEST-com.armedia.acm.services.config.service.ConfigServiceTest.xml
+  - acm-service-config/TEST-com.armedia.acm.services.config.web.api.ConfigApiControllerTest.xml
+  - acm-service-configuration/TEST-com.armedia.acm.configuration.ListOfValuesServiceTest.xml
+  - acm-service-correspondence/TEST-com.armedia.acm.correspondence.service.CorrespondenceGeneratorTest.xml
+  - acm-service-correspondence/TEST-com.armedia.acm.correspondence.service.HTMLEscapeTest.xml
+  - acm-service-correspondence/TEST-com.armedia.acm.correspondence.service.ParagraphRunPoiWordGeneratorFixParagraphRunsTest.xml
+  - acm-service-costsheet/TEST-com.armedia.acm.services.costsheet.service.CostsheetServiceTest.xml
+  - acm-service-costsheet/TEST-com.armedia.acm.services.costsheet.web.GetCostsheetAPIControllerTest.xml
+  - acm-service-costsheet/TEST-com.armedia.acm.services.costsheet.web.GetCostsheetsAPIControllerTest.xml
+  - acm-service-costsheet/TEST-com.armedia.acm.services.costsheet.web.GetCostsheetsForObjectIdAndTypeAPIControllerTest.xml
+  - acm-service-costsheet/TEST-com.armedia.acm.services.costsheet.web.GetCostsheetsForUserAPIControllerTest.xml
+  - acm-service-costsheet/TEST-com.armedia.acm.services.costsheet.web.SaveCostheetAPIControllerTest.xml
+  - acm-service-data-access-control/TEST-com.armedia.acm.services.dataaccess.model.test.DecoratedParticipantAnnotationTest.xml
+  - acm-service-data-access-control/TEST-com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest.xml
+  - acm-service-data-access-control/TEST-com.armedia.acm.services.dataaccess.service.impl.AcmPrivilegeServiceTest.xml
+  - acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.executors.DocumentRepositoryParticipantTypesUpdateExecutorTest.xml
+  - acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.service.OutlookFolderCreatorPasswordMd5ToSha256UpdateExecutorTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.model.EcmFileJsonSchemaValidTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.EcmFileToSolrTransformerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.impl.AcmFolderServiceImplTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.impl.EmailAttachmentExtractorComponentTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.impl.PageCountServiceImplTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.impl.RecycleBinItemServiceImplTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.lock.FileLockingProviderTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoCopyServiceCopyAuditResponseReaderTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoFileFolderServiceCreateAuditResponseReaderTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoFileFolderServiceMoveAuditResponseReaderTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoFileFolderServiceRenameAuditResponseReaderTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceCreateNodeAuditResponseReaderTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceDeleteNodeAuditResponseReaderTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceUpdateMetadataAuditResponseReaderTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoSyncScheduledBeanTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.AlfrescoSyncServiceTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderMovedEventHandlerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmFolderCreatedEventHandlerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmNodeDeletedEventHandlerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtilsTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.EcmFileParticipantsAPIControllerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FolderDocumentCountAPIControllerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.GetTotalPageCountAPIControllerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.ListFileFolderByCategoryAPIControllerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.UpdateFileMetadataAPIControllerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest.xml
+  - acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.UploadTempFilesAPIControllerTest.xml
+  - acm-service-electronic-signature/TEST-com.armedia.acm.services.signature.web.api.FindSignaturesByTypeByIdAPIControllerTest.xml
+  - acm-service-electronic-signature/TEST-com.armedia.acm.services.signature.web.api.SignatureAPIControllerTest.xml
+  - acm-service-email-smtp/TEST-com.armedia.acm.services.email.smtp.SmtpServiceTest.xml
+  - acm-service-email/TEST-com.armedia.acm.services.email.AcmObjectPatternMailFilterTest.xml
+  - acm-service-email/TEST-com.armedia.acm.services.email.config.web.api.AcmMailTemplateConfigurationServiceAPIControllerTest.xml
+  - acm-service-email/TEST-com.armedia.acm.services.email.service.AcmEmailContentGeneratorServiceTest.xml
+  - acm-service-email/TEST-com.armedia.acm.services.email.service.AcmFilesystemMailTemplateConfigurationServiceTest.xml
+  - acm-service-email/TEST-com.armedia.acm.services.email.service.AcmProcessMailServiceTest.xml
+  - acm-service-form-configuration/TEST-com.armedia.acm.frevvo.config.FrevvoFormAbstractServiceTest.xml
+  - acm-service-functional-access-control/TEST-com.armedia.acm.services.functionalaccess.web.api.FunctionalAccessServiceTest.xml
+  - acm-service-functional-access-control/TEST-com.armedia.acm.services.functionalaccess.web.api.GetApplicationRolesAPIControllerTest.xml
+  - acm-service-functional-access-control/TEST-com.armedia.acm.services.functionalaccess.web.api.GetApplicationRolesToGroupsAPIControllerTest.xml
+  - acm-service-functional-access-control/TEST-com.armedia.acm.services.functionalaccess.web.api.GetUsersByPrivilegeAndGroupAPIControllerTest.xml
+  - acm-service-functional-access-control/TEST-com.armedia.acm.services.functionalaccess.web.api.SaveApplicationRolesToGroupsAPIControllerTest.xml
+  - acm-service-holiday/TEST-com.armedia.acm.services.holiday.service.HolidayConfigurationServiceTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.AcmAuthenticationDetailsFactoryTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.AcmAuthenticationManagerTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.AcmGrantedAuthoritiesMapperTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.AcmLoginSuccessOperationsTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.okta.services.impl.FactorLifecycleServiceImplTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.okta.services.impl.FactorServiceImplTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.okta.web.api.FactorEnrollmentAPIControllerTest.xml
+  - acm-service-ms-outlook-integration/TEST-com.armedia.acm.service.outlook.service.impl.OutlookRecreatableCalendarServiceImplTest.xml
+  - acm-service-note/TEST-com.armedia.acm.services.note.web.api.DeleteNoteByIdAPIControllerTest.xml
+  - acm-service-note/TEST-com.armedia.acm.services.note.web.api.ListAllNotesAPIControllerTest.xml
+  - acm-service-note/TEST-com.armedia.acm.services.note.web.api.SaveNoteAPIControllerTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.service.MicrosoftExchangeNotificationSenderTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.service.NotificationFormatterTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.service.NotificationServiceTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.service.NotificationTransformerTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.service.NotificationUtilsTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.service.SmtpNotificationSenderTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.service.TemplatingEngineTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.web.api.DeleteNotificationByIdAPIControllerTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.web.api.ListAllNotificationsAPIControllerTest.xml
+  - acm-service-notification/TEST-com.armedia.acm.services.notification.web.api.SaveNotificationAPIControllerTest.xml
+  - acm-service-object-history/TEST-com.armedia.acm.service.objecthistory.service.AcmObjectHistoryServiceImplTest.xml
+  - acm-service-object-lock/TEST-com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest.xml
+  - acm-service-object-lock/TEST-com.armedia.acm.service.objectlock.transformer.AcmObjectLockToSolrTransformerTest.xml
+  - acm-service-ocr/TEST-com.armedia.acm.services.ocr.job.OCRQueueJobTest.xml
+  - acm-service-ocr/TEST-com.armedia.acm.services.ocr.rules.OCRBusinessProcessRulesTest.xml
+  - acm-service-ocr/TEST-com.armedia.acm.services.ocr.rules.OCRRulesTest.xml
+  - acm-service-ocr/TEST-com.armedia.acm.services.ocr.service.ArkCaseOCRServiceTest.xml
+  - acm-service-ocr/TEST-com.armedia.acm.services.ocr.service.ArkCaseOcrConfigurationTest.xml
+  - acm-service-plugin-manager/TEST-com.armedia.acm.pluginmanager.model.AcmPluginUrlPrivilegeTest.xml
+  - acm-service-plugin-manager/TEST-com.armedia.acm.pluginmanager.service.AcmPluginManagerTest.xml
+  - acm-service-plugin-manager/TEST-com.armedia.acm.pluginmanager.web.AcmPluginRoleBasedAccessInterceptorTest.xml
+  - acm-service-search/TEST-com.armedia.acm.services.search.model.solr.SolrContentDocumentTest.xml
+  - acm-service-search/TEST-com.armedia.acm.services.search.service.FacetedSearchServiceTest.xml
+  - acm-service-search/TEST-com.armedia.acm.services.search.service.JpaObjectsToSearchServiceTest.xml
+  - acm-service-search/TEST-com.armedia.acm.services.search.util.AcmSolrUtilTest.xml
+  - acm-service-search/TEST-com.armedia.acm.services.search.web.api.PersonSearchByNameAndContactMethodAPIControllerTest.xml
+  - acm-service-search/TEST-com.armedia.acm.services.search.web.api.SearchChildrenAPIControllerTest.xml
+  - acm-service-search/TEST-com.armedia.acm.services.search.web.api.SearchObjectByTypeAPIControllerTest.xml
+  - acm-service-search/TEST-com.armedia.acm.services.search.web.api.SearchUsersAPIControllerTest.xml
+  - acm-service-state-of-arkcase/TEST-com.armedia.acm.service.stateofarkcase.service.StateOfArkcaseReportGeneratorTest.xml
+  - acm-service-subscription/TEST-com.armedia.acm.services.subscription.web.api.CreateSubscriptionAPIControllerTest.xml
+  - acm-service-subscription/TEST-com.armedia.acm.services.subscription.web.api.GetUserSubscriptionAPIControllerTest.xml
+  - acm-service-subscription/TEST-com.armedia.acm.services.subscription.web.api.ListSubscriptionByUserAPIControllerTest.xml
+  - acm-service-subscription/TEST-com.armedia.acm.services.subscription.web.api.RemovingSubscriptionAPIControllerTest.xml
+  - acm-service-timesheet/TEST-com.armedi.acm.services.timesheet.service.TimesheetServiceTest.xml
+  - acm-service-timesheet/TEST-com.armedi.acm.services.timesheet.web.GetTimesheetAPIControllerTest.xml
+  - acm-service-timesheet/TEST-com.armedi.acm.services.timesheet.web.GetTimesheetsAPIControllerTest.xml
+  - acm-service-timesheet/TEST-com.armedi.acm.services.timesheet.web.GetTimesheetsForObjectIdAndTypeAPIControllerTest.xml
+  - acm-service-timesheet/TEST-com.armedi.acm.services.timesheet.web.GetTimesheetsForUserAPIControllerTest.xml
+  - acm-service-timesheet/TEST-com.armedi.acm.services.timesheet.web.SaveTimesheetAPIControllerTest.xml
+  - acm-service-transcribe/TEST-com.armedia.acm.services.job.TranscribeQueueJobTest.xml
+  - acm-service-transcribe/TEST-com.armedia.acm.services.rules.TranscribeBusinessProcessRulesTest.xml
+  - acm-service-transcribe/TEST-com.armedia.acm.services.rules.TranscribeRulesTest.xml
+  - acm-service-transcribe/TEST-com.armedia.acm.services.service.ArkCaseTranscribeConfigurationTest.xml
+  - acm-service-transcribe/TEST-com.armedia.acm.services.service.ArkCaseTranscribeServiceTest.xml
+  - acm-service-transcribe/TEST-com.armedia.acm.services.utils.TranscribeUtilsTest.xml
+  - acm-service-transcribe/TEST-com.armedia.acm.services.web.api.CreateTranscribeAPIControllerTest.xml
+  - acm-service-transcribe/TEST-com.armedia.acm.services.web.api.GetTranscribeAPIControllerTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.dao.ldap.CustomPagedLdapDaoTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.model.ldap.AcmUserContextMapperTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.model.ldap.MapperUtilsTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.GroupServiceImplTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.RetryExecutorTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.group.GroupServiceTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.group.LdapGroupNameValidatorTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.ldap.AcmGroupsSyncResultTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.ldap.AcmRoleToGroupMappingTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.ldap.LdapAuthenticateManagerTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.ldap.LdapAuthenticateServiceTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.ldap.LdapGroupUtilsTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.service.ldap.PasswordValidationServiceTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.web.api.AcmUserAPIControllerTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.web.api.FindParticipantTypesForObjectTypeNameAPIControllerTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.web.api.GetUsersByGroupAPIControllerTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.web.api.UserInfoAPIControllerTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.web.api.group.AcmGroupAPIControllerTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.web.api.group.AdHocGroupMembersAPIControllerTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.web.api.group.LdapGroupAPIControllerTest.xml
+  - acm-service-users/TEST-com.armedia.acm.services.users.web.api.group.SupervisorGroupAPIControllerTest.xml
+  - acm-service-webdav/TEST-com.armedia.acm.webdav.AcmFileSystemResourceFactoryTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.service.CorrectiveActionPlanTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.service.impl.AcmApplicationTaskEventListenerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.service.impl.AcmTaskServiceImplTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.service.impl.ActivitiTaskDaoTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.service.impl.TaskRulesTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.ClaimTaskAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.CompleteTaskAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.CompleteTaskWithOutcomeAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.CreateAdHocTaskAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.CreateBusinessProcessTasksAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.DeleteProcessInstanceAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.DeleteTaskAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.FindTaskByIdAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.ListAllTasksAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.SaveTaskAPIControllerTest.xml
+  - acm-task-plugin/TEST-com.armedia.acm.plugins.task.web.api.WorkflowHistoryAPIControllerTest.xml
+  - acm-transcribe-tool/TEST-com.armedia.acm.tool.transcribe.AWSTranscribeServiceTest.xml
+  - acm-zylab-integration/TEST-com.armedia.acm.tool.zylab.service.ZylabProductionFileExtractorTest.xml
+
+suites here that the contract does not list:
+  (none)
+
+suites LOST — archived at baseline, no migrated counterpart (fatal):
+  (none)
+
+suites ADDED — archived on the migrated side only (accounted for, not fatal):
+  - acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
+  - acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
+  - ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml

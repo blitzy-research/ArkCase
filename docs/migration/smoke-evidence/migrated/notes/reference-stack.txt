@@ -1,16 +1,16 @@
 reference-stack reachability, observed statuses read back from
 notes/reference-stack.status
 
-solr-url: https://arkcase-ce.local/solr
-solr-observed: 000
-alfresco-share-url: https://arkcase-ce.local/share
-alfresco-share-observed: 000
-pentaho-url: https://arkcase-ce.local/pentaho
+solr-url: http://localhost:53983/solr
+solr-observed: 302
+alfresco-share-url: http://localhost:53091/alfresco
+alfresco-share-observed: 302
+pentaho-url: http://localhost:53099/pentaho
 pentaho-observed: 000
-virtualviewer-url: https://arkcase-ce.local/VirtualViewerJavaHTML5
+virtualviewer-url: http://localhost:53098/VirtualViewerJavaHTML5
 virtualviewer-observed: 000
-config-server-url: http://localhost:9999/actuator/health
-config-server-observed: 200
+config-server-url: (not supplied)/actuator/health
+config-server-observed: NOT-ATTEMPTED: no CONFIG_SERVER_URL was supplied
 config-server-path-choice: the probed path deliberately does NOT name a
   configuration resource.  Measured against the provisioned server, a
   /<application>/<profile> request returns 214,320 bytes carrying 30
@@ -19,18 +19,18 @@ config-server-path-choice: the probed path deliberately does NOT name a
   the server answer on the wire - with a path whose response carries no
   configuration value, because publishing a deployment secret into a
   committed evidence tree is not a trade this deliverable may make.
-message-broker-management-url: http://localhost:8161/api/jolokia/read/org.apache.activemq:type=Broker,brokerName=localhost/BrokerVersion
+message-broker-management-url: http://localhost:53161/admin/xml/queues.jsp
 message-broker-management-observed: 401
 message-broker-management-reading: this row is probed ANONYMOUSLY, so an
   authentication challenge is a POSITIVE observation: it proves the surface
   is listening and responding.  Flow 5 probes the same surface WITH a
   credential, for destination counters, and that is a different question.
-message-broker-transport-endpoint: localhost:61616
-message-broker-transport-observed: CONNECTED
-directory-service-endpoint: localhost:389
-directory-service-observed: CONNECTED
-database-endpoint: localhost:3306
-database-observed: CONNECTED
+message-broker-transport-endpoint: (not supplied)
+message-broker-transport-observed: NOT-ATTEMPTED
+directory-service-endpoint: (not supplied)
+directory-service-observed: NOT-ATTEMPTED
+database-endpoint: (not supplied)
+database-observed: NOT-ATTEMPTED
 non-http-row-reading: CONNECTED means the port accepted a connection and
   nothing more.  It does not establish protocol health or that this
   application can authenticate; the flows that use the service are where

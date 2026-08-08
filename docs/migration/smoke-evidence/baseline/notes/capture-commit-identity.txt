@@ -1,0 +1,48 @@
+===== commit identity across this capture =====
+observed-head: 6ccf67211e24483ddb0a0ebc79ce6515d4da088a
+declared-base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
+distinct-commit-shaped-tokens-found: 5
+
+WHAT IS CHECKED AND WHY.  A capture that names a commit the repository
+cannot resolve is not traceable to a tree anybody can check out, and that
+is not a formatting problem -- it means the recorded provenance cannot be
+used for the one purpose provenance has.  Every commit-shaped token in
+every text file here is put to git and the answer is recorded.
+
+Three classes of look-alike are excluded, each by a stated rule rather
+than by a hand-maintained list, because an exclusion nobody can re-derive
+is indistinguishable from a token quietly dropped:
+
+  1. Digest files, by name.  A sha256 digest is 64 hex characters and
+     contains 40-character substrings, so scanning one finds only noise.
+  2. Pure-decimal runs.  A 10-character token with no letter a-f is a
+     NUMBER, not a short hash.  The schema snapshot alone contributes
+     several: 4294967295 is the length of a longblob column, and the
+     remainder are column lengths and identifiers.  Sixteen such numbers
+     were previously reported as unresolvable commits, which buried the
+     one token that genuinely was one.
+  3. Two classes of genuine-but-foreign 40-hex token, recognised by WHERE
+     they occur rather than by what they look like, and CLASSIFIED below
+     rather than silently skipped: a working-tree blob hash, which the
+     dirty-path accounting in notes/capture-identity.txt records on
+     purpose and which is a blob rather than a commit; and a tool own
+     build revision, appearing either in env/toolchain.txt or inside
+     verbatim captured application log text -- EclipseLink prints its own
+     in a version banner reading 2.7.16.v20250613-<revision>.  All three are
+     recognised by WHERE they occur rather
+     than by what it looks like: a 40-hex token whose every occurrence in
+     this capture is inside env/toolchain.txt is the version banner of a
+     build tool, and it is a commit in THAT tool repository, not in this
+     one.  It is classified below and excluded from the verdict, never
+     silently skipped.  Maven prints its own such revision.
+
+  <token>  <resolves-to>
+
+  6ccf67211e  commit 6ccf67211e24483ddb0a0ebc79ce6515d4da088a
+  6ccf67211e24483ddb0a0ebc79ce6515d4da088a  commit 6ccf67211e24483ddb0a0ebc79ce6515d4da088a
+  b89d5959fcde851dcb1c8946a785a163f14e1e29  FOREIGN-VCS-REVISION: a build tool own commit, named only in env/toolchain.txt; not a commit of this repository and not this capture provenance
+  c8f6226105  commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+  c8f6226105c28c2743281d26bf21ad73f7bb7f26  commit c8f6226105c28c2743281d26bf21ad73f7bb7f26
+
+VERDICT: every commit-shaped token in this capture resolves to an
+object this repository holds.

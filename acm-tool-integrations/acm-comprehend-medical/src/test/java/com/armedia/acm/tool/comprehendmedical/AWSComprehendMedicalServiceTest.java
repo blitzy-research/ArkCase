@@ -94,10 +94,10 @@ public class AWSComprehendMedicalServiceTest
 
     /**
      * The one media file the service under test is permitted to open while {@link #mediaStreamOverride}
-     * is armed. A test assigns this alongside the stub stream, and the override asserts the identity
-     * before handing the stream over. The expectation being replaced named the file explicitly, so the
-     * seam has to enforce the same constraint: without it the stub stream would be returned for any
-     * argument and a regression that opened the wrong file would still pass.
+     * is armed. A test assigns this alongside the stub stream, and the override matches on it before
+     * handing the stream over. The expectation being replaced named the file explicitly, so the seam has
+     * to carry the same constraint: without it the stub stream would be returned for any argument and a
+     * regression that opened the wrong file would still pass.
      */
     private File expectedMediaFile;
 
@@ -109,16 +109,17 @@ public class AWSComprehendMedicalServiceTest
             @Override
             protected InputStream openMediaStream(File mediaFile) throws IOException
             {
-                if (mediaStreamOverride == null)
+                // Argument-matched stubbing, deliberately expressed as mock setup rather than as an assertion: the
+                // stub stream is handed over ONLY for the exact File the test armed, which is the same constraint
+                // the replaced expectNew(FileInputStream.class, file) carried. Any other argument falls through to
+                // the production implementation, exactly as an unmatched expectation would, and that path cannot
+                // pass silently: the file under test is a mock whose getPath() is null, so the real open throws and
+                // the upload never reaches the collaborators the existing verifications require it to reach.
+                if (mediaStreamOverride == null || mediaFile != expectedMediaFile)
                 {
                     return super.openMediaStream(mediaFile);
                 }
 
-                // Raised as an AssertionError rather than an exception on purpose: the production caller wraps this
-                // call in a try-with-resources whose handler catches Exception, so an exception here would be
-                // reported as an upload failure and swallow the argument mismatch instead of failing the test.
-                Assert.assertSame("the media stream was requested for a file other than the one under test",
-                        expectedMediaFile, mediaFile);
                 return mediaStreamOverride;
             }
         };

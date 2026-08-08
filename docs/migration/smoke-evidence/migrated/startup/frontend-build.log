@@ -3,48 +3,318 @@ region-describes: the startup frontend build, the only place the runtime package
 region-mandatory: yes
 region-pattern: AngularResourceCopier|About to run \[|Front-end |\bgrunt\b|npm ci|npm run|npm install|package-lock\.json|Copying file to:
 region-pattern-flags: grep -E -i, applied to the extracted window only
-window-source: /tmp/p9-runtime-w004/tomcat/logs/catalina.out
-window-source-sha256: 6ca537628d2fe6aaa3a71a6ed7522063af32ef62242fe8b651198ae81abb340e
+window-source: <REPO-ROOT>/.blitzy-scratch/rt/mig/tomcat/logs/catalina.out
+window-source-sha256: a1aa8e7adf21e001c3799930cc329c902726b3af646cabad4cc4f3ff2a9687f2
 window-boots-present-in-source: 1
-window-sha256: 065aa7803725fceb4a3f247710d1031618daa667b5492324cf982448aada17cb
+window-sha256: 595de21779d66fe116127ff88d4b465de96a3fb27f9a15ef3d18b71cce003100
 window-start-line: 2
-window-end-line: 4934
+window-end-line: 2803
 window-start-byte-offset: 374
-window-end-byte-offset: 759974
-window-lines: 4933
-matched-lines: 31
-line-cap: 2000
+window-end-byte-offset: 621377
+window-lines: 2802
+matched-lines: 301
+line-cap: 8000
 capture-truncated: no
 ----- region -----
-[32m<TIMESTAMP>,471 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - lib folder path: /tmp/p9-runtime-w004/home/.arkcase/tmp/lib
-[m[32m<TIMESTAMP>,879 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Copying file to: /tmp/p9-runtime-w004/home/.arkcase/tmp/.csslintrc
-[m[32m<TIMESTAMP>,879 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Copying file to: /tmp/p9-runtime-w004/home/.arkcase/tmp/.jshintrc
-[m[32m<TIMESTAMP>,880 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Copying file to: /tmp/p9-runtime-w004/home/.arkcase/tmp/application.js
-[m[32m<TIMESTAMP>,880 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Copying file to: /tmp/p9-runtime-w004/home/.arkcase/tmp/config.js
-[m[32m<TIMESTAMP>,880 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Copying file to: /tmp/p9-runtime-w004/home/.arkcase/tmp/Gruntfile.js
-[m[32m<TIMESTAMP>,881 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Copying file to: /tmp/p9-runtime-w004/home/.arkcase/tmp/package.json
-[m[32m<TIMESTAMP>,881 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Copying file to: /tmp/p9-runtime-w004/home/.arkcase/tmp/package-lock.json
-[32m<TIMESTAMP>,227 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 25829 files in tmp folder
-[m[32m<TIMESTAMP>,233 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 33 files to be removed from tmp folder
-[m[32m<TIMESTAMP>,234 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Resolved front-end launcher [node] to [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/bin/node]. Configure it explicitly on the angularResourceCopier bean to take the process path out of the trust boundary.
-[m[32m<TIMESTAMP>,249 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Front-end node launcher [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/bin/node] reports v20.20.2, which satisfies the required major version 20.
-[m[32m<TIMESTAMP>,249 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Resolved front-end launcher [npm] to [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/lib/node_modules/npm/bin/npm-cli.js]. Configure it explicitly on the angularResourceCopier bean to take the process path out of the trust boundary.
-[m[32m<TIMESTAMP>,249 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Front-end tools will run with [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/bin] first on their path, so a launcher started through its interpreter line resolves 'node' to the runtime this class verified rather than to whatever the server process inherited.
-[m[32m<TIMESTAMP>,343 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Front-end npm launcher [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/lib/node_modules/npm/bin/npm-cli.js] reports 10.8.2, which satisfies the required major version 10.
-[m[32m<TIMESTAMP>,344 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - About to run [npm ci --ignore-scripts]
-[m[32m<TIMESTAMP>,344 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Resolved front-end launcher [npm] to [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/lib/node_modules/npm/bin/npm-cli.js]. Configure it explicitly on the angularResourceCopier bean to take the process path out of the trust boundary.
-[m[32m<TIMESTAMP>,345 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Front-end tools will run with an allowlisted environment: 3 name(s) carried over from this server's environment (PATH, LC_CTYPE, HOME), 86 withheld. The container's own environment is not passed through, so no credential it holds is visible to the package manager or to any lifecycle script it may run.
-[m[32m<TIMESTAMP>,345 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Resolved front-end launcher [node] to [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/bin/node]. Configure it explicitly on the angularResourceCopier bean to take the process path out of the trust boundary.
-[m[32m<TIMESTAMP>,345 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Front-end tools will run with [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/bin] first on their path, so a launcher started through its interpreter line resolves 'node' to the runtime this class verified rather than to whatever the server process inherited.
-[32m<TIMESTAMP>,556 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - done with [npm ci --ignore-scripts]: exit code 0
-[m[32m<TIMESTAMP>,560 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - About to run [node_modules/.bin/grunt updateModulesConfig --no-color]
-[m[32m<TIMESTAMP>,560 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Front-end tools will run with an allowlisted environment: 3 name(s) carried over from this server's environment (PATH, LC_CTYPE, HOME), 86 withheld. The container's own environment is not passed through, so no credential it holds is visible to the package manager or to any lifecycle script it may run.
-[m[32m<TIMESTAMP>,560 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Resolved front-end launcher [node] to [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/bin/node]. Configure it explicitly on the angularResourceCopier bean to take the process path out of the trust boundary.
-[m[32m<TIMESTAMP>,560 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Front-end tools will run with [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/bin] first on their path, so a launcher started through its interpreter line resolves 'node' to the runtime this class verified rather than to whatever the server process inherited.
-[m[32m<TIMESTAMP>,965 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - done with [node_modules/.bin/grunt updateModulesConfig --no-color]: exit code 0
-[m[32m<TIMESTAMP>,965 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - About to run [node_modules/.bin/grunt --no-color]
-[m[32m<TIMESTAMP>,966 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Front-end tools will run with an allowlisted environment: 3 name(s) carried over from this server's environment (PATH, LC_CTYPE, HOME), 86 withheld. The container's own environment is not passed through, so no credential it holds is visible to the package manager or to any lifecycle script it may run.
-[m[32m<TIMESTAMP>,966 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Resolved front-end launcher [node] to [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/bin/node]. Configure it explicitly on the angularResourceCopier bean to take the process path out of the trust boundary.
-[m[32m<TIMESTAMP>,966 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Front-end tools will run with [/usr/local/lib/nodejs/node-v20.20.2-linux-x64/bin] first on their path, so a launcher started through its interpreter line resolves 'node' to the runtime this class verified rather than to whatever the server process inherited.
-[m[32m<TIMESTAMP>,835 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - done with [node_modules/.bin/grunt --no-color]: exit code 0
+[m[36m<TIMESTAMP>,358 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - modulesRoot: [ServletContext resource [/resources]]
+[m[32m<TIMESTAMP>,358 [INFO ] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - lib folder path: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/lib
+[m[36m<TIMESTAMP>,455 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/audit/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,455 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/cases/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,498 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/admin/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,500 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/tags/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,502 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/reports/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,503 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/notifications/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,505 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/time-tracking/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,512 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/preference/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,512 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/welcome/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,522 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/people/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,524 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/subscriptions/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,524 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/common/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,532 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/organizations/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,542 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/search/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,544 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/cost-tracking/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,549 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/consultations/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,558 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/adhoc-reports/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,569 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/tasks/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,573 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/profile/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,575 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/goodbye/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,578 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/frevvo/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,579 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/progress-bar/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,585 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/complaints/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,590 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/my-documents/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,592 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/analytics-audit/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,598 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/document-details/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,617 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/dashboard/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,620 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/document-repository/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,625 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/core/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,628 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules/analytics/module_config/config.json] has been modified - copying it
+[m[36m<TIMESTAMP>,669 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - About to run [npm ci]
+[m[36m<TIMESTAMP>,177 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn EBADENGINE Unsupported engine {
+[m[36m<TIMESTAMP>,177 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn EBADENGINE   package: 'karma@0.13.22',
+[m[36m<TIMESTAMP>,177 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn EBADENGINE   required: { node: '0.10 || 0.12 || 4 || 5' },
+[m[36m<TIMESTAMP>,177 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+[m[36m<TIMESTAMP>,177 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn EBADENGINE }
+[m[36m<TIMESTAMP>,315 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/makeusabrew/bootbox.git
+[m[36m<TIMESTAMP>,318 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/zeroclipboard/zeroclipboard.git
+[m[36m<TIMESTAMP>,318 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/2fdevs/bower-videogular-themes-default.git
+[m[36m<TIMESTAMP>,318 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/2fdevs/bower-videogular-poster.git
+[m[36m<TIMESTAMP>,319 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/2fdevs/bower-videogular-overlay-play.git
+[m[36m<TIMESTAMP>,319 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/2fdevs/bower-videogular-controls.git
+[m[36m<TIMESTAMP>,319 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/2fdevs/bower-videogular-buffering.git
+[m[36m<TIMESTAMP>,319 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/2fdevs/bower-videogular.git
+[m[36m<TIMESTAMP>,319 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/mar10/jquery-ui-contextmenu.git
+[m[36m<TIMESTAMP>,320 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/summernote/summernote.git
+[m[36m<TIMESTAMP>,320 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/jmesnil/stomp-websocket.git
+[m[36m<TIMESTAMP>,320 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/RubaXa/Sortable.git
+[m[36m<TIMESTAMP>,320 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/sockjs/sockjs-client.git
+[m[36m<TIMESTAMP>,320 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/rochal/jQuery-slimScroll.git
+[m[36m<TIMESTAMP>,320 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/jkbr/rrule.git
+[m[36m<TIMESTAMP>,320 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/dbushell/Pikaday.git
+[m[36m<TIMESTAMP>,321 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/legalthings/pdf.js-viewer.git
+[m[36m<TIMESTAMP>,321 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/handsontable/ngHandsontable.git
+[m[36m<TIMESTAMP>,321 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/eriktufvesson/ngBootbox.git
+[m[36m<TIMESTAMP>,321 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/moment/moment.git
+[m[36m<TIMESTAMP>,322 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/jeff-collins/ment.io.git
+[m[36m<TIMESTAMP>,322 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/lodash/lodash.git
+[m[36m<TIMESTAMP>,322 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/components/jqueryui.git
+[m[36m<TIMESTAMP>,322 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/aFarkas/html5shiv.git
+[m[36m<TIMESTAMP>,322 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/handsontable/handsontable.git
+[m[36m<TIMESTAMP>,322 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/fullcalendar/fullcalendar.git
+[m[36m<TIMESTAMP>,323 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/mar10/fancytree.git
+[m[36m<TIMESTAMP>,323 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/brix/crypto-js.git
+[m[36m<TIMESTAMP>,323 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/vitalets/combodate.git
+[m[36m<TIMESTAMP>,323 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/nnnick/Chart.js.git
+[m[36m<TIMESTAMP>,323 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/twbs/bootstrap.git
+[m[36m<TIMESTAMP>,323 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/stranger82/angular-utf8-base64.git
+[m[36m<TIMESTAMP>,323 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/ui-validate.git
+[m[36m<TIMESTAMP>,324 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/ui-uploader.git
+[m[36m<TIMESTAMP>,324 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/ui-scrollpoint.git
+[m[36m<TIMESTAMP>,324 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/ui-scroll.git
+[m[36m<TIMESTAMP>,324 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/ui-mask.git
+[m[36m<TIMESTAMP>,324 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/ui-indeterminate.git
+[m[36m<TIMESTAMP>,324 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/bower-ui-grid.git
+[m[36m<TIMESTAMP>,324 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/ui-event.git
+[m[36m<TIMESTAMP>,325 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/ui-calendar.git
+[m[36m<TIMESTAMP>,325 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular/bower-angular-touch.git
+[m[36m<TIMESTAMP>,325 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/summernote/angular-summernote.git
+[m[36m<TIMESTAMP>,325 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular/bower-angular-sanitize.git
+[m[36m<TIMESTAMP>,325 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular/bower-angular-resource.git
+[m[36m<TIMESTAMP>,325 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/legalthings/angular-pdfjs-viewer.git
+[m[36m<TIMESTAMP>,325 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/cgross/angular-notify.git
+[m[36m<TIMESTAMP>,326 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/chieffancypants/angular-hotkeys.git
+[m[36m<TIMESTAMP>,326 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/revolunet/angular-google-analytics.git
+[m[36m<TIMESTAMP>,326 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/alferov/angular-file-saver.git
+[m[36m<TIMESTAMP>,326 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/lgalfaso/angular-dynamic-locale.git
+[m[36m<TIMESTAMP>,326 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/Armedia/arkcase-dashboard.git
+[m[36m<TIMESTAMP>,326 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular/bower-angular-cookies.git
+[m[36m<TIMESTAMP>,326 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/jtblin/angular-chart.js.git
+[m[36m<TIMESTAMP>,327 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular-ui/bootstrap-bower.git
+[m[36m<TIMESTAMP>,327 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular/bower-angular-animate.git
+[m[36m<TIMESTAMP>,327 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/angular/bower-angular.git
+[m[36m<TIMESTAMP>,327 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn skipping integrity check for git dependency ssh://git@github.com/ajaxorg/ace-builds.git
+[m[36m<TIMESTAMP>,633 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated set-value@0.2.0: Critical bug fixed in v3.0.1, please upgrade to the latest version.
+[m[36m<TIMESTAMP>,666 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated source-map-url@0.4.1: See https://github.com/lydell/source-map-url#deprecated
+[m[36m<TIMESTAMP>,710 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated urix@0.1.0: Please see https://github.com/lydell/urix#deprecated
+[m[36m<TIMESTAMP>,750 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated resolve-url@0.2.1: https://github.com/lydell/resolve-url#deprecated
+[m[36m<TIMESTAMP>,773 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated json3@3.3.2: Please use the native JSON object instead of JSON 3
+[m[36m<TIMESTAMP>,773 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+[m[36m<TIMESTAMP>,775 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated source-map-resolve@0.5.3: See https://github.com/lydell/source-map-resolve#deprecated
+[m[36m<TIMESTAMP>,828 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated log4js@0.6.38: 0.x is no longer supported. Please upgrade to 6.x or higher.
+[m[36m<TIMESTAMP>,467 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated bootstrap@3.4.1: This version of Bootstrap is no longer supported. Please upgrade to the latest version.
+[m[36m<TIMESTAMP>,372 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - npm warn deprecated core-js@2.6.12: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
+[m[36m<TIMESTAMP>,604 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,604 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - added 797 packages, and audited 798 packages in 33s
+[m[36m<TIMESTAMP>,604 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,604 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 18 packages are looking for funding
+[m[36m<TIMESTAMP>,604 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier -   run `npm fund` for details
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 101 vulnerabilities (4 low, 31 moderate, 36 high, 30 critical)
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - To address issues that do not require attention, run:
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier -   npm audit fix
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - To address all issues possible (including breaking changes), run:
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier -   npm audit fix --force
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Some issues need review, and may require choosing
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - a different dependency.
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,661 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Run `npm audit` for details.
+[m[36m<TIMESTAMP>,710 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - done with [npm ci]: exit code 0
+[m[36m<TIMESTAMP>,712 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Copy resources for specific profile [custom]
+[m[36m<TIMESTAMP>,712 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Not copying resources under [/resources/custom_assets], since no such resources exist.
+[m[36m<TIMESTAMP>,712 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Not copying resources under [/resources/custom_config], since no such resources exist.
+[m[36m<TIMESTAMP>,712 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Not copying resources under [/resources/custom_directives], since no such resources exist.
+[m[36m<TIMESTAMP>,713 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Not copying resources under [/resources/custom_modules], since no such resources exist.
+[m[36m<TIMESTAMP>,713 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Not copying resources under [/resources/custom_services], since no such resources exist.
+[m[36m<TIMESTAMP>,713 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Not copying resources under [/resources/custom_filters], since no such resources exist.
+[m[36m<TIMESTAMP>,713 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Not copying resources under [/resources/custom_lib], since no such resources exist.
+[m[36m<TIMESTAMP>,713 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - About to run [node_modules/.bin/grunt updateModulesConfig --no-color]
+[m[36m<TIMESTAMP>,896 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Custom config does not exist..continuing..
+[m[36m<TIMESTAMP>,896 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - External custom config does not exist..continuing..
+[m[36m<TIMESTAMP>,404 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "updateModulesConfig" task
+[m[36m<TIMESTAMP>,429 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,429 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Done, without errors.
+[m[36m<TIMESTAMP>,440 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - done with [node_modules/.bin/grunt updateModulesConfig --no-color]: exit code 0
+[m[36m<TIMESTAMP>,807 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 30214 files in tmp folder
+[m[36m<TIMESTAMP>,808 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/home.html
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.js
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.css
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.js.56da89159ec1b11a.map
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/vendors.min.js
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.1ae47d39c0d9d836.css
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.js.map
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.2fa1cd12f2c4077f.js
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.ef1612bbd7993382.js
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.js
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/vendors.min.59439035604af96f.js
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/notifications/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/cases/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/consultations/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/people/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/organizations/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/reports/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/document-repository/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/audit/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/analytics-audit/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/my-documents/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/tags/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/preference/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/goodbye/config.json
+[m[36m<TIMESTAMP>,814 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/cost-tracking/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/progress-bar/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/time-tracking/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/document-details/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/admin/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/search/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/complaints/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/core/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/frevvo/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/adhoc-reports/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/common/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/dashboard/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/welcome/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/tasks/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/subscriptions/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/analytics/config.json
+[m[36m<TIMESTAMP>,815 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - File to be removed: <REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/profile/config.json
+[m[36m<TIMESTAMP>,816 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 42 files to be removed from tmp folder
+[m[36m<TIMESTAMP>,817 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/home.html]
+[m[36m<TIMESTAMP>,817 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.js]
+[m[36m<TIMESTAMP>,818 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.css]
+[m[36m<TIMESTAMP>,818 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.js.56da89159ec1b11a.map]
+[m[36m<TIMESTAMP>,818 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/vendors.min.js]
+[m[36m<TIMESTAMP>,819 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.1ae47d39c0d9d836.css]
+[m[36m<TIMESTAMP>,819 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.js.map]
+[m[36m<TIMESTAMP>,819 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.2fa1cd12f2c4077f.js]
+[m[36m<TIMESTAMP>,819 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.ef1612bbd7993382.js]
+[m[36m<TIMESTAMP>,820 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/application.min.js]
+[m[36m<TIMESTAMP>,820 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/assets/dist/vendors.min.59439035604af96f.js]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/notifications/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/cases/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/consultations/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/people/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/organizations/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/reports/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/document-repository/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/audit/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/analytics-audit/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/my-documents/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/tags/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/preference/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/goodbye/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/cost-tracking/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/progress-bar/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/time-tracking/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/document-details/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/admin/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/search/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/complaints/config.json]
+[m[36m<TIMESTAMP>,821 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/core/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/frevvo/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/adhoc-reports/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/common/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/dashboard/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/welcome/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/tasks/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/subscriptions/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/analytics/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Removing tmp file [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/tmp/modules_config/config/modules/profile/config.json]
+[m[36m<TIMESTAMP>,822 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - About to run [node_modules/.bin/grunt --no-color]
+[m[36m<TIMESTAMP>,968 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Custom config does not exist..continuing..
+[m[36m<TIMESTAMP>,969 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - External custom config does not exist..continuing..
+[m[36m<TIMESTAMP>,456 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "loadConfig" task
+[m[36m<TIMESTAMP>,560 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,560 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "clean:0" (clean) task
+[m[36m<TIMESTAMP>,565 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - >> 1 path cleaned.
+[m[36m<TIMESTAMP>,567 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,567 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "ngAnnotate:production" (ngAnnotate) task
+[m[36m<TIMESTAMP>,557 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - >> 1 file successfully generated.
+[m[36m<TIMESTAMP>,557 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,557 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "uglify:production" (uglify) task
+[m[36m<TIMESTAMP>,267 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - >> 1 sourcemap created.
+[m[36m<TIMESTAMP>,267 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - >> 1 file created.
+[m[36m<TIMESTAMP>,268 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,268 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "concat:dist" (concat) task
+[m[36m<TIMESTAMP>,294 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,294 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "cssmin:combine" (cssmin) task
+[m[36m<TIMESTAMP>,860 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - >> 1 file created. 504.48 kB → 389.31 kB
+[m[36m<TIMESTAMP>,861 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,861 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "renderHome" task
+[m[36m<TIMESTAMP>,965 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,965 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "cacheBust:taskName" (cacheBust) task
+[m[36m<TIMESTAMP>,010 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - >> 1 file busted.
+[m[36m<TIMESTAMP>,010 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,010 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Running "copyToModulesConfigFolder" task
+[m[36m<TIMESTAMP>,017 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: adhoc-reports
+[m[36m<TIMESTAMP>,017 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: admin
+[m[36m<TIMESTAMP>,018 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: analytics-audit
+[m[36m<TIMESTAMP>,018 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: analytics
+[m[36m<TIMESTAMP>,018 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: audit
+[m[36m<TIMESTAMP>,018 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: cases
+[m[36m<TIMESTAMP>,018 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: common
+[m[36m<TIMESTAMP>,019 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: complaints
+[m[36m<TIMESTAMP>,019 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: consultations
+[m[36m<TIMESTAMP>,019 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: core
+[m[36m<TIMESTAMP>,020 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: cost-tracking
+[m[36m<TIMESTAMP>,020 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: dashboard
+[m[36m<TIMESTAMP>,020 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: document-details
+[m[36m<TIMESTAMP>,020 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: document-repository
+[m[36m<TIMESTAMP>,020 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: frevvo
+[m[36m<TIMESTAMP>,021 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: goodbye
+[m[36m<TIMESTAMP>,021 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: my-documents
+[m[36m<TIMESTAMP>,021 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: notifications
+[m[36m<TIMESTAMP>,021 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: organizations
+[m[36m<TIMESTAMP>,021 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: people
+[m[36m<TIMESTAMP>,022 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: preference
+[m[36m<TIMESTAMP>,022 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: profile
+[m[36m<TIMESTAMP>,022 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: progress-bar
+[m[36m<TIMESTAMP>,022 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: reports
+[m[36m<TIMESTAMP>,022 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: search
+[m[36m<TIMESTAMP>,022 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: subscriptions
+[m[36m<TIMESTAMP>,022 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: tags
+[m[36m<TIMESTAMP>,023 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: tasks
+[m[36m<TIMESTAMP>,023 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: time-tracking
+[m[36m<TIMESTAMP>,023 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Added new module: welcome
+[m[36m<TIMESTAMP>,023 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - 
+[m[36m<TIMESTAMP>,023 [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Done, without errors.
+[m[36m<TIMESTAMP>,048 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - done with [node_modules/.bin/grunt --no-color]: exit code 0
+[m[36m<TIMESTAMP>,205 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 53 files in target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/assets]
+[m[36m<TIMESTAMP>,206 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 0 files to be removed from target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/assets]
+[m[36m<TIMESTAMP>,213 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 96 files in target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/directives]
+[m[36m<TIMESTAMP>,214 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 0 files to be removed from target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/directives]
+[m[36m<TIMESTAMP>,805 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 28554 files in target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/node_modules]
+[m[36m<TIMESTAMP>,541 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 0 files to be removed from target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/node_modules]
+[m[36m<TIMESTAMP>,650 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 1206 files in target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/modules]
+[m[36m<TIMESTAMP>,651 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 0 files to be removed from target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/modules]
+[m[36m<TIMESTAMP>,698 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 34 files in target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/modules_config]
+[m[36m<TIMESTAMP>,698 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 0 files to be removed from target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/modules_config]
+[m[36m<TIMESTAMP>,703 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 63 files in target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/services]
+[m[36m<TIMESTAMP>,703 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 0 files to be removed from target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/services]
+[m[36m<TIMESTAMP>,704 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 11 files in target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/filters]
+[m[36m<TIMESTAMP>,704 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 0 files to be removed from target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/filters]
+[m[36m<TIMESTAMP>,714 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 130 files in target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/lib]
+[m[36m<TIMESTAMP>,714 [DEBUG] [main] com.armedia.acm.userinterface.angular.AngularResourceCopier - Found 0 files to be removed from target folder [<REPO-ROOT>/.blitzy-scratch/rt/mig/home/.arkcase/custom/lib]
 ----- end region -----

@@ -1,0 +1,38 @@
+corpus figures, measured at run time by this script
+repository-root-examined: <REPO-ROOT>
+directories-pruned-from-every-count: target node_modules .git blitzy_adhoc_test_*
+why-pruned: a file under any of those is not part of this
+  repository source.  target/ holds a build-made COPY of a source
+  file and doubles every resource count; node_modules holds
+  installed dependencies whose tests are not this project s; .git
+  holds object storage; and a blitzy_adhoc_test_* tree is scratch
+  created by a validation run and can contain a whole second
+  checkout.  Measured WITHOUT this pruning on a built tree with a
+  scratch checkout present, these same five figures read 156, 0, 81,
+  144 and 54 -- every one of them a multiple or a dependency
+  artefact rather than a corpus size.
+
+command: find <repo> <prune above> -name 'drools-*.xlsx' -type f | wc -l
+measured-drools-xlsx-decision-tables: 39
+verified-figure-at-base-commit: 39
+migration-plan-figure: 43
+delta-explanation: the plan counted three .xls files and one spreadsheet
+  test fixture alongside the 39 live .xlsx decision tables.  This script
+  publishes what it measures and states the plan figure beside it so the
+  difference is visible rather than silently contradicted.
+command: find <repo> <prune above> -name 'drools-*.xls' -type f | wc -l
+measured-drools-xls-files: 0
+
+command: find <repo> <prune above> -name '*.drl' -type f | wc -l
+measured-textual-rule-files: 0
+expected: 0 — the rule surface is entirely in the decision tables
+
+command: find <repo> <prune above> -name '*.bpmn*' -type f | wc -l
+measured-process-definitions: 36
+expected: 36 — flow 7 expects the engine to load all of them
+
+command: find <frontend-resources> <prune above> -name '*.spec.js' -type f | wc -l
+measured-frontend-spec-files: 0
+expected: 0 — with no frontend specs, the five artifact digests are the
+  only available behavioural evidence for the frontend, which is why they
+  are captured under artifacts/

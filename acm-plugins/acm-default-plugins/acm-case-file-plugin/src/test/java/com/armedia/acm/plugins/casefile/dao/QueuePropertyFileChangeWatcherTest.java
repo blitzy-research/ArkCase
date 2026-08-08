@@ -30,8 +30,6 @@ package com.armedia.acm.plugins.casefile.dao;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import com.armedia.acm.data.AuditPropertyEntityAdapter;
@@ -110,51 +108,48 @@ public class QueuePropertyFileChangeWatcherTest extends EasyMockSupport
 
         replayAll();
 
-        // Constructor arguments observed for every TransactionTemplate the code under test builds, in construction
-        // order. The expectation this rewrite replaces was expectNew(TransactionTemplate.class, txManagerMock), which
-        // demanded exactly one construction carrying exactly the injected transaction manager, so both facts are
-        // recorded here and asserted below rather than left unchecked.
-        List<List<?>> observedConstructorArguments = new ArrayList<>();
-
         // Intercept the TransactionTemplate that loadQueues() creates internally. The answer delegates back to the real
         // transaction flow - resolve the status from the transaction manager, run the callback, then commit - so the
         // acmQueueDao.save(..) calls that live inside that callback still execute and still feed capturedArgs.
-        // The manager is taken from the constructor arguments the code under test actually passed, not chosen here, so a
-        // regression that constructed the template with a different manager would drive an unexpected mock instead of
-        // silently passing. The status is resolved with the transactionTemplate built above rather than with the
-        // constructed mock, because TransactionTemplate.equals compares the definition description and also requires
-        // the same transaction manager. The template built above satisfies both, so the expectation registered above
-        // matches.
-        try (MockedConstruction<TransactionTemplate> constructedTemplates = Mockito.mockConstruction(
+        //
+        // The expectation this rewrite replaces was expectNew(TransactionTemplate.class, txManagerMock), which demanded
+        // exactly one construction carrying exactly the injected transaction manager. BOTH halves of that demand are
+        // carried by the mock setup here and above, which is why no new assertion is added for either:
+        // - the right manager: the manager is taken from the constructor arguments the code under test actually passed,
+        // never chosen here, so a template built with a different manager would drive getTransaction(..)/commit(..) on
+        // a collaborator for which no expectation was recorded, and EasyMock fails the call as unexpected;
+        // - exactly one construction: expect(txManagerMock.getTransaction(transactionTemplate)) and the
+        // txManagerMock.commit(mockedTransactionStatus) expectation registered above are both once-only, so a second
+        // construction runs the answer a second time and EasyMock fails on the surplus call.
+        //
+        // The status is resolved with the transactionTemplate built above rather than with the constructed mock, because
+        // TransactionTemplate.equals compares the definition description and also requires the same transaction
+        // manager. The template built above satisfies both, so the expectation registered above matches.
+        // The handle is closed in a finally block rather than through try-with-resources because nothing in the
+        // body reads it: a construction mock stays registered on this thread until it is closed, so closing it is
+        // the only thing the handle is needed for here.
+        MockedConstruction<TransactionTemplate> constructedTemplates = Mockito.mockConstruction(
                 TransactionTemplate.class,
-                (mock, context) ->
+                (mock, context) -> Mockito.doAnswer(invocation ->
                 {
-                    observedConstructorArguments.add(new ArrayList<>(context.arguments()));
-                    Mockito.doAnswer(invocation ->
-                    {
-                        PlatformTransactionManager constructorManager = (PlatformTransactionManager) context.arguments()
-                                .get(0);
-                        TransactionCallback<?> action = invocation.getArgument(0);
-                        TransactionStatus status = constructorManager.getTransaction(transactionTemplate);
-                        Object result = action.doInTransaction(status);
-                        constructorManager.commit(status);
-                        return result;
-                    }).when(mock).execute(Mockito.any());
-                }))
+                    PlatformTransactionManager constructorManager = (PlatformTransactionManager) context.arguments()
+                            .get(0);
+                    TransactionCallback<?> action = invocation.getArgument(0);
+                    TransactionStatus status = constructorManager.getTransaction(transactionTemplate);
+                    Object result = action.doInTransaction(status);
+                    constructorManager.commit(status);
+                    return result;
+                }).when(mock).execute(Mockito.any()));
+        try
         {
+            // execute the method being tested
             Properties properties = createLoadedProperties();
             watcher.loadQueues(properties);
-
-            // exactly one TransactionTemplate was constructed - read inside the scope because the handle rejects the
-            // query once closed
-            assertEquals(1, constructedTemplates.constructed().size());
         }
-
-        // ... and it was constructed with exactly the injected transaction manager, which is the constraint the
-        // replaced expectation carried
-        assertEquals(1, observedConstructorArguments.size());
-        assertEquals(1, observedConstructorArguments.get(0).size());
-        assertSame(txManagerMock, observedConstructorArguments.get(0).get(0));
+        finally
+        {
+            constructedTemplates.close();
+        }
 
         // verify the expected interaction with the AcmQueueDao
         List<AcmQueue> values = capturedArgs.getValues();

@@ -1,0 +1,105 @@
+what was compared
+=================
+compared at: 2026-08-07T22:14:31Z UTC
+  baseline script 938ba106e8dc0b1948bd9d5817110b097ecfc4d585eb5eaf2febe09c586fab8c
+                  .blitzy-scratch/fe/A-base-node8/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist/application.min.js
+  migrated script c1a4cb56e4b644c4d6e356698a222f9de2b57dc0114eec86d93323e0a9b41dc2
+                  .blitzy-scratch/fe/C-migrated-node20/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist/application.min.js
+  baseline style  17703f8babbccbcb61f9ab8c21817d09757116c307d557f899c850f3552a2751
+                  .blitzy-scratch/fe/A-base-node8/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist/application.min.css
+  migrated style  04228704205f51db7eac073b0001c87e54473f372865a031b910b989c8891ea1
+                  .blitzy-scratch/fe/C-migrated-node20/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist/application.min.css
+Each digest above is the digest of the file this run actually read, so it can be
+checked against the digest record archived for that artifact.
+===== script bundle =====
+pre-migration bytes: 2011927
+post-migration bytes: 2011925
+byte-identical: no
+lines: 64; differing lines: 1 at index [41]
+  line 41: character classes containing a forward slash — 10 pre-migration, 10 post-migration
+    class 3 differs
+      pre-migration : [-a-zA-Z0-9()@:%_\+.~#?&\/\/=]
+      post-migration: [-a-zA-Z0-9()@:%_\+.~#?&//=]
+      difference is ONLY redundant forward-slash escaping: yes
+      accept/reject equivalence: PROVED over 8211 inputs, 0 disagreements
+after normalising redundant forward-slash escapes inside character classes:
+  escapes normalised, pre-migration: 5
+  escapes normalised, post-migration: 3
+  the two files then compare: EQUAL
+VERDICT: the two script bundles differ in bytes and are EQUIVALENT in behaviour.
+  The whole of the difference is redundant escaping of a forward slash inside a
+  character class, every affected pattern was proved to accept and reject
+  identically, and after normalising that one escape the files are byte-equal —
+  which is what rules out a second difference hiding beside the first.
+
+===== style bundle =====
+pre-migration bytes: 388637
+post-migration bytes: 389426
+byte-identical: no
+rule blocks: 4226 pre-migration, 4237 post-migration
+at-rule statements without a block: 22 / 22
+distinct context+selector keys: 5648 / 5648
+declarations after expanding every selector group: 13457 / 13457
+declarations the reader could not split into property and value: 0 / 0
+selectors present only pre-migration: 0
+selectors present only post-migration: 0
+selectors whose ordered declaration list differs: 161
+  of those, differing in the SET of declarations: 0
+  of those, same set reordered with every interacting pair still in order: 161
+  of those, same set reordered with an interacting pair out of order: 0
+Two declarations interact when the sets of leaf longhand properties they write
+intersect. A property that is not a shorthand writes only itself. Property
+names this run had to classify as non-shorthands, for the reader to check:
+  100 name(s)
+    -khtml-user-select  -moz-background-clip  -moz-background-inline-policy  -moz-background-origin  -moz-border-radius-bottomleft  -moz-border-radius-bottomright
+    -moz-border-radius-topleft  -moz-border-radius-topright  -moz-box-sizing  -moz-osx-font-smoothing  -moz-user-select  -ms-text-overflow
+    -ms-text-size-adjust  -ms-touch-action  -ms-user-select  -o-text-overflow  -webkit-appearance  -webkit-background-clip
+    -webkit-border-bottom-left-radius  -webkit-border-bottom-right-radius  -webkit-border-top-left-radius  -webkit-border-top-right-radius  -webkit-box-sizing  -webkit-font-smoothing
+    -webkit-overflow-scrolling  -webkit-tap-highlight-color  -webkit-text-size-adjust  -webkit-touch-callout  -webkit-user-select  background-attachment
+    background-clip  background-color  background-image  background-position  background-repeat  border-collapse
+    border-left-color  border-left-width  border-right-color  border-right-width  border-spacing  bottom
+    box-sizing  clear  clip  color  content  cursor
+    display  empty-cells  filter  float  font-family  font-size
+    font-style  font-weight  height  left  letter-spacing  line-break
+    line-height  margin-bottom  margin-left  margin-right  margin-top  max-width
+    min-height  min-width  opacity  outline-style  outline-width  overflow-x
+    overflow-y  padding-bottom  padding-right  padding-top  pointer-events  position
+    right  table-layout  text-align  text-indent  text-overflow  text-rendering
+    text-shadow  text-transform  top  touch-action  transition-duration  transition-property
+    transition-timing-function  user-select  vertical-align  visibility  webkit-box-shadow  white-space
+    width  word-spacing  z-index  zoom
+    ORDER ONLY, INERT  @media (min-width:768px)||.form-inline .checkbox
+      pre : display:inline-block;margin-top:0;margin-bottom:0;vertical-align:middle
+      post: margin-bottom:0;vertical-align:middle;display:inline-block;margin-top:0
+    ORDER ONLY, INERT  @media (min-width:768px)||.form-inline .radio
+      pre : display:inline-block;margin-top:0;margin-bottom:0;vertical-align:middle
+      post: margin-bottom:0;vertical-align:middle;display:inline-block;margin-top:0
+    ORDER ONLY, INERT  @media (min-width:768px)||.navbar-form .checkbox
+      pre : display:inline-block;margin-top:0;margin-bottom:0;vertical-align:middle
+      post: margin-bottom:0;vertical-align:middle;display:inline-block;margin-top:0
+    ORDER ONLY, INERT  @media (min-width:768px)||.navbar-form .radio
+      pre : display:inline-block;margin-top:0;margin-bottom:0;vertical-align:middle
+      post: margin-bottom:0;vertical-align:middle;display:inline-block;margin-top:0
+    ORDER ONLY, INERT  @media only screen and (max-width:992px)||.leftnav-menu footer
+      pre : text-align:center;width:65px;display:none
+      post: display:none;text-align:center;width:65px
+block-less at-rule statements identical as a set: yes
+VERDICT: the two style bundles differ in bytes and are EQUIVALENT in the
+  declarations they apply.  Every selector present on one side is present on
+  the other with the same declaration multiset and the same values; the
+  block-less at-rules match; and where a selector's declarations appear in a
+  different ORDER, no pair that could interact was reordered, so no computed
+  value can differ.  What differs is how the minifier GROUPED selectors that
+  share a body, which is the ordering-sensitive part of its output and is the
+  same version of the same tool on both sides.
+
+===== overall =====
+script bundle behavioural equivalence: ESTABLISHED
+style bundle declaration equivalence: ESTABLISHED
+
+WHAT THIS DOES NOT DO.  It does not satisfy the byte-identity criterion and does
+not soften it.  Two of the five artifacts differ in bytes; that is a failure of
+that criterion and is recorded as one in the comparison record beside this output.
+This program answers only the next question: whether the differing bytes carry a
+behavioural difference.  A reader who needs byte identity is not served by an
+equivalence proof, and this file does not pretend otherwise.

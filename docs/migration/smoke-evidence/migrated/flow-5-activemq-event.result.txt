@@ -9,7 +9,7 @@ RUNTIME-COMMIT: Java 17, the migrated head, the change set applied on top of bas
     output.  The OBSERVED runtime is captured verbatim from the tool
     itself into env/toolchain.txt in this same capture directory, so the
     label can be checked against it rather than taken on trust.
-  frontend-runtime-designation: Node 20.20.2 with npm 10.8.2
+  frontend-runtime-designation: Node 20 LTS with npm 10
     The frontend half of this migration is a separate runtime from the
     Java half, and this flow serves assets the frontend pipeline built,
     so both designations belong on this record rather than only one.
@@ -30,38 +30,45 @@ COMPARED ARTEFACTS: flow-5-activemq-event.out and flow-5-activemq-event.status
   caller-declared scope: flow-5-activemq-event.out, flow-5-activemq-event.status, startup/messaging-init.log and startup/jpa-init.log
 MIGRATION PATH EXERCISED: messaging client on Java 17, unchanged by design: its messaging interfaces resolve from the broker client rather than from the platform, so the removal of the platform enterprise modules cannot reach it
 OBSERVATION:
-  verdict: NOT-EXERCISED-NO-EVENT-PRODUCED
+  verdict: OBSERVED-EVENT-TRANSITED-AND-INDEXED
   state-mutation-permitted: yes
   observed-statuses, inlined verbatim from flow-5-activemq-event.status:
     trigger=SKIPPED
+    delivery-attempt-1=200
     broker-status=200
     broker-destination=200
-    delivery=SKIPPED
-    event-delivery=SKIPPED
-    broker-transit=SKIPPED
-    delivered=not-observed
-    payload-match=not-observed
-    search-reported-match-count=not-attempted
+    delivery=OBSERVED
+    broker-transit=OBSERVED
+    delivered=yes
+    payload-match=yes
+    search-reported-match-count=1
     destination-configured=solrAdvancedSearch.in
-    broker-management-reported-status=not-probed-no-event-from-this-run
-    destination-reported-by-broker=not-probed-no-event-from-this-run
-    broker-enqueue-count=not-probed-no-event-from-this-run
-    broker-dequeue-count=not-probed-no-event-from-this-run
-    broker-dispatch-count=not-probed-no-event-from-this-run
-    broker-inflight-count=not-probed-no-event-from-this-run
-    broker-consumer-count=not-probed-no-event-from-this-run
-    broker-queue-size=not-probed-no-event-from-this-run
-    REASON: flow 6 produced no object number, so there is nothing this run caused whose indexing could be observed; a broker transit cannot be asserted from an ambient query
+    broker-management-reported-status=200
+    destination-reported-by-broker=solrAdvancedSearch.in
+    broker-enqueue-count=1644
+    broker-dequeue-count=1644
+    broker-dispatch-count=2423
+    broker-inflight-count=0
+    broker-consumer-count=10
+    broker-queue-size=0
   observations, each derived from the two artefacts named above:
-    - broker startup lines matched: 245 (see startup/messaging-init.log); persistence startup lines matched: 81 (see startup/jpa-init.log); both mined from the single window recorded in notes/startup-window.txt
-    - state mutation permitted: yes
     - trigger half recorded: SKIPPED (/api/latest/plugin/complaint)
-    - delivery half recorded: SKIPPED (destination solrAdvancedSearch.in)
-    - both halves are recorded even though neither could be exercised, so the shape of this record is identical in both runs and the gap is visible in a directory diff rather than absent from it (R-5)
-    - this flow observes the downstream effect of an event THIS RUN produced.  Without a produced event there is nothing to observe, and a query that answers 200 with an empty result set on an idle broker is not evidence of a transit — which is precisely the unsound inference this version replaces
-    - requirements unmet: 1
+    - delivery half recorded: OBSERVED (destination solrAdvancedSearch.in)
+    - object under observation: 20260808_116 (created by flow 6)
+    - attempts configured: 12 at 5s
+    - attempts used: 1
+    - object became findable: yes
+    - search reported match count on the last attempt: 1
+    - final observed status: 200
+    - broker status surface: 200
+    - broker-side view of the destination — management-reported status: 200, name: solrAdvancedSearch.in, enqueued: 1644, dequeued: 1644, dispatched: 2423, in flight: 0, consumers: 10, current depth: 0
+    - the delivery finding is made from TWO independent observations, and the flow is explicit about what each one can carry.  The consumer-side observation — the object this run created becoming findable — is scoped to the response body of the single delivery attempt that matched, and is additionally required to carry a positive reported match count.  Both conditions are needed: an earlier revision searched the whole capture file for the object number, which this flow writes into that same file in its own trigger half, so an attempt answering 200 with an empty result set was recorded as a delivery; and scoping alone is still insufficient because the search platform echoes the submitted query inside its own answer.  The broker-side observation comes from the broker and not from the application, is cumulative for the broker instance rather than scoped to this run, and is labelled as such
+    - broker startup lines matched: 239 (see startup/messaging-init.log); persistence startup lines matched: 106 (see startup/jpa-init.log); both mined from the single window recorded in notes/startup-window.txt
+    - requirements unmet: 0
+    - the observation is indirect and is labelled as such, but it is now POSITIVE: the object this run created becoming findable requires that an event it produced was published to the broker and consumed by the indexing pipeline.  An empty result set is therefore a failure here, not a pass
+    - behaviour is preserved only if the object becomes findable in both runs, the delivered payload matches, and the captured broker startup region matches
 COMPARISON CRITERION: Message delivered with identical payload. Measured to the standard every flow in this deliverable shares: this record and its counterpart on the other side must differ in nothing but values the normalisation pipeline below already replaces.
-  row-for-row verdict: MATCH on every recorded row - this flow's status file is identical to the other capture's, so the two sides agree row for row.  The captured transcript differs, which is expected of a transcript rather than of a row set - it carries per-run values the normalisation pipeline replaces and provenance that legitimately varies - which is why the row set, not the transcript, carries the verdict
+  row-for-row verdict: DIFFERENCE on the recorded rows - this flow's status file differs from the other capture's.  Named rather than explained away; the differing rows are readable by diffing the two status files directly
   a verdict is not a pass mark.  It states what two files on disk do
     and do not agree on.  Whether a stated difference is acceptable is
     settled in the ambiguity-resolutions and pre-existing-defects
@@ -130,12 +137,8 @@ TLS-READINESS CONTEXT:
     Readiness does NOT gate this flow: the flow records its own
     evidence either way, so an unreachable stack produces an explicit,
     comparable capture instead of a truncated one.
-IF NOT EXECUTED: SKIPPED - flow 6 produced no object number, so there is nothing this run caused whose indexing could be observed; a broker transit cannot be asserted from an ambient query
-  The paired flow-5-activemq-event.status carries the matching SKIPPED marker
-  and flow-5-activemq-event.out carries an explicit section recording the same
-  absence, so the gap is visible in a directory diff rather than
-  missing from it.  R-5 forbids a silent omission: an unexecuted
-  flow is reported, never dropped, and this is not a pass mark.
+IF NOT EXECUTED: not applicable - this flow executed and its
+  observations above are captured rather than declared absent.
 SOURCE-EDIT NOTE: none - this flow traverses no rewritten line of
   application source.  The field is present rather than omitted so
   that all sixteen records carry the same field names in the same
@@ -146,7 +149,7 @@ RECORDED CAPTURE DETAIL
 -----------------------
 flow: 5
 slug: 5-activemq-event
-verdict: NOT-EXERCISED-NO-EVENT-PRODUCED
+verdict: OBSERVED-EVENT-TRANSITED-AND-INDEXED
 capture-side: migrated-post-migration-replay
 runtime-declared: Java 17
 runtime-observed: 17.0.19
@@ -197,32 +200,39 @@ behaviour-bearing-values-preserved: deliberately NOT normalised, because each
   behaviour matches; and the artifact checksums themselves.
 observed-statuses:
   trigger=SKIPPED
+  delivery-attempt-1=200
   broker-status=200
   broker-destination=200
-  delivery=SKIPPED
-  event-delivery=SKIPPED
-  broker-transit=SKIPPED
-  delivered=not-observed
-  payload-match=not-observed
-  search-reported-match-count=not-attempted
+  delivery=OBSERVED
+  broker-transit=OBSERVED
+  delivered=yes
+  payload-match=yes
+  search-reported-match-count=1
   destination-configured=solrAdvancedSearch.in
-  broker-management-reported-status=not-probed-no-event-from-this-run
-  destination-reported-by-broker=not-probed-no-event-from-this-run
-  broker-enqueue-count=not-probed-no-event-from-this-run
-  broker-dequeue-count=not-probed-no-event-from-this-run
-  broker-dispatch-count=not-probed-no-event-from-this-run
-  broker-inflight-count=not-probed-no-event-from-this-run
-  broker-consumer-count=not-probed-no-event-from-this-run
-  broker-queue-size=not-probed-no-event-from-this-run
-  REASON: flow 6 produced no object number, so there is nothing this run caused whose indexing could be observed; a broker transit cannot be asserted from an ambient query
+  broker-management-reported-status=200
+  destination-reported-by-broker=solrAdvancedSearch.in
+  broker-enqueue-count=1644
+  broker-dequeue-count=1644
+  broker-dispatch-count=2423
+  broker-inflight-count=0
+  broker-consumer-count=10
+  broker-queue-size=0
 observations:
-  - broker startup lines matched: 245 (see startup/messaging-init.log); persistence startup lines matched: 81 (see startup/jpa-init.log); both mined from the single window recorded in notes/startup-window.txt
-  - state mutation permitted: yes
   - trigger half recorded: SKIPPED (/api/latest/plugin/complaint)
-  - delivery half recorded: SKIPPED (destination solrAdvancedSearch.in)
-  - both halves are recorded even though neither could be exercised, so the shape of this record is identical in both runs and the gap is visible in a directory diff rather than absent from it (R-5)
-  - this flow observes the downstream effect of an event THIS RUN produced.  Without a produced event there is nothing to observe, and a query that answers 200 with an empty result set on an idle broker is not evidence of a transit — which is precisely the unsound inference this version replaces
-  - requirements unmet: 1
+  - delivery half recorded: OBSERVED (destination solrAdvancedSearch.in)
+  - object under observation: 20260808_116 (created by flow 6)
+  - attempts configured: 12 at 5s
+  - attempts used: 1
+  - object became findable: yes
+  - search reported match count on the last attempt: 1
+  - final observed status: 200
+  - broker status surface: 200
+  - broker-side view of the destination — management-reported status: 200, name: solrAdvancedSearch.in, enqueued: 1644, dequeued: 1644, dispatched: 2423, in flight: 0, consumers: 10, current depth: 0
+  - the delivery finding is made from TWO independent observations, and the flow is explicit about what each one can carry.  The consumer-side observation — the object this run created becoming findable — is scoped to the response body of the single delivery attempt that matched, and is additionally required to carry a positive reported match count.  Both conditions are needed: an earlier revision searched the whole capture file for the object number, which this flow writes into that same file in its own trigger half, so an attempt answering 200 with an empty result set was recorded as a delivery; and scoping alone is still insufficient because the search platform echoes the submitted query inside its own answer.  The broker-side observation comes from the broker and not from the application, is cumulative for the broker instance rather than scoped to this run, and is labelled as such
+  - broker startup lines matched: 239 (see startup/messaging-init.log); persistence startup lines matched: 106 (see startup/jpa-init.log); both mined from the single window recorded in notes/startup-window.txt
+  - requirements unmet: 0
+  - the observation is indirect and is labelled as such, but it is now POSITIVE: the object this run created becoming findable requires that an event it produced was published to the broker and consumed by the indexing pipeline.  An empty result set is therefore a failure here, not a pass
+  - behaviour is preserved only if the object becomes findable in both runs, the delivered payload matches, and the captured broker startup region matches
 pre-existing-condition-in-the-reference-stack: the VirtualViewer service is
   EXPECTED to answer HTTP 503.  That is a documented pre-existing condition at
   the base commit, recorded in TWO places — README.md:L53 and
@@ -256,7 +266,17 @@ assertion-basis: derived by reading flow-5-activemq-event.status and
 comparison-instruction: this record is evidence, not a pass mark.  The
   flow is behaviour-preserving only if this file and its sibling .out and
   .status differ from the baseline capture in nothing but values this
-  script already normalises.  Compare with:
+  script already normalises AND values a record explicitly enumerates as
+  environment-scoped rather than behaviour-bearing.  The second allowance is
+  named here rather than left implicit because it is real and small: where
+  the two sides are separate deployments -- separate databases, separate
+  brokers, separate search cores, which is what isolation between the two
+  captures requires -- a cumulative broker counter and an ambient inventory
+  count cannot be equal, and a record that demanded equality of them would
+  be demanding something no correct migration could deliver.  Every such
+  value is listed, with its reason, in the record that carries it; a row NOT
+  listed there and NOT normalised must be identical between the two sides.
+  Compare with:
   diff -r <baseline-dir> <migrated-dir>
 
 MIRROR OBLIGATION
@@ -402,11 +422,11 @@ observed-trigger-status: not-issued
 observed-destination-name: solrAdvancedSearch.in
 observed-destination-kind: queue
 observed-payload-declared-type: text message carrying JSON; the publisher converts a JSON string and the consumer receives it as a string
-observed-payload-state: not delivered: this run produced no event, so no payload existed to deliver.  An ambient query answering 200 with an empty result set on an idle broker would not be evidence of a transit and is deliberately not offered as one
-observed-delivery-finding: not-observed
-observed-payload-match-finding: not-observed
-observed-broker-transit-finding: SKIPPED
-observed-final-polling-status: 000
+observed-payload-state: delivered and consumed: the payload appears below as the consumer applied it
+observed-delivery-finding: yes
+observed-payload-match-finding: yes
+observed-broker-transit-finding: OBSERVED
+observed-final-polling-status: 200
 means-of-observation: the consumer-side observable effect.  The destination is consumed by the indexing listener, so the object named in the trigger half becoming findable requires that the message was published, delivered and applied.  No broker client library is installed to observe this, and none is needed
 means-of-observation-secondary: broker status surface 200
 means-of-observation-replay-requirement: the replay must observe delivery by
@@ -430,7 +450,7 @@ asynchrony-note: the trigger succeeding does not imply delivery.  A
   arrives after the capture window closes, so delivery is taken from
   observation and never inferred from a status code
 asynchrony-wait-window: up to 60 seconds - 12 at 5s
-asynchrony-outcome: delivery was NOT observed, and the limitation is recorded rather than inferred away: no event was produced in this run, so the wait window was never entered and nothing was waited for.  Zero of the 12 configured attempts were used
+asynchrony-outcome: delivery WAS observed.  The capture polled for it and stopped at the attempt that saw it: 1 of the 12 configured attempts were used
 migration-path-exercised-detail: the messaging client on Java 17, unchanged
   by design.  Unchanged by design is a DECISION, not an omission: the client
   was assessed and its version was then HELD.  A change without a

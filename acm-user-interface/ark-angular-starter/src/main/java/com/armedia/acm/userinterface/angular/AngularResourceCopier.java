@@ -46,6 +46,7 @@ import org.zeroturnaround.exec.stream.slf4j.Slf4jDebugOutputStream;
 
 import javax.servlet.ServletContext;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -59,7 +60,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -72,12 +75,75 @@ import java.util.stream.Collectors;
  * npm (the Node.js Package Manager) must be installed on the deployment host and must be in the system path;
  * the install step runs `npm ci`, so the committed package-lock.json is what determines the dependency tree.
  * <p>
+ * <b>The required Node.js and npm major versions are verified before the install runs, not assumed.</b> The
+ * committed lockfile is at lockfileVersion 3 and was produced by npm 10 on Node 20, and the frontend manifest
+ * declares both majors in its {@code engines} block. Declaring a runtime in a manifest does not make a
+ * deployment use it, so this class asks the launchers on the path for their own versions and refuses to run the
+ * build when either major is wrong. The alternative - installing on whatever happens to be first on the path -
+ * is how a deployment ends up serving assets that no one built on the supported runtime.
+ * <p>
+ * <b>The front-end commands run with an explicitly constructed environment rather than with the servlet
+ * container's.</b> Tomcat's environment carries whatever the deployment gave it - keystore and trust-store
+ * passwords among the JVM arguments, database and integration credentials, deployment tokens - and a package
+ * manager installing several hundred third-party packages is the last process that should inherit it. Only the
+ * variables the build genuinely needs are passed through, by name or by prefix; see
+ * {@link #DEFAULT_ENVIRONMENT_VARIABLES_TO_PASS_THROUGH} and
+ * {@link #DEFAULT_ENVIRONMENT_VARIABLE_PREFIXES_TO_PASS_THROUGH}.
+ * <p>
+ * <b>Package lifecycle scripts are disabled for the install by default, and that default was measured rather
+ * than chosen.</b> Five packages in the committed graph declare install scripts and every source-control
+ * dependency may declare a prepare script, so an install is an arbitrary-code-execution surface. Installing the
+ * committed lockfile twice on Node 20, once with lifecycle scripts enabled and once with them disabled, produced
+ * <em>byte-identical</em> output for all five pipeline artifacts and for the source map, so disabling them costs
+ * nothing here. It is a property, not a hard-coded choice: an estate whose graph needs an install script can set
+ * {@code npmLifecycleScriptsEnabled} to true and the previous behaviour returns.
+ * <p>
  * The resources to be copied from the war file and extension jars; the front-end commands to be run (e.g. npm,
  * grunt); and the resources to be copied to the deployment folder are configured in Spring. All resources to
  * be copied from the war file and extension jars must be within a top-level resources folder.
  */
 public class AngularResourceCopier implements ServletContextAware
 {
+    /**
+     * The environment variables the front-end build is given by name. Each one is here because the build or one
+     * of its launchers needs it, and nothing is here for convenience:
+     * <ul>
+     * <li>{@code PATH} resolves the launchers; {@code HOME} is where npm keeps its cache and configuration.</li>
+     * <li>{@code NODE_ENV} is <b>behaviour-bearing</b>: the Gruntfile branches on it when it renders the entry
+     * document, so dropping it would change a produced artifact.</li>
+     * <li>{@code LANG} and {@code LC_ALL} keep tool output and any locale-sensitive sorting stable.</li>
+     * <li>The temporary-directory and Windows-shell variables are what let the same code run on a Windows
+     * deployment, where the configured command prefix is {@code cmd /C}.</li>
+     * <li>The proxy and certificate variables are how an estate behind an egress proxy or a private trust store
+     * reaches a registry at all; omitting them would turn a working deployment into a failing one.</li>
+     * <li>{@code SSH_AUTH_SOCK} and {@code GIT_SSH_COMMAND} are how a source-control dependency that resolves
+     * over SSH authenticates. They are the two most sensitive entries in this list and they are here because
+     * removing them would break that resolution rather than because they are harmless.</li>
+     * </ul>
+     */
+    public static final List<String> DEFAULT_ENVIRONMENT_VARIABLES_TO_PASS_THROUGH = Collections
+            .unmodifiableList(Arrays.asList(
+                    "PATH", "HOME", "NODE_ENV", "LANG", "LC_ALL",
+                    "TMPDIR", "TEMP", "TMP",
+                    "SystemRoot", "SystemDrive", "COMSPEC", "PATHEXT", "USERPROFILE", "APPDATA", "LOCALAPPDATA",
+                    "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy",
+                    "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "SSL_CERT_DIR", "GIT_SSL_CAINFO",
+                    "SSH_AUTH_SOCK", "GIT_SSH_COMMAND"));
+
+    /**
+     * Prefixes whose variables are passed through wholesale. npm's own configuration arrives this way -
+     * {@code npm_config_registry}, {@code npm_config_cache}, an authentication token for a private registry -
+     * and an estate that configures npm through the environment would otherwise silently lose that
+     * configuration and fall back to the public registry. {@code NODE_OPTIONS} is deliberately <b>not</b>
+     * passed through by default: it can inject code into every Node process the build starts.
+     */
+    public static final List<String> DEFAULT_ENVIRONMENT_VARIABLE_PREFIXES_TO_PASS_THROUGH = Collections
+            .unmodifiableList(Arrays.asList("npm_config_", "NPM_CONFIG_"));
+
+    private static final String DEFAULT_NODE_VERSION_COMMAND = "node --version";
+
+    private static final String DEFAULT_NPM_VERSION_COMMAND = "npm --version";
+
     private transient final Logger log = LoggerFactory.getLogger(getClass());
 
     private String tempFolderPath;
@@ -92,6 +158,13 @@ public class AngularResourceCopier implements ServletContextAware
     private List<String> frontEndCommandsToBeExecuted;
     private List<String> customResourceSourcesToCopyFromArchive;
     private AcmSpringActiveProfile springActiveProfile;
+    private String nodeVersionCommand = DEFAULT_NODE_VERSION_COMMAND;
+    private String npmVersionCommand = DEFAULT_NPM_VERSION_COMMAND;
+    private String requiredNodeMajorVersion = "20";
+    private String requiredNpmMajorVersion = "10";
+    private boolean npmLifecycleScriptsEnabled = false;
+    private List<String> environmentVariablesToPassThrough = DEFAULT_ENVIRONMENT_VARIABLES_TO_PASS_THROUGH;
+    private List<String> environmentVariablePrefixesToPassThrough = DEFAULT_ENVIRONMENT_VARIABLE_PREFIXES_TO_PASS_THROUGH;
 
     @Override
     public void setServletContext(ServletContext servletContext)
@@ -127,6 +200,11 @@ public class AngularResourceCopier implements ServletContextAware
                 copiedFiles.add(copied);
             }
 
+            // Verify the runtime BEFORE installing anything. The install is what writes several hundred packages
+            // into the deployment's temporary tree, so a wrong major version has to be caught in front of it
+            // rather than after.
+            verifyFrontEndToolchain(tmpDir);
+
             // npm ci
             runFrontEndBuildCommand(tmpDir, yarnInstallCommand);
             // add 'customer' as specific profile, so if any customer resources are present will come
@@ -150,6 +228,7 @@ public class AngularResourceCopier implements ServletContextAware
             // delete all files that exist in the tmp dir, but we didn't copy them there; such files must have been
             // removed from the project. Exceptions are files managed by npm and grunt: lib folder, node_modules
             // folder, bower_components folder, package-lock.json
+
             List<File> oldFilesInTmpFolder = tmpFilesFound.stream()
                     .filter(p -> !p.contains("node_modules"))
                     .filter(p -> !p.contains("bower_components"))
@@ -321,9 +400,149 @@ public class AngularResourceCopier implements ServletContextAware
         }
     }
 
+    /**
+     * Build the environment the front-end commands run with.
+     * <p>
+     * Commons Exec inherits the calling process's environment when it is handed no environment at all, and the
+     * calling process here is Tomcat. Everything Tomcat was given - the keystore and trust-store passwords in its
+     * JVM arguments, database and integration credentials, deployment tokens - would reach every install script
+     * and every task in the build. So the environment is composed rather than inherited: a variable is present
+     * only if it is named in {@link #getEnvironmentVariablesToPassThrough()} or carries one of the prefixes in
+     * {@link #getEnvironmentVariablePrefixesToPassThrough()}.
+     * <p>
+     * The lifecycle-script decision is applied last, so it cannot be overridden by an inherited
+     * {@code npm_config_ignore_scripts} that arrived through the prefix pass-through. It is expressed as npm
+     * configuration rather than as a command-line flag so that the configured command string - which an estate
+     * may have customised - does not have to be rewritten to carry it.
+     *
+     * @return the environment for the child process, never null and never the inherited environment
+     */
+    public Map<String, String> buildFrontEndCommandEnvironment()
+    {
+        Map<String, String> inherited = System.getenv();
+        Map<String, String> childEnvironment = new LinkedHashMap<>();
+
+        for (String name : getEnvironmentVariablesToPassThrough())
+        {
+            String value = inherited.get(name);
+            if (value != null)
+            {
+                childEnvironment.put(name, value);
+            }
+        }
+
+        for (Map.Entry<String, String> entry : inherited.entrySet())
+        {
+            for (String prefix : getEnvironmentVariablePrefixesToPassThrough())
+            {
+                if (entry.getKey().startsWith(prefix))
+                {
+                    childEnvironment.put(entry.getKey(), entry.getValue());
+                    break;
+                }
+            }
+        }
+
+        childEnvironment.put("npm_config_ignore_scripts", Boolean.toString(!isNpmLifecycleScriptsEnabled()));
+
+        // Names only. The values are exactly what must not be written to a log, which is the reason this method
+        // exists at all.
+        log.info("Front-end build environment composed from {} of the {} variables this process holds: {}",
+                childEnvironment.size(), inherited.size(), childEnvironment.keySet());
+        log.info("npm lifecycle scripts enabled for the front-end install: {}", isNpmLifecycleScriptsEnabled());
+
+        return childEnvironment;
+    }
+
+    /**
+     * Refuse to build unless the Node.js and npm major versions on the path are the ones the committed lockfile
+     * was produced with.
+     * <p>
+     * This is a fail-fast check with a diagnostic, deliberately not a warning. A lockfile at lockfileVersion 3
+     * installed by an older npm, or a build run on an older Node.js, produces a dependency graph and a set of
+     * assets that nothing in this project was verified against - and it does so quietly, leaving a deployment
+     * that looks healthy and serves assets no one built on the supported runtime.
+     *
+     * @param tmpDir
+     *            the directory the launchers are probed from, so the probe sees the same resolution the build will
+     * @throws IOException
+     *             if a launcher cannot be executed, or if either reported major version is not the required one
+     */
+    public void verifyFrontEndToolchain(File tmpDir) throws IOException
+    {
+        String nodeReported = captureCommandOutput(tmpDir, getNodeVersionCommand());
+        String npmReported = captureCommandOutput(tmpDir, getNpmVersionCommand());
+
+        log.info("Front-end toolchain reported by the launchers on the path: node [{}], npm [{}]", nodeReported,
+                npmReported);
+
+        assertMajorVersion("Node.js", nodeReported, getRequiredNodeMajorVersion(), getNodeVersionCommand());
+        assertMajorVersion("npm", npmReported, getRequiredNpmMajorVersion(), getNpmVersionCommand());
+    }
+
+    /**
+     * Extract the leading major version from a launcher's own output and compare it with the required one.
+     * <p>
+     * The output is parsed rather than matched whole, because {@code node} answers with a leading {@code v} and
+     * {@code npm} without one, and both may add a suffix. Anything that is not a leading run of digits - an empty
+     * answer, a usage message, a shell error - fails the check rather than being read as a version.
+     */
+    private void assertMajorVersion(String tool, String reported, String required, String command) throws IOException
+    {
+        String trimmed = reported == null ? "" : reported.trim();
+        String withoutPrefix = trimmed.startsWith("v") || trimmed.startsWith("V") ? trimmed.substring(1) : trimmed;
+        StringBuilder major = new StringBuilder();
+        for (int i = 0; i < withoutPrefix.length() && Character.isDigit(withoutPrefix.charAt(i)); i++)
+        {
+            major.append(withoutPrefix.charAt(i));
+        }
+
+        if (major.length() == 0)
+        {
+            throw new IOException(String.format(
+                    "The front-end build cannot start: [%s] reported [%s], which carries no version this check can read. "
+                            + "%s %s is required. Put the required launcher on the path Tomcat runs with, or adjust the "
+                            + "angularResourceCopier bean's %sVersionCommand property to name it.",
+                    command, trimmed, tool, required, tool.equals("npm") ? "npm" : "node"));
+        }
+
+        if (!major.toString().equals(required))
+        {
+            throw new IOException(String.format(
+                    "The front-end build cannot start: %s major version %s is on the path, but the committed "
+                            + "package-lock.json was produced with %s %s and the frontend package.json engines block "
+                            + "requires it. [%s] reported [%s]. Install the required version, or - if this estate has "
+                            + "verified another one - set the angularResourceCopier bean's required%sMajorVersion "
+                            + "property.",
+                    tool, major, tool, required, command, trimmed, tool.equals("npm") ? "Npm" : "Node"));
+        }
+    }
+
+    /**
+     * Run a command and return its standard output as a string, rather than logging it.
+     * <p>
+     * Used by the toolchain check, which has to read a launcher's answer rather than merely record it. The child
+     * gets the same composed environment and the same working directory as the build itself, so the version it
+     * reports is the version the build will use and not the version some other path resolution would give.
+     */
+    private String captureCommandOutput(File tmpDir, String commandLine) throws IOException
+    {
+        log.debug("About to run [{}] and capture its output", commandLine);
+        CommandLine command = CommandLine.parse(commandLine);
+        DefaultExecutor executor = new DefaultExecutor();
+        executor.setWorkingDirectory(tmpDir);
+
+        try (ByteArrayOutputStream captured = new ByteArrayOutputStream())
+        {
+            executor.setStreamHandler(new PumpStreamHandler(captured));
+            executor.execute(command, buildFrontEndCommandEnvironment());
+            return captured.toString("UTF-8");
+        }
+    }
+
     public void runFrontEndBuildCommand(File tmpDir, String commandLine) throws IOException
     {
-        log.debug("About to run [{}]", commandLine);
+        log.info("About to run [{}]", commandLine);
         CommandLine command = CommandLine.parse(commandLine);
         DefaultExecutor executor = new DefaultExecutor();
         executor.setWorkingDirectory(tmpDir);
@@ -335,8 +554,10 @@ public class AngularResourceCopier implements ServletContextAware
         {
 
             executor.setStreamHandler(new PumpStreamHandler(debugOutputStream));
-            int exitCode = executor.execute(command);
-            log.debug("done with [{}]: exit code {}", commandLine, exitCode);
+            // The environment is passed explicitly. Calling the single-argument execute here would hand the child
+            // Tomcat's whole environment, which is what this overload exists to avoid.
+            int exitCode = executor.execute(command, buildFrontEndCommandEnvironment());
+            log.info("done with [{}]: exit code {}", commandLine, exitCode);
         }
     }
 
@@ -589,5 +810,79 @@ public class AngularResourceCopier implements ServletContextAware
     public void setGruntDefaultCommand(String gruntDefaultCommand)
     {
         this.gruntDefaultCommand = gruntDefaultCommand;
+    }
+
+    public String getNodeVersionCommand()
+    {
+        return nodeVersionCommand;
+    }
+
+    public void setNodeVersionCommand(String nodeVersionCommand)
+    {
+        this.nodeVersionCommand = nodeVersionCommand;
+    }
+
+    public String getNpmVersionCommand()
+    {
+        return npmVersionCommand;
+    }
+
+    public void setNpmVersionCommand(String npmVersionCommand)
+    {
+        this.npmVersionCommand = npmVersionCommand;
+    }
+
+    public String getRequiredNodeMajorVersion()
+    {
+        return requiredNodeMajorVersion;
+    }
+
+    public void setRequiredNodeMajorVersion(String requiredNodeMajorVersion)
+    {
+        this.requiredNodeMajorVersion = requiredNodeMajorVersion;
+    }
+
+    public String getRequiredNpmMajorVersion()
+    {
+        return requiredNpmMajorVersion;
+    }
+
+    public void setRequiredNpmMajorVersion(String requiredNpmMajorVersion)
+    {
+        this.requiredNpmMajorVersion = requiredNpmMajorVersion;
+    }
+
+    public boolean isNpmLifecycleScriptsEnabled()
+    {
+        return npmLifecycleScriptsEnabled;
+    }
+
+    public void setNpmLifecycleScriptsEnabled(boolean npmLifecycleScriptsEnabled)
+    {
+        this.npmLifecycleScriptsEnabled = npmLifecycleScriptsEnabled;
+    }
+
+    public List<String> getEnvironmentVariablesToPassThrough()
+    {
+        return environmentVariablesToPassThrough;
+    }
+
+    public void setEnvironmentVariablesToPassThrough(List<String> environmentVariablesToPassThrough)
+    {
+        this.environmentVariablesToPassThrough = environmentVariablesToPassThrough == null
+                ? DEFAULT_ENVIRONMENT_VARIABLES_TO_PASS_THROUGH
+                : environmentVariablesToPassThrough;
+    }
+
+    public List<String> getEnvironmentVariablePrefixesToPassThrough()
+    {
+        return environmentVariablePrefixesToPassThrough;
+    }
+
+    public void setEnvironmentVariablePrefixesToPassThrough(List<String> environmentVariablePrefixesToPassThrough)
+    {
+        this.environmentVariablePrefixesToPassThrough = environmentVariablePrefixesToPassThrough == null
+                ? DEFAULT_ENVIRONMENT_VARIABLE_PREFIXES_TO_PASS_THROUGH
+                : environmentVariablePrefixesToPassThrough;
     }
 }

@@ -1,0 +1,53 @@
+completeness verdict for this capture
+
+completeness: INCOMPLETE
+flows-expected: 8
+flows-with-recorded-result: 8
+flows-skipped: 0
+flows-not-exercised: 0
+flows-with-unmet-requirements: 5
+absent-frontend-artifact-digests: 0
+capture-manifest-state: COMPLETE-AND-EXACT
+archived-report-contract-state: read
+archived-report-suites-missing: 278
+archived-report-suites-lost: 0
+archived-report-suites-added: 6
+archived-report-suites-not-in-contract: 0
+captures-truncated: 2
+transport-trust-mode: verify-default-trust-store
+transport-trust-degraded: no
+state-mutation-permitted: yes
+recorded-reasons: 13
+
+exit-status-contract:
+  0  the capture is COMPLETE and usable as evidence
+  1  the capture is INCOMPLETE; the reasons are enumerated below
+  2  the script refused to start; nothing was captured
+  3  an output path was unsafe; the run stopped to preserve it
+
+This verdict is computed by reading the capture files back from disk, like
+every other assertion here.  It does not replace the evidence: the
+authoritative record for flow n is still the trio flow-n-<slug>.out,
+.status and .result.txt, and the comparison against the other run is still
+the assertion.  What the verdict adds is that an automated caller can tell a
+capture with eight recorded flows from one with three and five holes, which
+a script that always exits zero cannot.
+
+reasons this capture is not complete:
+  - capture truncated at its size cap: startup/catalina.out.log: 32062 matched lines exceeds the 4000-line cap for this region
+  - capture truncated at its size cap: startup/frontend-build.log: 28940 matched lines exceeds the 2000-line cap for this region
+  - flow 2: the document view at /plugin/document was not observed (status 404), so the document name and MIME type it resolves to render were not exercised
+  - flow 6: the object count did not advance across the creation (before 5, after 5), so the numbering rule reported a number while the sequence did not move
+  - flow 5: the object created by flow 6 (20260807_180) never became findable within 12 attempts at 5s, so the path from object write through the broker to the indexing pipeline is not demonstrated
+  - flow 7: no business-process task for the object this run created appeared at /api/latest/plugin/task/businessProcessTasks, so process instantiation and task assignment are not demonstrated
+  - flow 7: the declared process definition key cmComplaintWorkflow was not found declared in any process definition in the corpus, so the definition this flow is named for is not shown to exist
+  - flow 7: no task record in the task list carried the identity of complaint 180, so no task could be attributed to this run and the task key, name and assignee are unobserved.  The flow deliberately does not fall back to the first record in the list, because a task belonging to another object reported as ours would be a false observation rather than a missing one
+  - flow 8: the next-possible-queues evaluation at /api/latest/plugin/casefile/nextPossibleQueues did not succeed (observed 500), so the routing rules were not evaluated
+  - flow 8: the routing evaluation returned no computed next queue, so the decision the tables produce is unobserved
+  - 278 archived unit-test suite(s) required by the pairing contract are missing from this capture; see notes/surefire-pairing.txt
+  - cleanup left 1 of 1 created objects in the application
+  - section hygiene: flow-3-alfresco-roundtrip.out contains more than one section with the same name, which makes every field in the later one unreachable to the scoped readers that assert on it.  Duplicated section names: retrieve-leg store-leg
+
+truncated captures:
+  - startup/catalina.out.log: 32062 matched lines exceeds the 4000-line cap for this region
+  - startup/frontend-build.log: 28940 matched lines exceeds the 2000-line cap for this region

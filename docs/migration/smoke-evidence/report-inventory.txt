@@ -1,0 +1,117 @@
+canonical inventory of the archived unit-test evidence and of the current test corpus
+
+produced-by: docs/migration/smoke-evidence/capture-report-inventory.sh
+authority: THIS FILE.  Every report count, test-method total, pairing figure and corpus
+  census published in this migration is derived from the measurements below.  A figure
+  in prose that disagrees with a figure here is a defect in the prose.
+not-a-verdict: no pass or fail claim is made here.  Interpretation belongs in the
+  documents that cite this one.
+
+===== the counting rule, stated before any number =====
+A SUITE is one TEST-<fully.qualified.Class>.xml file.  A DIRECTORY ENTRY is anything in
+the archive directory, which includes two control files per half -- run-provenance.txt
+and sha256-manifest.txt -- and, in the pre-migration half, a notes directory.  The two
+are different numbers and are never used interchangeably below: an earlier revision of
+the archive documentation published the directory-entry count as a suite count, which is
+the whole reason this rule is written down.
+
+===== archived evidence, per half =====
+measurement                                      baseline   migrated
+suite reports (TEST-*.xml)                            278        284
+directory entries at the archive root                  69         69
+module directories holding at least one report         66         67
+test methods (counted element by element)             892        933
+test methods (summed from testsuite@tests)            892        933
+passed                                                867        908
+failures (element by element)                           3          3
+failures (testsuite@failures)                           3          3
+errors (element by element)                             1          1
+errors (testsuite@errors)                               1          1
+skipped (element by element)                           21         21
+skipped (testsuite@skipped)                            21         21
+
+TWO INDEPENDENT MEASUREMENTS ARE PUBLISHED FOR THE SAME FOUR QUANTITIES, deliberately.
+One walks the testcase elements; the other sums the counters the runner wrote on the
+testsuite element.  They come from different parts of the same document, so agreement is
+a real check and a disagreement is a signal that a report was edited.  Agreement here:
+  baseline tests AGREE, failures AGREE, errors AGREE, skipped AGREE
+  migrated tests AGREE, failures AGREE, errors AGREE, skipped AGREE
+
+distinct java.runtime.version in the baseline half: 1.8.0_492-8u492-ga~us2-0ubuntu1~25.10.1-b09
+distinct java.runtime.version in the migrated half: 17.0.19+10-1-25.10.2-Ubuntu
+A half that reported more than one runtime would mean two runs had been merged.
+
+===== total corpus size, and the checkpoint contract =====
+total-archived-suite-reports: 562   (278 baseline + 284 migrated)
+A review of this checkpoint described the contract as 161 baseline + 161 migrated = 322
+reports.  The archive holds 562.  The discrepancy is NOT a missing-evidence finding and
+not an over-delivery: 161 is neither half of this archive, at any revision of it, and no
+file in this repository states it.  What the repository does state is the pairing
+contract at expected-suites.txt, which is generated from the two installed halves and
+therefore cannot disagree with them.  The enumerable set behind the total above is
+published as a path manifest so the figure is checkable rather than assertable, and the
+per-half figures are the ones every document cites.
+
+===== pairing =====
+suites-on-both-sides: 278
+suites-baseline-only: 0
+suites-migrated-only: 6
+The figure that matters is baseline-only: a suite that ran before and is not archived now
+cannot be shown to have preserved its behaviour.  Migrated-only suites are additions and
+are enumerated rather than counted, so prose has a list to agree with:
+  MIGRATED-ONLY  acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml
+  MIGRATED-ONLY  acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceInitializationTest.xml
+  MIGRATED-ONLY  acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceJndiEnvironmentTest.xml
+  MIGRATED-ONLY  acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryContextSourceTest.xml
+  MIGRATED-ONLY  acm-service-login/TEST-com.armedia.acm.auth.ad.ActiveDirectoryJndiDefaultsTest.xml
+  MIGRATED-ONLY  ark-angular-starter/TEST-com.armedia.acm.userinterface.angular.AngularResourceCopierWiringTest.xml
+
+===== non-passing outcomes, enumerated on both sides =====
+baseline red rows: 4
+  ERROR    acm-service-compress-folder/TEST-com.armedia.acm.compressfolder.FolderCompressorTest.xml  com.armedia.acm.compressfolder.FolderCompressorTest#testCompressFolderMaxSize
+  FAILURE  acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml  com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest#downloadFileByIdAndVersion_successful
+  FAILURE  acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml  com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest#downloadFileById_successful
+  FAILURE  acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml  com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest#override_mime_type
+migrated red rows: 4
+  ERROR    acm-service-compress-folder/TEST-com.armedia.acm.compressfolder.FolderCompressorTest.xml  com.armedia.acm.compressfolder.FolderCompressorTest#testCompressFolderMaxSize
+  FAILURE  acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml  com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest#downloadFileByIdAndVersion_successful
+  FAILURE  acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml  com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest#downloadFileById_successful
+  FAILURE  acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest.xml  com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest#override_mime_type
+red-row-sets-identical-ignoring-the-module-directory: yes
+Identical red-row sets are the condition R-5 turns on: every failure the migrated run
+reports was already failing at the pre-migration baseline, so no exclusion is needed and
+none is configured.
+
+===== current test corpus, measured in the working tree =====
+This census describes the tree AS IT STANDS, not the base commit.  The migration adds
+test classes, so a base-commit census is smaller and is not interchangeable with this
+one.  Where a document needs the base-commit figures it must say so and cite them as
+base-commit figures; the migration plan records 76 trees, 402 sources, 280 *Test.java
+and 366 JUnit 4 importers, and those are base-commit values.
+src/test/java trees: 77
+java test sources: 407
+files named *Test.java: 285
+files named *IT.java: 86
+files named *Tests.java: 1
+files importing org.junit.Test: 371
+files referencing org.junit.jupiter: 0
+occurrences of @Ignore: 26
+files referencing org.powermock: 0
+files referencing org.easymock.classextension: 0
+
+===== test-bypass configuration across every POM =====
+pom files examined: 145
+poms configuring a rerun or retry of failing tests: 0
+poms setting a literal argLine: 0
+poms configuring a test exclusion, group filter or integration-test skip: 0
+A rerun count is the one setting that can turn a red test green without excluding it, and
+a literal argLine is the one setting that can sever coverage instrumentation silently.
+Both are measured here rather than asserted elsewhere.
+
+poms carrying <skipTests>true</skipTests>: 2
+Counted and compared SEPARATELY rather than folded into the rerun figure, because the only
+question that matters about one is whether THIS change set introduced it.  Each is listed
+with its occurrence count now and at the base commit; an unchanged count means the setting
+is inherited configuration and not a test bypass this migration added.
+  acm-standard-applications/acm-foia/pom.xml  occurrences-now=1  occurrences-at-base-commit=1
+  acm-standard-applications/acm-privacy/pom.xml  occurrences-now=1  occurrences-at-base-commit=1

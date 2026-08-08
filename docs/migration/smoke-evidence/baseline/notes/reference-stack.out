@@ -1,148 +1,16 @@
 ===== solr =====
 request-method: GET
-request-url: https://arkcase-ce.local/solr
+request-url: http://localhost:53984/solr
 auth-mode: anon
 redirects-followed: 0
-redirect-target-reported: (none)
-transport-trust-mode: verify-default-trust-store
-certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
-observed-content-length: (none reported)
-observed-body-bytes: 0
-observed-body-form: text
-observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
-capture-body-truncated: no
-transport-refused-oversized-body: no
-transport-body-ceiling-bytes: 1048576
-capture-headers-truncated: no
-capture-diagnostics-truncated: no
-transport-exit-status-observed: 7
------ body -----
-(empty)
------ end body -----
------ transport-diagnostics -----
-curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
-
------ end transport-diagnostics -----
------ response-headers -----
-(none)
------ end response-headers -----
-
-===== alfresco-share =====
-request-method: GET
-request-url: https://arkcase-ce.local/share
-auth-mode: anon
-redirects-followed: 0
-redirect-target-reported: (none)
-transport-trust-mode: verify-default-trust-store
-certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
-observed-content-length: (none reported)
-observed-body-bytes: 0
-observed-body-form: text
-observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
-capture-body-truncated: no
-transport-refused-oversized-body: no
-transport-body-ceiling-bytes: 1048576
-capture-headers-truncated: no
-capture-diagnostics-truncated: no
-transport-exit-status-observed: 7
------ body -----
-(empty)
------ end body -----
------ transport-diagnostics -----
-curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
-
------ end transport-diagnostics -----
------ response-headers -----
-(none)
------ end response-headers -----
-
-===== pentaho =====
-request-method: GET
-request-url: https://arkcase-ce.local/pentaho
-auth-mode: anon
-redirects-followed: 0
-redirect-target-reported: (none)
-transport-trust-mode: verify-default-trust-store
-certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
-observed-content-length: (none reported)
-observed-body-bytes: 0
-observed-body-form: text
-observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
-capture-body-truncated: no
-transport-refused-oversized-body: no
-transport-body-ceiling-bytes: 1048576
-capture-headers-truncated: no
-capture-diagnostics-truncated: no
-transport-exit-status-observed: 7
------ body -----
-(empty)
------ end body -----
------ transport-diagnostics -----
-curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
-
------ end transport-diagnostics -----
------ response-headers -----
-(none)
------ end response-headers -----
-
-===== virtualviewer =====
-request-method: GET
-request-url: https://arkcase-ce.local/VirtualViewerJavaHTML5
-auth-mode: anon
-redirects-followed: 0
-redirect-target-reported: (none)
-transport-trust-mode: verify-default-trust-store
-certificate-verification-result: 0
-http-version: 0
-observed-http-status: 000
-observed-content-type: unknown
-observed-content-length: (none reported)
-observed-body-bytes: 0
-observed-body-form: text
-observed-body-sha256: (not computed for a textual body)
-observed-session-cookie: absent
-capture-body-truncated: no
-transport-refused-oversized-body: no
-transport-body-ceiling-bytes: 1048576
-capture-headers-truncated: no
-capture-diagnostics-truncated: no
-transport-exit-status-observed: 7
------ body -----
-(empty)
------ end body -----
------ transport-diagnostics -----
-curl: (7) Failed to connect to arkcase-ce.local port 443 after 0 ms: Could not connect to server
-
------ end transport-diagnostics -----
------ response-headers -----
-(none)
------ end response-headers -----
-
-===== config-server =====
-request-method: GET
-request-url: http://localhost:9999/actuator/health
-auth-mode: anon
-redirects-followed: 0
-redirect-target-reported: (none)
+redirect-target-reported: http://localhost:53984/solr/
 transport-trust-mode: verify-default-trust-store
 certificate-verification-result: 0
 http-version: 1.1
-observed-http-status: 200
-observed-content-type: application/json
-observed-content-length: (none reported)
-observed-body-bytes: 103
+observed-http-status: 302
+observed-content-type: unknown
+observed-content-length: 0
+observed-body-bytes: 0
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
@@ -153,24 +21,137 @@ capture-headers-truncated: no
 capture-diagnostics-truncated: no
 transport-exit-status-observed: 0
 ----- body -----
-{"name":"actuator","profiles":["health"],"label":null,"version":null,"state":null,"propertySources":[]}
+(empty)
 ----- end body -----
 ----- transport-diagnostics -----
 (none)
 ----- end transport-diagnostics -----
 ----- response-headers -----
-HTTP/1.1 200 OK
-Connection: keep-alive
-Transfer-Encoding: chunked
-Content-Type: application/json
-Date: <HTTP-DATE>
+HTTP/1.1 302 Found
+Location: http://localhost:53984/solr/
+Content-Length: 0
 
 
 ----- end response-headers -----
 
+===== alfresco-share =====
+request-method: GET
+request-url: http://localhost:53091/alfresco
+auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: http://localhost:53091/alfresco/
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 1.1
+observed-http-status: 302
+observed-content-type: unknown
+observed-content-length: (none reported)
+observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 0
+----- body -----
+(empty)
+----- end body -----
+----- transport-diagnostics -----
+(none)
+----- end transport-diagnostics -----
+----- response-headers -----
+HTTP/1.1 302 
+Location: /alfresco/
+Transfer-Encoding: chunked
+Date: <HTTP-DATE>
+Server:  
+
+
+----- end response-headers -----
+
+===== pentaho =====
+request-method: GET
+request-url: http://localhost:53099/pentaho
+auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 0
+observed-http-status: 000
+observed-content-type: unknown
+observed-content-length: (none reported)
+observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 7
+----- body -----
+(empty)
+----- end body -----
+----- transport-diagnostics -----
+curl: (7) Failed to connect to localhost port 53099 after 0 ms: Could not connect to server
+
+----- end transport-diagnostics -----
+----- response-headers -----
+(none)
+----- end response-headers -----
+
+===== virtualviewer =====
+request-method: GET
+request-url: http://localhost:53098/VirtualViewerJavaHTML5
+auth-mode: anon
+redirects-followed: 0
+redirect-target-reported: (none)
+transport-trust-mode: verify-default-trust-store
+certificate-verification-result: 0
+http-version: 0
+observed-http-status: 000
+observed-content-type: unknown
+observed-content-length: (none reported)
+observed-body-bytes: 0
+observed-body-form: text
+observed-body-sha256: (not computed for a textual body)
+observed-session-cookie: absent
+capture-body-truncated: no
+transport-refused-oversized-body: no
+transport-body-ceiling-bytes: 1048576
+capture-headers-truncated: no
+capture-diagnostics-truncated: no
+transport-exit-status-observed: 7
+----- body -----
+(empty)
+----- end body -----
+----- transport-diagnostics -----
+curl: (7) Failed to connect to localhost port 53098 after 0 ms: Could not connect to server
+
+----- end transport-diagnostics -----
+----- response-headers -----
+(none)
+----- end response-headers -----
+
+===== config-server (NOT ATTEMPTED) =====
+request-method: GET
+request-url: (no URL: CONFIG_SERVER_URL was unset for this run)
+observed-http-status: NOT-ATTEMPTED
+not-attempted-because: CONFIG_SERVER_URL is unset, so no configuration-server address was supplied for this run.  The configuration server is one of the six services whose wire behaviour this migration preserves, and this probe is the only observation of it available to this script; supplying CONFIG_SERVER_URL closes the gap
+note: the request above was NOT sent, so there is no response body to
+  record.  The section is written rather than omitted because an absent
+  section cannot be compared: a reader could not tell an unsent request
+  from lost evidence.  Nothing here is a substitute for the observation
+  that was not made, and no value below it is inferred from one.
+
 ===== message-broker-management =====
 request-method: GET
-request-url: http://localhost:8161/api/jolokia/read/org.apache.activemq:type=Broker,brokerName=localhost/BrokerVersion
+request-url: http://localhost:53261/admin/xml/queues.jsp
 auth-mode: anon
 redirects-followed: 0
 redirect-target-reported: (none)
@@ -179,8 +160,8 @@ certificate-verification-result: 0
 http-version: 1.1
 observed-http-status: 401
 observed-content-type: text/html;charset=iso-8859-1
-observed-content-length: 449
-observed-body-bytes: 449
+observed-content-length: 386
+observed-body-bytes: 386
 observed-body-form: text
 observed-body-sha256: (not computed for a textual body)
 observed-session-cookie: absent
@@ -198,7 +179,7 @@ transport-exit-status-observed: 0
 </head>
 <body><h2>HTTP ERROR 401 Unauthorized</h2>
 <table>
-<tr><th>URI:</th><td>/api/jolokia/read/org.apache.activemq:type=Broker,brokerName=localhost/BrokerVersion</td></tr>
+<tr><th>URI:</th><td>/admin/xml/queues.jsp</td></tr>
 <tr><th>STATUS:</th><td>401</td></tr>
 <tr><th>MESSAGE:</th><td>Unauthorized</td></tr>
 <tr><th>SERVLET:</th><td>-</td></tr>
@@ -216,50 +197,38 @@ HTTP/1.1 401 Unauthorized
 WWW-Authenticate: basic realm="ActiveMQRealm"
 Cache-Control: must-revalidate,no-cache,no-store
 Content-Type: text/html;charset=iso-8859-1
-Content-Length: 449
+Content-Length: 386
 
 
 ----- end response-headers -----
 
-===== message-broker-transport =====
+===== message-broker-transport (NOT ATTEMPTED) =====
 probe-kind: tcp-connect
-endpoint: localhost:61616
+endpoint: (none supplied)
 purpose: the wire the application publishes and consumes messages on, as opposed to the management surface above
-connect-timeout-seconds: 10
-bytes-sent: 0
-credential-sent: none
-observed-outcome: CONNECTED
-what-this-does-and-does-not-establish: a completed connection proves the
-  port accepts connections.  It does NOT establish that the service behind
-  it is healthy, that it speaks the protocol expected of it, or that this
-  application can authenticate to it.  Those are observed, where they are
-  observed at all, by the flows that use the service.
+observed-outcome: NOT-ATTEMPTED
+not-attempted-because: no endpoint was supplied for this run, so no
+  address was guessed.  A guessed address would record a connection
+  failure that reads as a behavioural finding about a service that was
+  never addressed.
 
-===== directory-service =====
+===== directory-service (NOT ATTEMPTED) =====
 probe-kind: tcp-connect
-endpoint: localhost:389
+endpoint: (none supplied)
 purpose: the directory the login flow authenticates against and the synchronisation jobs read
-connect-timeout-seconds: 10
-bytes-sent: 0
-credential-sent: none
-observed-outcome: CONNECTED
-what-this-does-and-does-not-establish: a completed connection proves the
-  port accepts connections.  It does NOT establish that the service behind
-  it is healthy, that it speaks the protocol expected of it, or that this
-  application can authenticate to it.  Those are observed, where they are
-  observed at all, by the flows that use the service.
+observed-outcome: NOT-ATTEMPTED
+not-attempted-because: no endpoint was supplied for this run, so no
+  address was guessed.  A guessed address would record a connection
+  failure that reads as a behavioural finding about a service that was
+  never addressed.
 
-===== database =====
+===== database (NOT ATTEMPTED) =====
 probe-kind: tcp-connect
-endpoint: localhost:3306
+endpoint: (none supplied)
 purpose: the relational store the persistence layer maps onto, whose schema this migration leaves unchanged
-connect-timeout-seconds: 10
-bytes-sent: 0
-credential-sent: none
-observed-outcome: CONNECTED
-what-this-does-and-does-not-establish: a completed connection proves the
-  port accepts connections.  It does NOT establish that the service behind
-  it is healthy, that it speaks the protocol expected of it, or that this
-  application can authenticate to it.  Those are observed, where they are
-  observed at all, by the flows that use the service.
+observed-outcome: NOT-ATTEMPTED
+not-attempted-because: no endpoint was supplied for this run, so no
+  address was guessed.  A guessed address would record a connection
+  failure that reads as a behavioural finding about a service that was
+  never addressed.
 

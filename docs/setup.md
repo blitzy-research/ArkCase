@@ -97,29 +97,52 @@ In your Tomcat 9 installation, edit `conf/server.xml` and add a TLS connector be
 
 ### Tomcat `setenv.sh`
 
-This block is a duplicate of the one in the upstream README, and the README is the authoritative copy. It is reproduced verbatim so the two cannot drift; the Java 17 migration changed only the paragraph that follows it, and deliberately left the command itself exactly as the README states it, including its pre-existing formatting and quoting. Pre-existing defects in it are registered in the migration notes rather than corrected here.
+This block is a duplicate of the one in the upstream README, and the README is the authoritative copy. It is reproduced byte for byte so the two cannot drift, and both were corrected together: the version this file carried until now was reproduced from the README including three defects that made it unusable as shell — a `${user.home}` token that is a Java property placeholder rather than a shell expansion, a stray quote inside `JAVA_OPTS` that terminated the assignment early and folded `-Xms`/`-Xmx` into a property value, and an unterminated `CATALINA_OPTS` assignment containing a bare parenthesised placeholder. `sh -n` rejected it. The migration is required to deliver an updated production launch configuration, and a launch configuration a shell will not source cannot be one, so it is corrected rather than registered; the correction is recorded with its authority in the migration notes.
 
-Create the file `bin/setenv.sh`, mark it executable, and set the contents as the following, *being careful to set the correct path to the Tomcat native library*:
+Create the file `bin/setenv.sh`, mark it executable, and set the contents as the following. Tomcat sources this file with `.`, so it must be valid shell; every value it needs comes from the environment and is checked before it is used.
 
 ```bash
 #!/bin/sh
 
-### MacOS X note: replace {user.home} with the actual path to your home folder, e.g. /Users/dmiller
-export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Duser.timezone=GMT  -Djavax.net.ssl.keyStorePassword=password -Djavax.net.ssl.trustStorePassword=password -Djavax.net.ssl.keyStore=${user.home}/.arkcase/acm/private/arkcase.ks -Djavax.net.ssl.trustStore=${user.home}/.arkcase/acm/private/arkcase.ts -Dspring.profiles.active=ldap -Dacm.configurationserver.propertyfile="${user.home}/.arkcase/acm/conf.yml -Xms1024M -Xmx1024M"
+# Fail closed on every value this file needs and does not have.  An unset secret that is
+# exported as an empty string does not announce itself: it surfaces much later as a TLS
+# handshake that fails, or as a JVM that starts and then cannot read its own keystore.
+: "${ARKCASE_KEYSTORE_PASSWORD:?set the ArkCase keystore password from your secret manager}"
+: "${ARKCASE_TRUSTSTORE_PASSWORD:?set the ArkCase truststore password from your secret manager}"
+: "${TOMCAT_NATIVE_LIB:?set the directory holding the Tomcat native library, e.g. /usr/local/opt/tomcat-native/lib}"
+
+# ${HOME} is the shell's own variable, so nothing has to be edited by hand on any
+# platform: on MacOS X it already expands to /Users/<you>.
+ARKCASE_HOME="${HOME}/.arkcase"
+
+JAVA_OPTS="-Djava.net.preferIPv4Stack=true"
+JAVA_OPTS="${JAVA_OPTS} -Duser.timezone=GMT"
+JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.keyStore=${ARKCASE_HOME}/acm/private/arkcase.ks"
+JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.keyStorePassword=${ARKCASE_KEYSTORE_PASSWORD}"
+JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStore=${ARKCASE_HOME}/acm/private/arkcase.ts"
+JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStorePassword=${ARKCASE_TRUSTSTORE_PASSWORD}"
+JAVA_OPTS="${JAVA_OPTS} -Dspring.profiles.active=ldap"
+JAVA_OPTS="${JAVA_OPTS} -Dacm.configurationserver.propertyfile=${ARKCASE_HOME}/acm/conf.yml"
+JAVA_OPTS="${JAVA_OPTS} -Xms1024M -Xmx1024M"
+export JAVA_OPTS
 
 export NODE_ENV=development
 
-export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)
-# MacOS Example: export CATALINA_OPTS=/usr/local/opt/tomcat-native/lib"
+CATALINA_OPTS="${CATALINA_OPTS:-} -Djava.library.path=${TOMCAT_NATIVE_LIB}"
+export CATALINA_OPTS
 
-export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
+export CATALINA_PID="${CATALINA_HOME:?set CATALINA_HOME to your Tomcat installation directory}/temp/catalina.pid"
 ```
+
+Supply the two passwords and the native-library directory to the account that starts Tomcat — from a secret manager, a systemd unit's `EnvironmentFile`, or your container orchestrator — and do **not** write literal values into this file.  There is no default and no shared password: a missing one stops the script with the message above rather than letting Tomcat start in a state where TLS is misconfigured.  One property of this arrangement is worth stating rather than leaving to be discovered — the JVM receives both passwords as system properties, so they are visible in the process table to anyone who can list processes on the host.  That is how ArkCase reads them and it is not changed here; treat the host accordingly and rotate the values as you would any other deployment credential.
+
+Every path above resolves from `${HOME}`, and each of the three required variables is named in the message that reports it missing, so a first-time setup is diagnosable from the failure alone.  Checked with `sh -n` and `bash -n`.
 
 This launch configuration deliberately contains no argument that opens or exports an encapsulated JDK package, and Java 17 needs none: nothing above relies on JDK internal access. That is why the table of applied exceptions in [JDK Access Exceptions](migration/add-opens-exceptions.md) is **empty** -- and that page records the five strong-encapsulation failures the migration measured, so the emptiness is not mistaken for an absence of the problem. **Two were in test libraries** (the mocking framework's class proxy factory, and the reflection helper of the framework removed outright) and **three were in production dependencies**: decision-table rule compilation, JSON deserialisation of `java.time` values, and the LDAP context source's internal JNDI factory constant. Each was removed at its source by advancing or removing the library that needed it, never by opening a JDK module to the application, so none became an applied exception. ArkCase's own reflective code only ever targets ArkCase classes, and ArkCase installs no `SecurityManager`.
 
 `NODE_ENV=development` explicitly selects the non-production branch of the front-end build that Tomcat runs at startup: `Gruntfile.js` tests only for the exact value `production` when it decides which asset lists to render into `home.html`, so every other value — including an unset variable — follows the same development branch. The export is therefore documentation of the intended branch rather than a strict requirement, and it is kept for that reason. That build now installs its dependencies with `npm ci` on Node 20.
 
-On MacOS X, you have to replace `file:${user.home}` in the above script, with the actual full path to your home folder.
+No MacOS X-specific edit is required.  The script above resolves every path from the shell's own `${HOME}`, so it works unchanged wherever the account's home directory is; an earlier revision of this file instructed the reader to substitute a literal path for a `${user.home}` token, which was never a shell expansion and would have expanded to nothing.
 
 ### Start and Stop Tomcat
 

@@ -1,0 +1,175 @@
+activation framework MIME-type resolution — the measured artifact comparison
+=============================================================================
+
+produced-by: docs/migration/smoke-evidence/activation-mime/probe.sh
+probe-source: docs/migration/smoke-evidence/activation-mime/MimeProbe.java
+java-version-observed: openjdk version "17.0.19" 2026-04-21
+javac-version-observed: javac 17.0.19
+
+WHY THIS FILE IS NOT PART OF THE DOCUMENT ROUND-TRIP EVIDENCE
+  The round-trip flow sends its document with an EXPLICIT content type on the
+  request, so the application never resolves one and the activation defaults are
+  never consulted on either leg.  A successful round trip would look exactly the
+  same with the wrong artifact, and the flow cannot run at all where the content
+  repository is not provisioned.  Evidence for a behavioural artifact choice
+  cannot rest on a flow that does not exercise the behaviour, so the behaviour is
+  exercised here instead, directly and without a network.
+
+THE CANDIDATE ARTIFACTS, READ FROM THE ARCHIVES
+  reference implementation  com.sun.activation:javax.activation:1.2.0
+    2 of 2 default resources, 42 classes
+  API-only                  javax.activation:javax.activation-api:1.2.0
+    0 of 2 default resources, 31 classes
+  legacy standalone         javax.activation:activation:1.1
+    2 of 2 default resources, 38 classes
+  The two default resources are META-INF/mimetypes.default and
+  META-INF/mailcap.default.  MimetypesFileTypeMap reads the first of them, so a
+  jar without it has nothing to resolve an extension against.
+
+THE ONE RESOURCE THAT MATTERS, REFERENCE IMPLEMENTATION AGAINST LEGACY 1.1
+  as bytes:   581 bytes against 606 bytes — DIFFER
+  as mappings: 22 pairs against 22 pairs — 0 differing
+  VERDICT: the archives differ only in comments.  Classpath order between
+  these two cannot change a resolved media type, because there is no mapping
+  on which they disagree.
+  This comparison exists to hold one register entry to its evidence.  The
+  reasoning first recorded for rejecting the legacy jar was that its copy of this
+  resource differs from the reference implementation's.  It does, as bytes.  It
+  does not, as mappings, and the mappings are what the map is built from.  The
+  rejection is sound on other grounds — an artifact this migration depends on is
+  pinned explicitly rather than inherited, and two providers of one package is a
+  duplicate-provider classpath — but not on this one, and the register now says so.
+
+WHAT THE DEPLOYED ARCHIVE ACTUALLY SHIPS
+  WEB-INF/lib/javax.activation-1.2.0.jar 
+  Exactly one activation jar on the deployed classpath is the intended state: a
+  second provider for the same package would make resolution order-dependent,
+  which is why the reactor excludes the legacy standalone jar from both of the
+  dependencies that drag it in.
+
+THE APPLICATION CONSUMERS OF THIS EXACT CALL, counted from the source tree
+  files importing javax.activation.MimetypesFileTypeMap: 4 in main source, 1 in test source
+    acm-services/acm-service-ecm/src/main/java/com/armedia/acm/plugins/ecm/service/impl/EmailAttachmentExtractorComponent.java
+    acm-services/acm-service-ecm/src/test/java/com/armedia/acm/plugins/ecm/service/impl/EmailAttachmentExtractorComponentTest.java
+    acm-services/acm-service-email-smtp/src/main/java/com/armedia/acm/services/email/smtp/InputStreamDataSource.java
+    acm-tool-integrations/acm-ephesoft/src/main/java/com/armedia/acm/ephesoft/service/AbstractBatchXMLFileListener.java
+    acm-tool-integrations/acm-ephesoft/src/main/java/com/armedia/acm/ephesoft/service/AttachmentCaptureFileListener.java
+  Each of the main-source consumers resolves an attachment or captured-document
+  name through new MimetypesFileTypeMap().getContentType(name) — the identical
+  call this probe makes.
+
+OBSERVED: REFERENCE IMPLEMENTATION
+  exit status observed: 0
+  probe: javax.activation.MimetypesFileTypeMap#getContentType
+  implementation-class: javax.activation.MimetypesFileTypeMap
+  implementation-source: javax.activation-1.2.0.jar
+  --- resolutions ---
+  attachment.txt	text/plain
+  attachment.html	text/html
+  attachment.xml	application/octet-stream
+  attachment.pdf	application/octet-stream
+  attachment.docx	application/octet-stream
+  attachment.doc	application/octet-stream
+  attachment.xlsx	application/octet-stream
+  attachment.xls	application/octet-stream
+  attachment.pptx	application/octet-stream
+  attachment.png	image/png
+  attachment.jpg	image/jpeg
+  attachment.gif	image/gif
+  attachment.tiff	image/tiff
+  attachment.zip	application/octet-stream
+  attachment.eml	application/octet-stream
+  attachment.msg	application/octet-stream
+  attachment.csv	application/octet-stream
+  attachment.rtf	application/rtf
+  attachment-with-no-extension	application/octet-stream
+  attachment.thisextensionexistsnowhere	application/octet-stream
+
+OBSERVED: API-ONLY ARTIFACT
+  exit status observed: 1
+  Exception in thread "main" java.lang.NoClassDefFoundError: com/sun/activation/registries/LogSupport
+  	at javax.activation.MimetypesFileTypeMap.<init>(MimetypesFileTypeMap.java:130)
+  	at MimeProbe.main(MimeProbe.java:66)
+  Caused by: java.lang.ClassNotFoundException: com.sun.activation.registries.LogSupport
+  	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+  	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+  	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
+  	... 2 more
+
+OBSERVED: LEGACY STANDALONE ARTIFACT, the one the reactor excludes
+  exit status observed: 0
+  probe: javax.activation.MimetypesFileTypeMap#getContentType
+  implementation-class: javax.activation.MimetypesFileTypeMap
+  implementation-source: activation-1.1.jar
+  --- resolutions ---
+  attachment.txt	text/plain
+  attachment.html	text/html
+  attachment.xml	application/octet-stream
+  attachment.pdf	application/octet-stream
+  attachment.docx	application/octet-stream
+  attachment.doc	application/octet-stream
+  attachment.xlsx	application/octet-stream
+  attachment.xls	application/octet-stream
+  attachment.pptx	application/octet-stream
+  attachment.png	image/png
+  attachment.jpg	image/jpeg
+  attachment.gif	image/gif
+  attachment.tiff	image/tiff
+  attachment.zip	application/octet-stream
+  attachment.eml	application/octet-stream
+  attachment.msg	application/octet-stream
+  attachment.csv	application/octet-stream
+  attachment.rtf	application/rtf
+  attachment-with-no-extension	application/octet-stream
+  attachment.thisextensionexistsnowhere	application/octet-stream
+
+THE COMPARISON, computed from the two captures above
+  DIFFERENT — the two artifacts do not behave alike.  "<" is the API-only
+  artifact and ">" is the reference implementation:
+    1,8c1,24
+    < Exception in thread "main" java.lang.NoClassDefFoundError: com/sun/activation/registries/LogSupport
+    < 	at javax.activation.MimetypesFileTypeMap.<init>(MimetypesFileTypeMap.java:130)
+    < 	at MimeProbe.main(MimeProbe.java:66)
+    < Caused by: java.lang.ClassNotFoundException: com.sun.activation.registries.LogSupport
+    < 	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+    < 	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+    < 	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
+    < 	... 2 more
+    ---
+    > probe: javax.activation.MimetypesFileTypeMap#getContentType
+    > implementation-class: javax.activation.MimetypesFileTypeMap
+    > implementation-source: javax.activation-1.2.0.jar
+    > --- resolutions ---
+    > attachment.txt	text/plain
+    > attachment.html	text/html
+    > attachment.xml	application/octet-stream
+    > attachment.pdf	application/octet-stream
+    > attachment.docx	application/octet-stream
+    > attachment.doc	application/octet-stream
+    > attachment.xlsx	application/octet-stream
+    > attachment.xls	application/octet-stream
+    > attachment.pptx	application/octet-stream
+    > attachment.png	image/png
+    > attachment.jpg	image/jpeg
+    > attachment.gif	image/gif
+    > attachment.tiff	image/tiff
+    > attachment.zip	application/octet-stream
+    > attachment.eml	application/octet-stream
+    > attachment.msg	application/octet-stream
+    > attachment.csv	application/octet-stream
+    > attachment.rtf	application/rtf
+    > attachment-with-no-extension	application/octet-stream
+    > attachment.thisextensionexistsnowhere	application/octet-stream
+
+WHAT THIS FILE ESTABLISHES, AND WHAT IT DOES NOT
+  It establishes that the artifact choice is behaviour-bearing and that the
+  artifact the deployment ships is the one that carries the resources the call
+  reads.  Read the observed captures above rather than this sentence: they are
+  the evidence and this is a summary of them.
+  It does NOT establish that any application code path ran in a deployed
+  container.  It exercises the API the consumers call, on the same runtime, from
+  the same artifact the deployment ships; it does not observe the consumers
+  themselves.  The class-level assertions for those live in the archived unit
+  suite, and observing them end to end needs a mail or capture path that this
+  environment does not provide.  Both limits are stated rather than left to be
+  inferred from a passing probe.

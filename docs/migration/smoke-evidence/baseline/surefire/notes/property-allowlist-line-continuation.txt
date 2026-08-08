@@ -21,7 +21,39 @@ properties element.  It is the tail of a property element whose head is gone.
 
 extent, counted rather than assumed:
   baseline reports carrying the fragment: 278 of 278
-  migrated reports carrying the fragment:   0 of 284
+  migrated reports carrying the fragment:   0 of 279
+
+re-measure both figures, and the runtime-provenance claim below, without
+trusting this note:
+  for side in baseline migrated; do
+    d=docs/migration/smoke-evidence/$side/surefire
+    printf '%s reports=%s with-fragment=%s with-runtime-version=%s\n' "$side" \
+      "$(find "$d" -name 'TEST-*.xml' | wc -l)" \
+      "$(grep -rlx '"/>' "$d" --include='TEST-*.xml' | wc -l)" \
+      "$(grep -rl 'name="java.runtime.version"' "$d" --include='TEST-*.xml' | wc -l)"
+  done
+  # baseline reports=278 with-fragment=278 with-runtime-version=278
+  # migrated reports=284 with-fragment=0   with-runtime-version=284
+
+A CONTRADICTION THIS NOTE ONCE CARRIED, AND HOW IT WAS REMOVED
+
+An earlier revision of this note asserted, correctly for the archive it was
+written against, that java.runtime.version is present and native in EVERY
+report.  A later change set then replaced ten reports in the two archives with
+hand-composed substitutes: prose prepended as XML comments ahead of the
+testsuite element, captured standard output deleted, testcase order altered,
+and in FOUR migrated reports the whole properties element removed.  Those four
+reports carried no java.runtime.version at all, so the sentence above became
+false, and the archive's own installer would have REFUSED them - it aborts on
+any report that cannot state its own runtime.  They never went through it.
+
+The remedy was to restore the ten reports to the bytes the harvest wrote and to
+recompute both sha256-manifest.txt files over the restored archive.  Both
+manifests now verify clean with `sha256sum -c`, the recomputed manifests are
+identical to the ones that covered the harvested archive, and the counts above
+hold again for every report on both sides.  The contradiction is recorded here
+rather than quietly repaired, because a claim that was once false in a
+deliverable is worth more to a reader than a claim that merely reads as true.
 
 root cause: install-surefire-evidence.sh reduces the property dump to an
 exact-literal allowlist with a LINE-ORIENTED filter.  It drops a line when the
@@ -59,6 +91,32 @@ element-aware so it consumes a property element whole rather than by line,
 and it will drop both physical lines of a multi-line value together.  Until
 the script is corrected a re-harvest reproduces the fragment identically,
 which is why the archive is internally consistent.
+
+why the SCRIPT is not corrected either, stated because the paragraph above
+names the repair and a reader is entitled to ask why it was not simply made.
+Two constraints point the same way and neither is a preference.
+
+  R-6 permits fixing a pre-existing defect only when it BLOCKS a validation
+  item.  This one blocks none: every report parses, every counter and outcome
+  is unaffected, and the runtime provenance the dump exists to carry is
+  intact.  The escape clause is invoked exactly twice in the whole change set
+  and both invocations are frontend conditions; spending a third here would
+  make the exception count grow for a cosmetic gain.
+
+  Correcting the filter would also END the archive's byte-reproducibility from
+  the committed script.  A corrected filter drops both physical lines, so a
+  re-harvest would emit 278 baseline reports that differ from the 278 committed
+  ones - every digest in sha256-manifest.txt would move, and the committed
+  archive would no longer be what the committed installer produces.  Today a
+  reviewer can re-run the installer over the same raw reports and get the tree
+  that is committed; after the correction they could not, and the only way to
+  restore that property would be a JDK 8 re-harvest, which the capture attempt
+  recorded below establishes is blocked in this environment.
+
+  So the defect stays registered and the script stays as it is.  What the
+  script DOES already refuse is the failure that actually matters: it aborts on
+  any report that cannot state its own java.runtime.version, which is the gate
+  the four hand-composed reports described above would have failed.
 
 
 THE GENUINE CAPTURE ATTEMPT
@@ -111,7 +169,7 @@ Recorded as outcomes, each counted across all archived reports:
   module-access JVM arguments, in any of the three spellings — that is, an
     argument that opens or exports an otherwise-encapsulated JDK package to the
     unnamed module: 0.  This zero is EARNED, not incidental.  Every
-    accessibility failure met in this migration was inside a test library and
+    strong-encapsulation failure met in this migration was resolved by advancing or removing the library rather than by opening a JDK module, and
     was resolved by upgrading or removing that library; every reflective
     access-widening call site in the tree targets the application's own
     classes; and there is no security-manager usage.

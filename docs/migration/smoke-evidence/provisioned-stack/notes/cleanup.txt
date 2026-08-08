@@ -1,0 +1,15 @@
+cleanup of application state created by this run
+
+Every mutating flow registers what it creates, and the registry is replayed
+here in reverse order at the end of the run.  A removal that answers 2xx is
+treated as done; 404 and 410 are also treated as done, because an object that
+is already gone needs no further removal.  Anything else is counted as failed
+and marks the run incomplete, because litter left in the application changes
+what the NEXT capture sees and therefore breaks the comparison this evidence
+exists to support.
+
+entries-registered: 1
+entries-removed: 0
+entries-failed: 1
+
+per-entry observations are in notes/cleanup.out and notes/cleanup.status.

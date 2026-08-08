@@ -2,16 +2,16 @@ which frontend build produced this side of the artifact comparison
 
 produced-by: docs/migration/smoke-evidence/smoke-checks.sh, capture_frontend_provenance
 
-frontend-resources-directory: ./acm-standard-applications/arkcase/src/main/webapp/resources
-artifact-directory-configured: ./acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
-artifact-directory-resolved: <REPO-ROOT>/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
-home-html-probed: ./acm-standard-applications/arkcase/src/main/webapp/resources/home.html
+frontend-resources-directory: <REPO-ROOT>/.blitzy-scratch/fe/C-migrated-node20/acm-standard-applications/arkcase/src/main/webapp/resources
+artifact-directory-configured: <REPO-ROOT>/.blitzy-scratch/fe/C-migrated-node20/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
+artifact-directory-resolved: <REPO-ROOT>/.blitzy-scratch/fe/C-migrated-node20/acm-standard-applications/arkcase/src/main/webapp/resources/assets/dist
+home-html-probed: <REPO-ROOT>/.blitzy-scratch/fe/C-migrated-node20/acm-standard-applications/arkcase/src/main/webapp/resources/home.html
 lockfile-in-the-resources-directory: present
 node-on-path-at-capture-time: v20.20.2
 npm-on-path-at-capture-time: 10.8.2
 artifact-age-in-whole-days-at-capture-time: 0
-artifact-directory-is-the-in-tree-default: yes
-artifact-directory-reproduction: this side digested the in-tree build outputs, reproducible from this checkout with the manifest build script
+artifact-directory-is-the-in-tree-default: no
+artifact-directory-reproduction: this side digested a build OUTSIDE the working tree, and the directory it digested is scratch - it does not survive the run that produced it, so the path above identifies what was measured rather than somewhere a reader can look. The build itself IS reproducible from a committed script: docs/migration/smoke-evidence/historical-frontend/capture-historical-frontend.sh extracts the base commit, installs with the package manager and on the runtime the base commit used, runs the unchanged task graph and prints the six digests. Run it and compare against artifacts/ in this capture directory
 
 read this together with:
   env/toolchain.txt              the full toolchain this capture ran on

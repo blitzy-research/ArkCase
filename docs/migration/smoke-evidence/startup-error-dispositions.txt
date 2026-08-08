@@ -1,0 +1,65 @@
+the startup error disposition ledger
+===================================
+
+WHAT THIS FILE IS FOR.  capture-startup-adjudication.sh computes, mechanically, which
+error-severity shapes each side of the deployment capture carries and which side each one
+appears on.  What it cannot compute is WHY a shape occurs — that is a claim about a system,
+not a property of a log line — so every such claim lives here, in one place, with the
+evidence that supports it, and the adjudicator copies the claim and its evidence into both
+records it writes.
+
+WHY A LEDGER RATHER THAN PROSE IN THE RECORD ITSELF.  The records are regenerated from the
+regions every time a capture changes.  A claim written into a record would be destroyed by
+the next regeneration; a claim written here survives it, and is re-attached by substring
+match to whichever shapes a new capture actually contains.  The consequence is the point:
+a shape that no row here matches is reported as UNDISPOSED and FAILS the gate.  The word
+"unexplained" cannot appear in a generated record and be left there — that was precisely
+the defect the review found, where four of five error shapes were recorded as unexplained
+in a file that had no mechanism to ever stop saying so.
+
+WHAT A ROW MAY AND MAY NOT CLAIM.  A row may say that a shape is pre-existing, that it is
+environmental, that it is expected, or that the migration removed it.  A row may NOT
+excuse a shape that appears only after the change set: the adjudicator fails the gate on
+migration-attributable shapes regardless of what any row here says about them, so a row
+cannot be used to talk a failure into a pass.  Where a shape was CORRECTED rather than
+dispositioned, it is absent from a current capture and its row is absent from here too;
+the corrections are recorded in the migration registers instead.
+
+FORMAT.  Three TAB-separated fields, one row per shape family.  Lines beginning with # and
+lines with fewer than three fields are ignored, which is what lets this prose sit in the
+same file as the data.
+
+  1  match-substring   matched with a plain substring test against the normalised shape.
+                       Chosen to be the narrowest text that identifies the family and
+                       carries no volatile token, so it keeps matching across captures.
+  2  classification    one of:
+                         pre-existing-environment   the environment, not the application,
+                                                    and identical before and after
+                         pre-existing-by-design     the shipped configuration provokes it
+                                                    deliberately, and says so
+                         expected-and-cited         known application behaviour with a
+                                                    citation in the repository
+                         removed-by-migration       present only before the change set
+                         informational-not-an-error a line at informational or warning
+                                                    severity that reaches the census only
+                                                    because a component name inside it
+                                                    carries a signature word.  Rows with
+                                                    this classification can never affect
+                                                    the gate, which turns on severity;
+                                                    they exist so that a side-only
+                                                    SIGNATURE difference is explained
+                                                    rather than left blank
+  3  evidence          where a reader verifies the claim.  A repository path, a command
+                       whose output can be reproduced, or both.  Never a bare assertion.
+
+# --------------------------------------------------------------------------------------
+# match-substring	classification	evidence
+# --------------------------------------------------------------------------------------
+HttpSecurityBeanDefinitionParser - Checking sorted filter chain	informational-not-an-error	An INFO line in which the security framework lists the filter chain it just assembled. It reaches this census only because one member of that list is named ExceptionTranslationFilter, so the word Exception appears inside a component name; the line itself reports success. Its text differs between the two sides because the change set advances the security library within its generation - AAP 0.5.1 records the advance and its compatibility reason, and 0.1.2 records that the generation itself is held - and the newer line adds DisableEncodeUrlFilter to the chain while the older one names SecurityContextPersistenceFilter. A chain composition that differs is the expected consequence of that advance and is not an error on either side. Verifiable in the region itself: the same lines appear at INFO severity in spring-context.log and in catalina.out.log on both sides, and neither side carries an error-severity line from this component.
+DefaultSecurityFilterChain - Will	informational-not-an-error	An INFO line reporting one assembled filter chain: which request pattern it covers and, when the chain is non-empty, which filters it applies.  It reaches this census only because the enumerated filter list names ExceptionTranslationFilter.  The two sides differ in WORDING and not in behaviour, and that was measured rather than assumed over the archived windows: both sides assemble exactly 21 chains, their 21 request patterns are a byte-identical set, exactly 18 of the 21 carry an EMPTY filter list on both sides, and the same 3 patterns carry filters on both sides - the interface routes, the static-asset routes, and the catch-all.  The newer security library reports an empty chain as "Will not secure <pattern>" where the older one reported it as "Will secure <pattern> with []", which is why the count of lines matching the word "secure" differs (3 versus 21) while the chain set does not.  Re-derivable from either side's catalina.out.log: extract every DefaultSecurityFilterChain line, strip the "Will secure" or "Will not secure" prefix and the filter list, sort, and the two sides produce the same 21 lines.
+DefaultFilterChainValidator - Possible error: Filters at position	informational-not-an-error	A WARN line the security framework emits when two adjacent filters in a chain are instances of the same authentication filter class. It is pre-existing behaviour of this application's chain configuration and appears on BOTH sides; only the two position numbers it quotes differ, because the newer library inserts an additional filter earlier in the same chain and shifts the pair along. The condition it warns about is unchanged, and it is a warning rather than an error on either side.
+Node Sass does not yet support your current environment	removed-by-migration	Emitted by the pre-migration stylesheet compiler's own installer as it fails to find a prebuilt binary for this platform. Same family as the sass.js task-loading row below: the change set removes that toolchain outright, so the line cannot occur after it. AAP 0.5.2 records the removal and 0.6.6 records the measurement that makes it output-neutral. Present only on the pre-migration side, which the gate treats as a removal rather than a regression.
+serverSort control: No ordering rule	pre-existing-environment	The two sort attributes the application asks the directory to sort on are uid and cn, configured as allUsersSortingAttribute and groupsSortingAttribute in the ldap configuration this deployment reads. Neither carries an ORDERING matching rule in the directory server's own schema, so the server refuses the sort control with result code 18 before any client library is involved. Reproduced with NO JVM PRESENT, which is what makes it JDK-independent: `ldapsearch -x -b <base> -E sss=uid` exits 18 with exactly "serverSort control: No ordering rule", while `sss=modifyTimestamp`, `sss=createTimestamp` and `sss=entryUUID` all succeed on the same server against the same base. The absence is verifiable in the server's published schema: a query for cn=subschema shows uid carrying EQUALITY caseIgnoreMatch and SUBSTR caseIgnoreSubstringsMatch and no ORDERING at all. Not correctable on this server: adding an ORDERING rule to uid was attempted and refused with "Duplicate attributeType: 0.9.2342.19200300.100.1.1", because uid belongs to the compiled-in system schema rather than to the runtime configuration database. Present on both sides of this capture, identically. See docs/migration/smoke-evidence/migrated/notes/ldap-jndi-environment.txt.
+failure occurred while polling for mail	pre-existing-by-design	The shipped configuration this deployment reads polls a mailbox that is declared not to exist: the CASE_FILE mail user is "no-such-mailbox@arkcase.org" with an empty password, under a configuration comment instructing an operator to "set some existing email here for testing". The mailbox name is itself the evidence of intent. Deliberately NOT corrected under R-6: inventing a mailbox would change what the shipped configuration exercises, and the failure is what a default deployment is designed to produce until an operator supplies a real account. Present on both sides of this capture. The trust anchors are not a factor here and were checked so that they could be ruled out: each side's trust store is a copy of that runtime's own cacerts with one certificate ADDED for the search front, so no public trust anchor is removed on either side and the failure is an authentication failure rather than a trust failure.
+Couldn't set global identity. [Not implemented yet!]	expected-and-cited	The global identity setter is a deliberately unimplemented extension point in the application source: the data-access object this service delegates to raises "Not implemented yet!" from its own body. It is reached once during context initialisation, its outcome is logged and discarded, and no caller depends on it. This is the one error the previous capture already cited, and it is the only error-severity line in this capture that originates in application logic rather than in an absent or refusing external service. Present on both sides of this capture.
+Loading "sass.js" tasks...ERROR	removed-by-migration	The pre-migration frontend toolchain declares a stylesheet-compiler task plugin whose native compiler cannot build on a current runtime, and its loader reports the failure as it starts. The change set removes that plugin outright — AAP 0.5.2 records the removal and 0.6.6 records why removal rather than replacement is output-neutral: the build file declares no task for it, and the asset resolver consumes only compiled stylesheet globs. The shape therefore appears only on the pre-migration side. It is a migration IMPROVEMENT, not a regression, and the gate treats a pre-migration-only shape accordingly.

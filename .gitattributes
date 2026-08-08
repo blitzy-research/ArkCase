@@ -1,0 +1,48 @@
+# Repository attributes.
+#
+# WHITESPACE POLICY FOR CAPTURED MIGRATION EVIDENCE
+#
+# The capture directories under `docs/migration/smoke-evidence/` hold recorded evidence
+# for the Java 17 / Node 20 runtime migration: server log regions mined verbatim out of a
+# container log, HTTP response bodies and headers recorded byte for byte, unit-test report
+# XML harvested from the test runner's own output, probe transcripts, and digest records.
+# Those bytes ARE the evidence.  Trailing whitespace, a blank final line and
+# space-before-tab inside them are part of what the observed tool actually emitted, so
+# normalising them would edit the observation rather than tidy the repository -- and it
+# would invalidate the SHA-256 manifests computed over these files and the
+# baseline-against-migrated mirror diff that the evidence contract is built on.
+#
+# The `-whitespace` attribute below therefore disables git's whitespace checks for
+# recorded capture output and for nothing else.  THE SCOPE IS CHOSEN BY MEASUREMENT, NOT
+# BY CONVENIENCE, and it was re-measured over the whole change set: `git diff --check`
+# reports violations in exactly four places -- the two side-by-side archives `baseline/`
+# and `migrated/`, the reference-stack capture `provisioned-stack/`, and the single
+# recorded transcript `activation-mime/results.txt`.  Each is listed, and nothing else is.
+#
+# HAND-WRITTEN FILES THAT SIT INSIDE A CAPTURE DIRECTORY STAY CHECKED.  A directory-wide
+# exemption would otherwise absorb them silently, so the two hand-written files under
+# `provisioned-stack/` -- its README and its analysis helper -- have the default checks
+# restored by name immediately after the directory rule.  `activation-mime/` is exempted
+# at the single recorded file rather than at the directory, because its probe source, its
+# probe script and its notes are hand-written and must stay checked.
+#
+# Everything else in the repository keeps git's default whitespace checks, including every
+# Java, XML, YAML, JSON, JavaScript, Python, shell and Markdown file, and including the
+# capture scripts that sit one level above the captures -- `smoke-checks.sh`,
+# `capture-static-audit.sh`, `install-surefire-evidence.sh`,
+# `historical-frontend/capture-historical-frontend.sh`, `advisory-corpus/*.sh` -- which
+# are clean on their own merits.
+#
+# The intended result is that `git diff --check <base>..HEAD` reports ZERO violations:
+# hand-written files are clean because they are clean, and recorded bytes are exempt rather
+# than rewritten.  If a violation ever appears in a hand-written file, the file is what
+# should change; this policy must not be widened to absorb it.  That rule has already been
+# applied once rather than merely stated: a blank line carrying twelve spaces in
+# `AngularResourceCopier.java` was the one hand-written violation the re-measurement found,
+# and the line was cleaned instead of the policy being widened to cover Java source.
+docs/migration/smoke-evidence/baseline/** -whitespace
+docs/migration/smoke-evidence/migrated/** -whitespace
+docs/migration/smoke-evidence/provisioned-stack/** -whitespace
+docs/migration/smoke-evidence/provisioned-stack/README.md !whitespace
+docs/migration/smoke-evidence/provisioned-stack/extract-blocking-chain.py !whitespace
+docs/migration/smoke-evidence/activation-mime/results.txt -whitespace

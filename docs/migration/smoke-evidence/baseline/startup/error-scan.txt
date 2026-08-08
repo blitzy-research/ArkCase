@@ -1,329 +1,167 @@
-capture: explicit ERROR scan over the startup log regions
+capture: the error census over this side's archived startup regions, and the
+  disposition of every distinct error-severity shape in it
 runtime: JDK 8
-commit: c8f6226105
-source: the startup log regions archived in this directory
-produced-by: docs/migration/smoke-evidence/smoke-checks.sh
-region-status: CAPTURED
-scan-command: grep -h -E -i 'ERROR|SEVERE|Exception|Caused by|NoClassDefFoundError|IllegalAccessError|NoSuchMethodError' catalina.out.log readiness-poll.log spring-context.log reflection-scan.log jpa-init.log workflow-engine-init.log frontend-build.log | sed -e 's/[[:cntrl:]]\[[0-9;]*m//g' -e 's/^[[:space:]][[:space:]]*//' -e 's/<TIMESTAMP>,[0-9][0-9]*/<TIMESTAMP>/' -e 's/ ~\[[^]]*\]//g' -e 's|/tmp/[^ )]*|<PATH>|g' -e 's/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*[:_][0-9][0-9]*/<NODE>/g' -e 's/@[0-9a-f][0-9a-f]*/@<HASH>/g' -e 's/\.java:[0-9][0-9]*)/.java)/g' -e '/\[ERROR\]/b' -e '/\[SEVERE\]/b' -e 's/\(.\{200\}\).*/\1 <TRUNCATED-AT-200>/' | sort | uniq -c | sort -k1,1nr -k2
-scan-result: 204 signature-matching lines were found across the 7 scanned regions and
-  are represented below by 25 distinct normalised lines, each carrying its
-  multiplicity; nothing was discarded.  Of the 204, exactly 2 carry ERROR severity
-  and 0 carry SEVERE severity.  Both ERROR lines are classified individually further
-  down: one is expected pre-existing with a repository citation, and one is recorded
-  UNEXPLAINED.  Severity census of the 25 distinct lines, so that not one of them is
-  left unaccounted for: 2 carry ERROR and 0 carry SEVERE; 2 carry WARN, standing for 3
-  occurrences; 16 carry INFO, standing for 20 occurrences, and match only because a
-  component or bean name contains an error or exception word; and 5 carry no severity
-  marker of their own, standing for 179 occurrences, because they are continuation lines
-  of a trace whose severity sits on the line above them in the source region.
-  0 lines match any of the six migration-risk signatures enumerated in the notes.
-  This is a stated result and never an exit status.  grep exits 1 when it finds
-  nothing, so an exit code would read the cleanest possible scan as a failure; that is
-  the second, independent reason exit codes are unusable here, alongside the rule
-  quoted in the notes.
-regions-scanned: 7 of 7.  All seven regions named in this field were present in this
-  directory, were non-empty, and were scanned.  Raw match counts per region, in the
-  order the scan command names them: catalina.out.log 202, readiness-poll.log 0,
-  spring-context.log 0, reflection-scan.log 0, jpa-init.log 2,
-  workflow-engine-init.log 0, frontend-build.log 0.  catalina.out.log is the extracted
-  startup window verbatim and unfiltered, so scanning it is a superset of scanning any
-  pattern-mined region carved out of the same window; the scope is therefore not
-  narrower than it looks.  The three further regions in this directory that this scan
-  does not name -- errors.log, ldap-context-source.log and messaging-init.log -- are
-  themselves mined from that same window, so no line reachable through them is
-  unreachable through catalina.out.log.
-normalised: terminal colour escape sequences; the leading indentation of stack-frame
-  lines; the millisecond remainder of the already-tokenised timestamp; the runtime
-  build tag the container appends to each stack frame; absolute filesystem paths under
-  the run scratch root, to <PATH>; the cluster member address and port, to <NODE>;
-  object identity hashes, to @<HASH>; and the line number inside a stack frame, so a
-  frame reads .java) rather than .java followed by a colon and a volatile number.
-  Every line EXCEPT an ERROR- or SEVERE-severity line is capped at 200 characters and
-  marked <TRUNCATED-AT-200>; the two severity classes are exempted deliberately,
-  because the exception type and the message text of an ERROR are the entire
-  behaviour-bearing content of this file and the longer of the two ERROR lines exceeds
-  the cap.  Identical lines are then collapsed and carry their multiplicity as a
-  leading count.  Stack traces are truncated to their top rather than reproduced
-  whole: the scan is line-oriented, so a trace contributes only those of its own lines
-  that themselves carry a signature -- its exception header line, and any frame whose
-  own class name carries one -- and no frame is followed.  PRESERVED verbatim: the
-  exception type and full message text of every ERROR line, every severity marker, and
-  every component and logger name.
-redacted: nothing needed redacting, and that is a measured finding rather than an
-  assumption.  A scan of the capture block below for password, passwd, user=, secret,
-  token=, _auth and a credential embedded in a URL authority returns nothing; no JDBC
-  URL appears in it, so none retains a host, a port or a database name; and no stack
-  frame carries a connection string.  The fixed token for this file is <REDACTED>, the
-  token docs/setup.md already uses at its keystore, trust-store and account lines; the
-  capture pipeline's own longer credential token fired upstream in the container
-  banner, outside the signature-matching set, and is left exactly as it arrived there.
-  The documented administrator credential is never transcribed here, not even as an
-  illustration of what would be replaced.  Three substitutions were prepared and none
-  was required, each confirmed by measurement over the seven regions: no captured line
-  carries a module-access JVM argument that opens or exports an otherwise-encapsulated
-  JDK package to the unnamed module, so none was rewritten; no captured line carries
-  the older runtime's marketing spelling, so no wording substitution was applied; and
-  no captured line names the successor enterprise namespace this migration is
-  forbidden to adopt, so no namespace description was substituted for a quoted token.
------ BEGIN CAPTURE -----
-    175 java.io.FileNotFoundException: <PATH> (No such file or directory)
-      3 <TIMESTAMP> [INFO ] [main] org.springframework.security.config.http.HttpSecurityBeanDefinitionParser - Checking sorted filter chain: [Root bean: class [org.springframework.security.web.context.Securit <TRUNCATED-AT-200>
-      2 <TIMESTAMP> [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller: Change set /com/arm <TRUNCATED-AT-200>
-      2 <TIMESTAMP> [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller: Change set /com/a <TRUNCATED-AT-200>
-      2 <TIMESTAMP> [WARN ] [main] org.springframework.security.config.http.DefaultFilterChainValidator - Possible error: Filters at position 7 and 8 are both instances of org.springframework.security.web.aut <TRUNCATED-AT-200>
-      1 <TIMESTAMP> [ERROR] [main] com.armedia.acm.service.identity.service.AcmArkcaseIdentityServiceImpl - Couldn't set global identity. [Not implemented yet!]
-      1 <TIMESTAMP> [ERROR] [task-scheduler-1] org.springframework.integration.handler.LoggingHandler - org.springframework.messaging.MessagingException: failure occurred while polling for mail; nested exception is javax.mail.AuthenticationFailedException: Login failed.
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.channel.DirectChannel - Channel 'org.springframework.web.context.WebApplicationContext:/arkcase.mailErrorChannelCaseFile' has 1 subscriber(s) <TRUNCATED-AT-200>
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.channel.DirectChannel - Channel 'org.springframework.web.context.WebApplicationContext:/arkcase.mailErrorChannelComplaint' has 1 subscriber(s <TRUNCATED-AT-200>
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.channel.DirectChannel - Channel 'org.springframework.web.context.WebApplicationContext:/arkcase.mailErrorChannelReceiver' has 1 subscriber(s) <TRUNCATED-AT-200>
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.channel.PublishSubscribeChannel - Channel 'org.springframework.web.context.WebApplicationContext:/arkcase.errorChannel' has 1 subscriber(s).
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.config.DefaultConfiguringBeanFactoryPostProcessor - No bean named 'errorChannel' has been explicitly defined. Therefore, a default PublishSub <TRUNCATED-AT-200>
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - Adding {chain} as a subscriber to the 'mailErrorChannelCaseFile' channel
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - Adding {chain} as a subscriber to the 'mailErrorChannelComplaint' channel
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - Adding {chain} as a subscriber to the 'mailErrorChannelReceiver' channel
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - Adding {logging-channel-adapter:_org.springframework.integration.errorLogger} as a subscriber to the 'errorCha <TRUNCATED-AT-200>
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - started _org.springframework.integration.errorLogger
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.security.web.DefaultSecurityFilterChain - Will secure Regex [pattern='^/api/.*$|^/plugin/.*$'] with [org.springframework.security.web.context.SecurityCon <TRUNCATED-AT-200>
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.security.web.DefaultSecurityFilterChain - Will secure Regex [pattern='^/assets/.*$|^/custom_assets/.*$|^/directives/.*$|^/custom_directives/.*$|^/filters <TRUNCATED-AT-200>
-      1 <TIMESTAMP> [INFO ] [main] org.springframework.security.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.context.SecurityContextPersistenceFilter@<HASH>, <TRUNCATED-AT-200>
-      1 <TIMESTAMP> [WARN ] [main] org.springframework.security.config.http.DefaultFilterChainValidator - Possible error: Filters at position 6 and 7 are both instances of org.springframework.security.web.aut <TRUNCATED-AT-200>
-      1 Caused by: javax.mail.AuthenticationFailedException: Login failed.
-      1 at org.springframework.integration.util.ErrorHandlingTaskExecutor$1.run(ErrorHandlingTaskExecutor.java)
-      1 at org.springframework.integration.util.ErrorHandlingTaskExecutor.execute(ErrorHandlingTaskExecutor.java)
-      1 at org.springframework.scheduling.support.DelegatingErrorHandlingRunnable.run(DelegatingErrorHandlingRunnable.java)
------ END CAPTURE -----
-notes:
-- what produced what, stated precisely so the produced-by field above cannot be
-  over-read.  The seven regions this scan reads were written by
-  docs/migration/smoke-evidence/smoke-checks.sh, and each carries its own provenance
-  header naming the container log it was mined from and the bounded startup window it
-  was mined within.  The capture block above is the verbatim output of the
-  scan-command field, run over those seven files with no hand editing of any line.
-  The command is published in this file precisely so the block is reproducible rather
-  than merely asserted: re-run it in this directory and the 25 lines come back.
-- why this file is .txt and not .log.  The seven .log files here are excerpted log
-  regions -- what the application emitted.  This file is the outcome of running a scan
-  over them -- what the scan concluded.  Those are different kinds of artefact, and a
-  .log extension would present this one as an eighth region, blurring the two and
-  weakening the evidence chain.  .txt is the honest extension and is sanctioned for
-  this folder alongside .log, .out, .status, .xml, .sha256, .json and .html; the
-  sibling capture script uses the same vocabulary when it writes its .result.txt
-  records.
-- a naming irony that is worth stating because the trap it points at is silent.  Every
-  line this scan examines originates in the container's own log directory, a directory
-  literally named logs, while the archive directory here is startup/.  That is not a
-  stylistic choice: the repository ignore file matches bare, leading-slash-free tokens
-  at ANY depth, and logs is one of them, so a subdirectory named logs beneath this path
-  would be silently uncommitted.  Every local check would pass while the committed
-  deliverable was empty.  No subdirectory is created here, and none of the six ignored
-  names is used.  Separately and coincidentally, the repeated write failure recorded
-  below names a runtime directory that happens to carry the same word; the two facts
-  are unrelated beyond the name.
-- the migrated capture must run the scan-command field BYTE-IDENTICALLY, and must use
-  the identical filename, the identical field set and the identical field order, or
-  diff -r over the two capture trees stops being mechanical.  The command names its
-  seven regions by relative filename only and hard-codes no directory, so it executes
-  unchanged from the migrated startup directory.  The three region-selection decisions
-  the migrated scan must also apply, restated here so they can be applied without
-  re-deriving them: cap every non-ERROR, non-SEVERE line at 200 characters and mark it;
-  collapse identical lines and carry the multiplicity as a leading count; and truncate
-  stack traces to their top by never following a frame.
-- this scan is NOT vacuous, and the distinction matters more than any other statement
-  in this file.  "No ERROR lines were found" and "no lines were available to scan" are
-  opposite findings that look identical if stated carelessly, and conflating them would
-  manufacture a false pass.  All seven regions were present and non-empty; the scan
-  matched 204 lines, of which 2 carry ERROR severity; and the clean results are the six
-  targeted signature assertions below, not an empty capture block.  region-status reads
-  CAPTURED for that reason, and no skip-reason field is present because none applies.
-- rules provenance, and both facts belong together because either alone misleads.
-  First, there is NO on-disk user rules document for this project: the rules facility
-  reports, verbatim, "No user rules provided."  That is not licence to lower the bar.
-  Second, rules are nonetheless present and binding: the requirements embed an
-  explicit, numbered block of seven rules that govern this work in full, exactly as an
-  external rules document would, alongside seven transformation rules.  The R-1..R-7
-  and R-T1..R-T7 identifiers used below are the migration plan's own navigational
-  convention and are not quoted titles.  No rule here is invented and none is softened.
-- R-6, quoted: "Pre-existing bugs discovered during the work are documented rather than
-  fixed, unless one blocks a validation item."  Applied here without exception.  Every
-  pre-existing condition this scan met is recorded exactly as observed -- not repaired,
-  not retried into submission, not hidden, and not omitted for looking untidy.  The
-  change set invokes R-6's escape clause exactly twice and NEITHER invocation is in
-  this folder; nine other registered defects remain deliberately unfixed.  Nothing in
-  this file proposes, implies or performs a fix to any condition it records.
-- R-T7, quoted: "Validation asserts on produced artifacts and captured output, never on
-  process exit status alone.  This is mandatory rather than stylistic because
-  Gruntfile.js sets grunt.option('force', true), which masks task failures and lets a
-  broken build exit zero."  This file is the captured output that rule demands in place
-  of an exit code, which is why scan-result is a stated result.  The grep exit
-  convention gives a second, independent reason: grep exits 1 on no match, so a bare
-  exit status would report the cleanest possible scan as a failure and a noisy one as a
-  success.
-- R-7, quoted with one disclosed substitution: "The application's observed behavior at
-  the base commit on JDK 8 is the tie-breaker for any ambiguity, and each resolution
-  must be documented."
-  [Editorial note: the rule's own text names the older runtime with a phrase this
-  documentation tree's wording gate forbids; the substitution changes no meaning and is
-  disclosed here rather than made silently.]
-  R-7 is this file's whole purpose.  Without a recorded scan taken before any file was
-  edited, the phrase "no ERROR attributable to the migration" is unfalsifiable, because
-  any post-migration ERROR could be waved away as pre-existing.  With it, the claim can
-  be checked line by line.
-- R-5 is honoured by omitting nothing silently.  Every matched line is represented
-  above, every ERROR line is classified individually below, and had the scan been
-  unable to run the field set would have said so explicitly and machine-readably rather
-  than presenting an empty block as a clean result.
-- R-2 is honoured, and the honouring is measurable rather than asserted.  No line in
-  this file carries a module-access JVM argument that opens or exports an
-  otherwise-encapsulated JDK package to the unnamed module, and none needed rewriting,
-  because the container banner captured on this side carries no such argument at all.
-  The register of applied exceptions is referenced BY TITLE ONLY -- JDK Access
-  Exceptions -- and its filename is deliberately not written anywhere here, because the
-  filename itself embeds one of the forbidden tokens.  That register is delivered empty
-  with a positive statement that the production launch configuration requires none.
-- R-T1 is honoured: nothing in this file names the successor enterprise namespace this
-  migration is forbidden to adopt, inside a captured line or outside one, and the
-  measurement over the seven regions returned zero occurrences to have to describe
-  around.  The javax-namespace type names that do appear in captured lines appear
-  because namespace invariance kept them, which is the rule working rather than failing.
-- R-1 is honoured on tooling: the scan uses grep, sed, sort and uniq only.  No jq, no
-  Python, no Node, no test framework and no package installation is involved, so the
-  command runs on any POSIX host without provisioning.
-- why the signature set is the full set and why the match is case-insensitive.  The
-  alternation above is the same error-signature set, with the same -E -i flags, that
-  the capture script applies when it mines its own error region from this window, so
-  this scan is provably not narrower than that region.  The set deliberately reaches
-  past the two severity words: a runtime migration fails in shapes those words never
-  carry -- a missing class from a removed platform module, an access failure from
-  strong encapsulation, a method that moved -- and the cause of a failure is usually
-  named on the "Caused by" line rather than on the line that logged it.  Case
-  insensitivity was measured rather than assumed: a case-sensitive match over the same
-  seven regions returns 184 lines against 204, and the 20 additional occurrences break
-  down as 3 WARN lines, 14 INFO lines and 3 unmarked stack frames, with 0 additional
-  ERROR lines.  So the flag is not free noise in either direction.  It costs 17
-  low-severity matches whose only signature is the word error inside a channel, bean or
-  changeset name, all of which are visible above and accounted for below rather than
-  filtered away -- and it is what surfaces the 3 behaviour-bearing WARN lines of group B,
-  which a case-sensitive scan would have missed entirely.
-- pre-existing-condition-in-the-reference-stack: the document viewer is EXPECTED to
-  answer HTTP 503.  That is a documented pre-existing condition recorded in TWO
-  independent places, and being documented twice is itself the evidence that it is by
-  design rather than a fault: README.md:L53 and docs/setup.md:L33, both anchors
-  re-verified against the base commit named in the commit field, which is the correct
-  frame for a pre-migration artefact.  In the post-migration tree those same two lines
-  sit at README.md:50 and docs/setup.md:30, because edits above them removed lines;
-  both positions are given so a reviewer finds the line from either side.  Under R-6 the
-  condition is captured as observed: not retried into submission, not repaired, not
-  hidden, and never counted as a migration regression.  EXPECTATION MARKER for whoever
-  reads the migrated scan: a matching 503 there is the EXPECTED result, and its ABSENCE
-  is the anomaly worth investigating.
-- and an honest boundary on that expectation, because stating it without the boundary
-  would misrepresent this scan.  This scan's match set contains NO 503 and no reference
-  to the document viewer, and that is expected rather than a gap: the viewer is observed
-  by an HTTP probe in a flow record, not by a line in a startup log.  Measured over the
-  seven regions, the literal viewer name occurs zero times, and the only two occurrences
-  of the digit sequence 503 anywhere in them fall inside the datestamped build qualifier
-  of a persistence-provider startup banner logged at INFO severity -- coincidental text,
-  not an HTTP status, and not an error line at all.
-  The viewer observation lives in the views flow record and in notes/reference-stack.txt
-  beside this directory; both are sibling artefacts, referenced here and not duplicated.
-- the six targeted assertions this scan supports.  Each is a stated result of a probe
-  run over the same seven regions, and each names a specific migration risk, which is
-  what makes the scan targeted rather than decorative.  All six are assertions about
-  THIS pre-migration side only; the migrated scan is a separate artefact and this file
-  makes no claim about it.
-- assertion 1 of 6 -- no entry references a missing platform-supplied class from a
-  removed enterprise module.  Probe
-  NoClassDefFoundError|ClassNotFoundException|NoSuchMethodError|NoSuchFieldError returns
-  zero lines, and a second probe for a removed platform package named inside a failure --
-  package javax.xml.bind, or any of javax.xml.bind, javax.activation and javax.annotation
-  followed by a not-found phrase -- returns zero lines as well.  Both probes were run,
-  because the first alone would miss a resolution failure phrased as prose rather than as
-  a thrown type.  That removal is the one that fails LOUDLY, at compile time, which is
-  why four javax-namespace artifacts are reinstated reactor-wide so that 94 consuming source
-  files need zero import edits.  This side's zero is the reference the migrated side is
-  read against.
-- assertion 2 of 6 -- no entry references an XML-binding provider conflict.  Probe
-  JAXBException|JAXBContext|jaxb|MOXy returns zero lines.  The risk was that a second
-  binding implementation already on the classpath wins provider resolution and changes
-  the SHAPE of generated XML, which no compiler and no exit code would reveal.
-  Executing three classpath shapes settled it: the deployed shape resolves to the
-  expected reference implementation and produces identical XML, so no
-  provider-selection properties file is added anywhere.
-- assertion 3 of 6 -- no entry references an inaccessible-object condition.  Probe
-  InaccessibleObjectException|IllegalAccessError|IllegalAccessException|cannot access
-  class|does not export|does not open returns zero lines.  Strong encapsulation is the
-  relevant mechanism, and every failure of that kind found anywhere in this migration
-  was inside a TEST library, never in production code; every setAccessible call site in
-  the codebase targets the application's own classes; and there is zero security-manager
-  usage.  Those three facts together are the empirical basis for the JDK Access
-  Exceptions register being delivered empty.
-- assertion 4 of 6 -- no entry references a bytecode verification error.  Probe
-  VerifyError|ClassFormatError|UnsupportedClassVersionError|Bad type on operand stack
-  returns zero lines.  That is the failure mode of the expression-language library whose
-  compatible floor was found by BISECTION rather than from documentation, and which sits
-  on the critical path for object numbering and queue routing, so a failure here would
-  surface as wrong numbers and wrong routing rather than as a startup crash.
-- assertion 5 of 6 -- no entry references a null script engine.  Probe
-  ScriptEngine|nashorn|script engine|ScriptEngineManager returns zero lines.  This is
-  the SILENT removal and therefore the most dangerous of the three: the calling code
-  compiles cleanly because only the engine implementation went away, so the lookup
-  returns nothing and the next use fails at runtime.  Both call sites are provably
-  unreachable dead code, and no standalone engine dependency is added, because adding
-  one would make dead code functional -- a behaviour change -- and would mask a latent
-  defect instead of recording it.  The full defect analysis belongs to
-  workflow-engine-init.log and is referenced here rather than restated.
-- assertion 6 of 6 -- no entry, at any severity, reports a duplicate class for the
-  persistence API package.  Probe duplicate class|Duplicate returns zero lines.  That is
-  the observable consequence of the targeted exclusion that keeps exactly one
-  persistence API jar on the classpath; the persistence configuration detail itself
-  belongs to jpa-init.log and is referenced rather than restated.
-- error-lines-found: 2.  severe-lines-found: 0.  Each ERROR line is classified
-  individually below, and nothing unexplained is quietly reclassified as expected.
-- ERROR 1 of 2 -- EXPECTED PRE-EXISTING, with citation.  The identity service logs
-  "Couldn't set global identity." carrying the message "Not implemented yet!".  The
-  citation is to the code that produces it unconditionally rather than to prose:
-  AcmArkcaseGlobalIdentityDao.java:42 throws on every call with that exact message, and
-  AcmArkcaseIdentityServiceImpl.java:90 logs the caught message at ERROR severity.
-  A diff of that module against the base commit named in the commit field reports no
-  change, so both files are byte-identical at the base commit and the line is
-  deterministic and runtime-independent.  Under R-6 it is documented, not fixed.
-- ERROR 2 of 2 -- UNEXPLAINED at baseline, and deliberately not upgraded.  The mail
-  poller logs a messaging failure whose nested cause is an authentication failure, and
-  its "Caused by" tail appears above as a separate matched line.  One observation is
-  attached, and it is an observation rather than a citation: the reachability matrix in
-  notes/reference-stack.txt enumerates the reference-stack surfaces and contains no mail
-  row, so on this side the poller had nothing to authenticate against.  That explains
-  the shape of the line, but no repository text documents this line as expected, so it
-  fails the citation test and is recorded UNEXPLAINED.  Recording it honestly is the
-  whole point: a tidied baseline is exactly where a genuine migration regression would
-  hide, and honest baseline noise is more useful than a clean-looking one.
-- WARN lines judged behaviour-bearing: two groups, 178 occurrences between them.  They
-  are kept apart from the two ERROR lines and are labelled WARN here, and neither group
-  is counted as an ERROR anywhere in this file.  One precision, stated rather than
-  glossed because getting it wrong would be the difference between a classified line and
-  an unclassified one: only group B carries a WARN marker on the matched line itself.
-  Group A's severity is established by the logger line immediately above it in the source
-  region, which announces the failed write at WARN and does not itself carry an error
-  signature, so it is correctly absent from the match set.  A matched line bearing no
-  marker of its own could otherwise be read as an unclassified error, and it is not one.
-- WARN group A, 175 occurrences -- the exception header of a repeated stack trace from
-  the in-memory data grid's diagnostics plugin, which could not open a file because the
-  directory it writes into does not exist on this host.  It is a property of the capture
-  host rather than of the application, it is runtime-independent, and it is recorded as
-  observed and not repaired.  It is also why 175 of the 204 matches are one line: the
-  plugin retries on a timer for the length of the window.
-- WARN group B, 2 distinct lines and 3 occurrences -- the security filter-chain validator
-  reporting that two adjacent filters at named positions are both instances of the same
-  authentication filter, on three separate chains.  These are behaviour-bearing because
-  they concern security filter ORDER, so they are recorded rather than dismissed, and
-  they are captured as observed and not repaired.  The filter-chain evidence itself
-  belongs to spring-context.log and to the authenticated flow record, and is referenced
-  rather than duplicated.
-- scope fence.  This file reports its OWN scan and nothing else.  No aggregate verdict
-  over the deployment gate is stated or implied here: the directory-level manifest is
-  startup.status, and the two-sided comparison belongs with the capture summary.  No log
-  region is reproduced, no flow capture, no artifact digest, no unit-test report and no
-  toolchain record.  No dependency inventory, no version and no artifact coordinate is
-  asserted anywhere in this file; a numeral inside a captured line is part of the
-  captured text and nothing more.  Sibling artefacts are referenced by filename, and the
-  register of applied JDK access exceptions is referenced by title alone.
+capture-side: baseline-pre-migration
+produced-by: docs/migration/smoke-evidence/capture-startup-adjudication.sh
+GENERATED-NOT-AUTHORED: every count, census line, comparison and disposition below
+  was read or computed at the moment of writing from the region files in this
+  directory.  Nothing in it is transcribed, and no sentence in it can go stale
+  independently of the evidence it describes.  This file replaced an authored one:
+  the authored version could say a shape was UNEXPLAINED indefinitely, whereas an
+  undisposed shape here is a FAIL row in the gate and a non-zero exit status.
+written-at: 2026-08-08T05:27:55Z
+capture-commit: 05098ba73e5d90ba0212661bbe54eb61a6082bc2
+branch: blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614-w-053
+worktree-at-write-time: clean — git status --porcelain produced no output, so the
+  commit named above contains the files this record describes
+what-the-commit-field-means: the commit whose CONTENT this record was computed from,
+  which is the commit holding the region files it read.  This record is necessarily
+  written afterwards and therefore lands in a SUCCESSOR commit; a record cannot
+  contain the hash of the commit that contains it.  The clean-worktree assertion
+  above is what makes the field meaningful rather than decorative: it establishes
+  that the regions this record describes were committed, unmodified, at that
+  revision.  Stating a hash without that assertion is what made an earlier
+  evidence set unusable.
+source: the ten startup regions in baseline/startup/
+comparison-side: migrated/startup/
+
+SCOPE OF THE CENSUS
+  The census is taken over catalina.out.log alone, which is the extracted boot
+  window VERBATIM.  Every other region in this directory is mined out of that same
+  window, so no line reachable through a mined region is unreachable here — the
+  scope is a superset of the union, not a subset of it.  Scanning all ten would
+  instead count one line once per region that matched it.  Per-region signature
+  counts are published below as a cross-check, and this file does not scan itself.
+  signature-pattern: ERROR|SEVERE|Exception|Caused by|NoClassDefFoundError|IllegalAccessError|NoSuchMethodError
+  severity-pattern: \[ERROR\]|\[SEVERE\]|^SEVERE:|[[:space:]]SEVERE[[:space:]]
+  pattern-flags: grep -E for the severity pass, grep -E -i for the signature pass
+
+WINDOW THIS CENSUS DESCRIBES
+  window-source: /tmp/blitzy/ArkCase/blitzy-<UUID>-w-053_196589/.blitzy-scratch/rt/base8/tomcat/logs/catalina.out
+  window-source-sha256: 11682dabc447c853c394d3c517cf5b7eb8ee6cf07526b1c6379c111e49c0d5c0
+  window-sha256: c29de8db1d50b9844782be88aabd1b39fffde42336b66def88ab4123022dd4b3
+  window-lines: 2731
+  boots-present-in-source: 1
+
+PER-REGION ACCOUNTING
+  Every region is listed, including the ones whose bodies contain no signature at
+  all, so a region that matched nothing is visibly accounted for rather than
+  missing.  derived-body-lines is COUNTED here between the two region delimiters
+  and compared against the figure the region itself declares; a disagreement means
+  the file was edited after it was produced and is reported as an integrity fault.
+
+  region                     mandatory    declared    derived  signature agree
+  catalina.out.log           yes              2731       2731         33 yes
+  spring-context.log         yes                 4          4          0 yes
+  jpa-init.log               yes               102        102          2 yes
+  reflection-scan.log        yes                26         26          0 yes
+  workflow-engine-init.log   yes                91         91          0 yes
+  ldap-context-source.log    yes                28         28          0 yes
+  messaging-init.log         yes               240        240          0 yes
+  frontend-build.log         yes               237        237          6 yes
+  readiness-poll.log         yes                 5          5          0 yes
+  errors.log                 no                 33         33         33 yes
+
+  signature-matching-lines-in-window: 33
+  distinct-normalised-signature-lines: 27
+  error-or-severe-severity-lines: 2
+  distinct-error-severity-shapes: 2
+  severe-severity-lines: 0
+
+COMPARISON KEY — HOW TWO LINES ARE JUDGED TO DESCRIBE THE SAME BEHAVIOUR
+  Published so a reader can re-derive a key rather than trust one.  Two lines
+  describe the same behaviour when they differ only in scheduling and identity
+  detail, so the key removes: terminal colour sequences; the leading timestamp in
+  either of the two forms this log carries; leading indentation on stack frames;
+  the runtime build tag appended to a frame; pool thread and worker ordinals for
+  every executor in this application; route-assigned exchange and message
+  identifiers; universally-unique identifiers; millisecond epochs; object identity
+  hashes; generated lambda class names and addresses; persistence session
+  identifiers; the line number inside a stack frame; measured durations; and
+  absolute paths, to <PATH>.
+  It removes NOTHING behaviour-bearing: the severity marker, the logger name, the
+  exception type, the whole message text, the result code, and the object or path
+  the message names all survive verbatim.
+  This rule exists because a first attempt without it reported two shapes as
+  present on one side only, in both directions, purely because a thread pool had
+  handed the work to a different worker ordinal.
+  Every line EXCEPT an error- or severe-severity line is capped at 200 characters
+  and marked <TRUNCATED-AT-200>.  The severity classes are exempt deliberately:
+  their message text is what a disposition is matched against.
+  The scan is line-oriented, so a stack trace contributes only those of its own
+  lines that themselves carry a signature — its header, its Caused by lines, and
+  any frame whose class name carries one.  No frame is followed and nothing
+  matched is dropped.
+
+REDACTION CHECK, MEASURED RATHER THAN ASSUMED
+  credential-shaped-lines-in-census: 0
+  Nothing required redaction, and that is a measurement over the census block
+  below rather than an assumption.  The check is not ceremonial: a failure
+  message routinely echoes the endpoint it failed on, and a stack frame can
+  carry the same text.
+
+----- BEGIN CENSUS -----
+3 <TIMESTAMP> [INFO ] [main] org.springframework.security.config.http.HttpSecurityBeanDefinitionParser - Checking sorted filter chain: [Root bean: class [org.springframework.security.web.context.Securit <TRUNCATED-AT-200>
+2 <TIMESTAMP> [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - >> Error: Node Sass does not yet support your current environment: Linux 64-bit with Unsupported  <TRUNCATED-AT-200>
+2 <TIMESTAMP> [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Done, without errors.
+2 <TIMESTAMP> [DEBUG] [Exec Stream Pumper] com.armedia.acm.userinterface.angular.AngularResourceCopier - Loading "sass.js" tasks...ERROR
+2 <TIMESTAMP> [WARN ] [main] org.springframework.security.config.http.DefaultFilterChainValidator - Possible error: Filters at position 7 and 8 are both instances of org.springframework.security.web.aut <TRUNCATED-AT-200>
+1 <TIMESTAMP> [ERROR] [main] com.armedia.acm.service.identity.service.AcmArkcaseIdentityServiceImpl - Couldn't set global identity. [Not implemented yet!]
+1 <TIMESTAMP> [ERROR] [task-scheduler-<N>] org.springframework.integration.handler.LoggingHandler - org.springframework.messaging.MessagingException: failure occurred while polling for mail; nested exception is javax.mail.AuthenticationFailedException: Login failed.
+1 <TIMESTAMP> [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller: Change set /com/arm <TRUNCATED-AT-200>
+1 <TIMESTAMP> [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller: Change set /com/a <TRUNCATED-AT-200>
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.channel.DirectChannel - Channel 'org.springframework.web.context.WebApplicationContext:/arkcase.mailErrorChannelCaseFile' has 1 subscriber(s) <TRUNCATED-AT-200>
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.channel.DirectChannel - Channel 'org.springframework.web.context.WebApplicationContext:/arkcase.mailErrorChannelComplaint' has 1 subscriber(s <TRUNCATED-AT-200>
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.channel.DirectChannel - Channel 'org.springframework.web.context.WebApplicationContext:/arkcase.mailErrorChannelReceiver' has 1 subscriber(s) <TRUNCATED-AT-200>
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.channel.PublishSubscribeChannel - Channel 'org.springframework.web.context.WebApplicationContext:/arkcase.errorChannel' has 1 subscriber(s).
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.config.DefaultConfiguringBeanFactoryPostProcessor - No bean named 'errorChannel' has been explicitly defined. Therefore, a default PublishSub <TRUNCATED-AT-200>
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - Adding {chain} as a subscriber to the 'mailErrorChannelCaseFile' channel
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - Adding {chain} as a subscriber to the 'mailErrorChannelComplaint' channel
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - Adding {chain} as a subscriber to the 'mailErrorChannelReceiver' channel
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - Adding {logging-channel-adapter:_org.springframework.integration.errorLogger} as a subscriber to the 'errorCha <TRUNCATED-AT-200>
+1 <TIMESTAMP> [INFO ] [main] org.springframework.integration.endpoint.EventDrivenConsumer - started _org.springframework.integration.errorLogger
+1 <TIMESTAMP> [INFO ] [main] org.springframework.security.web.DefaultSecurityFilterChain - Will secure Regex [pattern='^/api/.*$|^/plugin/.*$'] with [org.springframework.security.web.context.SecurityCon <TRUNCATED-AT-200>
+1 <TIMESTAMP> [INFO ] [main] org.springframework.security.web.DefaultSecurityFilterChain - Will secure Regex [pattern='^/assets/.*$|^/custom_assets/.*$|^/directives/.*$|^/custom_directives/.*$|^/filters <TRUNCATED-AT-200>
+1 <TIMESTAMP> [INFO ] [main] org.springframework.security.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.context.SecurityContextPersistenceFilter@<HASH>, <TRUNCATED-AT-200>
+1 <TIMESTAMP> [WARN ] [main] org.springframework.security.config.http.DefaultFilterChainValidator - Possible error: Filters at position 6 and 7 are both instances of org.springframework.security.web.aut <TRUNCATED-AT-200>
+1 Caused by: javax.mail.AuthenticationFailedException: Login failed.
+1 at org.springframework.integration.util.ErrorHandlingTaskExecutor$1.run(ErrorHandlingTaskExecutor.java)
+1 at org.springframework.integration.util.ErrorHandlingTaskExecutor.execute(ErrorHandlingTaskExecutor.java)
+1 at org.springframework.scheduling.support.DelegatingErrorHandlingRunnable.run(DelegatingErrorHandlingRunnable.java)
+----- END CENSUS -----
+
+ERROR-SEVERITY SHAPES ON THIS SIDE, WITH THEIR DISPOSITION
+  present-on-both means the shape occurs on the pre-migration side too, so the
+  change set cannot have introduced it.  removed-by-migration means it occurs only
+  on the pre-migration side.  attributable-to-migration means it occurs only after
+  the change set, and is the one outcome that fails this gate.
+  The classification and evidence of each row come from the committed ledger
+  docs/migration/smoke-evidence/startup-error-dispositions.txt, matched by the
+  substring shown.  A shape no ledger row matches is UNDISPOSED and fails the gate.
+
+
+  [1] shape:
+        <TIMESTAMP> [ERROR] [main] com.armedia.acm.service.identity.service.AcmArkcaseIdentityServiceImpl - Couldn't set global identity. [Not implemented yet!]
+      occurrences-this-side: 1
+      present-on-migrated-side: yes
+      present-on-pre-migration-side: yes
+      pair-status: present-on-both — not attributable to the change set
+      classification: expected-and-cited
+      evidence: The global identity setter is a deliberately unimplemented extension point in the application source: the data-access object this service delegates to raises "Not implemented yet!" from its own body. It is reached once during context initialisation, its outcome is logged and discarded, and no caller depends on it. This is the one error the previous capture already cited, and it is the only error-severity line in this capture that originates in application logic rather than in an absent or refusing external service. Present on both sides of this capture.
+      ledger-match: Couldn't set global identity. [Not implemented yet!]
+
+  [2] shape:
+        <TIMESTAMP> [ERROR] [task-scheduler-<N>] org.springframework.integration.handler.LoggingHandler - org.springframework.messaging.MessagingException: failure occurred while polling for mail; nested exception is javax.mail.AuthenticationFailedException: Login failed.
+      occurrences-this-side: 1
+      present-on-migrated-side: yes
+      present-on-pre-migration-side: yes
+      pair-status: present-on-both — not attributable to the change set
+      classification: pre-existing-by-design
+      evidence: The shipped configuration this deployment reads polls a mailbox that is declared not to exist: the CASE_FILE mail user is "no-such-mailbox@arkcase.org" with an empty password, under a configuration comment instructing an operator to "set some existing email here for testing". The mailbox name is itself the evidence of intent. Deliberately NOT corrected under R-6: inventing a mailbox would change what the shipped configuration exercises, and the failure is what a default deployment is designed to produce until an operator supplies a real account. Present on both sides of this capture. The trust anchors are not a factor here and were checked so that they could be ruled out: each side's trust store is a copy of that runtime's own cacerts with one certificate ADDED for the search front, so no public trust anchor is removed on either side and the failure is an authentication failure rather than a trust failure.
+      ledger-match: failure occurred while polling for mail
+
+WHY THIS FILE REPORTS A RESULT AND NEVER AN EXIT STATUS FOR THE SCAN ITSELF
+  grep exits non-zero when it finds nothing, so an exit status would read the
+  cleanest possible scan as a failure and the noisiest as a success.  The gate
+  outcome computed in startup.status beside this file is the assertion; this file
+  is the census the assertion is computed from.

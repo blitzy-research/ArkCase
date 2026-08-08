@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.613" tests="4" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.767" tests="4" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,26 +18,26 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="onEcmFileCopied_ifTargetFolderIsArkcaseFolder_And_ifFileAlreadyExistsInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.586">
-    <system-out><![CDATA[2026-08-07 07:26:07,237 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: parentFolderNodeId and folder id: 500
-2026-08-07 07:26:07,238 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has file with CMIS ID: documentNodeId and folder id:200
+  <testcase name="onEcmFileCopied_ifTargetFolderIsArkcaseFolder_And_ifFileAlreadyExistsInArkcase_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.731">
+    <system-out><![CDATA[2026-08-07 21:36:34,519 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$7glx8A3o - ArkCase has folder with CMIS ID: parentFolderNodeId and folder id: 500
+2026-08-07 21:36:34,520 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$7glx8A3o - ArkCase has file with CMIS ID: documentNodeId and folder id:200
 ]]></system-out>
   </testcase>
-  <testcase name="onEcmFileCopied_ifTargetFolderIsArkcaseFolder_And_ifOriginalFileIsInArkcase_copyFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.018">
-    <system-out><![CDATA[2026-08-07 07:26:07,256 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: parentFolderNodeId and folder id: 500
-2026-08-07 07:26:07,257 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such file in ArkCase: documentNodeId
-2026-08-07 07:26:07,264 [INFO ] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl$MockitoMock$sc6YGDEU - Finding folder for object: FOLDER id: 500
+  <testcase name="onEcmFileCopied_ifTargetFolderIsArkcaseFolder_And_ifOriginalFileIsInArkcase_copyFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.028">
+    <system-out><![CDATA[2026-08-07 21:36:34,536 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$7glx8A3o - ArkCase has folder with CMIS ID: parentFolderNodeId and folder id: 500
+2026-08-07 21:36:34,537 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$7glx8A3o - No such file in ArkCase: documentNodeId
+2026-08-07 21:36:34,554 [INFO ] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl$MockitoMock$MB0MA0GK - Finding folder for object: FOLDER id: 500
 ]]></system-out>
   </testcase>
-  <testcase name="onEcmFileCopied_ifTargetFolderIsArkcaseFolder_And_ifOriginalFileIsNotInArkcase_uploadFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.007">
-    <system-out><![CDATA[2026-08-07 07:26:07,270 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has folder with CMIS ID: parentFolderNodeId and folder id: 500
-2026-08-07 07:26:07,271 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such file in ArkCase: documentNodeId
-2026-08-07 07:26:07,271 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - ArkCase has container for folder with id 500
+  <testcase name="onEcmFileCopied_ifTargetFolderIsArkcaseFolder_And_ifOriginalFileIsNotInArkcase_uploadFile" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.005">
+    <system-out><![CDATA[2026-08-07 21:36:34,560 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$7glx8A3o - ArkCase has folder with CMIS ID: parentFolderNodeId and folder id: 500
+2026-08-07 21:36:34,561 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$7glx8A3o - No such file in ArkCase: documentNodeId
+2026-08-07 21:36:34,561 [DEBUG] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$7glx8A3o - ArkCase has container for folder with id 500
 ]]></system-out>
   </testcase>
-  <testcase name="onEcmFileCopied_ifTargetFolderIsNotArkcaseFolder_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.002">
-    <system-out><![CDATA[2026-08-07 07:26:07,274 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$pWbVUaRP - No such folder in ArkCase: parentFolderNodeId
-2026-08-07 07:26:07,274 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandler - Can't find folder for the copied file with id documentNodeId, no further action.
+  <testcase name="onEcmFileCopied_ifTargetFolderIsNotArkcaseFolder_thenNoFurtherAction" classname="com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandlerTest" time="0.001">
+    <system-out><![CDATA[2026-08-07 21:36:34,564 [WARN ] [main] com.armedia.acm.plugins.ecm.utils.FolderAndFilesUtils$MockitoMock$7glx8A3o - No such folder in ArkCase: parentFolderNodeId
+2026-08-07 21:36:34,564 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileFolderCopiedEventHandler - Can't find folder for the copied file with id documentNodeId, no further action.
 ]]></system-out>
   </testcase>
 </testsuite>

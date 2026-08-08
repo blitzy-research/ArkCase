@@ -1,0 +1,59 @@
+schema-comparison-verdict: IDENTICAL
+schema-comparison-reason: the canonical schema body is byte-identical before startup and after readiness, across all ten structural sections, so no DDL was modified by this boot
+
+before-snapshot-supplied: yes
+before-snapshot-comparable: yes
+before-snapshot-source: /tmp/p4-w011/mig/schema-before-startup.txt
+before-snapshot-body-sha256: 880cdb84ed712f5bd7240df82b6498b36a0b3944964c55dbdd8693a40f42c762
+before-tables: 222
+after-snapshot-comparable: yes
+after-snapshot-body-sha256: 880cdb84ed712f5bd7240df82b6498b36a0b3944964c55dbdd8693a40f42c762
+after-tables: 222
+
+sections-compared: TABLES, COLUMNS, PRIMARY-KEYS, UNIQUE-CONSTRAINTS,
+  FOREIGN-KEYS, INDEXES, CHECK-CONSTRAINTS, ROUTINES, TRIGGERS, VIEWS
+  -- and the Liquibase changelog table beside them.  Composite
+  constraints are rendered as one row carrying their ordered column
+  tuple, never flattened onto their member columns: a comparison that
+  flattened them could not tell a two-column unique key from two
+  one-column unique keys.
+values-deliberately-excluded: row counts, data and index lengths, free
+  space, auto-increment current values, table timestamps and statistics
+  cardinalities.  Each of those moves on its own with ordinary use, so
+  including any of them would make every comparison fail for reasons
+  that have nothing to do with DDL.
+
+schema-delta-lines: 0
+schema-delta-lines-unapproved: 0
+approved-delta-file: <none: the approved set is empty, so any delta is unapproved>
+
+changelog-rows-before: 712
+changelog-rows-after: 712
+changesets-applied-during-this-boot: 0
+----- changeSets applied during this boot (id, author, filename, exectype) -----
+----- end changeSets applied -----
+
+changeset-failure-lines-in-startup-window: 2
+----- changeSet failure lines -----
+[m[32m<TIMESTAMP>,183 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller: Change set /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-09-rename-acm-container-folder::dmiller failed, but failOnError was false.  Error: Error executing SQL ALTER TABLE arkcase.acm_container_folder RENAME arkcase.acm_container: (conn=10098) Table 'arkcase.acm_container_folder' doesn't exist
+[m[32m<TIMESTAMP>,200 [INFO ] [main] liquibase - classpath:/ddl/acm-database-changelog.xml: /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller: Change set /com/armedia/acm/dml/update/file-db-update-1.0.xml::files-23-unique-key-on-file-and-folder::dmiller failed, but failOnError was false.  Error: Error executing SQL ALTER TABLE arkcase.acm_file DROP KEY uk_version_series_id: (conn=10098) Can't DROP INDEX `uk_version_series_id`; check that it exists
+----- end changeSet failure lines -----
+changeset-skip-lines-in-startup-window: 0
+----- changeSet skip lines -----
+----- end changeSet skip lines -----
+
+why failed and skipped changeSets are mined from the log rather than from
+  the changelog table: Liquibase writes a row for a changeSet it EXECUTED
+  and writes nothing at all for one that failed or was skipped by a
+  precondition.  A table-only account would therefore report those as
+  simply absent, which is indistinguishable from never having been
+  declared.  The two sources answer different halves of the question and
+  both are published.
+
+what this comparison does NOT establish, stated because the boundary
+  matters: it establishes what happened to THIS schema on THIS boot.  A
+  changeSet carrying failOnError="false" that found nothing to do here
+  could still modify a different starting schema, and no before/after
+  comparison of one database can rule that out.  That is a property of
+  those historical changeSets rather than of this migration, and it is
+  registered as a pre-existing condition rather than asserted away.

@@ -1,9 +1,28 @@
-JACKSON SERIALISATION-ORDER EVIDENCE — 2.7.2 (base commit, JDK 8) versus 2.12.7 (migrated)
-==========================================================================================
+JACKSON SERIALISATION-ORDER EVIDENCE — 2.10.3 (base commit, JDK 8) versus 2.12.7 (migrated)
+===========================================================================================
+
+A CORRECTED BASELINE, AND WHY THE CORRECTION MATTERS
+----------------------------------------------------
+An earlier revision of this directory measured 2.7.2 against 2.12.7 and reported two classes with
+a version-attributable order change. THE BASELINE WAS WRONG. The base commit pins the mapper at
+2.10.3, not 2.7.2:
+
+    git show c8f6226105:pom.xml | grep fasterxml-jackson-core.version
+      ->  <fasterxml-jackson-core.version>2.10.3</fasterxml-jackson-core.version>
+
+2.7.2 is a version that exists in the local artifact repository, not a version this project ever
+declared. Measuring against it compared the migrated mapper to a release the application never ran,
+so every parity claim derived from it was a claim about the wrong pair. The whole measurement was
+therefore re-run against 2.10.3, and every figure below comes from that run. The 2.7.2 captures are
+withdrawn; trials.tar.gz now carries the 2.10.3 and 2.12.7 trials and nothing else.
+
+The correction changed the conclusion, and it changed it in the direction that matters: the two
+classes previously reported as version-attributable are NOT. Against the real baseline they are
+unstable at BOTH versions, which makes them reflection-order noise rather than an upgrade effect.
 
 WHY THIS MEASUREMENT EXISTS
 ---------------------------
-The Jackson advance from 2.7.2 to 2.12.7 is required at run time: below the 2.12 line
+The Jackson advance from 2.10.3 to 2.12.7 is required at run time: below the 2.12 line
 ClassUtil.checkAndFixAccess calls setAccessible on LocalDate's private fields, and java.base does
 not open java.time to the unnamed module, so building a bean deserializer for a type carrying a
 java.time property fails on Java 17 when the JSR-310 module is not registered. The FOIA and
@@ -31,87 +50,154 @@ Three properties of the harness matter for the result to be trustworthy:
      FAIL_ON_UNKNOWN_PROPERTIES disabled, and findAndRegisterModules().
 
   2. Module jars are era-matched. jackson-datatype-jsr310 and jackson-module-jsonSchema are
-     swapped to each version's own line. Without this the 2.7.2 run cannot even start:
-     findAndRegisterModules() hits the 2.12.7 JavaTimeModule and fails with
-     ServiceConfigurationError "Unable to get public no-arg constructor".
+     swapped to each version's own line alongside the three core jars, so findAndRegisterModules()
+     never loads a module built against the other version.
 
-  3. Six trials per version. This is the control that makes the result meaningful, and it changed
-     the conclusion. Jackson collects getter-only properties in Class.getDeclaredMethods() order,
-     and the JVM does not guarantee that order is stable between runs. A single run of each version
-     showed 8 differing classes; repeating the SAME version three times showed 4 classes differing
-     from themselves. Only a class whose order is identical across all six runs of each version,
-     and differs between them, is attributable to the upgrade.
+  3. Six trials per version. This is the control that makes the result meaningful, and it is what
+     the corrected run turns on. Jackson collects getter-only properties in
+     Class.getDeclaredMethods() order, and the JVM does not guarantee that order is stable between
+     runs. Only a class whose order is identical across all six runs of each version, and differs
+     between them, is attributable to the upgrade.
 
 analyse.py applies exactly that rule. Raw captures are in trials.tar.gz; the verdict is in
 analysis.txt.
 
-RESULT — 2136 classes compared in both versions, identical skip sets
---------------------------------------------------------------------
-2 classes have a STABLE order that genuinely differs between versions:
+RESULT — 2305 classes compared in both versions, ZERO stable order differences
+------------------------------------------------------------------------------
+    classes compared in both versions                              2305
+    classes with a STABLE order that DIFFERS between versions          0
+    classes whose order is UNSTABLE run-to-run at either version      16
+    classes stable at both versions and identical across them       2289
+    SKIP lines in either version                                      0
 
+NO CLASS AT ALL — not a REST response type, not a persisted document type, not a message payload
+type — changes its stable serialised property order across this advance. That is a stronger result
+than the earlier revision reported, and it is stronger because the baseline is now the right one.
+
+THE 16 UNSTABLE CLASSES — REFLECTION-ORDER NOISE, NOT A VERSION CHANGE
+----------------------------------------------------------------------
+    unstable at 2.10.3, the base commit's own behaviour on its own mapper   11
+    unstable at 2.12.7                                                     15
+    unstable at BOTH                                                       10
+    unstable only in the 2.12.7 trials                                      5
+    unstable only in the 2.10.3 trials                                      1
+
+The last two rows are read together or not at all. Six trials establish "did not vary in six runs",
+which is not the same as "provably deterministic", so a class appearing in one column and not the
+other is a finite-sample effect rather than a version effect. The single class that is unstable ONLY
+at 2.10.3 — com.armedia.acm.services.participants.model.AcmParticipant — demonstrates that directly:
+instability turned up on the OLD version and not the new one, which no upgrade can explain.
+
+    unstable at both versions:
+      com.armedia.acm.calendar.config.model.PurgeOptionsDeserializer
+      com.armedia.acm.calendar.service.ZonedDateTimeDeserializer
+      com.armedia.acm.objectdiff.model.AcmObjectDiff
+      com.armedia.acm.services.email.smtp.InputStreamDataSource
+      com.armedia.acm.services.sequence.dao.AcmSequenceRegistryDao
+      com.armedia.acm.webdav.AcmFileResource
+      com.armedia.acm.webdav.AcmFolderResource
+      com.armedia.acm.webdav.AcmOptionsResource
+      com.armedia.acm.webdav.AcmRootResource
+      com.armedia.acm.webdav.AcmTempFileResource
+
+    unstable only in the 2.12.7 trials:
+      com.armedia.acm.configuration.client.ConfigurationServiceBootClient
+      com.armedia.acm.service.stateofarkcase.service.ErrorsLogFileService
+      com.armedia.acm.services.users.model.ldap.ActiveDirectoryUserAccountControl
+      com.armedia.acm.services.users.model.ldap.LdapGroup
+      com.itextpdf.text.pdf.ColumnText
+
+    unstable only in the 2.10.3 trials:
+      com.armedia.acm.services.participants.model.AcmParticipant
+
+Byte-identical serialisation was never a property these types had, so the upgrade cannot have taken
+it away. Under R-6 this is registered rather than fixed, in pre-existing-defects.md. Note also what
+the list is made of: Spring service and client beans, two JsonDeserializer implementations, five
+WebDAV resource wrappers, a DataSource wrapper, a DAO, and a third-party PDF class. None is a REST
+response type.
+
+THE TWO CLASSES THE EARLIER REVISION BLAMED ON THE UPGRADE
+----------------------------------------------------------
     com.armedia.acm.calendar.config.model.PurgeOptionsDeserializer
     com.armedia.acm.calendar.service.ZonedDateTimeDeserializer
 
-    2.7.2   nullValue,knownPropertyNames,delegatee,cachable,emptyValue,objectIdReader
-    2.12.7  nullValue,knownPropertyNames,delegatee,cachable,nullAccessPattern,emptyAccessPattern,
-            emptyValue,objectIdReader
+Against 2.7.2 both showed a stable order that differed, and the difference was attributed to 2.12
+adding getNullAccessPattern() and getEmptyAccessPattern() to JsonDeserializer. Against the REAL
+baseline both are unstable at 2.10.3 as well as at 2.12.7 — two distinct orders in six runs on each
+side — so they are noise on both sides and there is nothing to attribute. The 2.12 accessor
+additions are real, but 2.10.3 already carries them, which is precisely why they do not appear as a
+difference here.
 
-    Both are JsonDeserializer implementations, and the delta is that 2.12 added
-    getNullAccessPattern() and getEmptyAccessPattern() to JsonDeserializer. The listed "properties"
-    are therefore the deserializer object's own inherited getters, not application data. Neither
-    class is ever serialised: each is referenced only as a @JsonDeserialize(using = ...) handler,
-    on AcmCalendarEvent (two properties), RecurrenceDetails (two properties) and PurgeOptions. No
-    response body, no persisted document and no message payload contains either type.
+That correction does not change what either class is: both are JsonDeserializer implementations
+whose listed "properties" are the deserializer object's own inherited getters, not application
+data, and neither is ever serialised. Each is referenced only as a @JsonDeserialize(using = ...)
+handler, on AcmCalendarEvent (two properties), RecurrenceDetails (two properties) and PurgeOptions.
+No response body, no persisted document and no message payload contains either type.
 
-13 classes have NO stable order at EITHER version — reflection-order noise, not a version change:
+CROSS-CHECK AGAINST THE SINGLE-RUN SHAPE COMPARISON IN THIS EVIDENCE TREE
+------------------------------------------------------------------------
+smoke-evidence/dependency-parity/jackson-serialization-shape.txt compares the same two versions —
+2.10.3 against 2.12.7, so its baseline was right all along — but with ONE run per version rather
+than six. It reports 2663 classes, 0 serializer-class differences, 0 property name-set differences,
+and 9 order-only differences.
 
-    com.armedia.acm.configuration.client.ConfigurationServiceBootClient
-    com.armedia.acm.objectdiff.model.AcmObjectDiff
-    com.armedia.acm.plugins.admin.web.api.EmailSenderConfigurationAPIController
-    com.armedia.acm.quartz.scheduler.AcmSchedulerService
-    com.armedia.acm.service.stateofarkcase.service.ErrorsLogFileService
-    com.armedia.acm.services.config.model.ConfigBean
-    com.armedia.acm.services.config.model.ConfigMap
-    com.armedia.acm.services.email.smtp.InputStreamDataSource
-    com.armedia.acm.services.users.model.AcmRoleToGroupMapping
-    com.armedia.acm.web.api.MDCThreadPoolExecutor
-    com.itextpdf.text.pdf.ColumnText
-    gov.privacy.service.AcknowledgementDocumentService
-    gov.privacy.service.SARService
+The two measurements agree, and the six-trial control explains the 9. Every one of the 9 classes was
+looked up in the twelve trials here:
 
-    Five of these were unstable under 2.7.2 as well, which is the base commit's own behaviour on
-    JDK 8. Byte-identical serialisation was never a property these types had, so the upgrade
-    cannot have taken it away. Under R-6 this is registered rather than fixed, in
-    pre-existing-defects.md. Note also what the list is made of: Spring service and client beans, a
-    controller, a thread-pool executor, a DataSource wrapper and a third-party PDF class. None is
-    a REST response type.
+    of the 9, in the 16-class unstable set                            2
+      com.armedia.acm.configuration.client.ConfigurationServiceBootClient
+      com.armedia.acm.objectdiff.model.AcmObjectDiff
+    of the 9, STABLE and IDENTICAL across all six runs of each version 7
+      com.armedia.acm.camelcontext.arkcase.cmis.ArkCaseCMISComponent
+      com.armedia.acm.core.AcmSpringActiveProfile
+      com.armedia.acm.frevvo.config.FrevvoFormUrl
+      com.armedia.acm.objectdiff.model.AcmDiff          (introspected in only one of the two harnesses)
+      com.armedia.acm.quartz.scheduler.AcmJobState
+      com.armedia.acm.web.api.MDCThreadPoolExecutor
+      gov.privacy.model.SubjectAccessRequest
 
-Every other class produced a byte-identical ordered property model in all twelve trials.
+So the 9 are not nine version-attributable order changes. Two are classes this harness independently
+finds unstable at both versions, and seven produce the SAME order in all twelve runs here — which
+means the single-run comparison caught them on one side of their own run-to-run variation. That is
+the exact failure mode six trials exist to expose, and it is why a single-run order difference must
+not be read as a version difference. The stronger statement stands: against the real baseline, zero
+classes have a stable order that differs.
 
 ON THE REVIEW FINDING THIS REPLACES
 -----------------------------------
-The review reported that "Jackson 2.12.7 changes ordering for nine project types, including
+An earlier review reported that "Jackson 2.12.7 changes ordering for nine project types, including
 gov.privacy.model.SubjectAccessRequest". The count and the named type are both unsupported by this
-measurement. gov.privacy.model.SubjectAccessRequest produced the identical ordered property model
-in all six 2.7.2 trials and all six 2.12.7 trials — digest 4c134e5c82e2 in every one. The
-underlying observation the review was probably reaching is real, but it is the 13-class
-nondeterminism above, which predates the migration, rather than a version-attributable change to a
-live response type.
+measurement. gov.privacy.model.SubjectAccessRequest produced ONE distinct ordered property model in
+all six 2.10.3 trials and one in all six 2.12.7 trials, and the two are equal. The underlying
+observation the review was probably reaching is real, but it is the 16-class nondeterminism above,
+of which 11 are present at the base commit's own version, rather than a version-attributable change
+to a live response type.
 
 CONCLUSION
 ----------
-No REST response type changes its stable serialisation order across the Jackson advance. The
-AAP's contract-preservation requirement holds for this dependency change, and no @JsonPropertyOrder
-was added to any type — adding one would have changed the base-commit output for types whose order
-was already stable, which is the opposite of what preservation requires.
+No type changes its stable serialisation order across the Jackson advance from the version the base
+commit actually pinned to the version the migration delivers. The AAP's contract-preservation
+requirement holds for this dependency change, and no @JsonPropertyOrder was added to any type —
+adding one would have changed the base-commit output for types whose order was already stable,
+which is the opposite of what preservation requires.
 
 REPRODUCTION
 ------------
-    javac -cp <jackson 2.12.7 core+databind+annotations> -d . PropOrder.java
+    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    mvn -B -ntp -o clean install -DskipTests          # populates every target/classes
+
     # class list: every *.class under the reactor's target/classes, '/'->'.', no inner classes
-    # classpath:  all module target/classes + the union of runtime jars from arkcase, acm-foia,
-    #             acm-service-ecm, acm-personnel-security-plugin and
-    #             acm-service-calendar-integration-exchange (791 jars), with the three jackson core
-    #             jars and the two jackson module jars swapped to the version under test
-    java -cp <above> PropOrder <class-list> trial-<version>-<n>.txt deployed
-    python3 analyse.py '/tmp/trial-2.7.2-*.txt' '/tmp/trial-2.12.7-*.txt' 2.7.2 2.12.7
+    #             (3054 candidates; 2305 yield a serialiser with at least one property)
+    # classpath:  the 131 module target/classes directories, plus the union of runtime jars from
+    #             arkcase, acm-foia, acm-service-ecm, acm-personnel-security-plugin and
+    #             acm-service-calendar-integration-exchange (673 jars, of which the 5 swappable
+    #             jackson jars are removed and re-added per version under test)
+
+    javac -cp <jackson 2.12.7 core+databind+annotations> -d <dir> PropOrder.java
+    for v in 2.10.3 2.12.7; do
+      for n in 1 2 3 4 5 6; do
+        java -Xmx1200m -cp "<dir>:<jackson $v x5>:<131 classes dirs>:<668 other jars>" \
+          PropOrder class-list.txt trial-$v-$n.txt deployed
+      done
+    done
+    python3 analyse.py 'trial-2.10.3-*.txt' 'trial-2.12.7-*.txt' 2.10.3 2.12.7

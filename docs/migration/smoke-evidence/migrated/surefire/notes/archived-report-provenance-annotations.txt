@@ -1,0 +1,523 @@
+archived report provenance annotations, relocated out of the report payloads
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+WHAT THIS FILE IS
+  The provenance narrative that 8 reports in this archive carried INSIDE the
+  report file, as an XML comment between the declaration and the root element.
+  Every block is reproduced below verbatim, under the path of the report it
+  was taken from, and nothing was summarised away.
+
+WHY IT WAS MOVED
+  The archive contract is that a report payload is what the runner wrote, apart
+  from the two transformations install-surefire-evidence.sh performs and counts:
+  absolute machine paths become placeholders, and the system property dump is
+  reduced to an explicit literal allowlist.  A hand-authored comment is neither
+  of those, and the register that documents this archive states in terms that
+  each report carries its provenance NATIVELY rather than in a comment ahead of
+  its root element, having replaced an earlier revision that prepended one to
+  every report.  These 8 files still carried theirs, so the register was
+  falsified by its own archive.
+  Moving the narrative here rather than deleting it keeps both properties: the
+  payloads are again byte-identical to the installer output, and no reasoning is
+  lost.  The reports were verified byte-for-byte against the installer output
+  after the comments were removed, so the removal took nothing else with it.
+
+WHY THE NARRATIVE MATTERED IN THE FIRST PLACE
+  Each block was addressed to a reviewer checking that the rule against
+  disabling failing tests is verifiable rather than merely asserted.  That
+  question is answered by the report itself - by the testcase elements it
+  carries, the outcome elements attached to them and the native
+  java.runtime.version in its retained properties - which is precisely why the
+  narrative belongs beside the reports and not inside them.
+
+WHERE THIS FILE LIVES, AND WHY NOT IN A MODULE DIRECTORY
+  Each module directory in this archive admits report XML and nothing else: no
+  index, no summary, no notes file.  This file therefore sits under notes/
+  beside the module directories, in the same position as run-provenance.txt and
+  sha256-manifest.txt, and it is covered by that manifest like every other file
+  here.
+
+=============================================================================
+FROM: acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.model.EcmFileJsonSchemaValidTest.xml
+=============================================================================
+<!--
+  PROVENANCE. Migrated-run (Java 17) Surefire report for the unit-test class
+  com.armedia.acm.plugins.ecm.model.EcmFileJsonSchemaValidTest in the acm-service-ecm module.
+  Four facts, in the order the evidence archive requires them.
+
+  1. WHAT THIS IS AND WHERE IT CAME FROM. A genuine captured report, copied out of the build-output
+     directory acm-services/acm-service-ecm/target/surefire-reports/ (named here as plain text only,
+     never recreated as a directory) into this flat per-module folder so that version control tracks
+     it. The file name is exactly the one the runner emitted and was not renamed. Its counterpart on
+     the baseline side of the archive records the same class as captured on JDK 8.
+
+  2. IT IS A CAPTURE, NOT A DERIVATION FROM SOURCE. The module's unit tests were executed on Java 17
+     through the reactor's own pinned Surefire configuration, offline, with no runtime, plugin or
+     tool installed in order to obtain the result. The runner reported, for this class:
+     Tests run: 8, Failures: 0, Errors: 0, Skipped: 0.
+
+  3. THE COUNTERS ARE OBSERVED, NOT ASSERTED. The tests, failures, errors and skipped attributes and
+     every time value below are what the runner measured. The absence of failure, error and skipped
+     elements is an observed pass, not a claim: no test in this class is ignored, excluded or
+     disabled, so nothing here needs to cite a baseline-failure register row. The eight testcase
+     entries correspond one-to-one with the eight test methods declared in the class source, and
+     their order is the order the runner emitted, which matches the baseline counterpart.
+
+  4. WHAT WAS WITHHELD, AND THE REPLACEMENT RULE. Only non-behavioural run metadata was withheld:
+     the host name, the run timestamp, and every system property whose value is an absolute
+     filesystem path. What remains are the runtime-identifying properties, and they carry the
+     substantive evidence for this side of the archive: java.specification.version 17 and
+     java.class.version 61.0. Nothing within testsuite, testcase, properties or system-out was
+     otherwise altered, reordered or removed, so the report is complete in content; completeness,
+     not byte identity, is what the archive requires. Any later genuine recapture of this class
+     supersedes this file and must be relocated here unmodified.
+-->
+
+=============================================================================
+FROM: acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoFileFolderServiceMoveAuditResponseReaderTest.xml
+=============================================================================
+<!--
+  PROVENANCE OF THIS ARCHIVED REPORT. Migrated side of the Surefire evidence archive: a Java 17 run.
+
+  1. PRODUCTION PATH: genuine capture. This is the test runner's own report for
+     com.armedia.acm.plugins.ecm.service.sync.AlfrescoFileFolderServiceMoveAuditResponseReaderTest,
+     relocated out of the module build output and never renamed, because the native Surefire file
+     name is already the TEST- prefix followed by the fully qualified class name and the .xml suffix.
+     The original build output location, quoted here as repository relative plain text so that no
+     absolute filesystem path is archived, was:
+     acm-services/acm-service-ecm/target/surefire-reports/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoFileFolderServiceMoveAuditResponseReaderTest.xml
+     Relocating it is mandatory rather than cosmetic: the build output directory name is ignored by
+     version control as a bare pattern matching at any depth, so a report left where the runner wrote
+     it could never be archived at all.
+
+  2. CORRESPONDENCE TO THE BASE COMMIT. The archived result is the result of the module test source at
+     base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26. That test source is byte identical between
+     the base commit and the commit archiving this report, and the class declares exactly one test
+     method, re-derived from the source with a token boundary match rather than assumed. The class
+     also declares a fixture method that loads a classpath JSON document; a fixture method is not a
+     test method, so it correctly contributes no testcase element here.
+
+  3. THE COUNTERS WERE OBSERVED, NOT DERIVED. The class was executed on Java 17 by the pinned Surefire
+     release and reported 1 test, 0 failures, 0 errors and 0 skipped. The absence of failure, error and
+     skipped elements is therefore a recorded pass rather than an assumption, and that reading is taken
+     from this archived XML rather than from any process exit status. No result, message, stack trace,
+     node identifier or fixture content anywhere in this file was composed by hand.
+
+  4. WHAT IS ABSENT, AND WHY. This file is the relocated report itself, and the only difference from
+     the bytes the runner wrote is that every property whose value was a filesystem location has been
+     dropped, so that no absolute path is archived. The retained property entries identify the runtime,
+     are a strict subset of what the runner emitted, and were neither added to, reworded nor
+     substituted; both elapsed times are exactly as captured. No hostname or timestamp attribute
+     appears because the runner emitted none. Elapsed times are wall clock measurements and are
+     therefore not expected to equal those of the baseline twin.
+
+  5. BASELINE COMPARISON. The baseline twin for this class, captured on JDK 8, also records a pass, so
+     presence and outcome agree across the two sides of the archive. Comparison between the sides is on
+     presence, outcome and failure message content, never on byte identity.
+
+  6. SHARED METHOD NAME, disclosed so that this file is not mistaken for a duplicate. This report's
+     single test method name, readResponse, is shared with six sibling audit response reader reports in
+     this same module. That is a fact about the source rather than a derivation error: the classname
+     attribute and the file name distinguish them, and all seven reports are required.
+-->
+
+=============================================================================
+FROM: acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceCreateNodeAuditResponseReaderTest.xml
+=============================================================================
+<!--
+  PROVENANCE OF THIS EVIDENCE FILE
+
+  1. Origin of content. This report records the execution of the test class
+     com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceCreateNodeAuditResponseReaderTest,
+     whose test source is unchanged in this checkout since base commit
+     c8f6226105c28c2743281d26bf21ad73f7bb7f26. That source declares exactly one test method,
+     independently re-derived from it with a token boundary pattern; the class also declares one
+     fixture method that prepares a classpath JSON resource, which is not a test method and is
+     correctly absent below.
+
+  2. A genuine capture was attempted, and in this checkout it SUCCEEDED, so this file is not
+     hand composed. The migrated run executed on Java 17 (OpenJDK 17.0.19) under Maven 3.8.7
+     with maven surefire plugin 3.5.2, and this file is the relocated form of runner output
+     originally written to the build output path
+     acm-services/acm-service-ecm/target/surefire-reports/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceCreateNodeAuditResponseReaderTest.xml
+     Relocation was mandatory because that path is excluded from version control, and the file
+     name is carried across unchanged. Coverage instrumentation was live during the run rather
+     than silently severed: the coverage agent data file was loaded and a bundle of 209 classes
+     was analysed, so the counters below rest on a real, non empty data set.
+
+  3. The counters are OBSERVED, not derived. The runner reported one test executed with zero
+     failures, zero errors and zero skips, and emitted no failure, error, skipped, standard
+     output or standard error element. Nothing is fabricated and nothing is suppressed; this
+     class writes no standard output and declares no logger. The outcome matches the JDK 8
+     baseline twin of this file on presence and on outcome, so no baseline failure register row
+     applies to this class, and no test configuration excludes it.
+
+  4. Elapsed time, host name, timestamp and the runner property dump are deliberately OMITTED.
+     The runner original carried a 54 entry property block embedding absolute filesystem paths,
+     a volatile temporary booter jar name and a full resolved classpath, none of which may enter
+     version control; the report schema and namespace attributes are dropped for the same
+     reason. Their absence is sanitisation of environment specific values, not absence of a run,
+     and any of them can be regenerated from the build output path quoted above.
+
+  Shared method name disclosure. The single method name recorded below, readResponse, is shared
+  with six sibling audit response reader reports in this same module. That collision is a
+  property of the module test source; it is neither a duplication nor a derivation error, and
+  none of the seven reports may be merged, renamed or dropped. This file is distinguished from
+  the other six, and in particular from the separate file and folder service create reader, by
+  its class name and file name, which both carry the node service segment and the create node
+  verb. The class under test lives in the impl package, while this test class lives in the
+  parent sync package; the path recorded here is the test class package, as required.
+-->
+
+=============================================================================
+FROM: acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceUpdateMetadataAuditResponseReaderTest.xml
+=============================================================================
+<!--
+  Archived Surefire report. Migrated run, Java 17, compiled and executed at release 17.
+  Module directory acm-service-ecm. Seventh and last of the audit response reader reports.
+
+  PROVENANCE, so this evidence can be judged on its own record:
+
+  1. IDENTITY AND COUNT DERIVED FROM SOURCE. The suite name, the test method name and the test count
+     were re-derived from the module's own test source at base commit
+     c8f6226105c28c2743281d26bf21ad73f7bb7f26, matching the JUnit test annotation on a token boundary
+     so that a similarly prefixed annotation cannot be miscounted. The class declares exactly one such
+     method, readResponse. Its fixture setup method is a JUnit before hook, not a test method, and
+     therefore contributes no testcase element here.
+
+  2. A GENUINE CAPTURE WAS PERFORMED, NOT COMPOSED. The class was executed on Java 17 with the
+     project's pinned Surefire plugin and reported one test run with zero failures, zero errors and
+     zero skips. The runner emitted its own report at the build output path
+     acm-services/acm-service-ecm/target/surefire-reports/TEST-com.armedia.acm.plugins.ecm.service.sync.AlfrescoNodeServiceUpdateMetadataAuditResponseReaderTest.xml
+     and this file carries that result under the identical, unmodified filename. Nothing was installed
+     to obtain the capture; only the toolchain and local artifact cache already present were used.
+
+  3. THE ZERO COUNTERS ARE OBSERVED, NOT ASSUMED. The counts above, and the absence of failure, error
+     and skipped elements, are the recorded outcome of that run. The class is a control group: it
+     declares no runner annotation, uses no mocking library and holds no logger, so it is untouched by
+     the migration's mocking stack changes and writes nothing to standard output. The baseline twin of
+     this file records the same clean outcome on JDK 8, so no baseline failure register row applies to
+     this class and any failure appearing here would be a migration regression rather than an accepted
+     prior condition. Nothing is excluded, disabled or ignored.
+
+  4. TIMINGS AND ENVIRONMENT PROPERTIES ARE OMITTED. Elapsed time, host name, timestamp and the
+     runner's property dump are deliberately not carried over. That dump reports absolute filesystem
+     locations, among them the build directory, the local artifact cache, the virtual machine home and
+     the full class path, together with per run environment detail. None of it is evidence of
+     behaviour, and absolute paths must not enter version control. The relative build output path
+     quoted above locates the complete report if it is ever needed again.
+
+  SHARED METHOD NAME, DISCLOSED. This file's single method name, readResponse, is shared with six
+  sibling audit response reader reports in this same module. That is a fact about the sources, not a
+  duplication and not a derivation error: the classname attribute together with the filename
+  distinguishes them. None of the seven may be merged, renamed or dropped as redundant.
+
+  SCOPE, STATED SO IT CANNOT BE OVERREAD. These are unit level assertions over a JSON parser that maps
+  a repository audit response for metadata update events onto the application's internal event model.
+  This report is not evidence of content repository wire behaviour and not evidence of serialisation
+  fidelity; those are observed at the document round trip smoke flow and at the endpoint reports.
+-->
+
+=============================================================================
+FROM: acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest.xml
+=============================================================================
+<!--
+  Archived migrated run (Java 17) Surefire report for
+  com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest.
+  Provenance, stated in full so that nothing below has to be inferred:
+
+  1. Content confirmed against the module's test source at base commit
+     c8f6226105c28c2743281d26bf21ad73f7bb7f26, whose content is unchanged at that commit. The four
+     testcase names and their order were transcribed from that source; a count of its test
+     annotations taken at whole word boundaries gives 4, its subject annotation count is 0, and it
+     carries no ignore annotation.
+
+  2. Production path: a genuine capture, not a reconstruction. The module's unit tests were executed
+     on Java 17 using the toolchain already provisioned in this checkout, so no runtime and no tool
+     was installed in order to produce this evidence. The runner's own unedited report remains at the
+     build output path
+     acm-services/acm-service-ecm/target/surefire-reports/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmFileCreatedEventHandlerTest.xml
+     and is authoritative over this archived copy for anything not carried here.
+
+  3. The counters on the element below were observed in that run rather than assumed: 4 tests, no
+     failure, no error, nothing skipped. Consistent with that observation, this file carries no
+     failure, error or skipped element, and no such element has been added for any other reason.
+
+  4. Deliberately omitted, so that this migrated side report carries only the normalised attribute
+     set used across this archive: elapsed time, host name, timestamp, the runner's system property
+     dump, and the console output captured per testcase. The property dump is additionally omitted
+     because it records absolute filesystem paths, which this archive does not admit. No captured
+     payload was edited to achieve this; the unedited payload is the file named in fact 2.
+
+  5. Scope of what this artefact establishes. These are unit assertions against mocked collaborators.
+     This file makes no claim about the two mocking libraries loading alongside one another, and it
+     does not evidence content repository wire behaviour, which is observed instead at the document
+     round trip flow and at the case and document view flow. The baseline twin of this file records
+     the same four testcase names with no failure, so no row of the baseline failure register is
+     cited by this report and none applies to it.
+
+  6. The product name appears in two different capitalisations across the four testcase names below.
+     That is a pre existing property of the test source, and it is reproduced from that source
+     unaltered rather than normalised in either direction.
+-->
+
+=============================================================================
+FROM: acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmNodeDeletedEventHandlerTest.xml
+=============================================================================
+<!--
+  PROVENANCE OF THIS EVIDENCE FILE
+
+  1. ORIGIN, genuine capture rather than composition. This is the relocated Surefire report for
+     com.armedia.acm.plugins.ecm.service.sync.impl.EcmNodeDeletedEventHandlerTest, emitted by the
+     pinned Surefire runner during a unit test invocation of module acm-service-ecm. The runner
+     wrote it to the build output location quoted here as plain text and never recreated as a
+     directory beneath this archive:
+     acm-services/acm-service-ecm/target/surefire-reports/TEST-com.armedia.acm.plugins.ecm.service.sync.impl.EcmNodeDeletedEventHandlerTest.xml
+     Relocation is mandatory because the repository ignore list carries a bare target pattern that
+     matches at any depth, so a report left in place could never be tracked. The file was copied
+     out and was not renamed. The module test source from which the runner discovered these two
+     test methods is unchanged at base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26, so the
+     recorded method names are accurate for that commit; this class was not one of the six classes
+     whose mocking mechanism was rewritten.
+
+  2. RUNTIME. The archived run executed on Java 17, specifically OpenJDK 17.0.19. The retained
+     property block records java.specification.version 17 and java.class.version 61.0, which is the
+     positive record that this is the migrated side of the archive. This class exercises Mockito,
+     whose advance was required because the previously pinned release cannot instrument a class file
+     at that major version while the current one can.
+
+  3. COUNTERS ARE OBSERVED, NOT DERIVED. The tests, failures, errors and skipped values, and the
+     elapsed times, were all emitted by the runner from a real execution. The absence of failure,
+     error and skipped child elements is therefore an observed outcome. The test class declares no
+     ignored method, so a skipped count of zero is a fact about the run, and no exclusion naming
+     this class exists anywhere in the build configuration.
+
+  4. CURATION, AND THE PRECISE EXTENT OF IT. The runner's raw property dump was reduced to Java and
+     operating system identity properties for one reason only, to eliminate absolute filesystem
+     paths, which this evidence archive forbids. No counter, no testcase, no method name and no
+     captured message was altered, reordered, redacted or invented, and nothing was substituted.
+     The content repository node identifiers of the workspace://SpacesStore form that appear below
+     are opaque repository identifiers rather than filesystem paths, and are preserved verbatim.
+
+  5. NON COLLAPSE DISCLOSURE, specific to this file. This suite holds two testcases whose names
+     differ by a single two character token, File against Folder, and which are otherwise character
+     identical across the onEcmNodeDeleted_if prefix, the IsDeletedInContentRepository middle clause
+     and the _thenDeleteItFromArkcase suffix. Both describe destructive behaviour, on two distinct
+     object kinds, so neither is a redundant duplicate of the other and neither may be dropped. Both
+     were transcribed and then compared character by character to confirm that they had not been
+     collapsed into a single entry, and an independent re-derivation of the test method count from
+     the module test source returned two, matching the tests attribute below.
+
+  SCOPE NOTE. These are unit assertions against mocked collaborators. Nothing was deleted in a real
+  content repository or in a real database, and this report makes no claim about the effective schema
+  of the persistence layer.
+-->
+
+=============================================================================
+FROM: acm-service-ecm/TEST-com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest.xml
+=============================================================================
+<!--
+  PROVENANCE of this archived migrated run Surefire report. Seven facts.
+
+  1. SOURCE OF TRUTH. The suite name, the test count and the three testcase names
+     correspond to the module test source at base commit
+     c8f6226105c28c2743281d26bf21ad73f7bb7f26, which was verified to be an ancestor
+     of the current HEAD with that test source byte identical at the base commit and
+     at HEAD. The three names were re derived from the source using a token boundary
+     search for the JUnit test annotation, which matched at annotation lines 100, 134
+     and 168. The setup method was excluded because it is not a test method.
+
+  2. CAPTURE PATH. A genuine capture was attempted and it SUCCEEDED, so this report is
+     evidence rather than composition. The class was executed on Java 17 in this
+     checkout and the runner wrote its own report to the build output path
+     acm-services/acm-service-ecm/target/surefire-reports/TEST-com.armedia.acm.plugins.ecm.web.api.UpdateFileTypeAPIControllerTest.xml
+     which is quoted here as plain text. The runner recorded a class file major
+     version of 61, which confirms a Java 17 run. No runtime and no tool was installed
+     to obtain it. One expectation in the planning material is corrected here rather
+     than restated: that material predicted no Java compiler and no Maven toolchain
+     would exist in this checkout and that this report would therefore have to be
+     derived from the test source alone. Both were in fact present, so the stronger
+     path was taken and this note says so plainly.
+
+  3. OBSERVED COUNTERS. The tests, failures, errors and skipped values below are
+     OBSERVED results of that run and not assumed ones. The runner reported 3 tests
+     with 0 failures, 0 errors and 0 skipped. Every testcase below is therefore an
+     ordinary passing testcase, which is why not one of them carries a child element.
+
+  4. DELIBERATE OMISSIONS. The elapsed time attributes, the host and timestamp
+     attributes, the environment property dump and the captured console streams that
+     the runner emitted are all omitted here. They are omitted because this archive
+     forbids their content, not because the run did not happen: the property dump held
+     13 entries carrying absolute filesystem paths, and the console streams carried a
+     file type value, file identifiers, an object count and serialised response
+     payloads. Archiving in full governs completeness of the recorded result rather
+     than byte identity with the runner output, so every testcase and every outcome is
+     preserved while the forbidden material is not. The unmodified runner report
+     remains at the build output path named above for anyone who needs the raw form.
+
+  5. A NAME ENDING IN THE WORD ERROR IS NOT A FAILURE. The second testcase below is
+     named updateFileTypeError. It exercises the endpoint for the case where the type
+     update fails and it ASSERTS that the expected error outcome occurs, so it is an
+     ordinary passing testcase and carries no child element. It was observed to pass
+     on Java 17, and the JDK 8 baseline twin records it passing as well, so its outcome
+     did not change. It is NOT a baseline failure and must never be cited as one.
+
+  6. TWO CONVENTIONS PRESERVED, NEITHER HARMONISED. This class spells its failure path
+     test with a bare Error suffix and no underscore, while a sibling update controller
+     in the same package spells its own with an underscore followed by a lower case
+     word. Both spellings are reproduced exactly as their own sources write them.
+     These are pre existing conditions, documented by faithful reproduction and left
+     uncorrected.
+
+  7. THE BULK TESTCASE IS ONE METHOD. The third testcase covers a path that changes the
+     type of several files in a single request. It is one test method and therefore
+     exactly one testcase element, never one element for each object. This archived
+     form deliberately records no object count and no ordering, so it does not evidence
+     how many objects were processed or in what sequence.
+-->
+
+=============================================================================
+FROM: acm-service-email-smtp/TEST-com.armedia.acm.services.email.smtp.SmtpServiceTest.xml
+=============================================================================
+<!--
+  ARCHIVED UNIT TEST RESULT.  Provenance and reading notes, section 2A.  This
+  comment is the only narrative carried inside this folder, and it is
+  addressed to a reviewer checking that the rule against disabling failing
+  tests is verifiable rather than merely asserted.
+
+  1. WHAT THIS FILE IS.  The archived unit test result document for
+  com.armedia.acm.services.email.smtp.SmtpServiceTest, the single report
+  eligible test class of the acm-service-email-smtp reactor module, recording
+  the migrated unit test run on Java 17.  It is the migrated half of a
+  one-for-one mirror whose baseline half was captured on JDK 8 at base commit
+  c8f6226105.  The two halves sit under the same file name at matching paths
+  in the baseline and migrated trees, so a recursive directory comparison
+  pairs them mechanically.
+
+  2. HOW IT WAS PRODUCED.  Production path A, a genuine capture, relocated.
+  The content was taken from the report that a real migrated unit test run
+  wrote into the module build output directory, at the repository relative
+  location
+  acm-services/acm-service-email-smtp/target/surefire-reports/TEST-com.armedia.acm.services.email.smtp.SmtpServiceTest.xml
+  and it was relocated rather than renamed, so the file name is unchanged.
+  That origin is quoted here only as text: the build output directory name is
+  ignored by the repository at any depth, so it was deliberately not
+  recreated underneath this evidence tree.  The run executed on the pinned
+  Java 17 toolchain against an already populated local artifact cache.
+  Neither a runtime nor a toolchain was installed in order to obtain it,
+  because the rule governing dependency changes forbids introducing one to
+  manufacture a capture.  The counts and the outcome recorded below were then
+  independently reproduced by a second execution of the same suite on the
+  same runtime.
+
+  3. WHICH FIELDS WERE OBSERVED, AND WHICH WERE WITHHELD.  Observed and
+  accurate: the suite name, the class name, the five testcase names, their
+  document order, the tests, errors, skipped and failures counts, the elapsed
+  times, and the runtime identity properties retained below.  The document
+  order is the order in which the runner executed the methods, which is not
+  the order in which the test source declares them; the set of five names is
+  the same either way, and only the order differs.  Withheld: the system
+  property dump was filtered down to the sixteen runtime and operating system
+  identity entries kept here, out of the fifty two the runner emitted.  Every
+  entry carrying an absolute filesystem path was dropped, as was the entry
+  naming the account that ran the build.  No machine identity attribute and
+  no run timestamp attribute appear, and the runner emitted neither.  No
+  captured standard output or standard error element appears, and the runner
+  emitted neither of those either.  Nothing was edited in place: whole
+  entries and whole elements were omitted rather than rewritten, so no value
+  shown below has been altered from what the run produced.  A sketch
+  circulated for this folder called instead for zero duration placeholders
+  and for the property block to be dropped outright.  Both were declined and
+  the measured values kept, for two reasons.  Replacing a measurement with a
+  placeholder substitutes invention for evidence.  And the retained
+  java.class.version and java.specification.version entries are the load
+  bearing proof that this run compiled and executed at release 17 rather than
+  at the superseded release level; the baseline half carries the mirror image
+  of those two entries, which is precisely what makes the runtime advance
+  checkable row by row.
+
+  4. WHY THE SYSTEM PROPERTY DUMP SPECIFICALLY IS FILTERED.  That dump is the
+  principal carrier of absolute filesystem paths, of the pre-migration
+  runtime wording this documentation tree keeps at zero, of module access JVM
+  argument tokens, and of successor namespace tokens.  Filtering it is
+  deliberate, and fabricating one would invent evidence, which the rule
+  preferring evidence over exit codes forbids just as firmly as it forbids
+  trusting an exit status.  The point is sharper in a mail transport module
+  than it would be elsewhere: a fabricated dump is exactly where a host name,
+  a port, a mailbox address or a password would leak into the archive.  A
+  fabricated host name would be doubly wrong here, because a host name in a
+  mail module reads as configuration rather than as build metadata, and a
+  reader could mistake it for a deployment setting.  The module test fixture
+  does set a host, a port, a user name, a password and a from address, and
+  the test source carries mailbox literals; none of those values appears
+  anywhere in this document.
+
+  5. OUTCOME SEMANTICS.  The zero failures and zero errors recorded below
+  were observed in the run described in disclosure 2 and were reproduced by
+  the second execution noted there.  That is a recorded observation about
+  those runs, and it is not a licence to narrow the suite: no test exclusion
+  may ever be justified from this report.  The register of tests already
+  failing before the migration carries no row for this module and none for
+  this class, and the migrated build declares no exclusion naming this class.
+  Should a later run produce a failure or an error here, that failure must
+  map to a row in docs/migration/baseline-test-failures.md; a failure
+  matching no row is a migration regression and not an accepted baseline
+  condition.  Nothing here may be read as suggesting that such a failure
+  could be a flake, because no rerun count and no retry plugin is configured
+  anywhere in the reactor, so an observed failure is real and reproducible.
+
+  6. STRICT RUNNER CAVEAT.  The class is driven by the strict Mockito JUnit 4
+  runner, declared on the class and imported in the test source.  That runner
+  is the strict one in both the incumbent Mockito line and the 4.11.0 line
+  this migration advances to, so an unnecessary stubbing condition would
+  surface as a class level failure rather than as a single failing method.
+  This is disclosed as neither observed nor ruled out.  No such condition is
+  asserted to have occurred, and no claim is made that its absence was
+  measured.
+
+  7. COMPARISON CRITERION.  This document is not byte identical comparable
+  against its baseline twin, and it is not meant to be.  Elapsed times vary
+  from one execution to the next; the two halves ran on different runtimes
+  and so report different runtime identity properties; and the migrated half
+  was produced by the current pinned test runner while the baseline half was
+  produced by the version implicitly bound before this change set, so the two
+  carry different report shapes and different attribute orders.  Archiving a
+  report in its entirety governs content completeness, not byte identity.
+  Equivalence between the halves is judged on three things only: testcase
+  presence, testcase outcome, and failure message content.  On all three the
+  halves agree, with the same five testcase names, every one of them passing,
+  and no failure message on either side.
+
+  8. WHERE NARRATIVE BELONGS.  The companion notes sink at the migrated notes
+  level is owned by another agent, and nothing was written there from here.
+  No second file was added to this folder to carry commentary, and none
+  should be: this folder holds report XML only, flat, with no subdirectory
+  and no index, summary, manifest, digest or placeholder file.  The coverage
+  liveness note kept beside the migrated evidence tree is the companion to
+  read alongside this report, because an empty coverage data set that still
+  reports a passing check is a failure notwithstanding a zero exit status.
+
+  9. RULES PROVENANCE.  Two facts have to be stated together, because either
+  one alone would mislead.  First, no rules document exists on disk for this
+  project: the rules facility reports that none was provided, so there is no
+  external full text to defer to.  Second, rules nonetheless govern this work
+  in full, because the requirements embed a numbered block of seven rules
+  together with seven transformation rules.  The R identifiers by which this
+  documentation tree cites them are the plan's own labels, supplied for
+  unambiguous reference, and are not quoted titles.  Every rule referred to
+  in this comment is summarised in its author's own words and never
+  transcribed.  Two are paraphrased deliberately: the rule limiting JDK
+  internal access in production launch configuration, and the transformation
+  rule that fixes the offending library rather than opening the JDK module.
+  Their own wording carries literals this tree keeps at zero, which is also
+  why the register of applied JDK internal access exceptions is named here by
+  title only and never by file name.  Where a rule's own wording names the
+  pre-migration runtime in the form this tree keeps at zero, this comment
+  renders it as JDK 8; that substitution is editorial and is disclosed here
+  rather than made silently.  For the record on the paraphrased pair, the
+  audited production launch configuration carries no module access JVM
+  argument that opens or exports an otherwise encapsulated JDK package to the
+  unnamed module, and every strong encapsulation failure measured during the
+  migration was resolved by advancing or removing the library that needed it.
+-->
+

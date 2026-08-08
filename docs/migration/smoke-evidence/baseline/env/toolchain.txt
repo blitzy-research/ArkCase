@@ -1,36 +1,63 @@
 toolchain provenance, captured verbatim from each tool
-capture-directory: <CAPTURE-DIR>
+capture-directory: docs/migration/smoke-evidence/baseline
+
+===== producer provenance =====
+producer: docs/migration/smoke-evidence/smoke-checks.sh
+producer-sha256: 28633c4f1cdefe1b01c971976c53920334922fe4c81668693b18c9947eecdacf
+producer-invoked-as: ./docs/migration/smoke-evidence/smoke-checks.sh
+repository-head: 0e13c8620de59ca66bfe8d0e261c82f15acc9cfd
+repository-head-short: 0e13c8620d
+repository-branch: blitzy-<UUID>-w-054
+repository-tree-state: dirty: 150 path(s) modified or untracked relative to 0e13c8620d
+declared-base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
+declared-capture-side: baseline
+declared-side-versus-observed-head: CONTRADICTED: the capture declares the pre-migration side and the base commit c8f6226105, but HEAD is 0e13c8620d.  The observed head is the fact; the side label is a declaration.  Read every runtime designation in this capture as the LABEL it is, and read env/toolchain.txt for what the tools actually reported
+
+HOW TO USE THE DIGEST.  The comparison this deliverable exists to support
+rests on both captures having been written by the same program.  Compare
+the producer-sha256 row in the two env/toolchain.txt files: equal digests
+mean the same bytes of program wrote both, and unequal digests mean they did
+not, whatever either capture says in prose about it.  A previously committed
+pair of trees was assembled by three different generations of this script
+while both asserted the producer was identical, which is precisely the
+failure a digest makes impossible to repeat unnoticed.
+
+A dirty repository-tree-state means this capture cannot be reproduced from
+any commit alone: the tree it ran against differed from the head it names.
+That is recorded rather than prevented, because capturing from a working
+tree is the ordinary case while the change set is being developed.
 
 ===== run posture =====
 transport-trust-mode: verify-default-trust-store
 transport-trust-degraded: no
 certificate-authority-bundle-supplied: no
 public-key-pin-supplied: no
-credential-source: file
+credential-source: environment
 credential-value-recorded: never
-state-mutation-permitted: yes
+state-mutation-permitted: no
+state-mutation-refused-because: ALLOW_SMOKE_MUTATIONS is not set to 1
 body-capture-cap-bytes: 262144
 header-capture-cap-bytes: 16384
 diagnostic-capture-cap-bytes: 8192
-log-region-cap-lines: 2000
+log-region-cap-lines: 8000
 
 ===== java -version =====
-openjdk version "1.8.0_492"
-OpenJDK Runtime Environment (build 1.8.0_492-8u492-ga~us2-0ubuntu1~25.10.1-b09)
-OpenJDK 64-Bit Server VM (build 25.492-b09, mixed mode)
+openjdk version "17.0.19" 2026-04-21
+OpenJDK Runtime Environment (build 17.0.19+10-1-25.10.2-Ubuntu)
+OpenJDK 64-Bit Server VM (build 17.0.19+10-1-25.10.2-Ubuntu, mixed mode, sharing)
 
 ===== mvn -v =====
 Apache Maven 3.8.7 (b89d5959fcde851dcb1c8946a785a163f14e1e29)
 Maven home: /opt/maven/apache-maven-3.8.7
-Java version: 1.8.0_492, vendor: Private Build, runtime: /usr/lib/jvm/java-8-openjdk-amd64/jre
+Java version: 17.0.19, vendor: Ubuntu, runtime: /usr/lib/jvm/java-17-openjdk-amd64
 Default locale: en_US, platform encoding: UTF-8
 OS name: "linux", version: "6.12.85+", arch: "amd64", family: "unix"
 
 ===== node -v =====
-v8.17.0
+v20.20.2
 
 ===== npm -v =====
-6.13.4
+10.8.2
 
 ===== curl --version =====
 curl 8.14.1 (x86_64-pc-linux-gnu) libcurl/8.14.1 OpenSSL/3.5.3 zlib/1.3.1 brotli/1.1.0 zstd/1.5.7 libidn2/2.3.8 libpsl/0.21.2 libssh2/1.11.1 nghttp2/1.64.0 librtmp/2.3 OpenLDAP/2.6.10

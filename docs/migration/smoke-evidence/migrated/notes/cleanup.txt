@@ -1,0 +1,43 @@
+cleanup of application state created by this run
+
+Every mutating flow registers what it creates, and the registry is replayed
+here in reverse order at the end of the run.  A removal that answers 2xx is
+treated as done; 404 and 410 are also treated as done, because an object that
+is already gone needs no further removal.  Anything else is counted as failed
+and marks the run incomplete, because litter left in the application changes
+what the NEXT capture sees and therefore breaks the comparison this evidence
+exists to support.
+
+A REMOVAL STATUS IS NOT A REMOVAL, so every entry that carries a verification
+instrument is verified -- after a 2xx as well as after a failure.  This
+application has been measured getting the status wrong in BOTH directions.
+Deleting a stored document removes the object and then publishes a recycle-bin
+event whose listener dereferences a version that is no longer there, so the
+request answers 500 with the object already gone.  Deleting a business-process
+task deletes it and then re-indexes it in the same transaction, the re-index
+dereferences a participant list the deleted task does not carry, and the
+exception rolls the deletion back -- so that request answers 500 with the task
+still ACTIVE and the engine row untouched.  Both are pre-existing defects,
+identical on both sides, registered rather than fixed.  A status-only reading
+of either would be a false statement in this evidence.
+
+TWO INSTRUMENTS ARE USED, one per kind of object, because no single question
+answers "is it gone?" for both.  A stored document is checked by INDEX
+ABSENCE: the entry counts as removed only when an index query succeeds and
+finds nothing, which was verified in both directions on this application -- a
+document that exists returns 1 and an identifier that never existed returns 0.
+A process instance is checked by a NAMED FIELD VALUE: its removal marks the
+instance's tasks TERMINATED rather than deleting them, and the terminate event
+re-indexes each task, so the task document remains findable and an absence
+check would report litter that is not there -- while the task status moves to
+TERMINATED synchronously and says so exactly.  The instrument, the value it
+read and the conclusion it produced are recorded per entry beside the removal
+status, so an entry that counts as removed despite a 500 shows a reader
+exactly what settled it.
+
+entries-registered: 2
+entries-removed: 2
+entries-removed-by-verification-after-an-inconclusive-status: 1
+entries-failed: 0
+
+per-entry observations are in notes/cleanup.out and notes/cleanup.status.

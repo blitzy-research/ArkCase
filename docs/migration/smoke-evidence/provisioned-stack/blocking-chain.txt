@@ -1,0 +1,119 @@
+THE BLOCKING CHAIN, QUOTED FROM THE APPLICATION'S OWN ERROR LOG
+==============================================================
+
+WHY THIS FILE EXISTS.  README.md in this directory states that object creation failed
+because ArkCase creates the object's repository container folder through CMIS inside the
+same transaction, and it names the exception types in that chain.  An earlier revision of
+that README named CmisConnectionException without any committed evidence carrying it: the
+chain had been read from a live log during tracing and then not preserved, so the strongest
+claim in the README rested on nothing a reader could check.  This file is that evidence.
+
+WHAT IS QUOTED.  The causal spine of ONE object-creation attempt, taken from the
+pre-provisioning state - the state the paired ../migrated/ capture documents, before any
+service in README.md's provisioning table existed.  Message and exception-cause text is
+verbatim.  Nothing is paraphrased and nothing is summarised into prose.
+
+SOURCE AND WINDOW, so the extraction can be repeated rather than trusted:
+  source-log                  /opt/tomcat/current/logs/arkcase-errors.log
+    the log4j2 JSON-lines error log the deployment writes; NOT catalina.out, which
+    carries the same events in a rendered form that is harder to parse deterministically
+  window-epoch-seconds        1786066396 .. 1786066398 inclusive
+  ERROR-records-in-log        1221
+  ERROR-records-in-window     9
+  spine-records-emitted       6
+    six records from four distinct logger names, the error manager appearing three times.
+    The WINDOW filter does most of the reduction, 1221 ERROR records in the log down to 9 in
+    this one attempt.  The LOGGER filter then drops 3 of those 9, measured rather than
+    assumed: two ExecuteSolrQuery records and one
+    RetrieveBusinessProcessTasksAPIController record, all three the search client failing
+    against the same unreachable host
+  extractor                   extract-blocking-chain.py, beside this file
+  extractor-sha256            7d15eb68487a2d45f39f6b46b9c180aa7818dd009e0f8ac45ecf8ca2de43077c
+
+REPRODUCTION, exactly as this body was produced:
+  python3 extract-blocking-chain.py /opt/tomcat/current/logs/arkcase-errors.log 1786066396 1786066398
+
+NORMALISATION.  Camel exchange identifiers are replaced with <EXCHANGE-ID> because they are
+per-request and would make the file differ on every re-extraction while carrying no
+information.  Runs of whitespace are collapsed so a cause chain reads on one line.  Nothing
+else is altered: the host name, the CMIS service path and the repository folder path are the
+values the deployment actually used and are not secrets.
+
+WHAT THE SPINE ESTABLISHES, read off the records below rather than asserted here:
+  1.  The Camel queue that resolves-or-creates the folder returned no object
+      (cmisObjectId=null).
+  2.  The folder creation failed with CmisConnectionException - Connection refused - against
+      the CMIS AtomPub endpoint.  AtomPub is the binding in use, which is the reason no
+      JAX-WS artifact is required anywhere in this migration.
+  3.  A SUPPRESSED CamelCmisObjectNotFoundException names the exact path
+      /Sites/acm/documentLibrary/Complaints/2026.  This is the independent evidence for
+      README.md's claim that ArkCase does NOT create a missing parent: it looked the path up,
+      did not find it, and failed rather than creating it.
+  4.  The failure became a JPA RollbackException because the transaction was already marked
+      RollbackOnly, and surfaced as AcmCreateObjectFailedException - the 400 the paired
+      capture records as CREATE: 400 in flow-6-generated-number.status.
+
+  Step 4 is the load-bearing one.  A content repository that were merely a soft dependency
+  would have produced an object with an unset container; the RollbackOnly marking is what
+  makes it hard, and it is what made ONE missing service block FOUR flows.
+
+WHAT THE SPINE DOES NOT ESTABLISH.  Nothing about the migrated runtime versus the baseline
+runtime.  Every exception here is a connection refusal to a service that was not running,
+and it would read identically on either runtime.  This file explains a COVERAGE gap; it is
+not a defect report against Java 17.
+
+--------------------------------------------------------------------------------
+BEGIN VERBATIM EXTRACTION
+--------------------------------------------------------------------------------
+
+LOGGER  com.armedia.acm.camelcontext.context.CamelContextManager
+MESSAGE Error sending message on queue=com.armedia.acm.camelcontext.flow.queue.GetOrCreateFolderQueue with cmisObjectId=null
+
+LOGGER  com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl
+MESSAGE Could not create folder: org.apache.camel.CamelExecutionException: Exception occurred during execution on the exchange: Exchange[<EXCHANGE-ID>]
+  CAUSE[0] com.armedia.acm.camelcontext.exception.ArkCaseFileRepositoryException: org.apache.camel.CamelExecutionException: Exception occurred during execution on the exchange: Exchange[<EXCHANGE-ID>]
+  CAUSE[1] org.apache.camel.CamelExecutionException: Exception occurred during execution on the exchange: Exchange[<EXCHANGE-ID>]
+  CAUSE[2] org.apache.camel.RuntimeCamelException: org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException: Cannot access "https://acm-arkcase/alfresco/api/-default-/public/cmis/versions/1.1/atom": Connection refused
+  CAUSE[3] SUPPRESSED org.apache.camel.RuntimeCamelException: org.apache.camel.component.cmis.exception.CamelCmisObjectNotFoundException: Can not find object by path :/Sites/acm/documentLibrary/Complaints/2026
+  CAUSE[4] org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException: Cannot access "https://acm-arkcase/alfresco/api/-default-/public/cmis/versions/1.1/atom": Connection refused
+  CAUSE[5] java.net.ConnectException: Connection refused
+
+LOGGER  com.armedia.acm.plugins.complaint.web.api.CreateComplaintAPIController
+MESSAGE Could not save complaint: Could not commit JPA transaction; nested exception is javax.persistence.RollbackException: Transaction "rolled back" because transaction was set to RollbackOnly.
+  CAUSE[0] org.springframework.transaction.TransactionSystemException: Could not commit JPA transaction; nested exception is javax.persistence.RollbackException: Transaction "rolled back" because transaction was set to RollbackOnly.
+  CAUSE[1] javax.persistence.RollbackException: Transaction "rolled back" because transaction was set to RollbackOnly.
+
+LOGGER  com.armedia.acm.web.api.AcmSpringMvcErrorManager
+MESSAGE Create Object Failed: Could not create complaint. Server encountered exception: Could not commit JPA transaction; nested exception is javax.persistence.RollbackException: Transaction "rolled back" because transaction was set to RollbackOnly. Exception type was: 'com.armedia.acm.core.exceptions.AcmCreateObjectFailedException'.
+  CAUSE[0] com.armedia.acm.core.exceptions.AcmCreateObjectFailedException: Could not create complaint. Server encountered exception: Could not commit JPA transaction; nested exception is javax.persistence.RollbackException: Transaction "rolled back" because transaction was set to RollbackOnly. Exception type was: 'com.armedia.acm.core.exceptions.AcmCreateObjectFailedException'.
+  CAUSE[1] org.springframework.transaction.TransactionSystemException: Could not commit JPA transaction; nested exception is javax.persistence.RollbackException: Transaction "rolled back" because transaction was set to RollbackOnly.
+  CAUSE[2] javax.persistence.RollbackException: Transaction "rolled back" because transaction was set to RollbackOnly.
+
+LOGGER  com.armedia.acm.web.api.AcmSpringMvcErrorManager
+MESSAGE Last Chance Handler: Unable to process query, server error
+  CAUSE[0] com.armedia.acm.services.search.exception.SolrException: Unable to process query, server error
+  CAUSE[1] org.apache.solr.client.solrj.SolrServerException: Server refused connection at: https://acm-arkcase:443/solr
+  CAUSE[2] org.apache.http.conn.HttpHostConnectException: Connect to acm-arkcase:443 [acm-arkcase/127.0.0.1] failed: Connection refused
+  CAUSE[3] java.net.ConnectException: Connection refused
+
+LOGGER  com.armedia.acm.web.api.AcmSpringMvcErrorManager
+MESSAGE Last Chance Handler: A JSONObject text must begin with '{' at 1 [character 2 line 1]
+  CAUSE[0] org.json.JSONException: A JSONObject text must begin with '{' at 1 [character 2 line 1]
+--------------------------------------------------------------------------------
+END VERBATIM EXTRACTION
+--------------------------------------------------------------------------------
+
+The last two records above are not part of the folder chain, and they are left in rather than
+filtered out because each says something the chain does not.
+
+  Record 5, the error manager reporting SolrException over a refused connection to the search
+  host, is the SAME root cause reaching a different subsystem in the same window.  It is the
+  reason the paired capture's flow 4 records search failures, and it shows that the missing
+  services were two rather than one - search was down as well as the content repository.  Only
+  the content repository blocked object creation, which is why README.md attributes the
+  blocking chain to it alone.
+
+  Record 6, a JSONException reading a response body that does not begin with a brace, is a
+  CONSEQUENCE of record 5 rather than a separate fault: a caller expecting a JSON document got
+  an error page and tried to parse it.  It is kept so that a reader counting ERROR records in
+  the window can account for all of them and does not go looking for a third failure.

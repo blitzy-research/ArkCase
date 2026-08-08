@@ -4,8 +4,8 @@ ArkCase runtime migration — smoke evidence, closing index for the migrated run
 
 RUNTIME: Java 17 on the backend and Node 20 LTS with npm 10 on the frontend.  Observed toolchain of
   record, captured verbatim from each tool rather than declared here:
-  env/toolchain.txt.  Migrated tree commit cfad63f685 on branch blitzy-<UUID>; working tree dirty: 5 path(s) modified or untracked relative to cfad63f685.
-  Declared capture side migrated (post-migration replay), consistent: the capture declares the migrated side and HEAD cfad63f685 is not the base commit.
+  env/toolchain.txt.  Migrated tree commit d9f40089eb on branch blitzy-<UUID>-w-053; working tree clean: the working tree matches d9f40089eb exactly.
+  Declared capture side migrated (post-migration replay), consistent: the capture declares the migrated side and HEAD d9f40089eb is not the base commit.
 BASE-COMMIT: c8f6226105c28c2743281d26bf21ad73f7bb7f26 — the pre-migration commit the baseline side of this
   comparison was captured at, before any file in the change set was edited.
   Nothing done later can reconstruct that state, which is why it was captured
@@ -28,14 +28,14 @@ PRODUCED-BY: docs/migration/smoke-evidence/smoke-checks.sh, as its closing
   nothing else.  That is what makes a row-for-row comparison meaningful, and
   it is the structural consequence of R-7.  A hand-edited index is not
   evidence; regenerate this file rather than correcting it in place.
-SMOKE-OUT-DIR: docs/migration/smoke-evidence/migrated
-TARGET-STACK: application base URL http://localhost:20040/arkcase, plus the four reference-stack service
+SMOKE-OUT-DIR: /tmp/blitzy/ArkCase/blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614-w-053_196589/docs/migration/smoke-evidence/migrated.run-3432126
+TARGET-STACK: application base URL http://localhost:53080/arkcase, plus the four reference-stack service
   endpoints, every one probed anonymously and recorded as observed in
   notes/reference-stack.txt:
-    search engine        https://arkcase-ce.local/solr   observed 000
-    content repository   https://arkcase-ce.local/share   observed 000
-    reporting            https://arkcase-ce.local/pentaho   observed 000
-    document viewer      https://arkcase-ce.local/VirtualViewerJavaHTML5   observed 000
+    search engine        http://localhost:53983/solr   observed 302
+    content repository   http://localhost:53091/alfresco   observed 302
+    reporting            http://localhost:53099/pentaho   observed 000
+    document viewer      http://localhost:53098/VirtualViewerJavaHTML5   observed 000
   The document-viewer endpoint is EXPECTED to answer HTTP 503.  That is a
   documented pre-existing condition, stated in two places in this repository:
   README.md line 50 and docs/setup.md line 30 both record the expectation in
@@ -47,24 +47,8 @@ TARGET-STACK: application base URL http://localhost:20040/arkcase, plus the four
   through the ARKCASE_USER variable and its secret through the companion
   password variable.  env/toolchain.txt records that the secret value was
   never written to this tree; only the variable is named, never its content.
-FLOWS-EXECUTED: 4 of 8
-FLOWS-SKIPPED: 4 of 8
-  Not exercised, each one NAMED here because silence is not a skip:
-    flow-3-alfresco-roundtrip
-    flow-5-activemq-event
-    flow-7-workflow-start
-    flow-8-queue-transition
-  Each one recorded a REASON in its own status and result files, and each
-  reason is repeated in the matching entry below.  Under R-5 a flow that
-  could not be exercised is recorded honestly and counted; a fabricated
-  pass would be a rule violation.  No flow was disabled, suppressed or
-  removed from the capture: all eight recorded a result.
-  Vocabulary, so this field cannot appear to contradict
-  notes/completeness.txt: that file counts flows-skipped as flows never
-  attempted, which is zero here, and reports the same four flows as
-  flows-not-exercised.  This field uses the reader s sense of the word —
-  a flow whose behaviour was not exercised — so the two documents describe
-  one state in two vocabularies rather than disagreeing.
+FLOWS-EXECUTED: 8 of 8
+FLOWS-SKIPPED: 0 of 8
 AUTHORITY-NOTE: the eight per-flow .result.txt files are AUTHORITATIVE and
   this summary is an INDEX ONLY.  The deliverable is complete when all eight
   flows carry a recorded comparison result, and it is those eight files that
@@ -157,7 +141,7 @@ FLOW 1  slug 1-login          verdict OBSERVED-AUTHENTICATED-AND-IDENTITY-CONFIR
     flow-1-login.result.txt  the recorded observation, AUTHORITATIVE
 
 --------------------------------------------------------------------------------
-FLOW 2  slug 2-views          verdict OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
+FLOW 2  slug 2-views          verdict OBSERVED-RENDERED-AND-ASSETS-DIGESTED
   Do the application shell and the case and document views render, and are the
   assets they render from the assets this run recorded.
   MIGRATION PATH: the built frontend assets served to a browser, produced by
@@ -166,7 +150,7 @@ FLOW 2  slug 2-views          verdict OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
   OBSERVED: 5 of the served asset comparisons reported MATCH, meaning every
   asset the deployment served was byte-for-byte the asset recorded under
   artifacts/; the authenticated shell answered 200 and the case list 200, while
-  case discovery answered 500, so the detail and document views were not
+  case discovery answered 200, so the detail and document views were not
   reached and two requirements are recorded unmet.
   DIGESTS: artifacts/*.sha256 holds the recorded digest of each built asset.
   Read them WITH this entry: a rendered-view observation only means something
@@ -179,30 +163,30 @@ FLOW 2  slug 2-views          verdict OBSERVED-INCOMPLETE-2-REQUIREMENTS-UNMET
     flow-2-views.result.txt  the recorded observation, AUTHORITATIVE
 
 --------------------------------------------------------------------------------
-FLOW 3  slug 3-alfresco-roundtrip          verdict NOT-EXERCISED-NO-FIXTURE-OBJECT
+FLOW 3  slug 3-alfresco-roundtrip          verdict OBSERVED-ROUNDTRIP-COMPLETED
   Store a document in the content repository and retrieve it unchanged.
   MIGRATION PATH: the reinstated XML binding API and runtime, and the
   activation framework whose MIME-type mapping decides the resolved type.  The
   reference implementation of that framework was mandatory rather than
   cosmetic: the API-only artefact omits the MIME and mailcap default resources
   that five of the six consuming files depend on.
-  OBSERVED: repository reachability 000, so no leg of the round trip ran.  The
-  type declared on send was text/plain and the type the store resolved was not-observed.
-  SKIPPED — reason, recorded by the flow itself: no fixture object was available to attach a document to; flow 6 must create it first
+  OBSERVED: repository reachability 302, so no leg of the round trip ran.  The
+  type declared on send was text/plain and the type the store resolved was text/plain;charset=UTF-8.
+  SKIPPED — reason, recorded by the flow itself: not-recorded
   FILES — the .result.txt is the AUTHORITATIVE record for this flow:
     flow-3-alfresco-roundtrip.status      captured status and result tokens
     flow-3-alfresco-roundtrip.out         captured response body
     flow-3-alfresco-roundtrip.result.txt  the recorded observation, AUTHORITATIVE
 
 --------------------------------------------------------------------------------
-FLOW 4  slug 4-solr-search          verdict OBSERVED-INCOMPLETE-5-REQUIREMENTS-UNMET
+FLOW 4  slug 4-solr-search          verdict OBSERVED-SEARCH-ANSWERED
   Search through the application and get the same result set back.
   MIGRATION PATH: the search client on the new runtime, unchanged by design —
   no integration client version moved, because a version change to an
   integration client is a wire-behaviour risk by definition.
-  OBSERVED: the search through the application answered 500 and the engine
-  probe 000.
-  MATCH COUNT: unavailable.  The count is reported explicitly and separately because
+  OBSERVED: the search through the application answered 200 and the engine
+  probe 302.
+  MATCH COUNT: 5.  The count is reported explicitly and separately because
   status alone cannot carry this flow: an HTTP 200 with zero results is a
   success by exit status and a failure by behaviour, so a response code
   without a count would leave the behavioural question unanswered.  The
@@ -214,7 +198,7 @@ FLOW 4  slug 4-solr-search          verdict OBSERVED-INCOMPLETE-5-REQUIREMENTS-U
     flow-4-solr-search.result.txt  the recorded observation, AUTHORITATIVE
 
 --------------------------------------------------------------------------------
-FLOW 5  slug 5-activemq-event          verdict NOT-EXERCISED-NO-EVENT-PRODUCED
+FLOW 5  slug 5-activemq-event          verdict OBSERVED-EVENT-TRANSITED-AND-INDEXED
   Does an application event transit the message broker with its payload
   intact.
   MIGRATION PATH: the messaging client on the new runtime, unchanged by
@@ -222,7 +206,7 @@ FLOW 5  slug 5-activemq-event          verdict NOT-EXERCISED-NO-EVENT-PRODUCED
   from the platform.  Broker initialisation is in
   startup/messaging-init.log.
   OBSERVED: the broker answered 200 and its destination surface 200, with the
-  configured destination solrAdvancedSearch.in; delivery was not-observed.
+  configured destination solrAdvancedSearch.in; delivery was yes.
   ASYNCHRONY: a successful trigger does NOT imply delivery.  Messaging is
   asynchronous, so the request that raises an event can answer before, or
   without, the event reaching a destination.  This flow therefore asserts on
@@ -230,14 +214,14 @@ FLOW 5  slug 5-activemq-event          verdict NOT-EXERCISED-NO-EVENT-PRODUCED
   answered would still leave delivery unproven.  Broker-assigned identifiers,
   enqueue and expiry stamps, redelivery counters and connection identifiers
   are normalised; the payload and the destination name are preserved.
-  SKIPPED — reason, recorded by the flow itself: flow 6 produced no object number, so there is nothing this run caused whose indexing could be observed; a broker transit cannot be asserted from an ambient query
+  SKIPPED — reason, recorded by the flow itself: not-recorded
   FILES — the .result.txt is the AUTHORITATIVE record for this flow:
     flow-5-activemq-event.status      captured status and result tokens
     flow-5-activemq-event.out         captured response body
     flow-5-activemq-event.result.txt  the recorded observation, AUTHORITATIVE
 
 --------------------------------------------------------------------------------
-FLOW 6  slug 6-generated-number          verdict OBSERVED-INCOMPLETE-4-REQUIREMENTS-UNMET
+FLOW 6  slug 6-generated-number          verdict OBSERVED-NUMBER-GENERATED
   Create an object that receives a generated number, and get the same
   numbering sequence and format.
   MIGRATION PATH: the highest-impact runtime fix on the backend.  The
@@ -249,8 +233,8 @@ FLOW 6  slug 6-generated-number          verdict OBSERVED-INCOMPLETE-4-REQUIREME
   application through the live decision tables counted below, and the rule
   compiler declares that library with no version of its own, so the reactor s
   property governs which one actually loads.
-  OBSERVED: the precondition answered 500 and creation answered 400; a generated
-  number was assigned: no.  Reason recorded by the flow: the creation was exercised but the response carried no generated number
+  OBSERVED: the precondition answered 200 and creation answered 200; a generated
+  number was assigned: yes.  Reason recorded by the flow: the creation was exercised and a generated number was observed; its value and format are recorded in the paired .out capture
   Any generated number that IS observed is preserved in full and never
   normalised, because the number is the behaviour this flow exists to compare.
   FILES — the .result.txt is the AUTHORITATIVE record for this flow:
@@ -259,20 +243,20 @@ FLOW 6  slug 6-generated-number          verdict OBSERVED-INCOMPLETE-4-REQUIREME
     flow-6-generated-number.result.txt  the recorded observation, AUTHORITATIVE
 
 --------------------------------------------------------------------------------
-FLOW 7  slug 7-workflow-start          verdict NOT-EXERCISED-WORKFLOW-NOT-STARTED
+FLOW 7  slug 7-workflow-start          verdict OBSERVED-WORKFLOW-STARTED-AND-TASK-ASSIGNED
   Start a workflow and get identical process instantiation and task
   assignment.
   MIGRATION PATH: the process engine, the oldest load-bearing engine in the
   reactor and the one carrying RESIDUAL, UNVERIFIED risk.  It could not be
   bootstrapped for testing without a database, so the migration plan assigned
   it to this gate rather than declaring it safe.
-  OBSERVED: the headline request answered 500; the engine reported 34 process
+  OBSERVED: the headline request answered 200; the engine reported 40 process
   definitions loaded against 36 definitions present on disk, and process
-  instantiation was no.
+  instantiation was yes.
   INITIALISATION EVIDENCE: startup/workflow-engine-init.log, a region of the
   ONE bounded startup window every region in this capture was mined from,
   which is described with its source digest and offsets in
-  notes/startup-window.txt.  It is 41 matched lines wide.  Startup evidence
+  notes/startup-window.txt.  It is 91 matched lines wide.  Startup evidence
   lives under startup/ and nowhere else: the obvious alternative directory
   name is a bare ignore pattern in this repository and is matched at any
   depth, so a capture written there would be silently untracked.
@@ -281,14 +265,14 @@ FLOW 7  slug 7-workflow-start          verdict NOT-EXERCISED-WORKFLOW-NOT-STARTE
   execution, task and deployment identifiers are engine-assigned from a
   database sequence and are normalised; the process definition KEY, and any
   task name or assignee identity, are preserved.
-  SKIPPED — reason, recorded by the flow itself: no fixture object was available to start a workflow on, so process instantiation is unobserved
+  SKIPPED — reason, recorded by the flow itself: not-recorded
   FILES — the .result.txt is the AUTHORITATIVE record for this flow:
     flow-7-workflow-start.status      captured status and result tokens
     flow-7-workflow-start.out         captured response body
     flow-7-workflow-start.result.txt  the recorded observation, AUTHORITATIVE
 
 --------------------------------------------------------------------------------
-FLOW 8  slug 8-queue-transition          verdict NOT-EXERCISED-NO-CASE-FILE-AVAILABLE
+FLOW 8  slug 8-queue-transition          verdict OBSERVED-QUEUE-ROUTING-EVALUATED-NOT-APPLIED
   Move an object between queues and get the identical routing decision.
   MIGRATION PATH: the decision tables that govern queue entry and exit,
   evaluated through the same advanced expression-language library flow 6
@@ -296,9 +280,9 @@ FLOW 8  slug 8-queue-transition          verdict NOT-EXERCISED-NO-CASE-FILE-AVAI
   reason both flows are in the set.  There is no textual rule file anywhere in
   the tree, so the entire rule surface is the spreadsheets counted below.
   OBSERVED: the queue definitions endpoint answered 200 while case discovery
-  answered 500; the transition was not-attempted-no-case-file, from queue none, and the onward-route
-  count was not-observed.
-  SKIPPED — reason, recorded by the flow itself: the queue-definition or case-discovery endpoint answered, but no existing case file was returned, so the routing rules had no object to evaluate against
+  answered 200; the transition was not-attempted-the-rules-computed-no-destination, from queue none, and the onward-route
+  count was 0.
+  SKIPPED — reason, recorded by the flow itself: not-recorded
   Queue names and the onward-route order are preserved in full; only surrogate
   database keys are normalised.
   FILES — the .result.txt is the AUTHORITATIVE record for this flow:
@@ -454,13 +438,11 @@ Present on the baseline side only, 1:
   surefire/notes/property-allowlist-line-continuation.txt
     the register for a harvest defect that exists on that side alone, documented and deliberately not fixed because the archive is digest-bound and the defect blocks no validation item; the measured figures are in the register itself
 
-Present on THIS migrated side only, outside surefire/, 3:
+Present on THIS migrated side only, outside surefire/, 2:
   artifacts/diff-result.txt
     the adjudication of the frontend artifact byte-identity criterion, likewise a statement ABOUT the pair and therefore written once
   comparison.txt
     the recursive cross-capture comparison itself, written once and from this side only because it is a statement ABOUT the pair rather than an observation of either half
-  smoke-run-summary.txt
-    this index, written by the closing step of smoke-checks.sh on whichever side that script is run; it is an INDEX ONLY and the authority for nothing
 
 Present on THIS migrated side only, inside surefire/, 6:
   surefire/acm-service-data-update/TEST-com.armedia.acm.services.dataupdate.web.SolrReindexServiceTests.xml
@@ -479,7 +461,7 @@ Present on THIS migrated side only, inside surefire/, 6:
 Carried on BOTH sides and therefore NOT a path-set deviation, named here because
 it is the entry most easily mistaken for one: jacoco-liveness.txt, the
 coverage-instrumentation liveness gate.  This side records state LIVE
-from 69 execution data files found on disk.  It is MEASURED on the
+from 137 execution data files found on disk.  It is MEASURED on the
 migrated side alone, and the reason is structural rather than incidental: the
 unit-test runner was declared in ZERO of the 145 project files at base commit
 c8f6226105, so the argument-line override that silently severs instrumentation

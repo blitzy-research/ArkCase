@@ -9,16 +9,16 @@ OBSERVED AT RUN TIME by this capture:
   directory-under-observation: arkcase
   per-directory-registry-status-observed: 200
   directory-resolved-by-the-registry: yes
-  context-source-startup-region-matched-lines: 28
+  context-source-startup-region-matched-lines: 29
   context-source-startup-region: startup/ldap-context-source.log
 
 READ FROM DELIVERED CONFIGURATION by this capture, which is a weaker claim
   than the rows above and is separated from them for that reason:
   properties-file: acm-services/acm-service-login/src/main/resources/spring/ldap-jndi.properties
-  properties-file-state: ABSENT
-  properties-file-sha256: ABSENT
-  ldap.jndi.initialContextFactory: FILE-ABSENT
-  ldap.jndi.connectionPoolFlag: FILE-ABSENT
+  properties-file-state: present
+  properties-file-sha256: 7c245a56731dab68ac166de2ec47dc22842fdd2611c7d29b8316598d95ba3e67
+  ldap.jndi.initialContextFactory: com.sun.jndi.ldap.LdapCtxFactory
+  ldap.jndi.connectionPoolFlag: com.sun.jndi.ldap.connect.pool
 
 WHAT THE TWO VALUES ARE, and why they are compared literally.  The naming
   service matches an initial context factory by EXACT CLASS NAME and a

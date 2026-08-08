@@ -1,0 +1,36 @@
+startup-log-region: readiness-poll.log
+region-describes: container readiness: deployment completion and the startup-completed line the window closes on
+region-mandatory: yes
+region-pattern: Server startup in|Deployment of web application|has finished in|Deploying web application|Starting ProtocolHandler|Initializing ProtocolHandler
+region-pattern-flags: grep -E -i, applied to the extracted window only
+window-source: /opt/tomcat/current/logs/catalina.out
+window-source-sha256: 1581c892796e20ced0c0794c820691c049f388b1289efa0819de6ce73f15f0c1
+window-boots-present-in-source: 1
+window-sha256: 62917e5d4a84290b6d2ebb6c2eea2a399794d09108320f9fe43b47104c9bf731
+window-start-line: 1
+window-end-line: 32062
+window-start-byte-offset: 0
+window-end-byte-offset: 9273924
+window-lines: 32062
+matched-lines: 17
+line-cap: 2000
+capture-truncated: no
+----- region -----
+07-Aug-2026 23:26:52.288 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+07-Aug-2026 23:26:52.303 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["https-jsse-nio-8443"]
+07-Aug-2026 23:26:52.861 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/opt/tomcat/apache-tomcat-9.0.120/webapps/arkcase.war]
+[m07-Aug-2026 23:31:33.484 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/opt/tomcat/apache-tomcat-9.0.120/webapps/arkcase.war] has finished in [280,620] ms
+07-Aug-2026 23:31:33.489 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/examples]
+07-Aug-2026 23:31:33.763 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/examples] has finished in [274] ms
+07-Aug-2026 23:31:33.763 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/host-manager]
+07-Aug-2026 23:31:33.775 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/host-manager] has finished in [12] ms
+07-Aug-2026 23:31:33.776 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/manager]
+07-Aug-2026 23:31:33.786 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/manager] has finished in [11] ms
+07-Aug-2026 23:31:33.786 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/docs]
+07-Aug-2026 23:31:33.852 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/docs] has finished in [66] ms
+07-Aug-2026 23:31:33.852 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/ROOT]
+07-Aug-2026 23:31:33.865 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/opt/tomcat/apache-tomcat-9.0.120/webapps/ROOT] has finished in [13] ms
+07-Aug-2026 23:31:33.867 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+07-Aug-2026 23:31:33.879 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["https-jsse-nio-8443"]
+07-Aug-2026 23:31:33.881 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [281087] milliseconds
+----- end region -----
