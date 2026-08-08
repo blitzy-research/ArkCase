@@ -5933,7 +5933,16 @@ sanitise()
 #      redaction guarantee, checked against the real credential rather than a
 #      sample, including whatever metacharacters it happens to contain;
 #   3. representative credential-bearing header, cookie and JSON forms do not
-#      survive it — this is the pattern coverage.
+#      survive it — this is the pattern coverage;
+#   4. control bytes become visible text and a tab does not — this is what the
+#      four control-byte assertions below actually read, and the probe carries a
+#      colour sequence, a bare carriage return and a tab so that they can. Those
+#      assertions were added without the input they assert on, which made two of
+#      them unsatisfiable: `<ESC>` could never appear in the output of an input
+#      with no escape byte in it, so this self-test refused EVERY run of this
+#      script in EVERY mode from the moment it was introduced. Every committed
+#      capture predates it, and it is why the mode provided for recomputing a
+#      stale adjudication could not be used to recompute one.
 #
 # Failure to satisfy any of them is a refusal to start.  Capturing administrator
 # session material with an unproven redactor is not an acceptable alternative.
@@ -5969,7 +5978,9 @@ verify_sanitiser()
         'run provenance and a digest manifest beside them' \
         'WWW-Authenticate: basic realm="SELFTESTREALM"' \
         '{"unicodePwd":"unicodePwd","userPassword":"userPassword"}' \
-        '{"userPassword":"SELFTESTSECRET99"}')"
+        '{"userPassword":"SELFTESTSECRET99"}' \
+        "$(printf 'SELFTESTCTL \033[31mCOLOURED\033[0m carriage\rreturn')" \
+        "$(printf 'SELFTESTTAB\tKEPT')")"
 
     result="$(printf '%s\n' "$probe" | sanitise 2>/dev/null)" || result=''
 
