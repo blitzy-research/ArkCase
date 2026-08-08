@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.162" tests="19" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.165" tests="19" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,16 +18,16 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="testGetFolderParticipantsFromAssignedObjectThrowsIllegalStateExceptionWhenAnAssignedObjectParticipantTypeIsNotMapped" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.135"/>
+  <testcase name="testGetFolderParticipantsFromAssignedObjectThrowsIllegalStateExceptionWhenAnAssignedObjectParticipantTypeIsNotMapped" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.138"/>
   <testcase name="testGetFolderParticipantsFromAssignedObjectReturnsCorrectParticipants" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
-  <testcase name="testInheritParticipantsFromAssignedObject" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.013">
-    <system-out><![CDATA[2026-08-08 11:46:43,431 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantService - Setting participants for container [null]
+  <testcase name="testInheritParticipantsFromAssignedObject" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.012">
+    <system-out><![CDATA[2026-08-08 14:02:32,189 [DEBUG] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantService - Setting participants for container [null]
 ]]></system-out>
   </testcase>
-  <testcase name="testSetFolderParticipantsFromParentFolderRemovesExistingParticipantFromFolderAndChildren" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.002"/>
-  <testcase name="testSetFolderParticipantsFromParentFolderAddsNotExistingParticipantToFolderAndChildren" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
-  <testcase name="testSetFolderParticipantsThrowsAcmParticipantsExceptionOnDuplicateParticipantsLdapIds" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.002"/>
-  <testcase name="testSetFolderParticipantsFromParentFolderThrowsIllegalStateExceptionWhenFolderHasNoParentFolder" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.0"/>
+  <testcase name="testSetFolderParticipantsFromParentFolderRemovesExistingParticipantFromFolderAndChildren" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.003"/>
+  <testcase name="testSetFolderParticipantsFromParentFolderAddsNotExistingParticipantToFolderAndChildren" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.0"/>
+  <testcase name="testSetFolderParticipantsThrowsAcmParticipantsExceptionOnDuplicateParticipantsLdapIds" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
+  <testcase name="testSetFolderParticipantsFromParentFolderThrowsIllegalStateExceptionWhenFolderHasNoParentFolder" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
   <testcase name="testGetFolderParticipantsFromAssignedObjectReturnsUniqueFileParticipant" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
   <testcase name="testSetFolderParticipantsSetsParticipantsCorrectlyOnFolder" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
   <testcase name="testSetFolderParticipantsThrowsAcmParticipantsExceptionOnNullParticipantLdapId" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.0"/>
@@ -36,8 +36,8 @@
   <testcase name="testSetFileParticipantsSetsParticipantsCorrectlyOnFile" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
   <testcase name="testSetFileParticipantsFromParentFolderAddsNotExistingParticipant" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.0"/>
   <testcase name="testSetFileParticipantsFromParentFolderUpdatesExistingParticipantRoleAddsNotExistingParticipantRemovesExistingParticipant" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
-  <testcase name="testSetFileParticipantsFromParentFolderUpdatesExistingParticipantRole" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
+  <testcase name="testSetFileParticipantsFromParentFolderUpdatesExistingParticipantRole" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.0"/>
   <testcase name="testSetFileParticipantsThrowsAcmParticipantsExceptionOnInvalidParticipantType" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.0"/>
-  <testcase name="testSetFileParticipantsThrowsAcmParticipantsExceptionOnNullParticipantType" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.001"/>
+  <testcase name="testSetFileParticipantsThrowsAcmParticipantsExceptionOnNullParticipantType" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.0"/>
   <testcase name="testSetFolderParticipantsFromParentFolderUpdatesExistingParticipantRoleToFolderAndChildren" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileParticipantServiceTest" time="0.0"/>
 </testsuite>

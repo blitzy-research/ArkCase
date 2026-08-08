@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="1.572" tests="8" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="1.527" tests="8" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,36 +18,36 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="testGetDocumentsLockedByUser" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.913">
-    <system-out><![CDATA[2026-08-08 11:46:21,282 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - executing query for documents without lock: -({!join from=parent_ref_s to=id}object_type_s:OBJECT_LOCK) AND object_type_s:CASE_FILE
+  <testcase name="testGetDocumentsLockedByUser" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.87">
+    <system-out><![CDATA[2026-08-08 14:02:08,257 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - executing query for documents without lock: -({!join from=parent_ref_s to=id}object_type_s:OBJECT_LOCK) AND object_type_s:CASE_FILE
 ]]></system-out>
   </testcase>
-  <testcase name="testCreateExistingSameUserLock" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.632">
-    <system-out><![CDATA[2026-08-08 11:46:21,925 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [auditUser] about to create object lock[objectId=1, objectType=CASE_FILE, lockType=OBJECT_LOCK]
-2026-08-08 11:46:21,926 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [OBJECT_LOCK] for object [CASE_FILE:1]
+  <testcase name="testCreateExistingSameUserLock" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.63">
+    <system-out><![CDATA[2026-08-08 14:02:08,898 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [auditUser] about to create object lock[objectId=1, objectType=CASE_FILE, lockType=OBJECT_LOCK]
+2026-08-08 14:02:08,899 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [OBJECT_LOCK] for object [CASE_FILE:1]
 ]]></system-out>
   </testcase>
   <testcase name="testCreateNotExistingLock" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.002">
-    <system-out><![CDATA[2026-08-08 11:46:21,937 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [auditUser] about to create object lock[objectId=1, objectType=CASE_FILE, lockType=OBJECT_LOCK]
-2026-08-08 11:46:21,937 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [OBJECT_LOCK] for object [CASE_FILE:1]
+    <system-out><![CDATA[2026-08-08 14:02:08,910 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [auditUser] about to create object lock[objectId=1, objectType=CASE_FILE, lockType=OBJECT_LOCK]
+2026-08-08 14:02:08,910 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [OBJECT_LOCK] for object [CASE_FILE:1]
 ]]></system-out>
   </testcase>
   <testcase name="testCreateExistingDifferentUserLock" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.002">
-    <system-out><![CDATA[2026-08-08 11:46:21,939 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [auditUser] about to create object lock[objectId=1, objectType=CASE_FILE, lockType=OBJECT_LOCK]
-2026-08-08 11:46:21,939 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [OBJECT_LOCK] for object [CASE_FILE:1]
+    <system-out><![CDATA[2026-08-08 14:02:08,912 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - [auditUser] about to create object lock[objectId=1, objectType=CASE_FILE, lockType=OBJECT_LOCK]
+2026-08-08 14:02:08,912 [INFO ] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - Saving lock [OBJECT_LOCK] for object [CASE_FILE:1]
 ]]></system-out>
   </testcase>
   <testcase name="testRemoveLock" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.002"/>
   <testcase name="testGetDocumentsWithoutLockWithFilter" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.003">
-    <system-out><![CDATA[2026-08-08 11:46:21,943 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - executing query for documents with lock: {!join from=parent_ref_s to=id}object_type_s:OBJECT_LOCK  AND parent_type_s:CASE_FILE AND creator_lcs:auditUser
+    <system-out><![CDATA[2026-08-08 14:02:08,916 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - executing query for documents with lock: {!join from=parent_ref_s to=id}object_type_s:OBJECT_LOCK  AND parent_type_s:CASE_FILE AND creator_lcs:auditUser
 ]]></system-out>
   </testcase>
   <testcase name="testGetDocumentsWithoutLock" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.002">
-    <system-out><![CDATA[2026-08-08 11:46:21,946 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - executing query for documents with lock: {!join from=parent_ref_s to=id}object_type_s:OBJECT_LOCK  AND parent_type_s:CASE_FILE AND creator_lcs:auditUser
+    <system-out><![CDATA[2026-08-08 14:02:08,919 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - executing query for documents with lock: {!join from=parent_ref_s to=id}object_type_s:OBJECT_LOCK  AND parent_type_s:CASE_FILE AND creator_lcs:auditUser
 ]]></system-out>
   </testcase>
   <testcase name="testGetDocumentsLockedByUserWithFilter" classname="com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImplTest" time="0.002">
-    <system-out><![CDATA[2026-08-08 11:46:21,948 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - executing query for documents without lock: -({!join from=parent_ref_s to=id}object_type_s:OBJECT_LOCK) AND object_type_s:CASE_FILE
+    <system-out><![CDATA[2026-08-08 14:02:08,921 [DEBUG] [main] com.armedia.acm.service.objectlock.service.AcmObjectLockServiceImpl - executing query for documents without lock: -({!join from=parent_ref_s to=id}object_type_s:OBJECT_LOCK) AND object_type_s:CASE_FILE
 ]]></system-out>
   </testcase>
 </testsuite>

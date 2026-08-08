@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.052" tests="8" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.046" tests="8" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,20 +18,20 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="deleteFile_oneVersion_butFileOnlyHasOneVersion_shouldDeleteFile" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.034"/>
-  <testcase name="updateFile" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.007">
-    <system-out><![CDATA[2026-08-08 11:46:46,417 [INFO ] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl - File update successful [com.armedia.acm.plugins.ecm.model.EcmFile@552c7a9b[fileId=100,status=new_status,created=<null>,creator=<null>,modified=Sat Aug 08 11:46:46 UTC 2026,modifier=<null>,cmisRepositoryId=<null>,versionSeriesId=<null>,fileName=<null>,fileActiveVersionMimeType=<null>,fileActiveVersionNameExtension=<null>,folder=<null>,container=AcmContainer{id=null, created=null, creator='null', modified=null, modifier='null', containerObjectType='CASE_FILE', containerObjectId=101, containerObjectTitle='null', folder=null, attachmentFolder=null, calendarFolderId='null', cmisRepositoryId='null'},fileType=file_type,fileLang=<null>,activeVersionTag=<null>,category=Document,pageCount=0,fileSource=<null>,versions=[],tags=[],securityField=<null>,objectType=FILE,lock=<null>,legacySystemId=<null>,description=<null>,className=com.armedia.acm.plugins.ecm.model.EcmFile,participants=[],organizationAssociation=<null>,personAssociation=<null>,restricted=false,link=false,duplicate=false,custodian=<null>,zylabFileMetadata=<null>,uuid=<null>,mailAddress=<null>]]
+  <testcase name="deleteFile_oneVersion_butFileOnlyHasOneVersion_shouldDeleteFile" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.028"/>
+  <testcase name="updateFile" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.006">
+    <system-out><![CDATA[2026-08-08 14:02:35,127 [INFO ] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl - File update successful [com.armedia.acm.plugins.ecm.model.EcmFile@196d6142[fileId=100,status=new_status,created=<null>,creator=<null>,modified=Sat Aug 08 14:02:35 UTC 2026,modifier=<null>,cmisRepositoryId=<null>,versionSeriesId=<null>,fileName=<null>,fileActiveVersionMimeType=<null>,fileActiveVersionNameExtension=<null>,folder=<null>,container=AcmContainer{id=null, created=null, creator='null', modified=null, modifier='null', containerObjectType='CASE_FILE', containerObjectId=101, containerObjectTitle='null', folder=null, attachmentFolder=null, calendarFolderId='null', cmisRepositoryId='null'},fileType=file_type,fileLang=<null>,activeVersionTag=<null>,category=Document,pageCount=0,fileSource=<null>,versions=[],tags=[],securityField=<null>,objectType=FILE,lock=<null>,legacySystemId=<null>,description=<null>,className=com.armedia.acm.plugins.ecm.model.EcmFile,participants=[],organizationAssociation=<null>,personAssociation=<null>,restricted=false,link=false,duplicate=false,custodian=<null>,zylabFileMetadata=<null>,uuid=<null>,mailAddress=<null>]]
 ]]></system-out>
   </testcase>
-  <testcase name="deleteFile_oneVersion_shouldNotRemoveOtherVersions" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.0"/>
+  <testcase name="deleteFile_oneVersion_shouldNotRemoveOtherVersions" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.001"/>
   <testcase name="moveFile" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.005">
-    <system-out><![CDATA[2026-08-08 11:46:46,428 [INFO ] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl - Finding folder for object: TARGET id: 42
+    <system-out><![CDATA[2026-08-08 14:02:35,137 [INFO ] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl - Finding folder for object: TARGET id: 42
 ]]></system-out>
   </testcase>
-  <testcase name="deleteFile_allVersions_shouldDeleteFile" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.001"/>
-  <testcase name="createFolder" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.003"/>
+  <testcase name="deleteFile_allVersions_shouldDeleteFile" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.0"/>
+  <testcase name="createFolder" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.004"/>
   <testcase name="deleteFile_Record_shouldThrow" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.001">
-    <system-out><![CDATA[2026-08-08 11:46:46,433 [ERROR] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl - Could not delete file with ID 500 
+    <system-out><![CDATA[2026-08-08 14:02:35,142 [ERROR] [main] com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImpl - Could not delete file with ID 500 
 ]]></system-out>
   </testcase>
   <testcase name="updateFile_exception" classname="com.armedia.acm.plugins.ecm.service.impl.EcmFileServiceImplTest" time="0.0"/>

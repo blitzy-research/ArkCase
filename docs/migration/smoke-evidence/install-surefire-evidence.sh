@@ -731,7 +731,50 @@ if [ "$MODE" = 'manifest' ]; then
         LC_ALL=C comm -23 "${tmp}/baseline" "${tmp}/migrated" | sed -e 's|^|BASELINE-ONLY  |'
         LC_ALL=C comm -13 "${tmp}/baseline" "${tmp}/migrated" | sed -e 's|^|MIGRATED-ONLY  |'
         printf '%s\n' '----- end rows -----'
-    } > "$OUT_FILE"
+    } > "${OUT_FILE}.$$.staging"
+    manifest_status=$?
+
+    # FAIL CLOSED, AND PUBLISH ATOMICALLY.
+    #
+    # This mode used to redirect straight at the contract and exit zero whatever it had
+    # counted.  Point it at a directory that holds no reports -- which is what happens when
+    # a caller passes the surefire subdirectory instead of the capture directory, an easy
+    # mistake because both spellings look right -- and it replaced a 284-row pairing
+    # contract with a 0-row one and reported success.  A contract that lists nothing is
+    # satisfied by any capture, so the very check it exists to perform silently stops
+    # happening.  A contract with no suites is refused, and the previous one is left in
+    # place; a partially written one is never published, because publication is a single
+    # rename of a completed staging file.
+    if [ "$manifest_status" -ne 0 ]; then
+        rm -f -- "${OUT_FILE}.$$.staging"
+        printf '%s: the manifest was not written completely, so %s was left untouched.\n' \
+            "$(basename -- "$0")" "$OUT_FILE" >&2
+        exit "$manifest_status"
+    fi
+    if [ "$((both + only_b + only_m))" -eq 0 ]; then
+        rm -f -- "${OUT_FILE}.$$.staging"
+        printf '%s: refusing to write a pairing contract with no suites in it.\n' \
+            "$(basename -- "$0")" >&2
+        printf '  baseline: %s\n' "$BASELINE_DIR" >&2
+        printf '  migrated: %s\n' "$MIGRATED_DIR" >&2
+        printf '  Neither side yielded a TEST-<class>.xml report.  Each argument must name a\n' >&2
+        printf '  CAPTURE directory -- the one that CONTAINS surefire/ -- and not the surefire\n' >&2
+        printf '  directory itself.  %s is untouched.\n' "$OUT_FILE" >&2
+        exit 2
+    fi
+    if [ -L "$OUT_FILE" ] || { [ -e "$OUT_FILE" ] && [ ! -f "$OUT_FILE" ]; }; then
+        rm -f -- "${OUT_FILE}.$$.staging"
+        printf '%s: refusing to publish over %s: it is not a plain file.\n' \
+            "$(basename -- "$0")" "$OUT_FILE" >&2
+        exit 2
+    fi
+    if ! mv -f -- "${OUT_FILE}.$$.staging" "$OUT_FILE"; then
+        rm -f -- "${OUT_FILE}.$$.staging"
+        printf '%s: could not move the staged manifest into place at %s.\n' \
+            "$(basename -- "$0")" "$OUT_FILE" >&2
+        printf '  The previous file, if any, is untouched.\n' >&2
+        exit 2
+    fi
 
     printf 'manifest written to %s (both=%s baseline-only=%s migrated-only=%s)\n' \
         "$OUT_FILE" "$both" "$only_b" "$only_m"

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.008" tests="6" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.012" tests="6" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -19,39 +19,39 @@
     <property name="java.class.version" value="61.0"/>
   </properties>
   <testcase name="partialSyncOneNewUserOneModifiedAndOneDeletedButNotDetectedTest" classname="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.002">
-    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,931 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] new users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,932 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] modified users to be synced
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 14:01:47,414 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] new users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,416 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] modified users to be synced
 &amp#27;[m]]></system-out>
   </testcase>
-  <testcase name="fullSyncOneNewUserOneDeletedUserAndNoOtherChangedTest" classname="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.003">
-    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,934 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] new users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,934 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] modified users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,935 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] deleted users to be synced
+  <testcase name="fullSyncOneNewUserOneDeletedUserAndNoOtherChangedTest" classname="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.004">
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 14:01:47,417 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] new users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,417 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] modified users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,419 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] deleted users to be synced
 &amp#27;[m]]></system-out>
   </testcase>
-  <testcase name="fullSyncNoChangesTest" classname="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.0">
-    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,937 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] new users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,937 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] modified users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,937 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] deleted users to be synced
+  <testcase name="fullSyncNoChangesTest" classname="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.001">
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 14:01:47,422 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] new users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,422 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] modified users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,422 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] deleted users to be synced
 &amp#27;[m]]></system-out>
   </testcase>
   <testcase name="fullSyncOneNewUserOneChangedWithSameExistingDnAndOneDeletedUserTest" classname="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.001">
-    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,937 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] new users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,938 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] modified users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,938 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] deleted users to be synced
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 14:01:47,422 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] new users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,422 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] modified users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,423 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] deleted users to be synced
 &amp#27;[m]]></system-out>
   </testcase>
   <testcase name="partialSyncOneNewUserWithSameDnWithExistingUserAndOneDeletedNotDetectedTest" classname="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.001">
-    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,938 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] new users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,938 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] modified users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,938 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - Found user [2] with same DN [cn=2] as new user [1].
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,938 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - User [2] changed with state [INVALID] and DN [cn=2,dc=Deleted].
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 14:01:47,423 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [1] new users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,423 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] modified users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,423 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - Found user [2] with same DN [cn=2] as new user [1].
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,424 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - User [2] changed with state [INVALID] and DN [cn=2,dc=Deleted].
 &amp#27;[m]]></system-out>
   </testcase>
-  <testcase name="fullSyncOnlyChangedUsersTest" classname="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.0">
-    <system-out><![CDATA[&amp#27;[36m2026-08-08 11:46:00,939 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] new users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,939 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [2] modified users to be synced
-&amp#27;[m&amp#27;[36m2026-08-08 11:46:00,939 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] deleted users to be synced
+  <testcase name="fullSyncOnlyChangedUsersTest" classname="com.armedia.acm.services.users.service.ldap.AcmUsersSyncResultTest" time="0.001">
+    <system-out><![CDATA[&amp#27;[36m2026-08-08 14:01:47,424 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] new users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,424 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [2] modified users to be synced
+&amp#27;[m&amp#27;[36m2026-08-08 14:01:47,425 [DEBUG] [main] com.armedia.acm.services.users.service.ldap.AcmUsersSyncResult - [0] deleted users to be synced
 &amp#27;[m]]></system-out>
   </testcase>
 </testsuite>

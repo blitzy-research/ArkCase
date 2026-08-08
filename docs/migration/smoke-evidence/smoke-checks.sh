@@ -3228,7 +3228,7 @@ fi
 unset SMOKE_SELECTORS_SET
 
 # ---------------------------------------------------------------------------
-# PURE INDEX MODE: EVERYTHING BELOW THAT REACHES A NETWORK, A CREDENTIAL, A REMOTE
+# DERIVED-RECORD MODES: EVERYTHING BELOW THAT REACHES A NETWORK, A CREDENTIAL, A REMOTE
 # HOST OR A MUTATION DECISION IS SKIPPED.
 #
 # The closing index is DERIVED: every value in it is read back out of capture files
@@ -3250,7 +3250,18 @@ unset SMOKE_SELECTORS_SET
 # that protect every other write protect this one too.  Skipping a safety check is
 # not isolation.
 # ---------------------------------------------------------------------------
-if [ -n "$SMOKE_INDEX_ONLY" ]; then
+# THREE MODES, NOT ONE, AND THE OTHER TWO WERE LEFT OUT BY OVERSIGHT.
+#
+# SMOKE_INDEX_ONLY, SMOKE_SUMMARY_ONLY and SMOKE_COMPARISON_ONLY are the same kind of
+# invocation: each rewrites ONE derived record by reading capture files already on disk,
+# and the comparison mode's own documentation above says so in as many words -- "it
+# contacts no endpoint, runs no flow and consults no exit status".  Only the first was
+# exempted from the credential, URL, transport-trust and mutation resolution at this
+# file's top level, so the other two failed for want of an administrator password they
+# would never send.  That made the one mode provided for recomputing a STALE
+# adjudication unusable, which meant the stale adjudication stayed.  All three are
+# exempt now, for the identical reason.
+if [ -n "$SMOKE_INDEX_ONLY" ] || [ -n "$SMOKE_SUMMARY_ONLY" ] || [ -n "$SMOKE_COMPARISON_ONLY" ]; then
     SMOKE_PURE_INDEX='yes'
 else
     SMOKE_PURE_INDEX='no'
@@ -3264,12 +3275,12 @@ fi
 # ever decided.  A normal run overwrites every one of them inside its block.
 if [ "$SMOKE_PURE_INDEX" = 'yes' ]; then
     ARKCASE_PASSWORD=''
-    CREDENTIAL_SOURCE='not-resolved: pure index mode contacts nothing and needs no credential'
+    CREDENTIAL_SOURCE='not-resolved: this derived-record mode contacts nothing and needs no credential'
     CURL_TLS_ARGS=()
-    TLS_TRUST_MODE='not-resolved: pure index mode opens no connection'
+    TLS_TRUST_MODE='not-resolved: this derived-record mode opens no connection'
     TLS_TRUST_DEGRADED='not-applicable'
     MUTATIONS_ENABLED='no'
-    MUTATION_REFUSAL_REASON='pure index mode changes no state by construction; it only re-reads capture files already on disk'
+    MUTATION_REFUSAL_REASON='this derived-record mode changes no state by construction; it only re-reads capture files already on disk'
 fi
 
 # A plain counter, declared unconditionally because it is not a transport,

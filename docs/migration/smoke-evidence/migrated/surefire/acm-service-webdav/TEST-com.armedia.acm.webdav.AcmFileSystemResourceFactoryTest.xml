@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.webdav.AcmFileSystemResourceFactoryTest" time="2.019" tests="3" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.webdav.AcmFileSystemResourceFactoryTest" time="2.049" tests="3" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,39 +18,39 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="getResource_returnsOptionsResourceForNonFileRequests" classname="com.armedia.acm.webdav.AcmFileSystemResourceFactoryTest" time="1.838">
-    <system-out><![CDATA[2026-08-08 11:51:15,891 [WARN ] [main] net.sf.ehcache.config.ConfigurationFactory - No configuration found. Configuring ehcache from ehcache-failsafe.xml  found in the classpath: jar:file:{LOCAL-ARTIFACT-REPOSITORY}/net/sf/ehcache/ehcache-core/2.6.2/ehcache-core-2.6.2.jar!/ehcache-failsafe.xml
-2026-08-08 11:51:16,064 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: www.dead.net, path: /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119
-2026-08-08 11:51:16,064 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - The path /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119 seems to be a list folder structure request or OPTIONS or PROPFIND request
+  <testcase name="getResource_returnsOptionsResourceForNonFileRequests" classname="com.armedia.acm.webdav.AcmFileSystemResourceFactoryTest" time="1.885">
+    <system-out><![CDATA[2026-08-08 14:07:11,242 [WARN ] [main] net.sf.ehcache.config.ConfigurationFactory - No configuration found. Configuring ehcache from ehcache-failsafe.xml  found in the classpath: jar:file:{LOCAL-ARTIFACT-REPOSITORY}/net/sf/ehcache/ehcache-core/2.6.2/ehcache-core-2.6.2.jar!/ehcache-failsafe.xml
+2026-08-08 14:07:11,407 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: www.dead.net, path: /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119
+2026-08-08 14:07:11,408 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - The path /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119 seems to be a list folder structure request or OPTIONS or PROPFIND request
 ]]></system-out>
   </testcase>
-  <testcase name="getResource_returnsTempResourceForTmpFileRequest" classname="com.armedia.acm.webdav.AcmFileSystemResourceFactoryTest" time="0.031">
-    <system-out><![CDATA[2026-08-08 11:51:16,078 [WARN ] [main] net.sf.ehcache.config.ConfigurationFactory - No configuration found. Configuring ehcache from ehcache-failsafe.xml  found in the classpath: jar:file:{LOCAL-ARTIFACT-REPOSITORY}/net/sf/ehcache/ehcache-core/2.6.2/ehcache-core-2.6.2.jar!/ehcache-failsafe.xml
-2026-08-08 11:51:16,090 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: www.dead.net, path: /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp
-2026-08-08 11:51:16,091 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - The path /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp seems to be a real file request
-2026-08-08 11:51:16,095 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - handler class: [com.armedia.acm.webdav.AcmFileSystemResourceFactory$AcmFileResourceHandler]
-2026-08-08 11:51:16,095 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: [www.dead.net], path: [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp], doc pattern: [^.*\/(.*)\/(.*)\/([\d]*)\/.*\/([\d]*)\/([\d]*)\/(.*\.[doc|docx|xlsx|xls|ppt|pptx|pdf|tmp]*)$]
-2026-08-08 11:51:16,095 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - Path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp] is a document path
-2026-08-08 11:51:16,096 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - return temp file resource for path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp]
-2026-08-08 11:51:16,096 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - temp file [430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp] doesn't exist yet; touching it, and returning null
-2026-08-08 11:51:16,104 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: www.dead.net, path: /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp
-2026-08-08 11:51:16,104 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - The path /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp seems to be a real file request
-2026-08-08 11:51:16,104 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - handler class: [com.armedia.acm.webdav.AcmFileSystemResourceFactory$AcmFileResourceHandler]
-2026-08-08 11:51:16,105 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: [www.dead.net], path: [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp], doc pattern: [^.*\/(.*)\/(.*)\/([\d]*)\/.*\/([\d]*)\/([\d]*)\/(.*\.[doc|docx|xlsx|xls|ppt|pptx|pdf|tmp]*)$]
-2026-08-08 11:51:16,105 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - Path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp] is a document path
-2026-08-08 11:51:16,105 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - return temp file resource for path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp]
-2026-08-08 11:51:16,105 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - Temp file exists already, returning a temp file resource for [430987c4-eee1-4fbf-8d13-9eccb0f3a10e.tmp]
+  <testcase name="getResource_returnsTempResourceForTmpFileRequest" classname="com.armedia.acm.webdav.AcmFileSystemResourceFactoryTest" time="0.024">
+    <system-out><![CDATA[2026-08-08 14:07:11,421 [WARN ] [main] net.sf.ehcache.config.ConfigurationFactory - No configuration found. Configuring ehcache from ehcache-failsafe.xml  found in the classpath: jar:file:{LOCAL-ARTIFACT-REPOSITORY}/net/sf/ehcache/ehcache-core/2.6.2/ehcache-core-2.6.2.jar!/ehcache-failsafe.xml
+2026-08-08 14:07:11,429 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: www.dead.net, path: /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp
+2026-08-08 14:07:11,430 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - The path /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp seems to be a real file request
+2026-08-08 14:07:11,433 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - handler class: [com.armedia.acm.webdav.AcmFileSystemResourceFactory$AcmFileResourceHandler]
+2026-08-08 14:07:11,433 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: [www.dead.net], path: [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp], doc pattern: [^.*\/(.*)\/(.*)\/([\d]*)\/.*\/([\d]*)\/([\d]*)\/(.*\.[doc|docx|xlsx|xls|ppt|pptx|pdf|tmp]*)$]
+2026-08-08 14:07:11,434 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - Path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp] is a document path
+2026-08-08 14:07:11,434 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - return temp file resource for path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp]
+2026-08-08 14:07:11,434 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - temp file [a494603c-22a9-4a82-8cb7-7a22113061c2.tmp] doesn't exist yet; touching it, and returning null
+2026-08-08 14:07:11,440 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: www.dead.net, path: /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp
+2026-08-08 14:07:11,441 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - The path /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp seems to be a real file request
+2026-08-08 14:07:11,441 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - handler class: [com.armedia.acm.webdav.AcmFileSystemResourceFactory$AcmFileResourceHandler]
+2026-08-08 14:07:11,441 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: [www.dead.net], path: [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp], doc pattern: [^.*\/(.*)\/(.*)\/([\d]*)\/.*\/([\d]*)\/([\d]*)\/(.*\.[doc|docx|xlsx|xls|ppt|pptx|pdf|tmp]*)$]
+2026-08-08 14:07:11,441 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - Path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp] is a document path
+2026-08-08 14:07:11,441 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - return temp file resource for path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/a494603c-22a9-4a82-8cb7-7a22113061c2.tmp]
+2026-08-08 14:07:11,441 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - Temp file exists already, returning a temp file resource for [a494603c-22a9-4a82-8cb7-7a22113061c2.tmp]
 Resource class: com.armedia.acm.webdav.AcmTempFileResource
 ]]></system-out>
   </testcase>
-  <testcase name="getResource_returnsFileResourceForAPdfRequest" classname="com.armedia.acm.webdav.AcmFileSystemResourceFactoryTest" time="0.032">
-    <system-out><![CDATA[2026-08-08 11:51:16,110 [WARN ] [main] net.sf.ehcache.config.ConfigurationFactory - No configuration found. Configuring ehcache from ehcache-failsafe.xml  found in the classpath: jar:file:{LOCAL-ARTIFACT-REPOSITORY}/net/sf/ehcache/ehcache-core/2.6.2/ehcache-core-2.6.2.jar!/ehcache-failsafe.xml
-2026-08-08 11:51:16,129 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: www.dead.net, path: /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf
-2026-08-08 11:51:16,130 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - The path /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf seems to be a real file request
-2026-08-08 11:51:16,130 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - handler class: [com.armedia.acm.webdav.AcmFileSystemResourceFactory$AcmFileResourceHandler]
-2026-08-08 11:51:16,130 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: [www.dead.net], path: [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf], doc pattern: [^.*\/(.*)\/(.*)\/([\d]*)\/.*\/([\d]*)\/([\d]*)\/(.*\.[doc|docx|xlsx|xls|ppt|pptx|pdf|tmp]*)$]
-2026-08-08 11:51:16,131 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - Path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf] is a document path
-2026-08-08 11:51:16,131 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - return ArkCase file resource for path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf]
+  <testcase name="getResource_returnsFileResourceForAPdfRequest" classname="com.armedia.acm.webdav.AcmFileSystemResourceFactoryTest" time="0.024">
+    <system-out><![CDATA[2026-08-08 14:07:11,445 [WARN ] [main] net.sf.ehcache.config.ConfigurationFactory - No configuration found. Configuring ehcache from ehcache-failsafe.xml  found in the classpath: jar:file:{LOCAL-ARTIFACT-REPOSITORY}/net/sf/ehcache/ehcache-core/2.6.2/ehcache-core-2.6.2.jar!/ehcache-failsafe.xml
+2026-08-08 14:07:11,460 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: www.dead.net, path: /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf
+2026-08-08 14:07:11,460 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - The path /arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf seems to be a real file request
+2026-08-08 14:07:11,460 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - handler class: [com.armedia.acm.webdav.AcmFileSystemResourceFactory$AcmFileResourceHandler]
+2026-08-08 14:07:11,461 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - host: [www.dead.net], path: [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf], doc pattern: [^.*\/(.*)\/(.*)\/([\d]*)\/.*\/([\d]*)\/([\d]*)\/(.*\.[doc|docx|xlsx|xls|ppt|pptx|pdf|tmp]*)$]
+2026-08-08 14:07:11,461 [DEBUG] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - Path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf] is a document path
+2026-08-08 14:07:11,461 [INFO ] [main] com.armedia.acm.webdav.AcmFileSystemResourceFactory - return ArkCase file resource for path [/arkcase/webdav/arkcase-admin@arkcase.org/DOC_REPO/109/Root/108/119/Support Team - Product Requirements - Meeting Notes.pdf]
 ]]></system-out>
   </testcase>
 </testsuite>

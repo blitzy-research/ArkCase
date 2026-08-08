@@ -6,10 +6,10 @@ because the only thing a baseline is for is recording a failure nobody predicted
 and an authored report can only ever contain what its author already believed.
 
 harvested-by: install-surefire-evidence.sh, committed beside this archive
-harvested-from-commit: 6c34c66d18ec6e60f81bd99ee72adae7dba9a183
+harvested-from-commit: e2272da1fde01641618510e89b6d8b60de09d20a
 harvested-from-branch: blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614
-commit-resolves-in-this-repository: yes -- 6c34c66d18ec6e60f81bd99ee72adae7dba9a183 resolves to a commit object in the repository that owns this archive
-commit-reachable-from-branch: yes -- reachable from blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614; that branch's head when this harvest ran was 6c34c66d18ec6e60f81bd99ee72adae7dba9a183, and later commits do not affect reachability
+commit-resolves-in-this-repository: yes -- e2272da1fde01641618510e89b6d8b60de09d20a resolves to a commit object in the repository that owns this archive
+commit-reachable-from-branch: yes -- reachable from blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614; that branch's head when this harvest ran was e2272da1fde01641618510e89b6d8b60de09d20a, and later commits do not affect reachability
 working-tree-at-harvest: clean -- every file outside this archive tracked and unmodified
 git-status-porcelain-at-harvest: empty -- git status --porcelain reported no line outside this archive
 tracked-tree-proof: not-applicable -- the harvest root is a git checkout, so its own HEAD is the identity
@@ -18,8 +18,8 @@ integrity: sha256-manifest.txt beside this note covers every file in this
   archive -- every report, this note itself, and every file under notes/.
   Verify the archive has not been edited since it was harvested with:
     cd <this directory> && sha256sum -c sha256-manifest.txt
-suites-installed: 279
-aggregate: suites=279 tests=893 failures=3 errors=1 skipped=21
+suites-installed: 284
+aggregate: suites=284 tests=933 failures=3 errors=1 skipped=21
 build-install-phase-exit-status: 0
 build-test-phase-exit-status: 0
 
@@ -29,7 +29,7 @@ runtime provenance, read out of the installed reports themselves:
   installed JDK path recorded by the runtime: not carried: java.home and sun.boot.library.path are machine paths and the property allowlist drops them, so this archive states the runtime by version rather than by location
 
 the two transformations applied, and their exact extent:
-  1. absolute machine paths replaced with placeholders: 253168 occurrences
+  1. absolute machine paths replaced with placeholders: 255296 occurrences
      {REACTOR-ROOT}   the root the build ran from
      {LOCAL-ARTIFACT-REPOSITORY}   the local artifact repository the build used
      the repository path was taken from: the default location, the run having recorded no maven.repo.local
@@ -39,7 +39,7 @@ the two transformations applied, and their exact extent:
      be present while the claim is false.  The system temporary directory is
      deliberately not searched: a test that writes a scratch file there and
      logs its name is capturing its own behaviour, and that is evidence.
-  2. non-allowlisted system properties dropped: 10280 across the archive
+  2. non-allowlisted system properties dropped: 10464 across the archive
      retained, native, in every report:
        java.version java.runtime.version java.runtime.name java.vendor java.vm.name java.vm.vendor java.vm.version java.vm.info java.specification.version java.class.version os.name os.arch os.version sun.arch.data.model file.encoding jdk.debug
      dropped because they describe the machine and not the evidence: both

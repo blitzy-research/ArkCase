@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="gov.foia.service.RequestAssignmentServiceTest" time="0.051" tests="4" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="gov.foia.service.RequestAssignmentServiceTest" time="0.068" tests="4" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,14 +18,14 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="testStartWorkingOnUnassignedRequestAndAssignUser" classname="gov.foia.service.RequestAssignmentServiceTest" time="0.047"/>
+  <testcase name="testStartWorkingOnUnassignedRequestAndAssignUser" classname="gov.foia.service.RequestAssignmentServiceTest" time="0.063"/>
   <testcase name="testStartWorkingReturnsNullWhenAllRequestsAreAlreadyAssigned" classname="gov.foia.service.RequestAssignmentServiceTest" time="0.001">
-    <system-out><![CDATA[2026-08-08 11:51:53,202 [DEBUG] [main] gov.foia.service.RequestAssignmentService - No unassigned requests in queue with ID [[1]]
+    <system-out><![CDATA[2026-08-08 14:07:48,956 [DEBUG] [main] gov.foia.service.RequestAssignmentService - No unassigned requests in queue with ID [[1]]
 ]]></system-out>
   </testcase>
   <testcase name="testStartWorkingReturnsOldestNotAssignedRequest" classname="gov.foia.service.RequestAssignmentServiceTest" time="0.001"/>
   <testcase name="testStartWorkingReturnsNullWhenUserNotInOwningGroup" classname="gov.foia.service.RequestAssignmentServiceTest" time="0.001">
-    <system-out><![CDATA[2026-08-08 11:51:53,203 [DEBUG] [main] gov.foia.service.RequestAssignmentService - No unassigned requests in queue with ID [[1]]
+    <system-out><![CDATA[2026-08-08 14:07:48,958 [DEBUG] [main] gov.foia.service.RequestAssignmentService - No unassigned requests in queue with ID [[1]]
 ]]></system-out>
   </testcase>
 </testsuite>

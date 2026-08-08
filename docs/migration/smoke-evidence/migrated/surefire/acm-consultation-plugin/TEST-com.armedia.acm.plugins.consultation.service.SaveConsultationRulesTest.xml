@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="2.96" tests="12" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="3.076" tests="12" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,8 +18,8 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="consultationPriorityExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.383">
-    <system-out><![CDATA[2026-08-08 11:50:27,432 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="consultationPriorityExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.379">
+    <system-out><![CDATA[2026-08-08 14:06:19,942 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -111,8 +111,8 @@ end
 
 ]]></system-out>
   </testcase>
-  <testcase name="consultationCmisFolderIdExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.245">
-    <system-out><![CDATA[2026-08-08 11:50:27,785 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="consultationCmisFolderIdExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.293">
+    <system-out><![CDATA[2026-08-08 14:06:20,300 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -204,8 +204,8 @@ end
 
 ]]></system-out>
   </testcase>
-  <testcase name="nullDueDate" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.246">
-    <system-out><![CDATA[2026-08-08 11:50:28,029 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="nullDueDate" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.294">
+    <system-out><![CDATA[2026-08-08 14:06:20,589 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -295,104 +295,11 @@ rule "Save Consultation Rules_27"
 end
 
 
-2026-08-08 11:50:28,242 [DEBUG] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation due date: Thu Feb 04 11:50:28 UTC 2027
+2026-08-08 14:06:20,848 [DEBUG] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation due date: Thu Feb 04 14:06:20 UTC 2027
 ]]></system-out>
   </testcase>
-  <testcase name="consultationNumberExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.236">
-    <system-out><![CDATA[2026-08-08 11:50:28,273 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
-//generated from Decision Table
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import com.armedia.acm.plugins.consultation.model.Consultation;
-import java.util.Date;
-import java.util.Calendar;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-function String dateFormat(String fmt)
-{
-  return LocalDate.now().toString(DateTimeFormat.forPattern(fmt));
-}
-
-function Date addDays(int days)
-{
-  Calendar cal = Calendar.getInstance();
-  cal.add(Calendar.DAY_OF_YEAR, days);
-  return cal.getTime();
-}
-
-function Boolean evalSpring(String expression, Object obj)
-{
-    ExpressionParser ep = new SpelExpressionParser();
-    Expression exp = ep.parseExpression(expression);
-    EvaluationContext ec = new StandardEvaluationContext();
-
-    Boolean evaluated = exp.getValue(ec, obj, Boolean.class);
-	
-    return evaluated;
-}
-// rule values at C22, header at C17
-rule "Save Consultation Rules_22"
-	salience 65535
-	when
-		$consultation: Consultation(eval(evalSpring("consultationNumber == null", $consultation)))
-	then
-		$consultation.setConsultationNumber(dateFormat('yyyyMMdd') + '_' + $consultation.getId());
-end
-
-// rule values at C23, header at C17
-rule "Save Consultation Rules_23"
-	salience 65534
-	when
-		$consultation: Consultation(eval(evalSpring("container?.folder?.cmisFolderId == null", $consultation)))
-	then
-		$consultation.setEcmFolderPath('/Sites/acm/documentLibrary/Consultations/' + dateFormat('yyyyMMdd') + '_' + $consultation.getId());
-end
-
-// rule values at C24, header at C17
-rule "Save Consultation Rules_24"
-	salience 65533
-	when
-		$consultation: Consultation(eval(evalSpring("status == null", $consultation)))
-	then
-		$consultation.setStatus('DRAFT');
-end
-
-// rule values at C25, header at C17
-rule "Save Consultation Rules_25"
-	salience 65532
-	when
-		$consultation: Consultation(eval(evalSpring("consultationType == null || consultationType.equals(\"\")", $consultation)))
-	then
-		$consultation.setConsultationType('Consultation');
-end
-
-// rule values at C26, header at C17
-rule "Save Consultation Rules_26"
-	salience 65531
-	when
-		$consultation: Consultation(eval(evalSpring("priority == null", $consultation)))
-	then
-		$consultation.setPriority('Medium');
-end
-
-// rule values at C27, header at C17
-rule "Save Consultation Rules_27"
-	salience 65530
-	when
-		$consultation: Consultation(eval(evalSpring("dueDate == null", $consultation)))
-	then
-		$consultation.setDueDate(addDays(180));
-end
-
-
-]]></system-out>
-  </testcase>
-  <testcase name="consultationDueDateExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.235">
-    <system-out><![CDATA[2026-08-08 11:50:28,512 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="consultationNumberExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.242">
+    <system-out><![CDATA[2026-08-08 14:06:20,877 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -484,8 +391,8 @@ end
 
 ]]></system-out>
   </testcase>
-  <testcase name="consultationTypeExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.239">
-    <system-out><![CDATA[2026-08-08 11:50:28,743 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="consultationDueDateExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.231">
+    <system-out><![CDATA[2026-08-08 14:06:21,121 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -577,102 +484,8 @@ end
 
 ]]></system-out>
   </testcase>
-  <testcase name="nullCmisFolderId" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.231">
-    <system-out><![CDATA[2026-08-08 11:50:28,981 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
-//generated from Decision Table
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import com.armedia.acm.plugins.consultation.model.Consultation;
-import java.util.Date;
-import java.util.Calendar;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-function String dateFormat(String fmt)
-{
-  return LocalDate.now().toString(DateTimeFormat.forPattern(fmt));
-}
-
-function Date addDays(int days)
-{
-  Calendar cal = Calendar.getInstance();
-  cal.add(Calendar.DAY_OF_YEAR, days);
-  return cal.getTime();
-}
-
-function Boolean evalSpring(String expression, Object obj)
-{
-    ExpressionParser ep = new SpelExpressionParser();
-    Expression exp = ep.parseExpression(expression);
-    EvaluationContext ec = new StandardEvaluationContext();
-
-    Boolean evaluated = exp.getValue(ec, obj, Boolean.class);
-	
-    return evaluated;
-}
-// rule values at C22, header at C17
-rule "Save Consultation Rules_22"
-	salience 65535
-	when
-		$consultation: Consultation(eval(evalSpring("consultationNumber == null", $consultation)))
-	then
-		$consultation.setConsultationNumber(dateFormat('yyyyMMdd') + '_' + $consultation.getId());
-end
-
-// rule values at C23, header at C17
-rule "Save Consultation Rules_23"
-	salience 65534
-	when
-		$consultation: Consultation(eval(evalSpring("container?.folder?.cmisFolderId == null", $consultation)))
-	then
-		$consultation.setEcmFolderPath('/Sites/acm/documentLibrary/Consultations/' + dateFormat('yyyyMMdd') + '_' + $consultation.getId());
-end
-
-// rule values at C24, header at C17
-rule "Save Consultation Rules_24"
-	salience 65533
-	when
-		$consultation: Consultation(eval(evalSpring("status == null", $consultation)))
-	then
-		$consultation.setStatus('DRAFT');
-end
-
-// rule values at C25, header at C17
-rule "Save Consultation Rules_25"
-	salience 65532
-	when
-		$consultation: Consultation(eval(evalSpring("consultationType == null || consultationType.equals(\"\")", $consultation)))
-	then
-		$consultation.setConsultationType('Consultation');
-end
-
-// rule values at C26, header at C17
-rule "Save Consultation Rules_26"
-	salience 65531
-	when
-		$consultation: Consultation(eval(evalSpring("priority == null", $consultation)))
-	then
-		$consultation.setPriority('Medium');
-end
-
-// rule values at C27, header at C17
-rule "Save Consultation Rules_27"
-	salience 65530
-	when
-		$consultation: Consultation(eval(evalSpring("dueDate == null", $consultation)))
-	then
-		$consultation.setDueDate(addDays(180));
-end
-
-
-2026-08-08 11:50:29,183 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation cmis folder path: /Sites/acm/documentLibrary/Consultations/20260808_12345
-]]></system-out>
-  </testcase>
-  <testcase name="consultationStatusExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.241">
-    <system-out><![CDATA[2026-08-08 11:50:29,213 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="consultationTypeExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.237">
+    <system-out><![CDATA[2026-08-08 14:06:21,349 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -764,8 +577,8 @@ end
 
 ]]></system-out>
   </testcase>
-  <testcase name="nullConsultationNumber" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.234">
-    <system-out><![CDATA[2026-08-08 11:50:29,453 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="nullCmisFolderId" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.236">
+    <system-out><![CDATA[2026-08-08 14:06:21,586 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -855,11 +668,11 @@ rule "Save Consultation Rules_27"
 end
 
 
-2026-08-08 11:50:29,659 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation number: 20260808_12345
+2026-08-08 14:06:21,793 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation cmis folder path: /Sites/acm/documentLibrary/Consultations/20260808_12345
 ]]></system-out>
   </testcase>
-  <testcase name="nullConsultationPriority" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.225">
-    <system-out><![CDATA[2026-08-08 11:50:29,686 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="consultationStatusExists" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.226">
+    <system-out><![CDATA[2026-08-08 14:06:21,821 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -949,11 +762,10 @@ rule "Save Consultation Rules_27"
 end
 
 
-2026-08-08 11:50:29,883 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation priority: Medium
 ]]></system-out>
   </testcase>
-  <testcase name="nullConsultationType" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.222">
-    <system-out><![CDATA[2026-08-08 11:50:29,910 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="nullConsultationNumber" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.225">
+    <system-out><![CDATA[2026-08-08 14:06:22,048 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -1043,11 +855,11 @@ rule "Save Consultation Rules_27"
 end
 
 
-2026-08-08 11:50:30,106 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation status: Consultation
+2026-08-08 14:06:22,245 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation number: 20260808_12345
 ]]></system-out>
   </testcase>
-  <testcase name="nullStatus" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.222">
-    <system-out><![CDATA[2026-08-08 11:50:30,132 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+  <testcase name="nullConsultationPriority" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.226">
+    <system-out><![CDATA[2026-08-08 14:06:22,272 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
 //generated from Decision Table
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -1137,7 +949,195 @@ rule "Save Consultation Rules_27"
 end
 
 
-2026-08-08 11:50:30,327 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation status: DRAFT
+2026-08-08 14:06:22,472 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation priority: Medium
+]]></system-out>
+  </testcase>
+  <testcase name="nullConsultationType" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.216">
+    <system-out><![CDATA[2026-08-08 14:06:22,498 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+//generated from Decision Table
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import com.armedia.acm.plugins.consultation.model.Consultation;
+import java.util.Date;
+import java.util.Calendar;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+function String dateFormat(String fmt)
+{
+  return LocalDate.now().toString(DateTimeFormat.forPattern(fmt));
+}
+
+function Date addDays(int days)
+{
+  Calendar cal = Calendar.getInstance();
+  cal.add(Calendar.DAY_OF_YEAR, days);
+  return cal.getTime();
+}
+
+function Boolean evalSpring(String expression, Object obj)
+{
+    ExpressionParser ep = new SpelExpressionParser();
+    Expression exp = ep.parseExpression(expression);
+    EvaluationContext ec = new StandardEvaluationContext();
+
+    Boolean evaluated = exp.getValue(ec, obj, Boolean.class);
+	
+    return evaluated;
+}
+// rule values at C22, header at C17
+rule "Save Consultation Rules_22"
+	salience 65535
+	when
+		$consultation: Consultation(eval(evalSpring("consultationNumber == null", $consultation)))
+	then
+		$consultation.setConsultationNumber(dateFormat('yyyyMMdd') + '_' + $consultation.getId());
+end
+
+// rule values at C23, header at C17
+rule "Save Consultation Rules_23"
+	salience 65534
+	when
+		$consultation: Consultation(eval(evalSpring("container?.folder?.cmisFolderId == null", $consultation)))
+	then
+		$consultation.setEcmFolderPath('/Sites/acm/documentLibrary/Consultations/' + dateFormat('yyyyMMdd') + '_' + $consultation.getId());
+end
+
+// rule values at C24, header at C17
+rule "Save Consultation Rules_24"
+	salience 65533
+	when
+		$consultation: Consultation(eval(evalSpring("status == null", $consultation)))
+	then
+		$consultation.setStatus('DRAFT');
+end
+
+// rule values at C25, header at C17
+rule "Save Consultation Rules_25"
+	salience 65532
+	when
+		$consultation: Consultation(eval(evalSpring("consultationType == null || consultationType.equals(\"\")", $consultation)))
+	then
+		$consultation.setConsultationType('Consultation');
+end
+
+// rule values at C26, header at C17
+rule "Save Consultation Rules_26"
+	salience 65531
+	when
+		$consultation: Consultation(eval(evalSpring("priority == null", $consultation)))
+	then
+		$consultation.setPriority('Medium');
+end
+
+// rule values at C27, header at C17
+rule "Save Consultation Rules_27"
+	salience 65530
+	when
+		$consultation: Consultation(eval(evalSpring("dueDate == null", $consultation)))
+	then
+		$consultation.setDueDate(addDays(180));
+end
+
+
+2026-08-08 14:06:22,687 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation status: Consultation
+]]></system-out>
+  </testcase>
+  <testcase name="nullStatus" classname="com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest" time="0.266">
+    <system-out><![CDATA[2026-08-08 14:06:22,714 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - DRL: package Save_Consultation_File_Rules;
+//generated from Decision Table
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import com.armedia.acm.plugins.consultation.model.Consultation;
+import java.util.Date;
+import java.util.Calendar;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+function String dateFormat(String fmt)
+{
+  return LocalDate.now().toString(DateTimeFormat.forPattern(fmt));
+}
+
+function Date addDays(int days)
+{
+  Calendar cal = Calendar.getInstance();
+  cal.add(Calendar.DAY_OF_YEAR, days);
+  return cal.getTime();
+}
+
+function Boolean evalSpring(String expression, Object obj)
+{
+    ExpressionParser ep = new SpelExpressionParser();
+    Expression exp = ep.parseExpression(expression);
+    EvaluationContext ec = new StandardEvaluationContext();
+
+    Boolean evaluated = exp.getValue(ec, obj, Boolean.class);
+	
+    return evaluated;
+}
+// rule values at C22, header at C17
+rule "Save Consultation Rules_22"
+	salience 65535
+	when
+		$consultation: Consultation(eval(evalSpring("consultationNumber == null", $consultation)))
+	then
+		$consultation.setConsultationNumber(dateFormat('yyyyMMdd') + '_' + $consultation.getId());
+end
+
+// rule values at C23, header at C17
+rule "Save Consultation Rules_23"
+	salience 65534
+	when
+		$consultation: Consultation(eval(evalSpring("container?.folder?.cmisFolderId == null", $consultation)))
+	then
+		$consultation.setEcmFolderPath('/Sites/acm/documentLibrary/Consultations/' + dateFormat('yyyyMMdd') + '_' + $consultation.getId());
+end
+
+// rule values at C24, header at C17
+rule "Save Consultation Rules_24"
+	salience 65533
+	when
+		$consultation: Consultation(eval(evalSpring("status == null", $consultation)))
+	then
+		$consultation.setStatus('DRAFT');
+end
+
+// rule values at C25, header at C17
+rule "Save Consultation Rules_25"
+	salience 65532
+	when
+		$consultation: Consultation(eval(evalSpring("consultationType == null || consultationType.equals(\"\")", $consultation)))
+	then
+		$consultation.setConsultationType('Consultation');
+end
+
+// rule values at C26, header at C17
+rule "Save Consultation Rules_26"
+	salience 65531
+	when
+		$consultation: Consultation(eval(evalSpring("priority == null", $consultation)))
+	then
+		$consultation.setPriority('Medium');
+end
+
+// rule values at C27, header at C17
+rule "Save Consultation Rules_27"
+	salience 65530
+	when
+		$consultation: Consultation(eval(evalSpring("dueDate == null", $consultation)))
+	then
+		$consultation.setDueDate(addDays(180));
+end
+
+
+2026-08-08 14:06:22,954 [INFO ] [main] com.armedia.acm.plugins.consultation.service.SaveConsultationRulesTest - Consultation status: DRAFT
 ]]></system-out>
   </testcase>
 </testsuite>

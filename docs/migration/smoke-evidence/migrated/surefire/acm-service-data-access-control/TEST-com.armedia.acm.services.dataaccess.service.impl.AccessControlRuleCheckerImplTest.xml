@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.41" tests="23" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.449" tests="23" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
@@ -18,12 +18,12 @@
     <property name="java.vm.version" value="17.0.19+10-1-25.10.2-Ubuntu"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="testEmptyRules" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.033">
+  <testcase name="testEmptyRules" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.039">
     <system-out><![CDATA[[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [completeTask] on object of type [CASE_FILE] with id [1]
 [WARN ] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is denied executing [completeTask] on object of type [CASE_FILE] with id [1], no matching rule found
 ]]></system-out>
   </testcase>
-  <testcase name="testNonMatchingRolesAllWithWildcardRole" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.004">
+  <testcase name="testNonMatchingRolesAllWithWildcardRole" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.003">
     <system-out><![CDATA[[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [createTask] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Found "ALL" matching user role [ROLE_ADMINISTRATOR]
 [WARN ] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - One of the "ALL" user roles [ACM_ADMINISTRATOR_DEV@*] is not assigned to user
@@ -45,7 +45,7 @@
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [createTask] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@133420f8]
 ]]></system-out>
   </testcase>
-  <testcase name="testCheckParticipantTypesWhenPrincipalIsNotInAnyOfRequiredTypes" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.004">
+  <testcase name="testCheckParticipantTypesWhenPrincipalIsNotInAnyOfRequiredTypes" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.005">
     <system-out><![CDATA[[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [restrictCase] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if ann-acm is a participant of type in 'userIsParticipantTypeAny' list
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Participant [owning group:ACM_INVESTIGATOR_DEV] is in required participant any list
@@ -117,13 +117,13 @@
 [WARN ] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is denied executing [createTask] on object of type [CASE_FILE] with id [1], no matching rule found
 ]]></system-out>
   </testcase>
-  <testcase name="testStatusAsArrayInJSONRule" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.345">
+  <testcase name="testStatusAsArrayInJSONRule" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.356">
     <system-out><![CDATA[[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [editAttachments] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - No participants to be checked, returning true
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [editAttachments] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@7fa817ba]
 ]]></system-out>
   </testcase>
-  <testcase name="testMatchingRolesAll" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.001">
+  <testcase name="testMatchingRolesAll" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.0">
     <system-out><![CDATA[[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [createTask] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Found "ALL" matching user role [ROLE_ADMINISTRATOR]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - No participants to be checked, returning true
@@ -145,16 +145,16 @@
   <testcase name="testMatchingParentFallbackPermission" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.004">
     <system-out><![CDATA[[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [editAttachments] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - No participants to be checked, returning true
-[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [editAttachments] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@338bea5c]
+[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [editAttachments] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@ca129b5]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [mergeCase] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - No participants to be checked, returning true
-[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [mergeCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@338bea5c]
+[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [mergeCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@ca129b5]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [completeCase] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - No participants to be checked, returning true
-[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [completeCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@338bea5c]
+[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [completeCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@ca129b5]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [saveCase] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - No participants to be checked, returning true
-[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [saveCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@338bea5c]
+[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [saveCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@ca129b5]
 ]]></system-out>
   </testcase>
   <testcase name="testCheckParticipantTypesWhenPrincipalIsReader" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.002">
@@ -165,21 +165,21 @@
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Participant [reader:joy-acm] is in required participant any list
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Participant [reader:hope-acm] is in required participant any list
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Participant [reader:ann-acm] is in required participant any list
-[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [hope-acm] is granted executing [restrictCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@3b758c0f]
+[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [hope-acm] is granted executing [restrictCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@123a6926]
 ]]></system-out>
   </testcase>
   <testcase name="testCheckParticipantTypesWhenUserIsParticipantTypeAnyListIsEmpty" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.001">
     <system-out><![CDATA[[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [restrictCase] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - No participants to be checked, returning true
-[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [restrictCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@76e14d07]
+[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [restrictCase] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@3b758c0f]
 ]]></system-out>
   </testcase>
-  <testcase name="testMatchingRolesAllWithWildcardRole" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.001">
+  <testcase name="testMatchingRolesAllWithWildcardRole" classname="com.armedia.acm.services.dataaccess.service.impl.AccessControlRuleCheckerImplTest" time="0.022">
     <system-out><![CDATA[[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Checking if [ann-acm] is granted executing [createTask] on object of type [CASE_FILE] with id [1]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Found "ALL" matching user role [ROLE_ADMINISTRATOR]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - Found "ALL" matching user role [ACM_ADMINISTRATOR_DEV@*]
 [DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - No participants to be checked, returning true
-[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [createTask] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@7540dc57]
+[DEBUG] c.a.a.s.d.s.i.AccessControlRuleCheckerImpl - [ann-acm] is granted executing [createTask] on object of type [CASE_FILE] with id [1], matching rule [com.armedia.acm.services.dataaccess.model.AccessControlRule@76e14d07]
 ]]></system-out>
   </testcase>
 </testsuite>
