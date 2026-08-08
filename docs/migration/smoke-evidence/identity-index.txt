@@ -41,18 +41,19 @@ WHAT A CONSOLIDATED HISTORY DOES TO THE ROWS BELOW, stated because an earlier
   this folder is measured against; verify it with
       git merge-base --is-ancestor <declared-base-commit> HEAD && echo reachable
 
-generated-at-head          : 3238528c4b2c81143ef1b7353479a820da199ed1
+generated-at-head          : 05ace8f273621ad1b0a7283921b644de664d1551
 generated-on-branch        : blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614
 declared-base-commit       : c8f6226105c28c2743281d26bf21ad73f7bb7f26
-worktree-at-generation     : clean -- every path is tracked and unmodified, so
-                             the evidence read below is the evidence committed at
-                             the head named above
-lines-matching-an-identity-label-or-phrase: 794
+worktree-at-generation     : DIRTY -- 2 modified path(s), of which 2 under docs/migration.
+                             The evidence read below is the working-tree state, not
+                             the committed state.  Re-run after committing for an
+                             answer about the commit.
+lines-matching-an-identity-label-or-phrase: 808
   (a deliberate superset: the phrase "base commit" appears in prose as
    well as in field position, and over-collecting is the safe direction)
-files-carrying-at-least-one              : 99
-distinct-objects-cited-full-or-abbrev   : 18
-  of which commits          : 17
+files-carrying-at-least-one              : 101
+distinct-objects-cited-full-or-abbrev   : 19
+  of which commits          : 18
   of which other objects    : 1
 
 ------------------------------------------------------------------------------
@@ -69,7 +70,7 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
                 automatically wrong: see the classification beside it.
 
 05098ba73e5d90ba0212661bbe54eb61a6082bc2
-  resolves  NOT-REACHABLE   non-docs-diff-vs-head 21
+  resolves  NOT-REACHABLE   non-docs-diff-vs-head 18
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -81,7 +82,7 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   cited by  smoke-evidence/migrated/startup/startup.status
 
 07844f45eb7776205fabe88396a11c7ce56486b6
-  resolves  NOT-REACHABLE   non-docs-diff-vs-head 21
+  resolves  NOT-REACHABLE   non-docs-diff-vs-head 18
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -91,7 +92,7 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   cited by  smoke-evidence/migrated/notes/capture-identity.txt
 
 09c31861928d7cad945d6f3046680cefe15a039e
-  resolves  NOT-REACHABLE   non-docs-diff-vs-head 21
+  resolves  NOT-REACHABLE   non-docs-diff-vs-head 18
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -100,7 +101,7 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   cited by  smoke-evidence/baseline/surefire/run-provenance.txt
 
 0e13c8620de59ca66bfe8d0e261c82f15acc9cfd
-  resolves  reachable   non-docs-diff-vs-head 21
+  resolves  reachable   non-docs-diff-vs-head 18
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -113,6 +114,12 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   cited by  smoke-evidence/provisioned-stack/smoke-run-summary.txt
   cited by  war-packaging-evidence.md
 
+259823cbaea82cceaa80ac2d4fc0341f4b058e0c
+  resolves  reachable   non-docs-diff-vs-head 0
+  EVIDENCE-COMMIT: same application and build as the head
+  subject   Re-harvest the migrated Surefire archive at the delivered commit (review Finding 7)
+  cited by  smoke-evidence/migrated/artifacts/diff-result.txt
+
 287dddca8ea2c8e6e3e212a5cc83f7e4d95ab2e8
   resolves  reachable   non-docs-diff-vs-head 28
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
@@ -122,7 +129,7 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   subject   Resolve QA findings: Spring Security 5.8 schema declarations and AngularResourceCopier run
 
 2e9618e005c2b6735b1d88c4a2d459ec8f950830
-  resolves  reachable   non-docs-diff-vs-head 30
+  resolves  reachable   non-docs-diff-vs-head 31
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -130,7 +137,7 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   subject   Keep the Java 17 classpath free of jakarta artifacts and duplicate EE APIs
 
 404822d4ddef1b9a10d618b29a4494b6a4a019fb
-  resolves  reachable   non-docs-diff-vs-head 5127
+  resolves  reachable   non-docs-diff-vs-head 5128
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -139,7 +146,7 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   cited by  pre-existing-defects.md
 
 6a2ee4ec677bb2dd60543ab55d141ed22f92e747
-  resolves  reachable   non-docs-diff-vs-head 21
+  resolves  reachable   non-docs-diff-vs-head 18
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -147,8 +154,14 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   subject   Restore the BPMN script engine and the sole JSR-250 provider, and make every migration reg
   cited by  smoke-evidence/bpmn-script-engine/notes.txt
 
+6c34c66d18ec6e60f81bd99ee72adae7dba9a183
+  resolves  reachable   non-docs-diff-vs-head 0
+  EVIDENCE-COMMIT: same application and build as the head
+  subject   Resolve code review findings: LDAP JNDI regression, Windows Node probe, artifact evidence,
+  cited by  smoke-evidence/migrated/surefire/run-provenance.txt
+
 6ccf67211e24483ddb0a0ebc79ce6515d4da088a
-  resolves  NOT-REACHABLE   non-docs-diff-vs-head 21
+  resolves  NOT-REACHABLE   non-docs-diff-vs-head 18
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -158,7 +171,7 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   cited by  smoke-evidence/baseline/notes/capture-identity.txt
 
 6f779b7fbc50f44e63d90b33b9d6748a6f54cfc6
-  resolves  reachable   non-docs-diff-vs-head 22
+  resolves  reachable   non-docs-diff-vs-head 19
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -166,14 +179,13 @@ non-docs-diff   how many files outside docs/ differ between it and the head.
   subject   Complete the Java 17 and Node 20 migration deliverables and evidence
   cited by  smoke-evidence/bpmn-script-engine/notes.txt
 
-7485babd41b8bd4d8e2f3e8ff6aefbb378b6a4a1
-  resolves  NOT-REACHABLE   non-docs-diff-vs-head 21
+b9e2cd6ada5018f454c71d845bcd0c00f21bf4b3
+  resolves  reachable   non-docs-diff-vs-head 4
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
                             field listing below names every record that cites it
-  subject   Re-adjudicate the startup gate against the final capture pair
-  cited by  smoke-evidence/migrated/artifacts/diff-result.txt
+  subject   Complete the Java 17 and Node 20 migration deliverables and their evidence
 
 c24e049e28a270636fd5c3d38a9b5ea77bd36060
   resolves  reachable   non-docs-diff-vs-head 28
@@ -184,7 +196,7 @@ c24e049e28a270636fd5c3d38a9b5ea77bd36060
   subject   Complete the Java 17 and Node 20 smoke evidence and its capture script
 
 c8f6226105c28c2743281d26bf21ad73f7bb7f26
-  resolves  reachable   non-docs-diff-vs-head 62
+  resolves  reachable   non-docs-diff-vs-head 63
   DECLARED-BASE-COMMIT: the pre-migration state.  A non-zero non-docs
                             difference here is the change set itself and is the point
   subject   chore: extend catalog tags (java, javascript, migration, refactor)
@@ -237,7 +249,7 @@ c8f6226105c28c2743281d26bf21ad73f7bb7f26
   cited by  surefire-evidence-archive.md
 
 d9f2dc0f7da1267d23bb5387ccac115f5667d3c3
-  resolves  NOT-REACHABLE   non-docs-diff-vs-head 8
+  resolves  NOT-REACHABLE   non-docs-diff-vs-head 11
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -246,7 +258,7 @@ d9f2dc0f7da1267d23bb5387ccac115f5667d3c3
   cited by  surefire-evidence-archive.md
 
 d9f40089eb97b16ac2cc0c199f1083bb1b4e789e
-  resolves  NOT-REACHABLE   non-docs-diff-vs-head 21
+  resolves  NOT-REACHABLE   non-docs-diff-vs-head 18
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
@@ -256,21 +268,12 @@ d9f40089eb97b16ac2cc0c199f1083bb1b4e789e
   cited by  smoke-evidence/migrated/notes/capture-provenance.txt
 
 fc442767793d693a2ea3ab24eaf739e6a9becd75
-  resolves  reachable   non-docs-diff-vs-head 21
+  resolves  reachable   non-docs-diff-vs-head 18
   EARLIER-STATE: the head has moved outside docs/ since this commit, so it
                             names an earlier application or build state.  That is the ordinary
                             reading of an evidence citation and is not by itself a defect; the
                             field listing below names every record that cites it
   subject   Commit the static-audit producer and make the migration evidence self-checking
-
-fe468d4524d4e16014bee336a04d8bfaf77acfab
-  resolves  NOT-REACHABLE   non-docs-diff-vs-head 21
-  EARLIER-STATE: the head has moved outside docs/ since this commit, so it
-                            names an earlier application or build state.  That is the ordinary
-                            reading of an evidence citation and is not by itself a defect; the
-                            field listing below names every record that cites it
-  subject   Archive the coverage counters, and make execution-data accumulation visible
-  cited by  smoke-evidence/migrated/surefire/run-provenance.txt
 
 ------------------------------------------------------------------------------
 EVERY NON-COMMIT OBJECT CITED ANYWHERE IN THE EVIDENCE
@@ -300,13 +303,14 @@ therefore names none.
   resolves   2e9618e005   -> 2e9618e005c2b6735b1d88c4a2d459ec8f950830  (commit)
   resolves   6ccf67211e   -> 6ccf67211e24483ddb0a0ebc79ce6515d4da088a  (commit)
   resolves   6f779b7fbc   -> 6f779b7fbc50f44e63d90b33b9d6748a6f54cfc6  (commit)
+  resolves   b9e2cd6ada   -> b9e2cd6ada5018f454c71d845bcd0c00f21bf4b3  (commit)
   resolves   c24e049e28   -> c24e049e28a270636fd5c3d38a9b5ea77bd36060  (commit)
   resolves   c8f6226105   -> c8f6226105c28c2743281d26bf21ad73f7bb7f26  (commit)
   resolves   d9f40089eb   -> d9f40089eb97b16ac2cc0c199f1083bb1b4e789e  (commit)
   resolves   fc44276779   -> fc442767793d693a2ea3ab24eaf739e6a9becd75  (commit)
 
-  abbreviations examined      : 43
-  resolve to exactly one      : 10
+  abbreviations examined      : 44
+  resolve to exactly one      : 11
   AMBIGUOUS                   : 0
   not a commit prefix (digest) : 33
 
@@ -321,139 +325,156 @@ state, are expected to be non-zero and are marked.
   05098ba73e..07844f45eb  0
   05098ba73e..09c3186192  0
   05098ba73e..0e13c8620d  0
+  05098ba73e..259823cbae  18  (deliberately-cited earlier state)
   05098ba73e..287dddca8e  21  (deliberately-cited earlier state)
   05098ba73e..2e9618e005  37  (deliberately-cited earlier state)
   05098ba73e..404822d4dd  5133  (deliberately-cited earlier state)
   05098ba73e..6a2ee4ec67  1  (deliberately-cited earlier state)
+  05098ba73e..6c34c66d18  18  (deliberately-cited earlier state)
   05098ba73e..6ccf67211e  0
   05098ba73e..6f779b7fbc  5  (deliberately-cited earlier state)
-  05098ba73e..7485babd41  0
+  05098ba73e..b9e2cd6ada  21  (deliberately-cited earlier state)
   05098ba73e..c24e049e28  21  (deliberately-cited earlier state)
   05098ba73e..c8f6226105  68  (base commit: the change set)
   05098ba73e..d9f2dc0f7d  13  (deliberately-cited earlier state)
   05098ba73e..d9f40089eb  0
   05098ba73e..fc44276779  0
-  05098ba73e..fe468d4524  0
   07844f45eb..09c3186192  0
   07844f45eb..0e13c8620d  0
+  07844f45eb..259823cbae  18  (deliberately-cited earlier state)
   07844f45eb..287dddca8e  21  (deliberately-cited earlier state)
   07844f45eb..2e9618e005  37  (deliberately-cited earlier state)
   07844f45eb..404822d4dd  5133  (deliberately-cited earlier state)
   07844f45eb..6a2ee4ec67  1  (deliberately-cited earlier state)
+  07844f45eb..6c34c66d18  18  (deliberately-cited earlier state)
   07844f45eb..6ccf67211e  0
   07844f45eb..6f779b7fbc  5  (deliberately-cited earlier state)
-  07844f45eb..7485babd41  0
+  07844f45eb..b9e2cd6ada  21  (deliberately-cited earlier state)
   07844f45eb..c24e049e28  21  (deliberately-cited earlier state)
   07844f45eb..c8f6226105  68  (base commit: the change set)
   07844f45eb..d9f2dc0f7d  13  (deliberately-cited earlier state)
   07844f45eb..d9f40089eb  0
   07844f45eb..fc44276779  0
-  07844f45eb..fe468d4524  0
   09c3186192..0e13c8620d  0
+  09c3186192..259823cbae  18  (deliberately-cited earlier state)
   09c3186192..287dddca8e  21  (deliberately-cited earlier state)
   09c3186192..2e9618e005  37  (deliberately-cited earlier state)
   09c3186192..404822d4dd  5133  (deliberately-cited earlier state)
   09c3186192..6a2ee4ec67  1  (deliberately-cited earlier state)
+  09c3186192..6c34c66d18  18  (deliberately-cited earlier state)
   09c3186192..6ccf67211e  0
   09c3186192..6f779b7fbc  5  (deliberately-cited earlier state)
-  09c3186192..7485babd41  0
+  09c3186192..b9e2cd6ada  21  (deliberately-cited earlier state)
   09c3186192..c24e049e28  21  (deliberately-cited earlier state)
   09c3186192..c8f6226105  68  (base commit: the change set)
   09c3186192..d9f2dc0f7d  13  (deliberately-cited earlier state)
   09c3186192..d9f40089eb  0
   09c3186192..fc44276779  0
-  09c3186192..fe468d4524  0
+  0e13c8620d..259823cbae  18  (deliberately-cited earlier state)
   0e13c8620d..287dddca8e  21  (deliberately-cited earlier state)
   0e13c8620d..2e9618e005  37  (deliberately-cited earlier state)
   0e13c8620d..404822d4dd  5133  (deliberately-cited earlier state)
   0e13c8620d..6a2ee4ec67  1  (deliberately-cited earlier state)
+  0e13c8620d..6c34c66d18  18  (deliberately-cited earlier state)
   0e13c8620d..6ccf67211e  0
   0e13c8620d..6f779b7fbc  5  (deliberately-cited earlier state)
-  0e13c8620d..7485babd41  0
+  0e13c8620d..b9e2cd6ada  21  (deliberately-cited earlier state)
   0e13c8620d..c24e049e28  21  (deliberately-cited earlier state)
   0e13c8620d..c8f6226105  68  (base commit: the change set)
   0e13c8620d..d9f2dc0f7d  13  (deliberately-cited earlier state)
   0e13c8620d..d9f40089eb  0
   0e13c8620d..fc44276779  0
-  0e13c8620d..fe468d4524  0
+  259823cbae..287dddca8e  28  (deliberately-cited earlier state)
+  259823cbae..2e9618e005  31  (deliberately-cited earlier state)
+  259823cbae..404822d4dd  5128  (deliberately-cited earlier state)
+  259823cbae..6a2ee4ec67  18  (deliberately-cited earlier state)
+  259823cbae..6c34c66d18  0
+  259823cbae..6ccf67211e  18  (deliberately-cited earlier state)
+  259823cbae..6f779b7fbc  19  (deliberately-cited earlier state)
+  259823cbae..b9e2cd6ada  4  (deliberately-cited earlier state)
+  259823cbae..c24e049e28  28  (deliberately-cited earlier state)
+  259823cbae..c8f6226105  63  (base commit: the change set)
+  259823cbae..d9f2dc0f7d  11  (deliberately-cited earlier state)
+  259823cbae..d9f40089eb  18  (deliberately-cited earlier state)
+  259823cbae..fc44276779  18  (deliberately-cited earlier state)
   287dddca8e..2e9618e005  40  (deliberately-cited earlier state)
   287dddca8e..404822d4dd  5135  (deliberately-cited earlier state)
   287dddca8e..6a2ee4ec67  21  (deliberately-cited earlier state)
+  287dddca8e..6c34c66d18  28  (deliberately-cited earlier state)
   287dddca8e..6ccf67211e  21  (deliberately-cited earlier state)
   287dddca8e..6f779b7fbc  22  (deliberately-cited earlier state)
-  287dddca8e..7485babd41  21  (deliberately-cited earlier state)
+  287dddca8e..b9e2cd6ada  28  (deliberately-cited earlier state)
   287dddca8e..c24e049e28  1  (deliberately-cited earlier state)
   287dddca8e..c8f6226105  70  (base commit: the change set)
   287dddca8e..d9f2dc0f7d  26  (deliberately-cited earlier state)
   287dddca8e..d9f40089eb  21  (deliberately-cited earlier state)
   287dddca8e..fc44276779  21  (deliberately-cited earlier state)
-  287dddca8e..fe468d4524  21  (deliberately-cited earlier state)
   2e9618e005..404822d4dd  5122  (deliberately-cited earlier state)
   2e9618e005..6a2ee4ec67  37  (deliberately-cited earlier state)
+  2e9618e005..6c34c66d18  31  (deliberately-cited earlier state)
   2e9618e005..6ccf67211e  37  (deliberately-cited earlier state)
   2e9618e005..6f779b7fbc  37  (deliberately-cited earlier state)
-  2e9618e005..7485babd41  37  (deliberately-cited earlier state)
+  2e9618e005..b9e2cd6ada  30  (deliberately-cited earlier state)
   2e9618e005..c24e049e28  40  (deliberately-cited earlier state)
   2e9618e005..c8f6226105  35  (base commit: the change set)
   2e9618e005..d9f2dc0f7d  30  (deliberately-cited earlier state)
   2e9618e005..d9f40089eb  37  (deliberately-cited earlier state)
   2e9618e005..fc44276779  37  (deliberately-cited earlier state)
-  2e9618e005..fe468d4524  37  (deliberately-cited earlier state)
   404822d4dd..6a2ee4ec67  5133  (deliberately-cited earlier state)
+  404822d4dd..6c34c66d18  5128  (deliberately-cited earlier state)
   404822d4dd..6ccf67211e  5133  (deliberately-cited earlier state)
   404822d4dd..6f779b7fbc  5133  (deliberately-cited earlier state)
-  404822d4dd..7485babd41  5133  (deliberately-cited earlier state)
+  404822d4dd..b9e2cd6ada  5127  (deliberately-cited earlier state)
   404822d4dd..c24e049e28  5135  (deliberately-cited earlier state)
   404822d4dd..c8f6226105  5117  (base commit: the change set)
   404822d4dd..d9f2dc0f7d  5126  (deliberately-cited earlier state)
   404822d4dd..d9f40089eb  5133  (deliberately-cited earlier state)
   404822d4dd..fc44276779  5133  (deliberately-cited earlier state)
-  404822d4dd..fe468d4524  5133  (deliberately-cited earlier state)
+  6a2ee4ec67..6c34c66d18  18  (deliberately-cited earlier state)
   6a2ee4ec67..6ccf67211e  1  (deliberately-cited earlier state)
   6a2ee4ec67..6f779b7fbc  4  (deliberately-cited earlier state)
-  6a2ee4ec67..7485babd41  1  (deliberately-cited earlier state)
+  6a2ee4ec67..b9e2cd6ada  21  (deliberately-cited earlier state)
   6a2ee4ec67..c24e049e28  21  (deliberately-cited earlier state)
   6a2ee4ec67..c8f6226105  68  (base commit: the change set)
   6a2ee4ec67..d9f2dc0f7d  14  (deliberately-cited earlier state)
   6a2ee4ec67..d9f40089eb  1  (deliberately-cited earlier state)
   6a2ee4ec67..fc44276779  1  (deliberately-cited earlier state)
-  6a2ee4ec67..fe468d4524  1  (deliberately-cited earlier state)
+  6c34c66d18..6ccf67211e  18  (deliberately-cited earlier state)
+  6c34c66d18..6f779b7fbc  19  (deliberately-cited earlier state)
+  6c34c66d18..b9e2cd6ada  4  (deliberately-cited earlier state)
+  6c34c66d18..c24e049e28  28  (deliberately-cited earlier state)
+  6c34c66d18..c8f6226105  63  (base commit: the change set)
+  6c34c66d18..d9f2dc0f7d  11  (deliberately-cited earlier state)
+  6c34c66d18..d9f40089eb  18  (deliberately-cited earlier state)
+  6c34c66d18..fc44276779  18  (deliberately-cited earlier state)
   6ccf67211e..6f779b7fbc  5  (deliberately-cited earlier state)
-  6ccf67211e..7485babd41  0
+  6ccf67211e..b9e2cd6ada  21  (deliberately-cited earlier state)
   6ccf67211e..c24e049e28  21  (deliberately-cited earlier state)
   6ccf67211e..c8f6226105  68  (base commit: the change set)
   6ccf67211e..d9f2dc0f7d  13  (deliberately-cited earlier state)
   6ccf67211e..d9f40089eb  0
   6ccf67211e..fc44276779  0
-  6ccf67211e..fe468d4524  0
-  6f779b7fbc..7485babd41  5  (deliberately-cited earlier state)
+  6f779b7fbc..b9e2cd6ada  22  (deliberately-cited earlier state)
   6f779b7fbc..c24e049e28  22  (deliberately-cited earlier state)
   6f779b7fbc..c8f6226105  68  (base commit: the change set)
   6f779b7fbc..d9f2dc0f7d  18  (deliberately-cited earlier state)
   6f779b7fbc..d9f40089eb  5  (deliberately-cited earlier state)
   6f779b7fbc..fc44276779  5  (deliberately-cited earlier state)
-  6f779b7fbc..fe468d4524  5  (deliberately-cited earlier state)
-  7485babd41..c24e049e28  21  (deliberately-cited earlier state)
-  7485babd41..c8f6226105  68  (base commit: the change set)
-  7485babd41..d9f2dc0f7d  13  (deliberately-cited earlier state)
-  7485babd41..d9f40089eb  0
-  7485babd41..fc44276779  0
-  7485babd41..fe468d4524  0
+  b9e2cd6ada..c24e049e28  28  (deliberately-cited earlier state)
+  b9e2cd6ada..c8f6226105  62  (base commit: the change set)
+  b9e2cd6ada..d9f2dc0f7d  8  (deliberately-cited earlier state)
+  b9e2cd6ada..d9f40089eb  21  (deliberately-cited earlier state)
+  b9e2cd6ada..fc44276779  21  (deliberately-cited earlier state)
   c24e049e28..c8f6226105  70  (base commit: the change set)
   c24e049e28..d9f2dc0f7d  26  (deliberately-cited earlier state)
   c24e049e28..d9f40089eb  21  (deliberately-cited earlier state)
   c24e049e28..fc44276779  21  (deliberately-cited earlier state)
-  c24e049e28..fe468d4524  21  (deliberately-cited earlier state)
   c8f6226105..d9f2dc0f7d  61  (base commit: the change set)
   c8f6226105..d9f40089eb  68  (base commit: the change set)
   c8f6226105..fc44276779  68  (base commit: the change set)
-  c8f6226105..fe468d4524  68  (base commit: the change set)
   d9f2dc0f7d..d9f40089eb  13  (deliberately-cited earlier state)
   d9f2dc0f7d..fc44276779  13  (deliberately-cited earlier state)
-  d9f2dc0f7d..fe468d4524  13  (deliberately-cited earlier state)
   d9f40089eb..fc44276779  0
-  d9f40089eb..fe468d4524  0
-  fc44276779..fe468d4524  0
 
 ------------------------------------------------------------------------------
 EVERY LABELLED IDENTITY FIELD, VERBATIM
@@ -528,26 +549,27 @@ authoritative.
   baseline-test-failures.md:137:First, the test class is not new and is not modified: `git cat-file -e` resolves it at the base commit, and its SHA-256 ...
   baseline-test-failures.md:141:| `maven-surefire-plugin:2.12.4` | implicitly bound; Surefire is declared in **zero** POMs at the base commit | `**/*Tes...
   baseline-test-failures.md:146:**The distinction between the two possible reasons is still load-bearing, even though only one of them now has an instan...
-  baseline-test-failures.md:168:Every figure below was re-derived at base commit `c8f6226105` rather than copied forward. All eleven baseline values mat...
-  baseline-test-failures.md:170:**As delivered, the test corpus is identical to the base commit on every source measure.** That was not true of an earli...
-  baseline-test-failures.md:176:| Measure | Verified at base commit `c8f6226105` | Working tree now | Δ |
-  baseline-test-failures.md:194:- **There is no JUnit 5 anywhere.** All 366 annotated test files at the base commit are JUnit 4 — 371 in the working tre...
-  baseline-test-failures.md:202:**The register has four rows.** Every one is a test that was already red on JDK 8 at the base commit, read out of the ar...
-  baseline-test-failures.md:275:The archive covers **66 of the 76 test-source-bearing modules at the base commit** — the migrated half covers 67 of the ...
-  baseline-test-failures.md:284:**The two halves now cover the identical module set: 66 each, with the same 10 uncovered, and the set difference is empt...
-  baseline-test-failures.md:296:**It was NOT pre-existing, and it was NOT eligible for an exclusion.** R-5 permits an exclusion only for a failure alrea...
-  baseline-test-failures.md:343:Every `pom.xml` line anchor below is the line **as it stands at base commit `c8f6226105`**, because that is the state a ...
-  baseline-test-failures.md:345:- JaCoCo's `prepare-agent` goal is configured in the root `pom.xml`, in the plugin block that spans lines 427 to 490 at ...
-  baseline-test-failures.md:346:- It writes coverage data to `${project.build.directory}/jacoco-reports/jacoco.exec`, and it binds a `check` goal — the ...
+  baseline-test-failures.md:159:  **What the migrated *capture* records is a different thing from what the archive records, and the two must not be read...
+  baseline-test-failures.md:176:Every figure below was re-derived at base commit `c8f6226105` rather than copied forward. All eleven baseline values mat...
+  baseline-test-failures.md:178:**As delivered, the test corpus is identical to the base commit on every source measure.** That was not true of an earli...
+  baseline-test-failures.md:184:| Measure | Verified at base commit `c8f6226105` | Working tree now | Δ |
+  baseline-test-failures.md:202:- **There is no JUnit 5 anywhere.** All 366 annotated test files at the base commit are JUnit 4 — 371 in the working tre...
+  baseline-test-failures.md:210:**The register has four rows.** Every one is a test that was already red on JDK 8 at the base commit, read out of the ar...
+  baseline-test-failures.md:283:The archive covers **66 of the 76 test-source-bearing modules at the base commit** — the migrated half covers 67 of the ...
+  baseline-test-failures.md:292:**The two halves now cover the identical module set: 66 each, with the same 10 uncovered, and the set difference is empt...
+  baseline-test-failures.md:304:**It was NOT pre-existing, and it was NOT eligible for an exclusion.** R-5 permits an exclusion only for a failure alrea...
   baseline-test-failures.md:34:- **R-7 — Baseline Behavior Is the Tie-Breaker.** Quoted with the wording substitution disclosed above: *"The application...
-  baseline-test-failures.md:361:Exactly **six** test classes import `org.powermock`, verified repository-wide at the base commit:
-  baseline-test-failures.md:379:- **A companion removal carried zero test risk, and that was verified rather than assumed.** `easymockclassextension` is...
-  baseline-test-failures.md:402:The figures published on this page are re-derivable. Run from the repository root; the base commit is `c8f6226105`.
+  baseline-test-failures.md:351:Every `pom.xml` line anchor below is the line **as it stands at base commit `c8f6226105`**, because that is the state a ...
+  baseline-test-failures.md:353:- JaCoCo's `prepare-agent` goal is configured in the root `pom.xml`, in the plugin block that spans lines 427 to 490 at ...
+  baseline-test-failures.md:354:- It writes coverage data to `${project.build.directory}/jacoco-reports/jacoco.exec`, and it binds a `check` goal — the ...
+  baseline-test-failures.md:369:Exactly **six** test classes import `org.powermock`, verified repository-wide at the base commit:
+  baseline-test-failures.md:387:- **A companion removal carried zero test risk, and that was verified rather than assumed.** `easymockclassextension` is...
+  baseline-test-failures.md:410:The figures published on this page are re-derivable. Run from the repository root; the base commit is `c8f6226105`.
   baseline-test-failures.md:41:The capture target is the reactor exactly as it stood at base commit **`c8f6226105`** — full hash `c8f6226105c28c2743281d...
-  baseline-test-failures.md:425:# the same corpus IN THE WORKING TREE - the right-hand column.  Every value matches the base-commit
-  baseline-test-failures.md:426:# value above: the delivered corpus is the base-commit corpus.  The seven test classes an earlier
-  baseline-test-failures.md:439:# the deletions, so the return to the base-commit corpus is auditable rather than asserted.
+  baseline-test-failures.md:433:# the same corpus IN THE WORKING TREE - the right-hand column.  Every value matches the base-commit
+  baseline-test-failures.md:434:# value above: the delivered corpus is the base-commit corpus.  The seven test classes an earlier
   baseline-test-failures.md:43:The command shape matches the migration's own backend build step: the full reactor installs with tests skipped, and only ...
+  baseline-test-failures.md:447:# the deletions, so the return to the base-commit corpus is auditable rather than asserted.
   baseline-test-failures.md:5:Its completion condition is a citation contract. **Every exclusion in the migrated Surefire configuration must cite a row ...
   baseline-test-failures.md:81:from an extraction of the base commit `c8f6226105c28c2743281d26bf21ad73f7bb7f26`, not from the
   baseline-test-failures.md:91:**Every archived report is a native Surefire document captured from the run described above.** None is derived from test ...
@@ -571,50 +593,61 @@ authoritative.
   dependency-change-inventory.md:49:Twenty-six rows. All artifacts resolve from **Maven Central** unless the row states otherwise. `pom.xml` is the root...
   dependency-change-inventory.md:504:- **CI build image** — `.gitlab-ci.yml` **line 26**, `image: arkcase-gitlab-ci:1.0.2` at base commit `c8f6226105`, ...
   dependency-change-inventory.md:525:  The three declarations, all at base-commit content and all previously naming `spring-security-5.4.xsd`, now name ...
-  dependency-change-inventory.md:543:  1. **The front-end commands no longer inherit Tomcat's environment.** `buildFrontEndCommandEnvironment()` compose...
-  dependency-change-inventory.md:556:R-7's posture is evidence over assertion, and it applies to this page's own figures. Every count published above wa...
-  dependency-change-inventory.md:558:| Claim | Plan states | Verified at base commit `c8f6226105` |
-  dependency-change-inventory.md:655:The CI file is read through `git show` for the same reason as the others: in the working tree its two anchors have ...
-  dependency-change-inventory.md:663:The first must print exactly one line, `46:image: arkcase-gitlab-ci:2.0.0` — one key, one literal tag. The second m...
-  dependency-change-inventory.md:665:**The strongest CI check is structural rather than textual, and it is the one that enforces job-command invariance....
+  dependency-change-inventory.md:560:  grep -c 'log.error'                          -> 1    and it is the base commit's own generic
+  dependency-change-inventory.md:564:  The fifth needs one word of separation, because the delivered file does something adjacent to it: `captureCommand...
+  dependency-change-inventory.md:568:  1. **The front-end commands no longer inherit Tomcat's environment.** `buildFrontEndCommandEnvironment()` compose...
+  dependency-change-inventory.md:597:R-7's posture is evidence over assertion, and it applies to this page's own figures. Every count published above wa...
+  dependency-change-inventory.md:599:| Claim | Plan states | Verified at base commit `c8f6226105` |
+  dependency-change-inventory.md:696:The CI file is read through `git show` for the same reason as the others: in the working tree its two anchors have ...
+  dependency-change-inventory.md:704:The first must print exactly one line, `46:image: arkcase-gitlab-ci:2.0.0` — one key, one literal tag. The second m...
+  dependency-change-inventory.md:706:**The strongest CI check is structural rather than textual, and it is the one that enforces job-command invariance....
   frontend-dependency-security.md:100:- **The lockfile is valid and exactly pinned.** `lockfileVersion` is 3, `npm ci` restores from it, and there is no...
-  frontend-dependency-security.md:191:What the delivered copier actually does, verified by reading it, is recorded as entry 58 of [Pre-existing Defects]...
-  frontend-dependency-security.md:201:## Deployment-time package-manager execution, measured against the base commit
-  frontend-dependency-security.md:207:**The execution model is unchanged, and this was measured rather than argued.** The method that builds and runs th...
-  frontend-dependency-security.md:215:Both sides construct `CommandLine.parse(commandLine)` at `:328`, both instantiate a bare `new DefaultExecutor()` a...
-  frontend-dependency-security.md:226:**The lifecycle-script surface narrowed rather than widened.** The five packages that run an install script under ...
-  frontend-dependency-security.md:228:**Why the hardening is not delivered here, stated as authority rather than preference.** Environment allowlisting,...
-  frontend-dependency-security.md:239:| **EX-9** | A package manager executes at Tomcat startup with the deployment account's full environment, no timeo...
-  frontend-dependency-security.md:281:**Why the identifiers run to EX-9 while this table holds eight.** The ninth exception, **EX-9**, is not an advisor...
+  frontend-dependency-security.md:189:**This section has now been wrong in both directions, and both errors are stated because the pattern is the point....
+  frontend-dependency-security.md:220:**What is still not in place, stated so no reader plans around it: three things, not five.** There is **no executi...
+  frontend-dependency-security.md:222:## Deployment-time package-manager execution, measured against the base commit
+  frontend-dependency-security.md:236:That comparison was true of the revision it was run against and is **not** true of the delivered file, and the rea...
+  frontend-dependency-security.md:239:# base commit: one-argument execute, no environment
+  frontend-dependency-security.md:250:Both sides still parse the command string rather than pinning a path, and **neither** carries an `ExecuteWatchdog`...
+  frontend-dependency-security.md:270:All five were already in the base graph — each is present in the base `yarn.lock`, with `fsevents` appearing twice...
+  frontend-dependency-security.md:275:c8f6226105  593      base commit
+  frontend-dependency-security.md:292:| **EX-9** | A package manager executes at Tomcat startup, contacting a package registry from inside the servlet c...
   frontend-dependency-security.md:32:This is a large number and the page does not soften it. What matters for reading it correctly is that it is almost ...
-  pre-existing-defects.md:131:| 68 | I8 | A documentation link in the developer README points at a host that no longer resolves | `README.md:185` (`READ...
-  pre-existing-defects.md:150:| 58 | The startup frontend build runs a package manager inside Tomcat with no timeout, no environment control, no launche...
-  pre-existing-defects.md:191:Found by driving the eight scripted smoke flows far enough to reach these paths, and each verified pre-existing by diffing...
-  pre-existing-defects.md:205:The five entries in numbers 45 to 49 were discovered by the Java 17 backend and build re-test, and the seven in numbers 50...
-  pre-existing-defects.md:215:**One separation has to be explicit, because these two entries live in a file the change set does touch the neighbourhood ...
-  pre-existing-defects.md:252:In the baseline and migrated captures the precondition was **satisfied**, and this is where the measured state parts compa...
-  pre-existing-defects.md:270:The two entries reach opposite conclusions from the same platform removal, and the difference is reachability, not inconsi...
-  pre-existing-defects.md:30:- **R-7 — Baseline behaviour is the tie-breaker.** The behaviour observed at the base commit settles any ambiguity, and eac...
-  pre-existing-defects.md:316:**Why it is pre-existing rather than introduced.** Both packages are pinned at the versions the base-commit lockfile resol...
-  pre-existing-defects.md:562:**Eleven of the sixteen were unstable under `2.10.3`, the version the base commit pins and the JDK 8 build resolved.** Byt...
-  pre-existing-defects.md:564:**This entry's figures were re-measured against the correct baseline.** An earlier revision cited thirteen classes over 2,...
-  pre-existing-defects.md:574:**It is inherited, not introduced.** The line is byte-identical at the base commit, where it sits at `README.md:151`; the ...
-  pre-existing-defects.md:598:At the base commit that reports `syntax error near unexpected token '('` and exits 2. The three defects behind it:
-  pre-existing-defects.md:604:**All three are inherited, and the base commit proves it.** The block is byte-identical at `c8f6226105`, where it begins a...
-  pre-existing-defects.md:634:**Recorded, not fixed.** The file is outside the migration plan's scope list, the defect is present and unchanged at the b...
-  pre-existing-defects.md:642:**Recorded, not fixed.** The file is a persistence entity outside the plan's scope list and the defect is unchanged at the...
-  pre-existing-defects.md:658:**Pre-existing, and the migration preserved it faithfully.** At the base commit the same mismatch existed in PowerMock for...
-  pre-existing-defects.md:679:Lines 1, 3 and 4 of that template end in a space and line 11 is a single space. `pom.xml:557-585` configures `license-mave...
-  pre-existing-defects.md:707:That single line is load-bearing in one direction and absent in the other. It is the reason `package-lock.json` is committ...
-  pre-existing-defects.md:732:Pre-existing and unchanged by this migration across the reactor as a whole; both jars are present at the base commit. It i...
-  pre-existing-defects.md:734:**Re-measured against the delivered archive, and the severity did not increase.** Listing the WAR at the delivered revisio...
-  pre-existing-defects.md:746:What it was. `acm-plugins/acm-extra-plugins/acm-personnel-security-plugin/src/main/resources/activiti/personnelSecurityBac...
-  pre-existing-defects.md:765:`AngularResourceCopier` runs the frontend dependency install and the Grunt pipeline **inside the Tomcat JVM at context sta...
-  pre-existing-defects.md:769:**2 — The child process inherits the container's entire environment — CLOSED, no longer a defect.** This item is retained ...
-  pre-existing-defects.md:831:Pre-existing, on three checks. `git log c8f6226105..HEAD -- <DocumentUiController.java>` returns **empty**. The base commi...
-  pre-existing-defects.md:893:| The **seven** JDK-internal usage remediations — three compile-visible substitutions, one string literal externalised int...
-  pre-existing-defects.md:896:| Reinstating the standalone script engine as a Maven artifact | Not R-6 work at all: the seven `complete`-event script ta...
-  pre-existing-defects.md:926:A register asserting that nothing was fixed is only as good as a reviewer's ability to refute it. These checks do that dir...
+  frontend-dependency-security.md:334:**Why the identifiers run to EX-9 while this table holds eight.** The ninth exception, **EX-9**, is not an advisor...
+  pre-existing-defects.md:1000:| The **seven** JDK-internal usage remediations — three compile-visible substitutions, one string literal externalised in...
+  pre-existing-defects.md:1003:| Reinstating the standalone script engine as a Maven artifact | Not R-6 work at all: the seven `complete`-event script t...
+  pre-existing-defects.md:1033:A register asserting that nothing was fixed is only as good as a reviewer's ability to refute it. These checks do that di...
+  pre-existing-defects.md:122:| 97 | S7-AUTH3 | The electronic-signature confirmation endpoint reads the confirming password out of the request body and...
+  pre-existing-defects.md:123:| 98 | S7-LDAP1 | The same LDAP authentication method builds its search filter by **string concatenation** of the caller-d...
+  pre-existing-defects.md:148:| 68 | I8 | A documentation link in the developer README points at a host that no longer resolves | `README.md:185` (`READ...
+  pre-existing-defects.md:167:| 58 | The startup frontend build runs a package manager inside the Tomcat JVM at context initialisation. **Five weaknesse...
+  pre-existing-defects.md:172:| 96 | The Windows branch of the task-runner path expression emits a **doubled** path separator, so the two Grunt commands...
+  pre-existing-defects.md:209:Found by driving the eight scripted smoke flows far enough to reach these paths, and each verified pre-existing by diffing...
+  pre-existing-defects.md:225:The five entries in numbers 45 to 49 were discovered by the Java 17 backend and build re-test, and the seven in numbers 50...
+  pre-existing-defects.md:235:**One separation has to be explicit, because these two entries live in a file the change set does touch the neighbourhood ...
+  pre-existing-defects.md:272:In the baseline and migrated captures the precondition was **satisfied**, and this is where the measured state parts compa...
+  pre-existing-defects.md:290:The two entries reach opposite conclusions from the same platform removal, and the difference is reachability, not inconsi...
+  pre-existing-defects.md:336:**Why it is pre-existing rather than introduced.** Both packages are pinned at the versions the base-commit lockfile resol...
+  pre-existing-defects.md:45:- **R-7 — Baseline behaviour is the tie-breaker.** The behaviour observed at the base commit settles any ambiguity, and eac...
+  pre-existing-defects.md:506:These two were registered later than 65 and 66 and they are treated together, because **they lie on the same single call p...
+  pre-existing-defects.md:614:**Eleven of the sixteen were unstable under `2.10.3`, the version the base commit pins and the JDK 8 build resolved.** Byt...
+  pre-existing-defects.md:616:**This entry's figures were re-measured against the correct baseline.** An earlier revision cited thirteen classes over 2,...
+  pre-existing-defects.md:626:**It is inherited, not introduced.** The line is byte-identical at the base commit, where it sits at `README.md:151`; the ...
+  pre-existing-defects.md:652:At the base commit that reports `syntax error near unexpected token '('` and exits 2. The three defects behind it:
+  pre-existing-defects.md:658:**All three are inherited, and the base commit proves it.** The block is byte-identical at `c8f6226105`, where it begins a...
+  pre-existing-defects.md:674:**One property is disclosed rather than fixed**, because fixing it is not in this change set's gift: the JVM still receive...
+  pre-existing-defects.md:692:The expression that decides where the Grunt CLI is resolved from reads, on both the base commit and the delivered head, by...
+  pre-existing-defects.md:702:**Inherited, and verified so before being written down.** `diff <(git show c8f6226105:…/spring-web-ark-angular-starter.xml...
+  pre-existing-defects.md:716:**Recorded, not fixed.** The file is outside the migration plan's scope list, the defect is present and unchanged at the b...
+  pre-existing-defects.md:724:**Recorded, not fixed.** The file is a persistence entity outside the plan's scope list and the defect is unchanged at the...
+  pre-existing-defects.md:740:**Pre-existing, and the migration preserved it faithfully.** At the base commit the same mismatch existed in PowerMock for...
+  pre-existing-defects.md:761:Lines 1, 3 and 4 of that template end in a space and line 11 is a single space. `pom.xml:557-585` configures `license-mave...
+  pre-existing-defects.md:789:That single line is load-bearing in one direction and absent in the other. It is the reason `package-lock.json` is committ...
+  pre-existing-defects.md:814:Pre-existing and unchanged by this migration across the reactor as a whole; both jars are present at the base commit. It i...
+  pre-existing-defects.md:816:**Re-measured against the delivered archive, and the severity did not increase.** Listing the WAR at the delivered revisio...
+  pre-existing-defects.md:828:What it was. `acm-plugins/acm-extra-plugins/acm-personnel-security-plugin/src/main/resources/activiti/personnelSecurityBac...
+  pre-existing-defects.md:847:`AngularResourceCopier` runs the frontend dependency install and the Grunt pipeline **inside the Tomcat JVM at context sta...
+  pre-existing-defects.md:870:**2 — The child process inherits the container's entire environment — CLOSED, no longer a defect.** This item is retained ...
+  pre-existing-defects.md:934:Pre-existing, on three checks. `git log c8f6226105..HEAD -- <DocumentUiController.java>` returns **empty**. The base commi...
   smoke-evidence/activation-mime/notes.txt:119:R-7. The pre-migration behaviour is the tie-breaker, and at the base commit the platform
   smoke-evidence/baseline/coverage-counters.txt:4:capture-label: pre-migration baseline, JDK 8, base commit c8f6226105
   smoke-evidence/baseline/env/toolchain.txt:12:declared-base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
@@ -764,6 +797,7 @@ authoritative.
   smoke-evidence/baseline/notes/07-post-capture-supersession.txt:114:Measured on the region THIS capture committed, both sides:
   smoke-evidence/baseline/notes/07-post-capture-supersession.txt:15:JDK 8 deployment of the base commit -- its startup region records JVM Version 1.8.0_...
   smoke-evidence/baseline/notes/07-post-capture-supersession.txt:248:base commit that cannot be rebuilt from this tree, for the reason given at the head...
+  smoke-evidence/baseline/notes/artifact-digest-records.txt:12:authority-measured-on: the historical Node line (v8.17.0 with npm 6.13.4), superseded pac...
   smoke-evidence/baseline/notes/capture-commit-identity.txt:2:observed-head: 6ccf67211e24483ddb0a0ebc79ce6515d4da088a
   smoke-evidence/baseline/notes/capture-commit-identity.txt:3:declared-base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   smoke-evidence/baseline/notes/capture-identity.txt:10:provenance-consistency: CONTRADICTED: the capture declares the pre-migration side and the base c...
@@ -822,6 +856,7 @@ authoritative.
   smoke-evidence/bpmn-script-engine/notes.txt:48:  AFTER   6a2ee4ec677bb2dd60543ab55d141ed22f92e747
   smoke-evidence/bpmn-script-engine/notes.txt:59:  BASE    c8f6226105c28c2743281d26bf21ad73f7bb7f26
   smoke-evidence/bpmn-script-engine/notes.txt:8:144 and 155. Those listeners executed at the base commit on JDK 8, where the Nashorn engine
+  smoke-evidence/frontend-startup-wiring.txt:89:    result is still discarded.  All four are base-commit behaviour and all four are
   smoke-evidence/historical-frontend/artifact-digests-node20-basecommit-yarn.txt:1:=== artifact digests, base-commit tree built with the SUPERSEDED pack...
   smoke-evidence/historical-frontend/artifact-digests-node20-basecommit-yarn.txt:29:  build A  base-commit tree, yarn 1.22.22, Node  8.17.2 era runtime ...
   smoke-evidence/historical-frontend/artifact-digests-node20-basecommit-yarn.txt:2:=== on the NEW runtime (Node 20.20.2, yarn 1.22.22, the base-commit m...
@@ -853,7 +888,7 @@ authoritative.
   smoke-evidence/migrated/artifacts/diff-result.txt:71:    B  base-commit tree, superseded package manager, target Node line
   smoke-evidence/migrated/artifacts/diff-result.txt:75:  runtime held at the target, the migrated tree and the base-commit tree produce the
   smoke-evidence/migrated/artifacts/diff-result.txt:78:  whether this change set caused the difference: the base-commit tree, containing
-  smoke-evidence/migrated/artifacts/diff-result.txt:9:capture commit    : 7485babd41b8bd4d8e2f3e8ff6aefbb378b6a4a1
+  smoke-evidence/migrated/artifacts/diff-result.txt:9:capture commit    : 259823cbaea82cceaa80ac2d4fc0341f4b058e0c
   smoke-evidence/migrated/env/toolchain.txt:12:declared-base-commit: c8f6226105c28c2743281d26bf21ad73f7bb7f26
   smoke-evidence/migrated/env/toolchain.txt:14:declared-side-versus-observed-head: consistent: the capture declares the migrated side and HEAD 0e13c8620...
   smoke-evidence/migrated/flow-1-login.result.txt:151:        base commit  :55 pooling-flag string constant, :56 context-factory
@@ -1072,12 +1107,12 @@ authoritative.
   smoke-evidence/migrated/surefire/notes/archived-report-provenance-annotations.txt:94:     base commit c8f6226105c28c2743281d26bf21ad73f7bb7f26. That t...
   smoke-evidence/migrated/surefire/notes/archived-report-provenance-annotations.txt:95:     the base commit and the commit archiving this report, and th...
   smoke-evidence/migrated/surefire/notes/report-restoration.txt:8:BASE-COMMIT: c8f6226105
-  smoke-evidence/migrated/surefire/run-provenance.txt:11:commit-resolves-in-this-repository: yes -- fe468d4524d4e16014bee336a04d8bfaf77acfab resolves to...
+  smoke-evidence/migrated/surefire/run-provenance.txt:11:commit-resolves-in-this-repository: yes -- 6c34c66d18ec6e60f81bd99ee72adae7dba9a183 resolves to...
   smoke-evidence/migrated/surefire/run-provenance.txt:12:commit-reachable-from-branch: yes -- reachable from blitzy-8a1f8263-da1c-43cb-ab93-325ffe31d614...
   smoke-evidence/migrated/surefire/run-provenance.txt:14:git-status-porcelain-at-harvest: empty -- git status --porcelain reported no line outside this ...
-  smoke-evidence/migrated/surefire/run-provenance.txt:16:reports-produced-by-a-build-of: fe468d4524d4e16014bee336a04d8bfaf77acfab -- the same commit the...
-  smoke-evidence/migrated/surefire/run-provenance.txt:81:  the baseline necessarily runs from a throwaway checkout of the base commit, so
-  smoke-evidence/migrated/surefire/run-provenance.txt:9:harvested-from-commit: fe468d4524d4e16014bee336a04d8bfaf77acfab
+  smoke-evidence/migrated/surefire/run-provenance.txt:16:reports-produced-by-a-build-of: same as the harvest commit above
+  smoke-evidence/migrated/surefire/run-provenance.txt:70:  the baseline necessarily runs from a throwaway checkout of the base commit, so
+  smoke-evidence/migrated/surefire/run-provenance.txt:9:harvested-from-commit: 6c34c66d18ec6e60f81bd99ee72adae7dba9a183
   smoke-evidence/parity-provability.txt:29:capture committed here. The corrections are stated as corrections rather than substituted
   smoke-evidence/parity-provability.txt:66:      declared-side-versus-observed-head: CONTRADICTED: the capture declares the
   smoke-evidence/parity-provability.txt:67:      pre-migration side and the base commit c8f6226105, but HEAD is 0e13c8620d.
@@ -1259,12 +1294,12 @@ authoritative.
 ==============================================================================
 OUTCOME
 ==============================================================================
-full-commits-resolving      : 17
+full-commits-resolving      : 18
 full-other-objects-resolving: 1
 full-objects-ambiguous      : 0
 full-objects-unresolvable   : 0
 abbreviations-ambiguous     : 0
-full-commits-not-reachable  : 8   (reported, not a failure)
+full-commits-not-reachable  : 6   (reported, not a failure)
 IDENTITY-OUTCOME: PASS -- every identity cited anywhere in the evidence
   resolves to exactly one object and none is ambiguous, which is what this
   verdict asserts.  Reachability from the head is reported per commit and is
