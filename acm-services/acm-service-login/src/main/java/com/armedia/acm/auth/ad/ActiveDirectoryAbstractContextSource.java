@@ -437,8 +437,16 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
 
         Hashtable env = new Hashtable(baseEnv);
 
-        // JNDI resolves the provider by name; fall back to the configured default when no factory class was injected
-        env.put(Context.INITIAL_CONTEXT_FACTORY, contextFactory != null ? contextFactory.getName() : DEFAULT_CONTEXT_FACTORY_NAME);
+        // JNDI resolves the initial context factory by name, so a factory injected through setContextFactory is
+        // contributed exactly as before; when none was injected, the configured default name is used instead.
+        if (contextFactory != null)
+        {
+            env.put(Context.INITIAL_CONTEXT_FACTORY, contextFactory.getName());
+        }
+        else
+        {
+            env.put(Context.INITIAL_CONTEXT_FACTORY, DEFAULT_CONTEXT_FACTORY_NAME);
+        }
         env.put(Context.PROVIDER_URL, assembleProviderUrlString(urls));
 
         if (dirObjectFactory != null)

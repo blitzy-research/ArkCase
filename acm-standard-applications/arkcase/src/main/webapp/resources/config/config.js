@@ -12,8 +12,35 @@ module.exports = _.extend(require('./env/all'));
 
 /**
  * Load active profiles
+ *
+ * `profiles.js` is generated, never checked in: at deploy time AngularResourceCopier
+ * writes it into the assembly folder immediately before invoking Grunt, and in a
+ * checkout the `prebuild` script (scripts/ensure-profiles.js) writes the same file
+ * ahead of `npm run build`. This module is the first thing the Grunt `default` chain
+ * loads, so an unguarded require aborts the entire build whenever neither producer
+ * has run. The require is guarded and defaulted to `{ profiles: [ 'custom' ] }`, the
+ * exact value the assembler emits for its own single-profile fallback; the generated
+ * module wins whenever it is present, so deployed behaviour is unchanged.
+ *
+ * Only the absence of that one module is defaulted; every other failure is re-thrown
+ * rather than masked, because silently substituting the single default profile would
+ * downgrade a multi-profile deployment without a word. The test is therefore narrowed
+ * twice: to MODULE_NOT_FOUND, node's own stable error code, and to a require stack
+ * whose innermost frame is this file - so a generated module that exists but does not
+ * parse, one that throws while loading, and one whose own require cannot be resolved
+ * all surface their real error. `requireStack` is treated as advisory: when it is
+ * unavailable the code alone decides, which keeps a bare checkout building. The
+ * message text is deliberately never matched, since its wording is not a contract.
  */
-var activeProfiles = require('./../profiles');
+try {
+    var activeProfiles = require('./../profiles');
+} catch (ex) {
+    if (!ex || ex.code !== 'MODULE_NOT_FOUND' || (ex.requireStack && ex.requireStack[0] !== __filename)) {
+        throw ex;
+    }
+    console.log('Active profiles module does not exist..continuing..');
+    activeProfiles = { profiles: [ 'custom' ] };
+}
 
 /**
  * Get files by glob patterns
