@@ -32,7 +32,6 @@ import com.armedia.acm.core.AcmSpringActiveProfile;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -47,13 +46,11 @@ import org.zeroturnaround.exec.stream.slf4j.Slf4jDebugOutputStream;
 
 import javax.servlet.ServletContext;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -63,9 +60,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -75,28 +69,8 @@ import java.util.stream.Collectors;
  * The ArkCase WAR file should configure the deployment folder in a Tomcat context resources element, such that
  * files in this deployment folder are treated as if they were in the root folder of the war file itself.
  * <p>
- * npm (the Node.js Package Manager) must be installed on the deployment host, and npm must be in the
- * system path, on a Node runtime that satisfies the frontend's declared engines. The <code>.npmrc</code> copied
- * into the temp folder sets <code>engine-strict</code>, and the install command passes
- * <code>--engine-strict</code> as well, so an out-of-range runtime fails the install instead of quietly building
- * against it.
- * <p>
- * The install needs <strong>outbound HTTPS to registry.npmjs.org and to codeload.github.com</strong>, and nothing
- * else. That second host is easy to miss: 53 of the locked dependencies are GitHub repositories, and
- * <code>package-lock.json</code> records them as <code>git+ssh://git@github.com/...</code> URLs because npm
- * rewrites every GitHub coordinate to ssh when it writes a lockfile, whatever the manifest declared. Those URLs do
- * <em>not</em> make ssh - or even git - a deployment prerequisite: because the lockfile pins each one to an exact
- * commit, npm downloads them as HTTPS tarballs from codeload.github.com and only falls back to cloning with git if
- * that fails. Verified on this codebase by running the install with an empty environment, ssh disabled, a cold npm
- * cache and no git binary on the path at all.
- * <p>
- * A git client is therefore optional here, and needed only for the developer or CI step that regenerates the
- * lockfile. When one is present and recent enough, this class still hands it <code>url.insteadOf</code> rewrite
- * rules through the <code>GIT_CONFIG_COUNT</code> / <code>GIT_CONFIG_KEY_n</code> / <code>GIT_CONFIG_VALUE_n</code>
- * environment variables for the duration of the install, so that even npm's git fallback goes over HTTPS and needs
- * no SSH key and no git configuration on the host. Those variables require git 2.31 or newer; on an older git, or
- * when the deployment host has set <code>GIT_CONFIG_COUNT</code> itself, the host's own git configuration is left
- * strictly alone.
+ * npm (the Node.js Package Manager) must be installed on the deployment host, and npm must be in the system
+ * path. Yarn is no longer used: the install runs from the committed npm lockfile instead.
  * <p>
  * The resources to be copied from the war file and extension jars; the front-end commands to be run (e.g. npm,
  * grunt); and the resources to be copied to the deployment folder are configured in Spring. All resources to
@@ -104,41 +78,6 @@ import java.util.stream.Collectors;
  */
 public class AngularResourceCopier implements ServletContextAware
 {
-    /**
-     * Command used to find out whether a git client is present, and which version it is.
-     */
-    private static final String GIT_VERSION_COMMAND = "git --version";
-
-    /**
-     * Matches the numeric part of <code>git version 2.31.1</code> and of vendor-suffixed variants such as
-     * <code>git version 2.39.5 (Apple Git-154)</code>.
-     */
-    private static final Pattern GIT_VERSION_PATTERN = Pattern.compile("git version (\\d+)\\.(\\d+)");
-
-    /**
-     * First git release that reads configuration from GIT_CONFIG_COUNT / GIT_CONFIG_KEY_n / GIT_CONFIG_VALUE_n. On
-     * anything older those variables are ignored, so the rewrite below cannot be applied.
-     */
-    private static final int GIT_ENVIRONMENT_CONFIG_MIN_MAJOR = 2;
-
-    private static final int GIT_ENVIRONMENT_CONFIG_MIN_MINOR = 31;
-
-    /**
-     * Environment variable through which git is told how many configuration entries follow. It doubles as the
-     * operator's opt-out: when the deployment host has already set it, this class adds nothing.
-     */
-    private static final String GIT_CONFIG_COUNT = "GIT_CONFIG_COUNT";
-
-    /**
-     * The rewrite this class installs for the install subprocess: reach GitHub over HTTPS instead of ssh. Every form
-     * npm can hand to git is listed, since the lockfile is written with git+ssh URLs and older entries may use the
-     * scp-like form.
-     */
-    private static final String GIT_HTTPS_REWRITE_KEY = "url.https://github.com/.insteadOf";
-
-    private static final String[] GIT_REWRITTEN_GITHUB_PREFIXES = { "git+ssh://git@github.com/", "ssh://git@github.com/",
-            "git@github.com:", "git://github.com/" };
-
     private transient final Logger log = LoggerFactory.getLogger(getClass());
 
     private String tempFolderPath;
@@ -188,8 +127,8 @@ public class AngularResourceCopier implements ServletContextAware
                 copiedFiles.add(copied);
             }
 
-            // npm ci, with git pointed at HTTPS so that even its fallback clone needs no SSH credentials
-            runFrontEndBuildCommand(tmpDir, npmInstallCommand, npmInstallEnvironment());
+            // npm ci, against the committed lockfile
+            runFrontEndBuildCommand(tmpDir, npmInstallCommand);
             // add 'customer' as specific profile, so if any customer resources are present will come
             // on top of core and extension resources
 
@@ -385,28 +324,6 @@ public class AngularResourceCopier implements ServletContextAware
 
     public void runFrontEndBuildCommand(File tmpDir, String commandLine) throws IOException
     {
-        runFrontEndBuildCommand(tmpDir, commandLine, null);
-    }
-
-    /**
-     * Runs a front-end build command in the temp folder, optionally with a specific environment.
-     *
-     * @param tmpDir
-     *            the working directory for the command.
-     * @param commandLine
-     *            the command to run.
-     * @param environment
-     *            the complete environment for the child process, or <code>null</code> to inherit this JVM's
-     *            environment unchanged. Commons Exec replaces rather than extends the environment when one is
-     *            supplied, which is why {@link #npmInstallEnvironment()} starts from the current process
-     *            environment.
-     * @throws IOException
-     *             if the command cannot be started, or exits with a non-zero status. Either way the caller turns it
-     *             into a deployment failure, because a partially assembled webapp is worse than one that refuses to
-     *             start.
-     */
-    public void runFrontEndBuildCommand(File tmpDir, String commandLine, Map<String, String> environment) throws IOException
-    {
         log.debug("About to run [{}]", commandLine);
         CommandLine command = CommandLine.parse(commandLine);
         DefaultExecutor executor = new DefaultExecutor();
@@ -419,114 +336,9 @@ public class AngularResourceCopier implements ServletContextAware
         {
 
             executor.setStreamHandler(new PumpStreamHandler(debugOutputStream));
-            int exitCode = environment == null ? executor.execute(command) : executor.execute(command, environment);
+            int exitCode = executor.execute(command);
             log.debug("done with [{}]: exit code {}", commandLine, exitCode);
         }
-    }
-
-    /**
-     * Builds the environment for the npm install, so that npm's git fallback for the lockfile's GitHub dependencies
-     * travels over HTTPS instead of ssh.
-     * <p>
-     * npm writes every GitHub coordinate into the lockfile as a <code>git+ssh://git@github.com/...</code> URL, no
-     * matter how the manifest spelled it. The install itself does not need ssh - each of those entries is pinned to
-     * a commit, so npm downloads a tarball from codeload.github.com over HTTPS - but if that download fails npm
-     * falls back to cloning the repository with git, and on a host with no SSH key that fallback dies with a
-     * permission-denied error which says nothing about the real cause. Handing git the rewrite rules here removes
-     * that trap: the fallback resolves over HTTPS too. Nothing on the host is modified, because the rules travel as
-     * environment variables of this one child process.
-     * <p>
-     * Two situations leave the host's git configuration strictly alone. When the host has set
-     * <code>GIT_CONFIG_COUNT</code> itself, an operator has arranged their own transport (an internal mirror, or a
-     * deploy key) and must keep it, since git gives environment configuration the last word. When git is absent or
-     * predates environment configuration, there is nothing to configure - and nothing is broken by that, because the
-     * install's primary path never invokes git.
-     *
-     * @return the environment to run the install with; never <code>null</code>.
-     * @throws IOException
-     *             if this process's own environment cannot be read.
-     */
-    private Map<String, String> npmInstallEnvironment() throws IOException
-    {
-        Map<String, String> environment = EnvironmentUtils.getProcEnvironment();
-
-        if (environment.containsKey(GIT_CONFIG_COUNT))
-        {
-            log.info("{} is already set in the environment; leaving the git configuration of this host untouched.",
-                    GIT_CONFIG_COUNT);
-            return environment;
-        }
-
-        String gitVersion = detectGitClient();
-        if (gitVersion == null || !supportsEnvironmentConfiguration(gitVersion))
-        {
-            log.info("No git client supporting environment configuration was found (git {}.{} or newer); the npm "
-                    + "install will fetch the GitHub dependencies of package-lock.json as HTTPS tarballs from "
-                    + "codeload.github.com, which needs no git at all. Should npm have to fall back to cloning them, "
-                    + "this host would need its own url.insteadOf rewrites or SSH credentials for git@github.com.",
-                    GIT_ENVIRONMENT_CONFIG_MIN_MAJOR, GIT_ENVIRONMENT_CONFIG_MIN_MINOR);
-            return environment;
-        }
-
-        environment.put(GIT_CONFIG_COUNT, String.valueOf(GIT_REWRITTEN_GITHUB_PREFIXES.length));
-        for (int i = 0; i < GIT_REWRITTEN_GITHUB_PREFIXES.length; i++)
-        {
-            environment.put("GIT_CONFIG_KEY_" + i, GIT_HTTPS_REWRITE_KEY);
-            environment.put("GIT_CONFIG_VALUE_" + i, GIT_REWRITTEN_GITHUB_PREFIXES[i]);
-        }
-        log.info("Configured [{}] to reach github.com over HTTPS for the duration of the npm install, so no SSH "
-                + "credentials are needed on this host.", gitVersion);
-
-        return environment;
-    }
-
-    /**
-     * Reports which git client is on the path, if any.
-     *
-     * @return the trimmed output of <code>git --version</code>, or <code>null</code> when git cannot be run. A
-     *         <code>null</code> is not an error: the install fetches the locked GitHub dependencies over HTTPS and
-     *         only uses git as a fallback.
-     */
-    private String detectGitClient()
-    {
-        try (ByteArrayOutputStream versionOutput = new ByteArrayOutputStream())
-        {
-            DefaultExecutor executor = new DefaultExecutor();
-            executor.setStreamHandler(new PumpStreamHandler(versionOutput));
-            executor.execute(CommandLine.parse(GIT_VERSION_COMMAND));
-            String gitVersion = versionOutput.toString(StandardCharsets.UTF_8).trim();
-            log.debug("git client reported [{}]", gitVersion);
-            return gitVersion;
-        }
-        catch (IOException e)
-        {
-            log.debug("Could not run '{}' on this host: {}", GIT_VERSION_COMMAND, e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Decides whether a git client honours the GIT_CONFIG_COUNT family of environment variables.
-     *
-     * @param gitVersion
-     *            the output of <code>git --version</code>.
-     * @return <code>true</code> when the reported version is at least the minimum that reads configuration from the
-     *         environment; <code>false</code> when it is older, or when the output cannot be parsed - an unreadable
-     *         version is treated as unsupported so that the host's own configuration is left alone.
-     */
-    private boolean supportsEnvironmentConfiguration(String gitVersion)
-    {
-        Matcher versionMatcher = GIT_VERSION_PATTERN.matcher(gitVersion);
-        if (!versionMatcher.find())
-        {
-            return false;
-        }
-
-        int major = Integer.parseInt(versionMatcher.group(1));
-        int minor = Integer.parseInt(versionMatcher.group(2));
-
-        return major > GIT_ENVIRONMENT_CONFIG_MIN_MAJOR
-                || (major == GIT_ENVIRONMENT_CONFIG_MIN_MAJOR && minor >= GIT_ENVIRONMENT_CONFIG_MIN_MINOR);
     }
 
     public File cleanAndCreateResourceTempFolder() throws IOException

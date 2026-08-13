@@ -32,20 +32,28 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Supplies the two JNDI provider strings that {@link ActiveDirectoryAbstractContextSource} needs, read once from a
- * properties resource that sits beside this class on the classpath.
+ * Supplies the JNDI provider configuration that {@link ActiveDirectoryAbstractContextSource} needs - two strings and
+ * the initial context factory they name - read once from a properties resource that sits beside this class on the
+ * classpath.
  * <p>
  * Both strings used to be compile-time literals in the context source. One of them named the initial context factory
  * as a class literal, which stopped compiling on Java 17: the package that declares that factory is contained in - but
  * not exported by - the <code>java.naming</code> module, so JEP 396 strong encapsulation puts it out of reach of
- * ordinary classpath code. JNDI never needs the {@link Class} object, only the fully qualified class <em>name</em>, so
- * the two strings are held here as data instead. Their bytes are unchanged from the Java 8 baseline, which is why this
- * class validates values but never rewrites them: the same provider is resolved, and the same pooling property is set,
- * as before.
+ * ordinary classpath code. Loading the very same class <em>by name</em> is unaffected by that encapsulation, so the two
+ * strings are held here as data and the factory is resolved from its name on demand. Their bytes are unchanged from the
+ * Java 8 baseline, which is why this class validates values but never rewrites them: the same provider is resolved, and
+ * the same pooling property is set, as before.
+ * <p>
+ * The factory is exposed as a {@link Class} ({@link #getContextFactoryClass()}) rather than as a string, because the
+ * context source's public <code>getContextFactory()</code> / <code>setContextFactory(Class)</code> pair exchanges a
+ * {@link Class} with its own callers and that published behaviour predates this migration. So
+ * {@link #getContextFactoryClass()} supplies the identical default the class literal used to - without naming the
+ * encapsulated package in any <code>.java</code> file - and the LDAP environment is then populated from that class's
+ * own name, exactly as it was populated from the class literal's name before
  * <p>
  * Loading is deliberately fail-fast and happens exactly once, during class initialization. A resource that is absent,
- * unreadable, missing either key, or carrying a value that is blank or padded with whitespace raises
- * {@link IllegalStateException}, which the JVM surfaces as an
+ * unreadable, missing either key, carrying a value that is blank or padded with whitespace, or naming a context factory
+ * that is not on the classpath raises {@link IllegalStateException}, which the JVM surfaces as an
  * {@link ExceptionInInitializerError} at the point of first use. That is the intended behaviour: the alternative - a
  * silently <code>null</code> provider name - would reappear much later as an opaque JNDI lookup failure. Such a
  * misconfiguration cannot be caught by a build, either: the resource is packaged by ordinary Maven resource handling,
@@ -86,6 +94,12 @@ final class LdapProviderProperties
     private static final String CONTEXT_FACTORY_NAME;
 
     /**
+     * The JNDI initial context factory named by {@link #CONTEXT_FACTORY_NAME}, loaded by name. Never null once
+     * initialization has completed.
+     */
+    private static final Class<?> CONTEXT_FACTORY_CLASS;
+
+    /**
      * Name of the JNDI connection-pooling environment property. Never null or blank once initialization has completed.
      */
     private static final String CONNECTION_POOL_FLAG;
@@ -94,25 +108,41 @@ final class LdapProviderProperties
     {
         Properties providerProperties = load();
         CONTEXT_FACTORY_NAME = requireValue(providerProperties, CONTEXT_FACTORY_KEY);
+        CONTEXT_FACTORY_CLASS = loadContextFactory(CONTEXT_FACTORY_NAME);
         CONNECTION_POOL_FLAG = requireValue(providerProperties, CONNECTION_POOL_FLAG_KEY);
     }
 
     /**
-     * Not instantiable: this class only publishes two classpath-supplied constants.
+     * Not instantiable: this class only publishes classpath-supplied provider configuration.
      */
     private LdapProviderProperties()
     {
     }
 
     /**
-     * The fully qualified class name of the JNDI initial context factory used when creating LDAP contexts. Callers pass
-     * it straight to JNDI as the value of the initial-context-factory environment property.
+     * The JNDI initial context factory used when creating LDAP contexts, as a {@link Class}.
+     * <p>
+     * The factory is resolved from the configured name with {@link Class#forName(String)} rather than referenced as a
+     * class literal. That distinction is the whole point of this class: the literal no longer compiles on Java 17,
+     * because the declaring package is contained in - but not exported by - the <code>java.naming</code> module,
+     * whereas loading the same class by name is unaffected by JEP 396 encapsulation and yields exactly the
+     * {@link Class} the literal used to. The name is the same string {@link #getContextFactoryName()} returns, so the
+     * two accessors can never describe different providers.
+     * <p>
+     * Callers need the {@link Class} because it is the type the context source's public
+     * <code>getContextFactory()</code> / <code>setContextFactory(Class)</code> pair exchanges with its callers; the
+     * LDAP environment itself is still populated from the class <em>name</em>.
      *
-     * @return the context factory class name, exactly as configured; never <code>null</code> and never blank.
+     * @return the context factory class; never <code>null</code>.
+     * @throws IllegalStateException
+     *             if the configured name does not resolve to a class on this runtime. Failing here is deliberate and
+     *             matches the previous behaviour: a class literal that could not be loaded raised
+     *             {@link NoClassDefFoundError} during class initialization, so an unresolvable provider has never been
+     *             something this class survived.
      */
-    static String getContextFactoryName()
+    static Class<?> getContextFactoryClass()
     {
-        return CONTEXT_FACTORY_NAME;
+        return CONTEXT_FACTORY_CLASS;
     }
 
     /**
@@ -124,6 +154,31 @@ final class LdapProviderProperties
     static String getConnectionPoolFlag()
     {
         return CONNECTION_POOL_FLAG;
+    }
+
+    /**
+     * Loads the configured initial context factory once, during class initialization.
+     *
+     * @param contextFactoryName
+     *            the fully qualified class name read from the backing resource.
+     * @return the loaded class; never <code>null</code>.
+     * @throws IllegalStateException
+     *             if the name cannot be resolved, naming both the resource and the key so the misconfiguration is
+     *             actionable rather than opaque.
+     */
+    private static Class<?> loadContextFactory(String contextFactoryName)
+    {
+        try
+        {
+            return Class.forName(contextFactoryName);
+        }
+        catch (ClassNotFoundException | LinkageError e)
+        {
+            throw new IllegalStateException("LDAP provider resource '" + RESOURCE_PATH + "' names the initial context factory '"
+                    + contextFactoryName + "' for key '" + CONTEXT_FACTORY_KEY
+                    + "', but no such class is on the classpath. Point the key at a JNDI initial context factory this deployment ships.",
+                    e);
+        }
     }
 
     /**

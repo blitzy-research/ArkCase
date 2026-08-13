@@ -11,8 +11,8 @@ This page documents how developers can build and run ArkCase from source. If you
 - VirtualBox <https://www.virtualbox.org>
 - Vagrant <https://www.vagrantup.com>
 - Tomcat 9 <https://tomcat.apache.org>
-- git <https://git-scm.com/>. Regenerating the frontend lockfile with `npm install` needs git; installing from the committed lockfile with `npm ci` needs none at all, only outbound HTTPS to registry.npmjs.org and codeload.github.com.
-- Node.js 20 LTS <https://nodejs.org>. The frontend declares `engines` of `node >=20.19.0 <21` and `npm >=10`, and its `.npmrc` sets `engine-strict`, so npm refuses to install on a runtime outside that range instead of warning and continuing.
+- git <https://git-scm.com/>. Regenerating the frontend lockfile with `npm install --ignore-scripts` needs git; installing from the committed lockfile with `npm ci --ignore-scripts` needs none at all, only outbound HTTPS to registry.npmjs.org and codeload.github.com. Both commands carry `--ignore-scripts` deliberately, and it is not optional: npm runs `prepare` for git dependencies, and one of the locked asset repositories tries to build an ancient native module there that cannot compile on Node 20. This is the install form the migration proved and the one the deployed application runs.
+- Node.js 20 LTS <https://nodejs.org>. The frontend declares `engines` of `node >=20.19.0 <21` and `npm >=10`; npm reports an `EBADENGINE` warning on a runtime outside that range and continues, so run the frontend build on Node 20.
 - npm 10 (comes with Node 20)
 
 ## Build the Vagrant VM
@@ -72,30 +72,41 @@ In your Tomcat 9 installation, edit `conf/server.xml` and add a TLS connector be
 
 ### Tomcat `setenv.sh`
 
-Create `bin/setenv.sh`, mark it executable, and set environment variables for `JAVA_OPTS`, `NODE_ENV`, and `CATALINA_OPTS`. **Do not check real keystore or trust-store passwords into source control — set them through environment variables or a secret manager in any non-local environment.**
+Create `bin/setenv.sh`, mark it executable, and set environment variables for `JAVA_OPTS`, `NODE_ENV`, and `CATALINA_OPTS`. **No credential value belongs in this file, or anywhere else in source control.** The two key-store passwords are read from the environment below, so the script itself carries no secret and can be committed to your own configuration repository as it stands.
 
 ```bash
 #!/bin/sh
 
 # ${HOME} is expanded by the shell, so this works as written on Linux and on macOS alike.
+# The ':?' form makes the shell abort with the message shown if the variable is unset or empty,
+# so a missing credential stops Tomcat at startup instead of failing later in the TLS handshake.
 export JAVA_OPTS="-Djava.net.preferIPv4Stack=true \
   -Duser.timezone=GMT \
-  -Djavax.net.ssl.keyStorePassword=<REDACTED> \
-  -Djavax.net.ssl.trustStorePassword=<REDACTED> \
+  -Djavax.net.ssl.keyStorePassword=${ARKCASE_KEYSTORE_PASSWORD:?ARKCASE_KEYSTORE_PASSWORD must be set} \
+  -Djavax.net.ssl.trustStorePassword=${ARKCASE_TRUSTSTORE_PASSWORD:?ARKCASE_TRUSTSTORE_PASSWORD must be set} \
   -Djavax.net.ssl.keyStore=${HOME}/.arkcase/acm/private/arkcase.ks \
   -Djavax.net.ssl.trustStore=${HOME}/.arkcase/acm/private/arkcase.ts \
   -Dspring.profiles.active=ldap \
-  -Dacm.configurationserver.propertyfile=${HOME}/.arkcase/acm/conf.yml \
+  -Dacm.configurationserver.propertyfile=${user.home}/.arkcase/acm/conf.yml \
   -Xms1024M -Xmx1024M"
 
 export NODE_ENV=development
-export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=PATH_TO_THE_TOMCAT_NATIVE_LIBRARY"
+export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)"
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
 
-Replace `PATH_TO_THE_TOMCAT_NATIVE_LIBRARY` with the directory holding your Tomcat native library; everything else runs as written, since `${HOME}` is expanded by the shell. The `${user.home}` placeholders in the `server.xml` connector snippet are different — Tomcat expands those itself — so leave them alone.
+Two substitutions and two variables are yours to supply:
 
-No additional JVM module-access flags are required to run ArkCase on Java 17; do not add them to production `JAVA_OPTS`. The `JAVA_OPTS` value above runs as written and grants no access to JDK internals. The module-access directives this migration did need are confined to the forked JVMs of the Maven test runners and are configured in the root `pom.xml`; their per-library attribution is deferred to the planned [module-access exceptions record](migration/add-opens-exceptions.md).
+| What | Purpose | Where its value comes from |
+| --- | --- | --- |
+| `PATH_TO_THE_TOMCAT_NATIVE_LIBRARY` | `-Djava.library.path` for the Tomcat native connector | The directory holding the library you installed above — for example `/usr/local/opt/tomcat-native/lib` on macOS |
+| `ARKCASE_KEYSTORE_PASSWORD` | Opens `${HOME}/.arkcase/acm/private/arkcase.ks` | Set when that key store was created — by the `arkcase-ce` provisioning for a Vagrant VM, or by whoever generated the store for any other deployment |
+| `ARKCASE_TRUSTSTORE_PASSWORD` | Opens `${HOME}/.arkcase/acm/private/arkcase.ts` | Set the same way, when the trust store was created |
+| `NODE_ENV` | Selects the frontend build profile | Left at `development` for a developer machine |
+
+Export both credentials from your shell profile, your process manager's environment, or a secret manager before starting Tomcat — never from a file under version control — and rotate any value that was provisioned as a default before the deployment becomes reachable by anyone but you. With the two variables exported and the library path substituted, the script above runs as written, since `${HOME}` is expanded by the shell. The `${user.home}` placeholders in the `server.xml` connector snippet are different — Tomcat expands those itself — so leave them alone.
+
+**Module-access flags on Java 17.** Leave `JAVA_OPTS` exactly as it is above: on Tomcat 9 nothing needs to be added, because Tomcat's own `bin/catalina.sh` exports `--add-opens=java.base/java.lang=ALL-UNNAMED` (among others) before the JVM starts, and that is the one open ArkCase genuinely requires — two pinned libraries, Drools and Groovy, reflect into `java.lang` while the application compiles its business rules during startup. This was measured rather than assumed: with Tomcat's flags in place the application starts and login succeeds, and with them removed the root Spring context fails with `InaccessibleObjectException` and every request returns 404. If you launch ArkCase with anything other than Tomcat's own script, add `--add-opens=java.base/java.lang=ALL-UNNAMED` yourself and nothing else. Do not add `--add-exports` or `--illegal-access`, and do not copy the Maven test runners' directives into a server: those are confined to forked test JVMs, are configured in the root `pom.xml`, and their per-library attribution — together with the runtime exception above — is recorded in the [module-access exceptions record](migration/add-opens-exceptions.md).
 
 ### Start and Stop Tomcat
 
@@ -114,12 +125,12 @@ When you first open <https://arkcase-ce.local/arkcase> your browser will warn ab
 
 ## Log In to ArkCase
 
-Once the login page loads, sign in with the default administrator account:
+Once the login page loads, sign in with the administrator account:
 
 - User: `arkcase-admin@arkcase.org`
-- Password: `<REDACTED>` (see the upstream README for the development default)
+- Password: the value your directory provisioning set for that account. For a Vagrant VM built from the `arkcase-ce` repository, that repository's provisioning assigns it; for any other deployment, your identity provider holds it. It is deliberately not published in this repository, and neither is any other credential.
 
-> Security note: the default administrator password is intended only for local developer evaluation. In any shared, staging, or production deployment, rotate this credential immediately and inject credentials through environment variables, Spring Cloud Config encrypted values, or a secret manager — never commit them to source control.
+> Security note: an administrator password provisioned as a default is intended only for local developer evaluation. In any shared, staging, or production deployment, rotate it immediately, and inject credentials through environment variables, Spring Cloud Config encrypted values, or a secret manager — never commit them to source control, and never publish them in documentation.
 
 ## IDE Integration
 

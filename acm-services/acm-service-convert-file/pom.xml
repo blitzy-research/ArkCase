@@ -87,19 +87,6 @@
             <groupId>com.github.librepdf</groupId>
             <artifactId>openpdf</artifactId>
         </dependency>
-
-        <!-- test. Versions and test scope are inherited from the root dependencyManagement. Needed to unit-test
-            MimeMessageParser's inline-image path, whose stream cast was widened to java.io.InputStream: the test
-            drives the parser with a javax.mail.Part that yields a plain ByteArrayInputStream, which is exactly
-            what the widened cast has to accept, and javax.mail.Part is an interface, so EasyMock supplies it. -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

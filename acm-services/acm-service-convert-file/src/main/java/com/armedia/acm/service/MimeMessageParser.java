@@ -44,7 +44,6 @@ import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.internet.ContentDisposition;
 import javax.mail.internet.ContentType;
-import javax.mail.internet.MimePart;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,17 +59,6 @@ import java.util.List;
 public class MimeMessageParser
 {
     public static final String DEFAULT_EMAIL_MIME_TYPE = "message/rfc822";
-
-    /**
-     * Name of the MIME header through which a part declares how its content is encoded.
-     */
-    private static final String CONTENT_TRANSFER_ENCODING_HEADER = "Content-Transfer-Encoding";
-
-    /**
-     * The only content transfer encoding whose decoded content is accepted as an inline image.
-     */
-    private static final String BASE64_TRANSFER_ENCODING = "base64";
-
     /***
      * Walk the Mime Structure recursivly and execute the callback on every part.
      * 
@@ -266,7 +254,7 @@ public class MimeMessageParser
                 {
                     String id = p.getHeader("Content-Id")[0];
 
-                    InputStream b64ds = getBase64DecodedContent(p);
+                    InputStream b64ds = (InputStream) p.getContent();
                     String imageBase64 = BaseEncoding.base64().encode(ByteStreams.toByteArray(b64ds));
                     result.put(id, new MimeObjectEntry<>(imageBase64, new ContentType(p.getContentType())));
                 }
@@ -274,66 +262,6 @@ public class MimeMessageParser
         });
 
         return result;
-    }
-
-    /**
-     * Get the decoded content of an inline image part, accepting base64 encoded parts only.
-     * Inline images are re-encoded to base64 before they are embedded into the generated HTML, so this
-     * parser only handles parts whose content the mail implementation decodes from base64. A part that
-     * declares any other content transfer encoding - quoted-printable, uuencode, 7bit, 8bit or binary -
-     * carries content this parser cannot re-encode faithfully and is rejected here instead of being
-     * embedded. The check reads the encoding declared by the part, which is the same value the mail
-     * implementation uses when it selects a decoder for the content.
-     *
-     * @param p
-     *            mime object holding an inline image
-     * @return the decoded base64 content of the part
-     * @throws ClassCastException
-     *             if the part is not base64 encoded, or its decoded content is not a stream
-     * @throws IOException
-     *             if the content of the part cannot be read
-     * @throws MessagingException
-     *             if the part cannot be parsed
-     */
-    private static InputStream getBase64DecodedContent(Part p) throws IOException, MessagingException
-    {
-        Object content = p.getContent();
-        String transferEncoding = getTransferEncoding(p);
-
-        if (transferEncoding == null || !BASE64_TRANSFER_ENCODING.equalsIgnoreCase(transferEncoding.trim()))
-        {
-            throw new ClassCastException(String.format(
-                    "Inline image of type [%s] declares content transfer encoding [%s], only [%s] is supported",
-                    p.getContentType(), transferEncoding, BASE64_TRANSFER_ENCODING));
-        }
-
-        return (InputStream) content;
-    }
-
-    /**
-     * Get the content transfer encoding a part declares for its content.
-     *
-     * @param p
-     *            mime object
-     * @return the declared content transfer encoding, or null when the part declares none
-     * @throws MessagingException
-     *             if the part cannot be parsed
-     */
-    private static String getTransferEncoding(Part p) throws MessagingException
-    {
-        if (p instanceof MimePart)
-        {
-            return ((MimePart) p).getEncoding();
-        }
-
-        String[] transferEncodingHeader = p.getHeader(CONTENT_TRANSFER_ENCODING_HEADER);
-
-        if (transferEncodingHeader == null || transferEncodingHeader.length == 0)
-        {
-            return null;
-        }
-
-        return transferEncodingHeader[0];
     }
 
     public static List<Part> getAttachments(Part p) throws Exception

@@ -20,15 +20,15 @@ This section documents how developers can build and run ArkCase.  (For non-devel
 
 ### Prerequisites
 
-* At least 16 GB RAM
-* At least 50 GB disk space (the Vagrant VM is roughly 11 GB)
+* at least 16 GB RAM
+* at least 50 GB disk space (the Vagrant VM is 11G)
 * Java 17 (LTS). A mainstream OpenJDK 17 build such as Eclipse Temurin works well.
 * Maven 3.8+ <https://maven.apache.org> (the build requires a Maven release that runs on JDK 17)
 * VirtualBox <https://www.virtualbox.org>
 * Vagrant <https://www.vagrantup.com>
 * Tomcat 9 <https://tomcat.apache.org>
-* git <https://git-scm.com/>. Regenerating the frontend lockfile with `npm install` needs git; installing from the committed lockfile with `npm ci` needs none at all, only outbound HTTPS to registry.npmjs.org and codeload.github.com.
-* Node.js 20 LTS <https://nodejs.org>. The frontend declares `engines` of `node >=20.19.0 <21` and `npm >=10`, and its `.npmrc` sets `engine-strict`, so npm refuses to install on a runtime outside that range instead of warning and continuing.
+* git <https://git-scm.com/>. Regenerating the frontend lockfile with `npm install --ignore-scripts` needs git; installing from the committed lockfile with `npm ci --ignore-scripts` needs none at all, only outbound HTTPS to registry.npmjs.org and codeload.github.com. Both commands carry `--ignore-scripts` deliberately, and it is not optional: npm runs `prepare` for git dependencies, and one of the locked asset repositories tries to build an ancient native module there that cannot compile on Node 20. This is the install form the migration proved and the one the deployed application runs.
+* Node.js 20 LTS <https://nodejs.org>. The frontend declares `engines` of `node >=20.19.0 <21` and `npm >=10`; npm reports an `EBADENGINE` warning on a runtime outside that range and continues, so run the frontend build on Node 20.
 * npm 10 (comes with Node 20)
 
 ### Build the Vagrant VM
@@ -113,19 +113,27 @@ Create the file `bin/setenv.sh`, mark it executable, and set the contents as the
 #!/bin/sh
 
 ### ${HOME} is expanded by the shell, so this works as written on Linux and on MacOS X alike.
-export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Duser.timezone=GMT -Djavax.net.ssl.keyStorePassword=password -Djavax.net.ssl.trustStorePassword=password -Djavax.net.ssl.keyStore=${HOME}/.arkcase/acm/private/arkcase.ks -Djavax.net.ssl.trustStore=${HOME}/.arkcase/acm/private/arkcase.ts -Dspring.profiles.active=ldap -Dacm.configurationserver.propertyfile=${HOME}/.arkcase/acm/conf.yml -Xms1024M -Xmx1024M"
+### The two key-store passwords are read from the environment and never written into this file.
+### Supply them from your shell profile, your process manager or a secret manager; the ':?' makes
+### the shell refuse to start Tomcat with either one unset instead of failing later in the handshake.
+export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Duser.timezone=GMT -Djavax.net.ssl.keyStorePassword=${ARKCASE_KEYSTORE_PASSWORD:?ARKCASE_KEYSTORE_PASSWORD must be set} -Djavax.net.ssl.trustStorePassword=${ARKCASE_TRUSTSTORE_PASSWORD:?ARKCASE_TRUSTSTORE_PASSWORD must be set} -Djavax.net.ssl.keyStore=${HOME}/.arkcase/acm/private/arkcase.ks -Djavax.net.ssl.trustStore=${HOME}/.arkcase/acm/private/arkcase.ts -Dspring.profiles.active=ldap -Dacm.configurationserver.propertyfile=${HOME}/.arkcase/acm/conf.yml -Xms1024M -Xmx1024M"
 
 export NODE_ENV=development
 
-export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=PATH_TO_THE_TOMCAT_NATIVE_LIBRARY"
-# MacOS example: export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=/usr/local/opt/tomcat-native/lib"
+export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)
+# MacOS Example: export CATALINA_OPTS=/usr/local/opt/tomcat-native/lib"
 
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
 
-Replace `PATH_TO_THE_TOMCAT_NATIVE_LIBRARY` with the directory holding your Tomcat native library; everything else in the script above runs as written, since `${HOME}` is expanded by the shell.  The `${user.home}` references in the `server.xml` connector snippet earlier in this section are different: Tomcat expands those itself, so leave them as they are.
+Replace `PATH_TO_THE_TOMCAT_NATIVE_LIBRARY` with the directory holding your Tomcat native library, and export the two credentials before starting Tomcat:
 
-No additional JVM module-access flags are required to run ArkCase on Java 17; do not add them to production `JAVA_OPTS`.  The `JAVA_OPTS` value above runs as written and grants no access to JDK internals.  The migration's module-access directives are confined to the forked JVMs of the Maven test runners, are configured in the root `pom.xml`, and their per-library attribution is deferred to the planned [module-access exceptions record](docs/migration/add-opens-exceptions.md).
+* `ARKCASE_KEYSTORE_PASSWORD` — the password of `${HOME}/.arkcase/acm/private/arkcase.ks`, chosen when that key store was created by the `arkcase-ce` provisioning you ran above.
+* `ARKCASE_TRUSTSTORE_PASSWORD` — the password of `${HOME}/.arkcase/acm/private/arkcase.ts`, chosen the same way.
+
+Everything else in the script above runs as written, since `${HOME}` is expanded by the shell.  The `${user.home}` references in the `server.xml` connector snippet earlier in this section are different: Tomcat expands those itself, so leave them as they are.  Do not commit either password to source control, and rotate both — along with any default they were provisioned with — before a deployment is reachable by anyone but you.
+
+**Module-access flags on Java 17.**  Leave `JAVA_OPTS` exactly as it is above: on Tomcat 9 nothing needs to be added, because Tomcat's own `bin/catalina.sh` exports `--add-opens=java.base/java.lang=ALL-UNNAMED` (among others) before the JVM starts, and that is the one open ArkCase genuinely requires — two pinned libraries, Drools and Groovy, reflect into `java.lang` while the application compiles its business rules during startup.  This was measured rather than assumed: with Tomcat's flags in place the application starts and login succeeds, and with them removed the root Spring context fails with `InaccessibleObjectException` and every request returns 404.  If you launch ArkCase with anything other than Tomcat's own script, add `--add-opens=java.base/java.lang=ALL-UNNAMED` yourself and nothing else.  Do not add `--add-exports` or `--illegal-access`, and do not copy the Maven test runners' directives into a server: those are confined to forked test JVMs, are configured in the root `pom.xml`, and their per-library attribution — together with the runtime exception above — is recorded in the [module-access exceptions record](docs/migration/add-opens-exceptions.md).
 
 #### Start Tomcat
 
@@ -151,7 +159,7 @@ MacOS: A good guide is here, https://www.accuweaver.com/2014/09/19/make-chrome-a
 
 ### Logging into ArkCase
 
-Once you see the ArkCase login page, you can log in with the default administrator account.  User `arkcase-admin@arkcase.org`, password `@rKc@3e`.
+Once you see the ArkCase login page, you can log in with the administrator account `arkcase-admin@arkcase.org`.  Its password is the one your directory provisioning set for that account — for a Vagrant VM built from the `arkcase-ce` repository, the value that repository's own provisioning assigns; for any other deployment, whatever your identity provider holds.  No password is published here, and none should be committed to source control: rotate the provisioned default before the deployment is reachable by anyone but you, and keep the working value in a secret manager or in an environment variable that only the deploying account can read.
 
 ### IDE Integration
 

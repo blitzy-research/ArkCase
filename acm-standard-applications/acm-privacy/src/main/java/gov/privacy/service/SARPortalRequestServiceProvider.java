@@ -35,8 +35,16 @@ import com.armedia.acm.portalgateway.service.PortalRequestServiceProvider;
 import com.armedia.acm.portalgateway.web.api.PortalRequest;
 import com.armedia.acm.portalgateway.web.api.PortalResponse;
 import com.armedia.acm.services.pipeline.exception.PipelineProcessException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.Deserializers;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -87,7 +95,7 @@ public class SARPortalRequestServiceProvider implements PortalRequestServiceProv
         log.debug("Submitting request from portal with [{}] ID for portal user with [{}] ID of [{}] type.", portalId, portalUserId,
                 request.getRequestType());
         String rawRequestContent = request.getRawRequestContent();
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = portalRequestMapper();
         try
         {
             PortalSubjectAccessRequest sar = mapper.readValue(rawRequestContent, PortalSubjectAccessRequest.class);
@@ -97,19 +105,94 @@ public class SARPortalRequestServiceProvider implements PortalRequestServiceProv
         }
         catch (IOException e)
         {
-            log.warn("Error deserializing raw request [{}] from user with ID [{}] from portal with ID [{}].", rawRequestContent,
-                    portalUserId, portalId);
-            throw new PortalRequestServiceException(String.format(
-                    "Error deserializing raw request [%s] from user with ID [%s] from portal with ID [%s].", rawRequestContent,
-                    portalUserId, portalId), e, SUBMIT_REQUEST_METHOD_DESERIALIZE);
+            log.warn("Error deserializing raw request from user with ID [{}] from portal with ID [{}].", portalUserId, portalId);
+            throw new PortalRequestServiceException(
+                    String.format("Error deserializing raw request from user with ID [%s] from portal with ID [%s].", portalUserId,
+                            portalId),
+                    e, SUBMIT_REQUEST_METHOD_DESERIALIZE);
         }
         catch (AcmCreateObjectFailedException | AcmUserActionFailedException | PipelineProcessException e)
         {
-            log.warn("Error creating request for raw request [{}] from user with ID [{}] from portal with ID [{}].", rawRequestContent,
-                    portalUserId, portalId);
-            throw new PortalRequestServiceException(String.format(
-                    "Error creating request for raw request [%s] from user with ID [%s] from portal with ID [%s].", rawRequestContent,
-                    portalUserId, portalId), e, SUBMIT_REQUEST_METHOD_CREATE_REQUEST);
+            log.warn("Error creating request for raw request from user with ID [{}] from portal with ID [{}].", portalUserId, portalId);
+            throw new PortalRequestServiceException(
+                    String.format("Error creating request for raw request from user with ID [%s] from portal with ID [%s].",
+                            portalUserId, portalId),
+                    e, SUBMIT_REQUEST_METHOD_CREATE_REQUEST);
+        }
+    }
+
+    /**
+     * Builds the mapper that reads a portal request, preserving the Java 8 treatment of java.time values.
+     * <p>
+     * The request is deserialized by a plain {@link ObjectMapper} with no java.time module registered, exactly as it was
+     * before this platform moved to Java 17, so the accepted request shape is unchanged: a request that omits
+     * <code>signatureDate</code> and the subject's and requester's <code>dateOfBirth</code>, or sends them as
+     * <code>null</code>, is accepted, and one that sends a value for any of them is rejected as a deserialization
+     * failure. Registering a java.time module here would instead start accepting ISO-8601 date strings, which would widen
+     * the published request contract.
+     * <p>
+     * What the module below changes is only <em>how</em> such a value is rejected. Without it, Jackson tries to bind
+     * java.time values reflectively, and on Java 17 that reflection is refused by the platform itself with an
+     * {@link java.lang.reflect.InaccessibleObjectException} - an unchecked exception which escapes the
+     * <code>catch (IOException)</code> below and surfaces as a bare server error, and which is raised while the
+     * deserializer is being built, so it strikes even requests that carry no date at all. The module keeps java.time out
+     * of reflective binding altogether: an absent or null value stays null, and a present value raises the same
+     * {@link com.fasterxml.jackson.databind.JsonMappingException} that Java 8 raised, which this method's caller already
+     * translates into a {@link PortalRequestServiceException}. The alternative - opening <code>java.base/java.time</code>
+     * in the production launch configuration - is deliberately not used.
+     *
+     * @return a mapper for portal request content; never <code>null</code>.
+     */
+    private static ObjectMapper portalRequestMapper()
+    {
+        return new ObjectMapper().registerModule(new UnsupportedJavaTimeModule());
+    }
+
+    /**
+     * Jackson module that refuses java.time values instead of binding them reflectively.
+     */
+    private static class UnsupportedJavaTimeModule extends SimpleModule
+    {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void setupModule(SetupContext context)
+        {
+            super.setupModule(context);
+            context.addDeserializers(new Deserializers.Base()
+            {
+                @Override
+                public JsonDeserializer<?> findBeanDeserializer(JavaType type, DeserializationConfig config,
+                        BeanDescription beanDescription)
+                {
+                    // A custom deserializer is consulted before Jackson introspects the type, so no java.time class is
+                    // ever reflected over. Everything outside java.time is left to Jackson's own defaults.
+                    return type.getRawClass().getName().startsWith("java.time.") ? new UnsupportedValueDeserializer(type) : null;
+                }
+            });
+        }
+    }
+
+    /**
+     * Reports a value of an unsupported type as a mapping failure. Jackson resolves a JSON null through
+     * {@link JsonDeserializer#getNullValue(DeserializationContext)} without consulting this method, so only a value that
+     * is actually present is rejected - which is precisely the Java 8 behaviour being preserved. The value itself is
+     * never quoted in the message, because portal request content carries personal data.
+     */
+    private static class UnsupportedValueDeserializer extends JsonDeserializer<Object>
+    {
+        private final JavaType type;
+
+        UnsupportedValueDeserializer(JavaType type)
+        {
+            this.type = type;
+        }
+
+        @Override
+        public Object deserialize(JsonParser parser, DeserializationContext context) throws IOException
+        {
+            return context.reportBadDefinition(type, String.format(
+                    "Cannot construct instance of `%s` (no Creators, like default construct, exist)", type.getRawClass().getName()));
         }
     }
 

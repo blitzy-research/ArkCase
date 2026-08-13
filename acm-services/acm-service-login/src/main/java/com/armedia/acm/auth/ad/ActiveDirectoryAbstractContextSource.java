@@ -59,11 +59,13 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
      */
     public static final String SUN_LDAP_POOLING_FLAG = LdapProviderProperties.getConnectionPoolFlag();
     /**
-     * Fully qualified name of the JNDI initial context factory used when no factory is set explicitly. JNDI resolves
-     * providers by name, so holding the name is exactly equivalent to the class literal this replaces - which no longer
-     * compiles on Java 17, because the declaring package is not exported by the java.naming module.
+     * The JNDI initial context factory used when no factory is set explicitly. Supplied by ldap-provider.properties and
+     * loaded from that configured name, which is exactly equivalent to the class literal this replaces - the literal no
+     * longer compiles on Java 17, because the declaring package is not exported by the java.naming module, while
+     * loading the same class by name is unaffected. The resolved class, and therefore the value this field holds and
+     * every value derived from it, is unchanged from previous releases.
      */
-    private static final String DEFAULT_CONTEXT_FACTORY_NAME = LdapProviderProperties.getContextFactoryName();
+    private static final Class DEFAULT_CONTEXT_FACTORY = LdapProviderProperties.getContextFactoryClass();
     private static final Class DEFAULT_DIR_OBJECT_FACTORY = DefaultDirObjectFactory.class;
     private static final boolean DONT_DISABLE_POOLING = false;
     private static final boolean EXPLICITLY_DISABLE_POOLING = true;
@@ -74,7 +76,7 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     protected String userDn = "";
     protected String password = "";
     private Class dirObjectFactory = DEFAULT_DIR_OBJECT_FACTORY;
-    private Class contextFactory = null;
+    private Class contextFactory = DEFAULT_CONTEXT_FACTORY;
     private DistinguishedName base = DistinguishedName.EMPTY_PATH;
     private String[] urls;
     private boolean pooled = false;
@@ -346,7 +348,8 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
 
     /**
      * Set the context factory. When left unset, the default is the JNDI initial context factory named by the
-     * <code>ldap.provider.contextFactory</code> key of <code>ldap-provider.properties</code> in this package.
+     * <code>ldap.provider.contextFactory</code> key of <code>ldap-provider.properties</code> in this package, loaded by
+     * name; setting <code>null</code> removes that default and fails when a context is created, exactly as before.
      *
      * @param contextFactory
      *            the context factory used when creating Contexts.
@@ -437,16 +440,11 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
 
         Hashtable env = new Hashtable(baseEnv);
 
-        // JNDI resolves the initial context factory by name, so a factory injected through setContextFactory is
-        // contributed exactly as before; when none was injected, the configured default name is used instead.
-        if (contextFactory != null)
-        {
-            env.put(Context.INITIAL_CONTEXT_FACTORY, contextFactory.getName());
-        }
-        else
-        {
-            env.put(Context.INITIAL_CONTEXT_FACTORY, DEFAULT_CONTEXT_FACTORY_NAME);
-        }
+        // JNDI resolves the initial context factory by name, so the factory - whether injected through
+        // setContextFactory or left at the configured default - is contributed exactly as it was on Java 8. The
+        // dereference is deliberately unguarded: a caller that sets the property to null gets the same
+        // NullPointerException here that the base commit raised, rather than silently falling back to the default.
+        env.put(Context.INITIAL_CONTEXT_FACTORY, contextFactory.getName());
         env.put(Context.PROVIDER_URL, assembleProviderUrlString(urls));
 
         if (dirObjectFactory != null)

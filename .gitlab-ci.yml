@@ -34,12 +34,21 @@ variables:
 # base runtime changed incompatibly. The image Dockerfile lives OUTSIDE this
 # repository and MUST be rebuilt on those runtimes before this pipeline passes.
 #
-# The rebuilt image must also resolve git-over-SSH coordinates: npm ci
-# normalises every GitHub dependency in the committed package-lock.json to
-# git+ssh:// even though the specs are written with https. Ship an SSH deploy
+# Network reach the image needs, measured rather than assumed: `npm ci` against
+# the committed package-lock.json needs only outbound HTTPS to
+# registry.npmjs.org and codeload.github.com. It records every GitHub
+# dependency as git+ssh:// but resolves each one to a codeload tarball because
+# the committish is a full 40-character SHA, so the install completes with no
+# git binary and no SSH key present at all - verified by installing with git
+# absent from PATH.
+#
+# REGENERATING the lockfile is the case that does need git: `npm install`
+# clones each GitHub coordinate. An image used for that must ship an SSH deploy
 # key, or the two `git config --global url.<https>.insteadOf <ssh>` rewrite
-# rules that map https://github.com/ over git+ssh://git@github.com/ and over
-# ssh://git@github.com/.
+# rules mapping https://github.com/ over git+ssh://git@github.com/ and over
+# ssh://git@github.com/. No pipeline job in this file or in
+# .gitlab-ci-release.yml runs either command today; both invoke Maven only, and
+# the deploy-time front-end install runs inside the deployed application.
 image: arkcase-gitlab-ci:2.0.0
 
 stages:
@@ -81,6 +90,45 @@ stages:
   only:
     - feature/*
 
+# Front-end gate for the Node 20 migration.
+#
+# The backend jobs above do NOT exercise the front-end toolchain: `mvn install` only
+# packages src/main/webapp/resources into the WAR verbatim, and the Grunt pipeline is
+# not run until deploy time, when AngularResourceCopier invokes npm and Grunt in the
+# assembly folder. So without this job nothing in CI would notice a manifest that no
+# longer installs, a lockfile that has drifted out of step with package.json, a Grunt
+# pipeline that no longer produces its bundles, or bundles that no longer build - the
+# first report would come from a deployment.
+#
+# The two commands are the migration's own acceptance criteria for the front end, in
+# the order that fails soonest and cheapest:
+#   npm ci      - installs strictly from the committed package-lock.json and fails if the
+#                 lockfile and the manifest disagree. --ignore-scripts is REQUIRED, not a
+#                 preference: one git-sourced asset repository has a `prepare` script that
+#                 tries to build an ancient native module, which cannot compile on Node 20.
+#                 It is safe because these are prebuilt asset repositories with checked-in
+#                 distribution directories. It is passed on the command line rather than
+#                 set in .npmrc precisely so that it does NOT also suppress the `prebuild`
+#                 hook of `npm run build`, which is what writes the generated profiles module.
+#   npm run build - the full Grunt `default` chain, which is the real proof the pipeline
+#                 still emits its bundles on Node 20. Its `prebuild` hook writes the
+#                 generated profiles module first, which is why --ignore-scripts is passed
+#                 on the install command line rather than set in a project .npmrc: it must
+#                 not also suppress that hook.
+#
+# The manifest declares engines "node >=20.19.0 <21" / "npm >=10". npm's default is
+# engine-strict=false, so a runner outside that range prints EBADENGINE and continues;
+# pinning the image to Node 20 is what actually holds the runtime, and that pin is the
+# image precondition recorded at the top of this file.
+.validate_frontend:
+  stage: build
+  script:
+    - cd acm-standard-applications/arkcase/src/main/webapp/resources
+    - node --version
+    - npm --version
+    - npm ci --ignore-scripts
+    - npm run build
+
 build_backend_develop:
   extends: .build_backend_snapshot
   only:
@@ -88,6 +136,16 @@ build_backend_develop:
   except:
     changes:
       #- .gitlab-ci.yaml
+
+validate_frontend_develop:
+  extends: .validate_frontend
+  only:
+    - develop
+
+validate_frontend_feature:
+  extends: .validate_frontend
+  only:
+    - feature/*
 
 deploy_server:
   stage: deploy

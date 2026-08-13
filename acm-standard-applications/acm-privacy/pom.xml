@@ -27,12 +27,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <!-- Inherit the single reactor-wide Failsafe pin from the root POM's
-                            ${surefire.version}. A hardcoded 2.17 here used to win over the inherited
-                            declaration whenever this profile activated, which left a Java-8-era
-                            integration-test runner in the reactor and lost the root's @{argLine} late
-                            substitution (JaCoCo agent argument plus the JDK 17 module-access directives). -->
-                        <version>${surefire.version}</version>
+                        <version>2.17</version>
                         <executions>
                             <execution>
                                 <id>integration-test</id>
