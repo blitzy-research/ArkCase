@@ -30,7 +30,6 @@ package com.armedia.acm.service;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
-import com.sun.mail.util.BASE64DecoderStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -255,7 +254,7 @@ public class MimeMessageParser
                 {
                     String id = p.getHeader("Content-Id")[0];
 
-                    BASE64DecoderStream b64ds = (BASE64DecoderStream) p.getContent();
+                    InputStream b64ds = (InputStream) p.getContent();
                     String imageBase64 = BaseEncoding.base64().encode(ByteStreams.toByteArray(b64ds));
                     result.put(id, new MimeObjectEntry<>(imageBase64, new ContentType(p.getContentType())));
                 }
