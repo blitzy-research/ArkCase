@@ -18,7 +18,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
+        <!-- single source of truth for the compiler contract across the whole reactor; maven-compiler-plugin
+            3.6+ reads this property directly, so no source/target/release is declared in any module -->
+        <maven.compiler.release>17</maven.compiler.release>
         <acm.version>${project.version}</acm.version>
         <activemq.version>5.13.2</activemq.version>
         <activiti.version>5.15.1</activiti.version>
@@ -52,7 +54,7 @@
         <docx4j.core>3.3.7</docx4j.core>
         <docx4j.export.fo>3.3.6</docx4j.export.fo>
         <drools.version>7.34.0.Final</drools.version>
-        <easymock.version>4.1</easymock.version>
+        <easymock.version>4.3</easymock.version>
         <easymock-extension.version>3.2</easymock-extension.version>
         <eclipselink-jpa.version>2.6.0</eclipselink-jpa.version>
         <ehcache.version>2.6.9</ehcache.version>
@@ -114,8 +116,8 @@
         <spring.ldap.version>2.3.3.RELEASE</spring.ldap.version>
         <spring.security.kerberos.version>1.0.1.RELEASE</spring.security.kerberos.version>
         <spring.security.saml2.core.version>1.0.10.RELEASE</spring.security.saml2.core.version>
-        <spring.security.version>5.4.2</spring.security.version>
-        <spring.version>5.3.2</spring.version>
+        <spring.security.version>5.4.11</spring.security.version>
+        <spring.version>5.3.39</spring.version>
         <spring-retry-version>1.3.1</spring-retry-version>
         <springfox-version>2.5.0</springfox-version>
         <springframework-addons.version>0.1</springframework-addons.version>
@@ -150,6 +152,9 @@
         <!-- code coverage reports -->
         <jacoco.version>0.8.7</jacoco.version>
         <code.coverage.minimum>0.02</code.coverage.minimum>
+        <!-- forked test runners; 3.x is required for late @{argLine} substitution so the JaCoCo agent
+            argument composes with the JDK 17 module-access directives instead of being overwritten -->
+        <surefire.version>3.5.3</surefire.version>
         <owasp.encoder.version>1.2.3</owasp.encoder.version>
     </properties>
     <organization>
@@ -284,7 +289,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.5.1</version>
                 <configuration>
                     <webappDirectory>${project.build.directory}/arkcase</webappDirectory>
                     <archive>
@@ -305,8 +310,49 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <!-- JDK 17 strong encapsulation (JEP 396) exceptions, TEST SCOPE ONLY: these directives
+                        apply exclusively to the forked test JVM and are deliberately absent from the production
+                        launch configuration. Each one is demanded by a pinned third-party test dependency and is
+                        attributed to its exact stack frame in docs/migration/add-opens-exceptions.md:
+                          java.time         - Jackson databind 2.10.3, ClassUtil.checkAndFixAccess via FieldProperty.fixAccess
+                          java.lang         - CGLIB inside EasyMock's ClassProxyFactory, ClassLoader.defineClass
+                          java.io           - PowerMock 2.0.9 (no successor exists), WhiteboxImpl.doGetAllMethods on File.readObject
+                          java.nio.file     - PowerMock 2.0.9, same frame, Files.provider
+                          java.util         - PowerMock 2.0.9, same frame, HashMap.hash
+                          java.math         - PowerMock 2.0.9, same frame, BigDecimal.add
+                          java.util.stream  - PowerMock 2.0.9, same frame, the int-stream head's iterator
+                          jdk.xml.internal  - PowerMock's MockClassLoader, FactoryFinder.<clinit> via DocumentBuilderFactory.newInstance
+                        The leading @{argLine} is mandatory: late property substitution is what lets the JaCoCo
+                        prepare-agent argument compose with these directives instead of being overwritten, which
+                        keeps the coverage check goal working. -->
+                    <argLine>@{argLine}
+                        --add-opens java.base/java.time=ALL-UNNAMED
+                        --add-opens java.base/java.lang=ALL-UNNAMED
+                        --add-opens java.base/java.io=ALL-UNNAMED
+                        --add-opens java.base/java.nio.file=ALL-UNNAMED
+                        --add-opens java.base/java.util=ALL-UNNAMED
+                        --add-opens java.base/java.math=ALL-UNNAMED
+                        --add-opens java.base/java.util.stream=ALL-UNNAMED
+                        --add-exports java.xml/jdk.xml.internal=ALL-UNNAMED</argLine>
+                    <excludes>
+                        <!-- The only permitted exclusions: these two classes carry the four test failures that
+                            are present at the Java 8 base commit (3 EasyMock verification failures in
+                            FileDownloadAPIControllerTest, 1 NPE in FolderCompressorTest), reproduced identically
+                            on JDK 8 and JDK 17. They are pre-existing defects, documented and not fixed. Surefire
+                            rejects method-level filters, so the exclusion is necessarily class-level; the
+                            resulting collateral cost is recorded in docs/migration/baseline-test-failures.md. -->
+                        <exclude>**/FileDownloadAPIControllerTest.java</exclude>
+                        <exclude>**/FolderCompressorTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.17</version>
+                <version>${surefire.version}</version>
                 <executions>
                     <execution>
                         <id>integration-test</id>
@@ -321,17 +367,25 @@
                     <reuseForks>false</reuseForks>
                     <!--<parallel>classes</parallel> -->
                     <threadCount>1</threadCount>
+                    <!-- same test-scope JDK 17 module-access directives as maven-surefire-plugin above, so
+                        integration tests run with identical access; see docs/migration/add-opens-exceptions.md -->
+                    <argLine>@{argLine}
+                        --add-opens java.base/java.time=ALL-UNNAMED
+                        --add-opens java.base/java.lang=ALL-UNNAMED
+                        --add-opens java.base/java.io=ALL-UNNAMED
+                        --add-opens java.base/java.nio.file=ALL-UNNAMED
+                        --add-opens java.base/java.util=ALL-UNNAMED
+                        --add-opens java.base/java.math=ALL-UNNAMED
+                        --add-opens java.base/java.util.stream=ALL-UNNAMED
+                        --add-exports java.xml/jdk.xml.internal=ALL-UNNAMED</argLine>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.13.0</version>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <compilerVersion>${java.version}</compilerVersion>
                     <compilerArgument>-Xlint:all</compilerArgument>
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
@@ -346,9 +400,6 @@
                         <phase>process-classes</phase>
                         <configuration>
                             <encoding>${project.build.sourceEncoding}</encoding>
-                            <source>${java.version}</source>
-                            <target>${java.version}</target>
-                            <compilerVersion>${java.version}</compilerVersion>
                             <compilerArgument>-Xlint:all</compilerArgument>
                             <showWarnings>true</showWarnings>
                             <showDeprecation>true</showDeprecation>
@@ -1695,6 +1746,34 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
+        </dependency>
+        <!-- Java EE modules that JEP 320 removed from the JDK in Java 11, reinstated as standalone artifacts.
+            Declared here rather than per-module because the compile path need is cross-cutting: the reactor has
+            137 javax.xml.bind imports across 84 files in 21 modules, plus javax.annotation and javax.activation
+            consumers, and this block is inherited by every module. The javax namespace is DELIBERATE - these are
+            compatibility shims, not a namespace migration, so not one import statement changes. Each carries an
+            explicit version because, unlike log4j-core, they are not in dependencyManagement. -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+        <!-- the API alone is not enough: JAXBContext, Marshaller and Unmarshaller are all used at runtime.
+            2.3.x is the last line that still exposes the javax.xml.bind packages; 3.x moves to the EE 9 namespace -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.9</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.activation</groupId>
+            <artifactId>javax.activation</artifactId>
+            <version>1.2.0</version>
         </dependency>
     </dependencies>
 </project>

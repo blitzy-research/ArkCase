@@ -32,6 +32,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
 
+import java.util.function.Predicate;
+
 /**
  * {@link ApplicationEventMulticaster} implementation for publishing events to synchronous and asynchronous listeners.
  * <p>
@@ -72,6 +74,19 @@ public class DistributiveEventMulticaster implements ApplicationEventMulticaster
 
     @Override
     public void removeApplicationListenerBean(String listenerBeanName)
+    {
+        // do nothing
+    }
+
+    @Override
+    public void removeApplicationListeners(Predicate<ApplicationListener<?>> predicate)
+    {
+        asyncEventMulticaster.removeApplicationListeners(predicate);
+        syncEventMulticaster.removeApplicationListeners(predicate);
+    }
+
+    @Override
+    public void removeApplicationListenerBeans(Predicate<String> predicate)
     {
         // do nothing
     }

@@ -51,7 +51,7 @@ import com.armedia.acm.services.notification.service.NotificationService;
 import com.armedia.acm.services.users.dao.UserDao;
 import com.armedia.acm.services.users.model.AcmUser;
 
-import com.sun.xml.fastinfoset.stax.events.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeanUtils;
@@ -194,7 +194,7 @@ public class FOIAQueueCorrespondenceService
 
             String emailAddress = extractRequestorEmailAddress(request.getOriginator().getPerson());
 
-            if(!Util.isEmptyString(emailAddress))
+            if(StringUtils.isNotEmpty(emailAddress))
             {
                 String emailSubject = "";
                 Template template = templateManager.findTemplate("requestDocumentAttached.html");
