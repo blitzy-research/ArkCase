@@ -11,8 +11,8 @@ This page documents how developers can build and run ArkCase from source. If you
 - VirtualBox <https://www.virtualbox.org>
 - Vagrant <https://www.vagrantup.com>
 - Tomcat 9 <https://tomcat.apache.org>
-- git <https://git-scm.com/>
-- Node.js 20 LTS <https://nodejs.org>. The frontend build requires `>= 20.19.0` and `< 21`; its `engines` block declares `node >=20.19.0 <21` and `npm >=10`, so an out-of-range runtime is refused rather than accommodated.
+- git <https://git-scm.com/>. Regenerating the frontend lockfile with `npm install` needs git; installing from the committed lockfile with `npm ci` needs none at all, only outbound HTTPS to registry.npmjs.org and codeload.github.com.
+- Node.js 20 LTS <https://nodejs.org>. The frontend declares `engines` of `node >=20.19.0 <21` and `npm >=10`, and its `.npmrc` sets `engine-strict`, so npm refuses to install on a runtime outside that range instead of warning and continuing.
 - npm 10 (comes with Node 20)
 
 ## Build the Vagrant VM
@@ -77,23 +77,25 @@ Create `bin/setenv.sh`, mark it executable, and set environment variables for `J
 ```bash
 #!/bin/sh
 
-# macOS: replace ${user.home} with the actual path to your home folder.
+# ${HOME} is expanded by the shell, so this works as written on Linux and on macOS alike.
 export JAVA_OPTS="-Djava.net.preferIPv4Stack=true \
   -Duser.timezone=GMT \
   -Djavax.net.ssl.keyStorePassword=<REDACTED> \
   -Djavax.net.ssl.trustStorePassword=<REDACTED> \
-  -Djavax.net.ssl.keyStore=${user.home}/.arkcase/acm/private/arkcase.ks \
-  -Djavax.net.ssl.trustStore=${user.home}/.arkcase/acm/private/arkcase.ts \
+  -Djavax.net.ssl.keyStore=${HOME}/.arkcase/acm/private/arkcase.ks \
+  -Djavax.net.ssl.trustStore=${HOME}/.arkcase/acm/private/arkcase.ts \
   -Dspring.profiles.active=ldap \
-  -Dacm.configurationserver.propertyfile=${user.home}/.arkcase/acm/conf.yml \
+  -Dacm.configurationserver.propertyfile=${HOME}/.arkcase/acm/conf.yml \
   -Xms1024M -Xmx1024M"
 
 export NODE_ENV=development
-export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)"
+export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=PATH_TO_THE_TOMCAT_NATIVE_LIBRARY"
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
 
-No JVM module-access flags are required to run ArkCase on Java 17; the `JAVA_OPTS` value above is complete as written, and the production launch configuration grants no access to JDK internals. The module-access directives this migration did need are confined to the forked JVMs of the Maven test runners, are configured in the root `pom.xml`, and are each attributed to the pinned library that demands them in the [module-access exceptions record](migration/add-opens-exceptions.md).
+Replace `PATH_TO_THE_TOMCAT_NATIVE_LIBRARY` with the directory holding your Tomcat native library; everything else runs as written, since `${HOME}` is expanded by the shell. The `${user.home}` placeholders in the `server.xml` connector snippet are different — Tomcat expands those itself — so leave them alone.
+
+No additional JVM module-access flags are required to run ArkCase on Java 17; do not add them to production `JAVA_OPTS`. The `JAVA_OPTS` value above runs as written and grants no access to JDK internals. The module-access directives this migration did need are confined to the forked JVMs of the Maven test runners and are configured in the root `pom.xml`; their per-library attribution is deferred to the planned [module-access exceptions record](migration/add-opens-exceptions.md).
 
 ### Start and Stop Tomcat
 

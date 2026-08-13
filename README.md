@@ -20,15 +20,15 @@ This section documents how developers can build and run ArkCase.  (For non-devel
 
 ### Prerequisites
 
-* at least 16 GB RAM
-* at least 50 GB disk space (the Vagrant VM is 11G)
-* Java 17 (LTS; the Eclipse Temurin JVM works well).
-* Maven 3.8+ <https://maven.apache.org>
+* At least 16 GB RAM
+* At least 50 GB disk space (the Vagrant VM is roughly 11 GB)
+* Java 17 (LTS). A mainstream OpenJDK 17 build such as Eclipse Temurin works well.
+* Maven 3.8+ <https://maven.apache.org> (the build requires a Maven release that runs on JDK 17)
 * VirtualBox <https://www.virtualbox.org>
 * Vagrant <https://www.vagrantup.com>
 * Tomcat 9 <https://tomcat.apache.org>
-* git <https://git-scm.com/>
-* nodejs <https://nodejs.org>.  Install Node 20 LTS; the frontend build requires `node >=20.19.0 <21`.
+* git <https://git-scm.com/>. Regenerating the frontend lockfile with `npm install` needs git; installing from the committed lockfile with `npm ci` needs none at all, only outbound HTTPS to registry.npmjs.org and codeload.github.com.
+* Node.js 20 LTS <https://nodejs.org>. The frontend declares `engines` of `node >=20.19.0 <21` and `npm >=10`, and its `.npmrc` sets `engine-strict`, so npm refuses to install on a runtime outside that range instead of warning and continuing.
 * npm 10 (comes with Node 20)
 
 ### Build the Vagrant VM
@@ -112,20 +112,20 @@ Create the file `bin/setenv.sh`, mark it executable, and set the contents as the
 ```bash
 #!/bin/sh
 
-### MacOS X note: replace {user.home} with the actual path to your home folder, e.g. /Users/dmiller
-export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Duser.timezone=GMT  -Djavax.net.ssl.keyStorePassword=password -Djavax.net.ssl.trustStorePassword=password -Djavax.net.ssl.keyStore=${user.home}/.arkcase/acm/private/arkcase.ks -Djavax.net.ssl.trustStore=${user.home}/.arkcase/acm/private/arkcase.ts -Dspring.profiles.active=ldap -Dacm.configurationserver.propertyfile="${user.home}/.arkcase/acm/conf.yml -Xms1024M -Xmx1024M"
+### ${HOME} is expanded by the shell, so this works as written on Linux and on MacOS X alike.
+export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Duser.timezone=GMT -Djavax.net.ssl.keyStorePassword=password -Djavax.net.ssl.trustStorePassword=password -Djavax.net.ssl.keyStore=${HOME}/.arkcase/acm/private/arkcase.ks -Djavax.net.ssl.trustStore=${HOME}/.arkcase/acm/private/arkcase.ts -Dspring.profiles.active=ldap -Dacm.configurationserver.propertyfile=${HOME}/.arkcase/acm/conf.yml -Xms1024M -Xmx1024M"
 
 export NODE_ENV=development
 
-export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)
-# MacOS Example: export CATALINA_OPTS=/usr/local/opt/tomcat-native/lib"
+export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=PATH_TO_THE_TOMCAT_NATIVE_LIBRARY"
+# MacOS example: export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=/usr/local/opt/tomcat-native/lib"
 
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
 
-On MacOS X, you have to replace `file:${user.home}` in the above script, with the actual full path to your home folder.
+Replace `PATH_TO_THE_TOMCAT_NATIVE_LIBRARY` with the directory holding your Tomcat native library; everything else in the script above runs as written, since `${HOME}` is expanded by the shell.  The `${user.home}` references in the `server.xml` connector snippet earlier in this section are different: Tomcat expands those itself, so leave them as they are.
 
-No JVM module-access flags are required to run ArkCase on Java 17; the `JAVA_OPTS` value above is complete as written, and the production launch configuration grants no access to JDK internals.  The module-access directives the migration did need are confined to the forked JVMs of the Maven test runners, are configured in the root `pom.xml`, and are each attributed to the pinned library that demands them in [docs/migration/add-opens-exceptions.md](docs/migration/add-opens-exceptions.md).
+No additional JVM module-access flags are required to run ArkCase on Java 17; do not add them to production `JAVA_OPTS`.  The `JAVA_OPTS` value above runs as written and grants no access to JDK internals.  The migration's module-access directives are confined to the forked JVMs of the Maven test runners, are configured in the root `pom.xml`, and their per-library attribution is deferred to the planned [module-access exceptions record](docs/migration/add-opens-exceptions.md).
 
 #### Start Tomcat
 

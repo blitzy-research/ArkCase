@@ -44,7 +44,8 @@ import java.util.Properties;
  * as before.
  * <p>
  * Loading is deliberately fail-fast and happens exactly once, during class initialization. A resource that is absent,
- * unreadable, or missing either key raises {@link IllegalStateException}, which the JVM surfaces as an
+ * unreadable, missing either key, or carrying a value that is blank or padded with whitespace raises
+ * {@link IllegalStateException}, which the JVM surfaces as an
  * {@link ExceptionInInitializerError} at the point of first use. That is the intended behaviour: the alternative - a
  * silently <code>null</code> provider name - would reappear much later as an opaque JNDI lookup failure. Such a
  * misconfiguration cannot be caught by a build, either: the resource is packaged by ordinary Maven resource handling,
@@ -158,11 +159,19 @@ final class LdapProviderProperties
     }
 
     /**
-     * Returns a mandatory value verbatim, rejecting an absent or blank entry.
+     * Returns a mandatory value verbatim, rejecting an absent, blank or whitespace-padded entry.
      * <p>
      * The value is validated but never altered - not even trimmed. These strings are a JNDI provider name and a JNDI
      * property name whose bytes have to stay identical to the literals they replaced, so quietly normalizing one would
      * be a behavioural change. A value that merely looks blank is therefore rejected outright rather than repaired.
+     * <p>
+     * Surrounding whitespace is rejected for the same reason, and it is a realistic mistake rather than a theoretical
+     * one: {@link Properties#load(InputStream)} discards whitespace <em>before</em> a value but keeps every character
+     * after it, so a single space typed past the end of the context-factory line survives into the JNDI environment
+     * and fails much later, when JNDI tries to load a class whose name has a trailing space. Catching it here turns
+     * that into a startup failure that names the resource and the key. Nothing is trimmed on the caller's behalf,
+     * because a loader that silently repaired the value would make two different resources behave identically and
+     * hide the typo instead of reporting it.
      *
      * @param providerProperties
      *            the parsed properties.
@@ -170,7 +179,8 @@ final class LdapProviderProperties
      *            the key to read.
      * @return the configured value, unmodified.
      * @throws IllegalStateException
-     *             if the key is absent, or its value is empty or consists only of whitespace.
+     *             if the key is absent, if its value is empty or consists only of whitespace, or if its value begins
+     *             or ends with whitespace.
      */
     private static String requireValue(Properties providerProperties, String key)
     {
@@ -180,6 +190,13 @@ final class LdapProviderProperties
         {
             throw new IllegalStateException(
                     "LDAP provider resource '" + RESOURCE_PATH + "' is missing a value for required key '" + key + "'.");
+        }
+
+        if (!value.equals(value.trim()))
+        {
+            throw new IllegalStateException("LDAP provider resource '" + RESOURCE_PATH + "' has a value for key '" + key
+                    + "' that begins or ends with whitespace: '" + value
+                    + "'. Remove the surrounding whitespace; the value is used verbatim and is not trimmed.");
         }
 
         return value;
