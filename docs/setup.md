@@ -6,17 +6,14 @@ This page documents how developers can build and run ArkCase from source. If you
 
 - At least 16 GB RAM
 - At least 50 GB disk space (the Vagrant VM is roughly 11 GB)
-- Java 8 (AdoptOpenJDK works well). ArkCase is not tested on Java 9, 10, or 11.
-- Maven 3.5+ <https://maven.apache.org>
+- Java 17 (LTS). A mainstream OpenJDK 17 build such as Eclipse Temurin works well.
+- Maven 3.8+ <https://maven.apache.org> (the build requires a Maven release that runs on JDK 17)
 - VirtualBox <https://www.virtualbox.org>
 - Vagrant <https://www.vagrantup.com>
 - Tomcat 9 <https://tomcat.apache.org>
 - git <https://git-scm.com/>
-- Node.js <https://nodejs.org>
-    - macOS: install Node 6. Node 8 and Node 11 do not work on macOS.
-    - Windows and Linux: use Node 8 or above.
-- npm (comes with Node.js)
-- yarn <https://yarnpkg.com>
+- Node.js 20 LTS <https://nodejs.org>. The frontend build requires `>= 20.19.0` and `< 21`; its `engines` block declares `node >=20.19.0 <21` and `npm >=10`, so an out-of-range runtime is refused rather than accommodated.
+- npm 10 (comes with Node 20)
 
 ## Build the Vagrant VM
 
@@ -95,6 +92,8 @@ export NODE_ENV=development
 export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)"
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
+
+No JVM module-access flags are required to run ArkCase on Java 17; the `JAVA_OPTS` value above is complete as written, and the production launch configuration grants no access to JDK internals. The module-access directives this migration did need are confined to the forked JVMs of the Maven test runners, are configured in the root `pom.xml`, and are each attributed to the pinned library that demands them in the [module-access exceptions record](migration/add-opens-exceptions.md).
 
 ### Start and Stop Tomcat
 

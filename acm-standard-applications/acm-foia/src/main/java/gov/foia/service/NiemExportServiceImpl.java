@@ -232,7 +232,7 @@ public class NiemExportServiceImpl implements NiemExportService
     {
         TransformerFactory factory = TransformerFactory.newInstance();
         /**
-         * com.sun.org.apache.xalan.internal.xsltc.trax - JDK
+         * the JDK's built-in Xalan XSLTC TrAX implementation - JDK
          * org.apache.xalan.processor - Xalan
          * org.apache.xalan.xsltc.trax - Xalan
          * 

@@ -31,7 +31,7 @@
         <property name="tempFolderPath" value="#{ systemProperties ['user.home'] }/.arkcase/tmp"/>
         <property name="deployFolderPath" value="#{ systemProperties ['user.home'] }/.arkcase/custom"/>
         <property name="npmInstallCommand">
-            <value>$[frontEndCommandPrefix]npm ci --ignore-scripts --no-progress</value>
+            <value>$[frontEndCommandPrefix]npm ci --ignore-scripts</value>
         </property>
         <property name="gruntDefaultCommand">
             <value>$[frontEndCommandPrefix]$[frontEndCommandPath]grunt$[frontEndCommandSuffix] --no-color</value>

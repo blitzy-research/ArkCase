@@ -23,7 +23,24 @@ variables:
   GIT_SSL_NO_VERIFY: "true"
   GIT_STRATEGY: clone
 
-image: arkcase-gitlab-ci:1.0.2
+# CI runner image. This is the only runtime pin for the pipeline: the jobs
+# included from .gitlab-ci-release.yml declare no image of their own.
+#
+# INFRASTRUCTURE PRECONDITION, external to this repository: the image must
+# supply JDK 17, Node 20 LTS and npm 10. The reactor now compiles at release 17
+# (the compiler contract is declared once, in the root pom.xml) and the frontend
+# declares engines "node >=20.19.0 <21" / "npm >=10", so the superseded JDK 8 /
+# Node 6-8 image can no longer build this branch. The tag is a new major: the
+# base runtime changed incompatibly. The image Dockerfile lives OUTSIDE this
+# repository and MUST be rebuilt on those runtimes before this pipeline passes.
+#
+# The rebuilt image must also resolve git-over-SSH coordinates: npm ci
+# normalises every GitHub dependency in the committed package-lock.json to
+# git+ssh:// even though the specs are written with https. Ship an SSH deploy
+# key, or the two `git config --global url.<https>.insteadOf <ssh>` rewrite
+# rules that map https://github.com/ over git+ssh://git@github.com/ and over
+# ssh://git@github.com/.
+image: arkcase-gitlab-ci:2.0.0
 
 stages:
   - build
@@ -47,7 +64,7 @@ stages:
     - echo '    </server>' >> /root/.m2/settings.xml
     - echo '  </servers>' >> /root/.m2/settings.xml
     - echo '</settings>' >> /root/.m2/settings.xml
-    - export MAVEN_OPTS="-Xmx2048M -Xss256M -XX:MetaspaceSize=2048M -XX:+CMSClassUnloadingEnabled"
+    - export MAVEN_OPTS="-Xmx2048M -Xss256M -XX:MetaspaceSize=2048M"
     - mvn -DskipITs -T 4 -B deploy "-DaltDeploymentRepository=arkcase.snapshot::default::$NEXUS_URL/repository/arkcase.snapshot/"
     - sshpass -e sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SFTP_USER@$SFTP_SERVER <<< $'put acm-standard-applications/arkcase/target/*.war /from-arkcase/arkcase.war' 
  
