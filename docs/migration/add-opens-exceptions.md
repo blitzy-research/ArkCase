@@ -1,10 +1,21 @@
 # add-opens Exceptions
 
-The move from Java 8 to Java 17 needed **eight** module-access directives in the build, and **one** at runtime.
+The move from Java 8 to Java 17 needed **eight** module-access directives, all of them in the build. **Production launch configuration carries none**, exactly as it carried none at the Java 8 base commit.
 
-The eight live inside forked JVMs belonging to the Maven test runners, and each is traced below to the exact stack frame that failed without it. The runtime one is `--add-opens=java.base/java.lang=ALL-UNNAMED`; it is demanded by two pinned third-party libraries, it was measured rather than inferred, and **Apache Tomcat's own launcher already supplies it**, which is why ArkCase's published `JAVA_OPTS` block still adds no module-access flag of any kind — as it did not at the Java 8 base commit. Both halves of that sentence are certified below with commands and with a two-run experiment, because the second half was previously asserted as "production needs nothing" and that phrasing was wrong.
+The eight live inside forked JVMs belonging to the Maven test runners, and each is traced below to the exact stack frame that failed without it. Surefire receives all eight; failsafe receives two.
 
-That certification is only worth something if the production paths that *would* have needed a flag were found and closed, so this page names them too. Two of them exist — the FOIA and SAR portal submission providers, which read their payload with a bare `ObjectMapper` over models carrying `java.time` properties — and both were fixed **in application code**, preserving the Java 8 request contract exactly. [Their measured before-and-after is below](#the-production-counterpart-of-this-directive-closed-in-code-rather-than-by-a-flag).
+Two production paths that *would* have needed a flag were found and closed in application code instead — the FOIA and SAR portal submission providers, which read their payload with a bare `ObjectMapper` over models carrying `java.time` properties — preserving the Java 8 request contract exactly. [Their measured before-and-after is below](#the-production-counterpart-of-this-directive-closed-in-code-rather-than-by-a-flag).
+
+One measured runtime observation remains **unreconciled with R-2 and is escalated rather than published as guidance**: a stock Tomcat 9 launcher exports `--add-opens=java.base/java.lang=ALL-UNNAMED` of its own accord, and with that export neutralised the root context does not initialise. [What was measured, and what a human must decide](#an-unreconciled-runtime-observation-not-a-production-grant) records it as an open item. It is deliberately **not** written here as an instruction to add a flag anywhere.
+
+### Read the runtime exception as an accepted risk, not as a closed question
+
+A security review of this migration raised the runtime open as a finding in its own right, and it is right to: "Tomcat supplies it" explains why no line is added to `setenv.sh`, but it does not make the exposure smaller. So the position is stated here without softening, because a reader deciding whether to run this application is entitled to it:
+
+- **The repository's own launch configuration grants nothing.** That is verifiable and is verified below. It is the part of R-2 this migration controls, and it holds absolutely.
+- **The running application nevertheless depends on `java.base/java.lang` being open to the unnamed module.** `ALL-UNNAMED` is not targeted at the demanding library: it opens the JDK's most sensitive package to *every* jar on the classpath — 639 of them in this WAR — for the lifetime of the process. Reflection into `java.lang` internals is a common step in deserialisation and classloader attack chains, so the open widens what a foothold elsewhere in the application can reach.
+- **Nothing in this migration's permitted scope retires it.** The demand belongs to Drools 7.34.0.Final and the Groovy it carries, both pinned; moving off them changes rule-evaluation behaviour, which the preservation mandate forbids and which no reproduced Java 17 failure justifies. Upgrading was tried as the first option wherever it worked — spring-ldap below is exactly that case — and it does not work here.
+- **What that leaves is a decision, not a fix.** Either the open is accepted for this deployment, with an owner and a review date, or the rules/scripting stack is replanned as work of its own. This page cannot make that choice; it can only make sure nobody makes it by accident. The corresponding entry is in [the known-issues register](known-issues.md#the-runtime-module-access-open), and the migration plan's own statement that production carries *zero* exceptions is, read strictly, one exception out.
 
 ## Why this record exists
 
@@ -43,7 +54,7 @@ returns nothing and exits 1 — **zero occurrences across every tracked file**. 
 git grep -nE -- '--add-opens|--add-exports|--illegal-access' HEAD -- 'pom.xml'
 ```
 
-returns **10 lines, all in the root `pom.xml`** — the eight directives of the `maven-surefire-plugin` `argLine` and the **two** of them the `maven-failsafe-plugin` `argLine` narrows to. **No other tracked configuration file matches at all**: not `README.md`, not [the developer setup guide](../setup.md), not either GitLab CI file, not a script, and not a single Java source. That is the certification, and 16 is the number to reconcile against.
+returns **10 lines, all in the root `pom.xml`** — the eight directives of the `maven-surefire-plugin` `argLine` and the **two** of them the `maven-failsafe-plugin` `argLine` narrows to. **No other tracked configuration file matches at all**: not `README.md`, not [the developer setup guide](../setup.md), not either GitLab CI file, not a script, and not a single Java source. **10 is the number to reconcile against**, and it is the only configuration figure this page uses.
 
 **Three: the unfiltered count, stated so that it cannot be mistaken for a finding.** The same search with no path filter at all:
 
@@ -51,15 +62,15 @@ returns **10 lines, all in the root `pom.xml`** — the eight directives of the 
 git grep -nE -- '--add-opens|--add-exports|--illegal-access' HEAD
 ```
 
-returns **62 lines**, and they fall into exactly two kinds of place — separating them is the whole point of running it:
+matches in exactly three kinds of place, and separating them is the whole point of running it:
 
-| Where the unfiltered search matches | Lines | What they are |
-| --- | --- | --- |
-| `pom.xml` | **10** | Configuration. The eight directives of the `maven-surefire-plugin` `argLine`, and **two** of them repeated in the `maven-failsafe-plugin` `argLine`. The only 10 configuration lines in the repository |
-| `docs/migration/*.md` | **50** | Prose. This page quotes every option in order to document it, so 37 are here; [behavioural decisions](behavioral-decisions.md) has 5, [the dependency inventory](dependency-change-inventory.md) 4, [smoke evidence](smoke-evidence.md) 3 and [known issues](known-issues.md) 1 |
-| `README.md` and [the developer setup guide](../setup.md) | **1** each | Prose, and specifically the *opposite* of a production grant: each states that `JAVA_OPTS` must stay flag-free and names the one open Tomcat's own launcher supplies |
+| Where the unfiltered search matches | What they are |
+| --- | --- |
+| `pom.xml` | **10 lines. Configuration** — the eight directives of the `maven-surefire-plugin` `argLine`, and two of them repeated in the `maven-failsafe-plugin` `argLine`. The only configuration lines in the repository that grant module access |
+| `docs/migration/*.md` | Prose. Every option is quoted in order to be documented, most of it on this page; the count moves whenever this documentation set is edited and is deliberately not pinned here |
+| `README.md` and [the developer setup guide](../setup.md) | **1 line each. Prose, and specifically the *opposite* of a grant**: each is the sentence instructing that `JAVA_OPTS` stay free of `--add-opens`, `--add-exports` and `--illegal-access`, and that the test runners' directives must not be copied into a server |
 
-10 + 50 + 2 = 62, so every match is accounted for and none of them is a production launch flag.
+Only the first row is configuration; every other match is documentation about configuration, and none of them is a production launch flag.
 
 No **configuration** match exists anywhere but that one file: nothing in either GitLab CI file, nothing in any other POM among the 145, nothing in any script, and nothing in a `JAVA_OPTS` or `CATALINA_OPTS` line — the single match in `README.md` and the single one in [the developer setup guide](../setup.md) are the sentences that forbid adding one. Restricting the search to build files —
 
@@ -74,12 +85,12 @@ That 8-and-2 asymmetry is deliberate and is the subject of [Why the failsafe gra
 Two notes on reproducing these numbers, because a slightly different search returns a different count and the difference is not a discrepancy.
 
 - **Keep the leading `--`.** Searching for the bare word `add-opens` also matches the *filename* of this page wherever it is cited: once in `README.md`, once in `docs/setup.md`, and twice in `pom.xml` itself, where comments above each `argLine` point the reader here. Those four are cross-references to this document, not flags. The `README.md` and `docs/setup.md` matches in particular are the sentences that state **no** module-access flag is required in production — the opposite of an exception, and they sit immediately below `JAVA_OPTS` blocks that were read line by line and contain none.
-- **The count is of the migrated tree.** Both searches are shown against `HEAD` because that is what a reviewer has; run them against a working tree that still carries the earlier all-eight failsafe grant and the build-file figure is 16 rather than 10.
+- **The count is of the migrated tree, and the number is 10.** Run the same search against a working tree that still carries the earlier all-eight failsafe grant and the build-file figure is 16; that variant is not what is committed, and no table on this page reports it.
 
 | File | Lines | What they are |
 | --- | ---: | --- |
 | `docs/migration/add-opens-exceptions.md` | 33 | This page: the eight directives, the runtime exception, the certification commands and the retirement path |
-| `pom.xml` | **16** | **The only configuration that grants access** — eight directives in the surefire `argLine` and the same eight in failsafe's |
+| `pom.xml` | **10** | **The only configuration that grants access** — eight directives in the surefire `argLine`, two of them repeated in failsafe's |
 | `docs/migration/smoke-evidence.md` | 3 | The two-run launch-configuration measurement |
 | `docs/migration/dependency-change-inventory.md` | 3 | The refused `--add-exports` alternative for Spring LDAP |
 | `docs/migration/behavioral-decisions.md` | 6 | The R-7 resolutions that chose a directive over a behaviour change, the refused production `add-exports`, and the measured runtime exception |
@@ -89,27 +100,37 @@ The `-- '*.xml'` filter is what makes the search answer the question R-2 actuall
 
 !!! note "What the searches above do and do not prove"
 
-    They prove that **no file in this repository grants module access outside the two test-runner `argLine`s** — not the documented `JAVA_OPTS` blocks, not the CI files, not a script. They do **not** prove that the running application needs no such access, because the servlet container supplies some of its own. That question is answered by running the application both ways, in [the one production-scope exception](#the-one-production-scope-exception-measured-not-inferred) below.
+    They prove that **no file in this repository grants module access outside the two test-runner `argLine`s** — not the documented `JAVA_OPTS` blocks, not the CI files, not a script. They do **not** prove that the running application needs no such access, because the servlet container supplies some of its own. That is a separate question, it was measured, and the measurement does not reconcile with R-2: it is recorded as an open item in [an unreconciled runtime observation](#an-unreconciled-runtime-observation-not-a-production-grant) below rather than resolved on this page.
 
-## The one production-scope exception, measured not inferred
+## An unreconciled runtime observation, not a production grant
 
-ArkCase on Java 17 requires exactly one module-access open at runtime: **`--add-opens=java.base/java.lang=ALL-UNNAMED`**. This was established by deploying the migrated WAR twice to the same Tomcat 9.0.120 instance and changing nothing but the launcher:
+R-2 permits no module-access flag in production launch configuration unless a pinned dependency documentedly requires one, and ArkCase's published launch configuration grants none. A measurement taken during this migration sits uneasily beside that, and it is recorded here as an **open item for the plan owner** rather than turned into operational guidance: on Java 17 the root Spring context does not initialise unless `java.base/java.lang` is open, and on a stock Tomcat 9 it is open because **the container's own launcher opens it**, not because ArkCase asks for anything.
 
-| Run | Module-access flags in the JVM's argument list | Outcome |
+Nothing in this repository was changed on the strength of this measurement, no flag was added anywhere, and neither the README nor the developer setup guide tells an operator to add one. What follows is what was observed, stated so it can be re-checked.
+
+This was established by deploying the migrated WAR twice to the same Tomcat 9.0.120 instance and changing nothing but the launcher:
+
+| Run | Module-access flags reaching the JVM | Outcome |
 | --- | --- | --- |
-| Stock `catalina.sh` | The **seven** `--add-opens` that Tomcat's own launcher exports through `JDK_JAVA_OPTIONS` on Java 9 and later, under its comment *"Add the JAVA 9 specific start-up parameters required by Tomcat"* — `java.base/java.lang`, `java.lang.invoke`, `java.lang.reflect`, `java.io`, `java.util`, `java.util.concurrent`, and `java.rmi/sun.rmi.transport` | Root context initialises; `Server startup in [193007] milliseconds`; authenticated login returns 302 and the UI renders |
-| A private copy of the same launcher with those seven lines commented out, same `CATALINA_BASE`, same `setenv.sh`, same WAR | **none** — the logged argument list contains no `--add-opens`, no `--add-exports` and no `--illegal-access` | **Root context fails.** Three `InaccessibleObjectException`, of two distinct kinds; every URL answers 404 |
+| Stock `catalina.sh` (Tomcat 9.0.120) | The **seven** `--add-opens` that Tomcat's own launcher exports through the `JDK_JAVA_OPTIONS` environment variable on Java 9 and later, at lines 334-340 under its comment *"Add the JAVA 9 specific start-up parameters required by Tomcat"* — `java.base/java.lang`, `java.lang.invoke`, `java.lang.reflect`, `java.io`, `java.util`, `java.util.concurrent`, and `java.rmi/sun.rmi.transport` | Root context initialises. `Deployment of web application archive [.../arkcase.war] has finished in [279,807] ms`, `Server startup in [279939] milliseconds`, zero `InaccessibleObjectException`; `POST /arkcase/login_post` answers 302 to `home.html#!/welcome`, `home.html` 200 and `GET /api/v1/users/info` 200 with the authenticated identity payload |
+| Tomcat's own `org.apache.catalina.startup.Bootstrap` command line replayed verbatim with `unset JDK_JAVA_OPTIONS` — same `CATALINA_HOME`, same `CATALINA_BASE`, same `setenv.sh`, same WAR | **none** — verified from `/proc/<pid>/environ` and the process argument list: no `--add-opens`, no `--add-exports`, no `--illegal-access` | **Root context fails.** Three `InaccessibleObjectException` of two distinct kinds; `SEVERE One or more listeners failed to start`, `Context [/arkcase] startup failed due to previous errors`; `login`, `home.html`, `login_post` and the REST API all answer 404 |
+
+Because Tomcat passes those seven through the environment rather than on the command line, a `ps` inspection of a healthy instance shows **no** module-access flag — which is why this measurement reads `/proc/<pid>/environ` as well. Do not conclude from a process listing that the JVM is flag-free.
 
 The two demands, each traced to the frame that raised it:
 
 | Option | Demanded by | The exact frame |
 | --- | --- | --- |
-| `--add-opens java.base/java.lang` | **Drools 7.34.0.Final** — pinned by ArkCase, and on the mandatory startup path because the application compiles its business rules during context initialisation | `org.drools.core.rule.builder.dialect.asm.ClassGenerator.<clinit>` calls `setAccessible` on `java.lang.ClassLoader.defineClass`, reached from `KnowledgeBuilderImpl.addRule`. Without the open: `InaccessibleObjectException: Unable to make protected final java.lang.Class java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) throws java.lang.ClassFormatError accessible: module java.base does not "opens java.lang"` |
-| `--add-opens java.base/java.lang` (same option, second demander) | **Groovy 1.8.6** — `groovy-all-1.8.6.jar`, pulled in transitively by the same rules engine and reached through it | `org.codehaus.groovy.reflection.CachedClass` calls `setAccessible` on `java.lang.Object.finalize()`. Without the open: `InaccessibleObjectException: Unable to make protected void java.lang.Object.finalize() throws java.lang.Throwable accessible: module java.base does not "opens java.lang"` |
+| `--add-opens java.base/java.lang` | **Drools 7.34.0.Final** — pinned by `<drools.version>` in the root POM, and on the mandatory startup path because the application compiles its business rules during context initialisation | `org.drools.core.rule.builder.dialect.asm.ClassGenerator.<clinit>` (`ClassGenerator.java:71`) calls `setAccessible` on `java.lang.ClassLoader.defineClass`, reached through `InvokerGenerator.createStubGenerator:49` ← `ASMEvalStubBuilder.createEvalBytecode:39` ← `AbstractASMEvalBuilder.buildEval:99` ← `RuleBuilder.build:107`. Without the open: `InaccessibleObjectException: Unable to make protected final java.lang.Class java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) throws java.lang.ClassFormatError accessible: module java.base does not "opens java.lang"` |
+| `--add-opens java.base/java.lang` (same option, second demander) | **Groovy 1.8.6** — `groovy-all-1.8.6.jar`, declared at compile scope in `acm-services/acm-service-search/pom.xml` since before this migration with the comment *"this entry is needed for IDEA v12"*, and reached by the **AWS SDK for Java 1.11.775** | `org.codehaus.groovy.reflection.CachedClass$3$1.run` (`CachedClass.java:86`) calls `setAccessible` on `java.lang.Object.finalize()`, reached through `MetaClassRegistryImpl.<init>` ← `GroovySystem.<clinit>` ← `Class.forName` in `com.amazonaws.util.VersionInfoUtils.groovyVersion:208`, which the SDK calls only to compose its user-agent string, on the path `EC2ResourceFetcher.<clinit>` ← `InstanceProfileCredentialsProvider.<init>` ← `AWSComprehendMedicalCredentialsProviderChain.<init>:46` ← `AWSComprehendMedicalServiceImpl.init:75`. Without the open: `InaccessibleObjectException: Unable to make protected void java.lang.Object.finalize() throws java.lang.Throwable accessible: module java.base does not "opens java.lang"` |
 
-Both demanders satisfy R-2's condition literally: each is a pinned third-party dependency, each demand is reproduced with its frame, and neither can be removed by upgrading within this migration's scope — Drools and its scripting stack are not among the compatibility-blocking libraries this migration is permitted to move.
+Both demanders satisfy R-2's condition literally: each is a pinned third-party dependency, and each demand is reproduced here with the frame that raised it.
 
-**What this means in practice, and why the published `JAVA_OPTS` block still adds nothing.** A standard Tomcat 9 installation exports the required open from `bin/catalina.sh` before the JVM starts, so an operator following [the developer setup guide](../setup.md) gets it without action, and adding it to `setenv.sh` would be redundant. A launcher that is **not** Tomcat's — a plain `java -jar` wrapper, a hand-rolled container entrypoint, or a servlet container that does not do this — **must** add `--add-opens=java.base/java.lang=ALL-UNNAMED` itself, or the application will not start. That is the whole of the runtime exception; the other six opens Tomcat sets are the container's own business and ArkCase does not depend on them being present.
+**Why neither demand can be retired inside this migration, stated as an argument rather than an assertion.** The two are independent, so removing one does not help. Drools would have to move to a release that no longer reflects into `ClassLoader.defineClass`, and the rules engine is what evaluates ArkCase's data-access and participant business rules, whose permission-evaluation outcomes the migration is required to preserve; it is also not among the compatibility-blocking libraries this migration may move, because nothing about it fails on Java 17 once the container's own open is present. The Groovy demand is the more tempting of the two, because Groovy is reached only by an AWS user-agent probe and sits on the classpath because of a legacy IDE-support declaration — but it is base-commit content that no Java 17 failure implicates, so R-1 and R-6 both put it out of scope, and removing it would not make a flag-free launcher succeed while the Drools demand stands. The measured conclusion is therefore that the exception is irreducible here: retiring it needs a separately authorised change to the rules and scripting stack, carrying rule-evaluation regression coverage of its own.
+
+**Why this is recorded as unreconciled rather than as an exception.** On the supported container the observation is inert: Tomcat 9 exports the open from `bin/catalina.sh` before the JVM starts, so an operator following [the developer setup guide](../setup.md) needs no action and the published `JAVA_OPTS` block correctly adds nothing. What is *not* settled is any launcher that is not Tomcat's — a plain `java -jar` wrapper, a hand-rolled container entrypoint, or a servlet container that does not export it. R-2 governs published launch configuration, and this record will not publish a flag instruction for that case on its own authority.
+
+**What a human must decide.** Either (a) ratify a documented R-2 exception naming `--add-opens=java.base/java.lang=ALL-UNNAMED`, its two demanders and the launcher scope it applies to, at which point this section becomes that exception and the operator-facing documents can carry it; or (b) restate the supported deployment target as Tomcat 9 only, so that no non-Tomcat launcher is in scope and no exception is needed. Until one of those happens the position published in `README.md` and [the developer setup guide](../setup.md) stands unchanged: **grant nothing**. The other six opens Tomcat sets are the container's own business and ArkCase does not depend on them being present.
 
 **One production flag was refused rather than accepted.** Spring LDAP 2.3.3 could have been made to work with `--add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED`, because its `AbstractContextSource` holds a class literal on the encapsulated JDK LDAP context factory. R-2 requires an upgrade wherever an upgrade suffices, so the dependency moved to 2.3.4.RELEASE — which resolves that factory by name — and the flag was not added. The reproduction and version measurement are in [the dependency inventory](dependency-change-inventory.md), and the same substitution inside ArkCase's own context source is in [the static audit](static-audit.md).
 
@@ -185,7 +206,7 @@ That is the entire mismatch, and it is worth naming precisely: it is not PowerMo
 
 ## Where the directives live, and why they compose rather than collide
 
-All eight are configured twice, in the root `pom.xml`, and nowhere else:
+The directive text occupies **two `argLine` blocks in the root `pom.xml` and nowhere else** — eight directives in one and two in the other, ten lines in total. The surefire block, at the `maven-surefire-plugin` declaration pinned to **3.5.3** through the new `surefire.version` property:
 
 ```xml
 <argLine>@{argLine}
@@ -199,9 +220,11 @@ All eight are configured twice, in the root `pom.xml`, and nowhere else:
     --add-exports java.xml/jdk.xml.internal=ALL-UNNAMED</argLine>
 ```
 
-The first copy configures the new `maven-surefire-plugin` declaration, pinned at **3.5.3** through the new `surefire.version` property; the second configures `maven-failsafe-plugin`, aligned to the same pin so both forked runners grant identical access. A `<argLine>` element exists in no other POM in the repository — the directive text occupies exactly two blocks in exactly one file, which is what makes the certification above a bounded search rather than an open-ended one.
+The first copy configures the new `maven-surefire-plugin` declaration, pinned at **3.5.3** through the new `surefire.version` property; the second configures `maven-failsafe-plugin`, which stays at the base commit's **2.17**, held in the `failsafe.version` property so the two `coreBuild` profiles that also declare failsafe consume the same value. A `<argLine>` element exists in no other POM in the repository — the directive text occupies exactly two blocks in exactly one file, which is what makes the certification above a bounded search rather than an open-ended one.
 
-One clarification about that alignment, because this page must not lend it a reason it does not have: **failsafe 2.17 was not a blocker.** Probed directly on JDK 17, a project pinned to 2.17 with `@{…}` late substitution and an add-opens directive in its `argLine` runs an integration test that asserts the substituted value reached the fork, and it passes. The failsafe move is therefore deliberate consistency — one pin for both forked runners, in every module — and [the dependency inventory](dependency-change-inventory.md) records it as alignment rather than as a compatibility fix. Only the **surefire** side of the pin answers a reproduced failure.
+One clarification, because this page must not lend the failsafe configuration a reason it does not have: **failsafe 2.17 was never a blocker, so it was not moved.** Probed directly on a real reactor integration test on JDK 17 with Maven 3.8.7, failsafe 2.17 loads, expands `@{argLine}` — the forked command line carries the JaCoCo agent argument in full and no literal `@{argLine}` — and passes both module-access directives through to the fork. Since no failure is attributable to it, R-1 forbids the version change, and it was reverted to 2.17 after having briefly been aligned to the surefire pin. Only the **surefire** side of this configuration answers a reproduced failure. [The dependency inventory](dependency-change-inventory.md) carries the probe.
+
+"One pin for both forked runners, in every module" is a claim about the whole reactor, so it is worth stating how it is held. It was briefly false in both directions at once: the root declaration had been aligned to `${surefire.version}`, while two profile-local declarations — in `acm-standard-applications/acm-foia/pom.xml` and `acm-standard-applications/acm-privacy/pom.xml` — hardcoded `2.17` inside a `coreBuild` profile and won over the inherited version wherever that profile activated, which would have discarded this `argLine` exactly where integration tests run. Both halves are now held from one place: the root POM declares `<failsafe.version>2.17</failsafe.version>` beside the surefire pin, and every failsafe declaration in the repository — the root's and both profile-local ones — consumes it, so no module can diverge and no version moved. The reproducible checks are `grep -rn "<version>2.17</version>" --include=pom.xml .` (no matches, because no declaration hardcodes a version any more) and, under `-DcoreBuild=true`, `help:effective-pom` reporting failsafe **2.17** in both plugin blocks of those modules.
 
 The leading `@{argLine}` is not decoration and the configuration does not work without it. JaCoCo's `prepare-agent` goal builds the Java agent argument and publishes it as a property; surefire's **late substitution** of `@{…}` expands that property when the fork is launched, so the agent argument and the module-access directives **compose** into one command line. Written as `${argLine}`, or with the directives assigned directly, one would overwrite the other: either coverage instrumentation disappears — silently, taking the `check` goal's line-coverage floor with it — or the directives do. Late substitution is what lets a documented R-2 exception coexist with coverage enforcement instead of trading against it, and it is the mechanism that makes R-2 mechanically enforceable at test time rather than aspirational.
 
@@ -212,7 +235,7 @@ Error: could not open '{argLine}'
 The forked VM terminated without saying properly goodbye
 ```
 
-Under 3.5.3 the identical configuration passes. Stated precisely, so this page is not read as an indictment of the older runner: 2.12.4 is **not** globally broken on JDK 17 — a plain JUnit 4 test runs fine under it — and the recorded reason for the pin is the specific late-substitution capability needed to combine coverage enforcement with a documented module-access exception. The full plugin reasoning, including why the failsafe alignment had to reach two profile-local declarations in `acm-standard-applications/acm-foia/pom.xml` and `acm-standard-applications/acm-privacy/pom.xml` that would otherwise have won over the inherited version and discarded this `argLine` exactly where integration tests run, belongs to [the dependency inventory](dependency-change-inventory.md).
+Under 3.5.3 the identical configuration passes. Stated precisely, so this page is not read as an indictment of the older runner: 2.12.4 is **not** globally broken on JDK 17 — a plain JUnit 4 test runs fine under it — and the recorded reason for the pin is the specific late-substitution capability needed to combine coverage enforcement with a documented module-access exception. The full plugin reasoning belongs to [the dependency inventory](dependency-change-inventory.md).
 
 ## Why this is a bounded result and not an open-ended concession
 
@@ -274,31 +297,36 @@ They were fixed instead, by adding the directives their own stack traces named, 
 
 ## The documented retirement path, deliberately not adopted
 
-There is a way to reduce the eight test-scope directives to two, it was identified during the migration, and it was declined. It does not touch the one runtime open, which belongs to the rules engine rather than to any test. Recording both halves of that is the point of this section.
+There is a way to reduce the eight test-scope directives to two, it was identified during the migration, and it was declined. It does not touch the unreconciled runtime observation above, which arises in the rules engine rather than in any test. Recording both halves of that is the point of this section.
 
 **The path.** Migrating the five PowerMock unit-test classes to Mockito's inline static mocking would remove the five reflection-driven `java.base` opens *and* the `java.xml` export — PowerMock's `MockClassLoader` is what creates the unnamed-module mismatch, so removing PowerMock removes the mismatch with it. Six of the eight would go. The two that would remain are `java.time` and `java.lang`, because neither is PowerMock's: one is Jackson reflecting into a JDK package and the other is CGLIB inside EasyMock, used by 211 test sources.
 
-One detail that a partial attempt would trip over: those six would come out of the **surefire** `argLine` only. `CategoryServiceIT` uses PowerMock too and runs under failsafe, so the failsafe `argLine` keeps needing them until that integration test is migrated as well. Retiring the six from both runners is a six-class job, not a five-class one.
+One detail that a partial attempt would trip over: those six sit in the **surefire** `argLine` only, so retiring them is a surefire-side edit and the failsafe `argLine` is unaffected. But `CategoryServiceIT` uses PowerMock too, and the restore condition recorded at the failsafe `argLine` would then still be live — so leaving that class behind would leave a PowerMock integration test whose directives are neither granted nor retired. Doing the job properly is a six-class migration, not a five-class one.
 
 **Why it was declined here.** It means adding a new mocking artefact to the dependency surface and rewriting five working test classes. Mockito is already present as `mockito-core` 3.7.7, but inline static mocking is not: it needs `mockito-inline`, which appears in no POM in this repository. A dependency addition without a reproduced failure behind it is precisely what **R-1** forbids, and rewriting passing tests runs against the mandate to preserve existing test assertions — the migration modified **zero** of the base commit's 402 test sources, and this would have modified five of them for a tidier flag list rather than for a failure. It belongs in [the behavioural decisions record](behavioral-decisions.md) as the recommended follow-up, to be taken when test maintenance is the goal rather than as a side effect of a runtime migration.
 
 **The narrower alternative, also declined.** Both AWS SDK tests already carry `@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })`, and that list demonstrably does not cover the XML packages. Widening the annotation would keep the JAXP factory finder out of PowerMock's class loader and fix the XML case with no JVM flag at all — a genuinely smaller change to the command line. It was not taken because it edits test source, and the JVM directive edits none: preserving all 402 pre-existing test sources byte-identical is itself a preservation mandate, and one flag in a build file that is documented here is a better trade than an annotation change in two test classes that is not. The alternative is recorded because it exists, not because it was unattractive.
 
-## The claim is now backed by a running deployment, not only by a search
+## The published launch configuration was exercised, not only searched
 
-Everything above certifies the *absence* of production flags by searching the tree. That is necessary but not sufficient: an absent flag only proves something if the application actually runs without it. It does.
+Everything above certifies the *absence* of production flags in the tree by searching it. That is necessary but not sufficient, so the published configuration was also run. Stated precisely, because the two sections must not be read as contradicting each other: what was exercised is `JAVA_OPTS` **as published**, on the **supported container**, and Tomcat's own launcher opened `java.base/java.lang` underneath it — which is exactly the observation held open above. This section is therefore evidence that the published block needs no addition on Tomcat 9; it is not evidence that the application needs no such access at all.
 
 The migrated WAR was deployed to Tomcat 9.0.120 on JDK 17 with a `JAVA_OPTS` containing **no `add-opens`, no `add-exports` and no `illegal-access`** — only the IPv4 preference, the timezone, the keystore and trust-store settings, the active Spring profile, the configuration-server property file and the heap sizes. Measured on that instance:
 
 | Check | Result |
 | --- | --- |
-| Root application context refresh | completes; `Server startup in 234,388 ms` |
+| Root application context refresh | completes; `Server startup in [279939] milliseconds` |
 | `SEVERE` entries after the newest context initialisation | **0** |
 | `IllegalAccessError` / `InaccessibleObjectException` anywhere in the startup | **0** |
 | `NoClassDefFoundError` / `ClassNotFoundException` | **0** |
 | Authentication | `POST /arkcase/login_post` → **302** to `home.html#!/welcome`; `/api/v1/users/info` → **200** |
 
-This matters most for the two directives whose test-scope counterparts exist because of reflective access: nothing in the *application* needed `java.lang` or `java.time` opened. CGLIB is exercised heavily at runtime — Spring's AOP proxies are visible throughout the startup log — and it does not require the grant that EasyMock's proxy factory needs, because Spring 5.3.39's CGLIB defines proxies through a supported mechanism. That asymmetry is the whole reason the grants stay in test scope.
+The result separates the two `java.base` directives cleanly, which is why the test-scope confinement holds for one of them outright:
+
+- **`java.time` was open to nobody in this run** — neither `JAVA_OPTS` nor Tomcat's launcher supplies it — and the application started and served an authenticated request regardless. Nothing in the *application* needs it; only tests that deserialise a `java.time` field with a bare `ObjectMapper` do, and the two production paths that would have needed it were closed in code instead.
+- **`java.lang` was open, supplied by the container**, so this run says nothing about whether the application could start without it. The neutralised-launcher run above says it could not. That is the open item, not a settled exception.
+
+The CGLIB asymmetry is worth naming separately: Spring's AOP proxies are visible throughout the startup log, and Spring 5.3.39's CGLIB defines proxies through a supported mechanism, so the runtime proxying does not itself demand the grant that EasyMock's `ClassProxyFactory` needs in tests.
 
 **One honest caveat about how this was reached.** The first deployment attempt did fail, and it is worth recording because the error looks like a missing flag and is not one: the launch script was still pinned to Java 8 from the baseline capture, so the JVM rejected the migrated bytecode with `UnsupportedClassVersionError … class file version 61.0`. The remedy was to point `JAVA_HOME` at JDK 17 — **not** to add a flag. Two genuine Java 17 defects were then found and fixed at their root cause in dependency versions rather than papered over with module-access grants; both are attributed in [the dependency change inventory](dependency-change-inventory.md), and the spring-ldap one is directly relevant here, because granting `java.naming/com.sun.jndi.ldap` in production would have been the lazy alternative to taking the upstream patch. R-2 is the reason it was not.
 
@@ -306,8 +334,8 @@ This matters most for the two directives whose test-scope counterparts exist bec
 
 For anyone deploying ArkCase on Java 17, the operative statement is short:
 
-- **On Tomcat 9, add nothing.** The `JAVA_OPTS` block published in the README and in the developer setup guide runs as written on Java 17, because Tomcat's own launcher already exports the one open the application needs. Do not add `--add-exports` or `--illegal-access` at all, and do not add the other six opens Tomcat sets — they belong to the container, not to ArkCase.
-- **On any other launcher, add exactly one flag:** `--add-opens=java.base/java.lang=ALL-UNNAMED`, for the two demanders attributed in [the production-scope exception](#the-one-production-scope-exception-measured-not-inferred). Without it the root Spring context fails during rule compilation and the application never serves a request.
+- **Add nothing.** The `JAVA_OPTS` block published in the README and in the developer setup guide runs as written on Java 17 and grants no module access. Do not add `--add-opens`, `--add-exports` or `--illegal-access`, and do not add the six other opens Tomcat sets — they belong to the container, not to ArkCase.
+- **Deploy on Tomcat 9, the supported container.** A launcher that is not Tomcat's is not covered by a published exception, because there is none: the measurement bearing on that case, and the decision it is waiting on, are in [an unreconciled runtime observation](#an-unreconciled-runtime-observation-not-a-production-grant). Escalate rather than improvise a flag.
 - **The eight test directives are a build-time concern only.** They exist in the surefire and failsafe configurations, they apply to forked test JVMs, and they never reach a deployed process. Copying them into a server's launch configuration would widen access for no benefit and would put the deployment outside what R-2 permits.
 - **The artefact is unchanged.** The build still assembles `acm-standard-applications/arkcase/target/arkcase-2021.03.war` at the same coordinates and the same path; nothing about deployment mechanics moves with this migration.
 

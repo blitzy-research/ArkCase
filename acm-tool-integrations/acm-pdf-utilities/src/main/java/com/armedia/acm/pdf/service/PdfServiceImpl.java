@@ -90,21 +90,12 @@ import java.util.UUID;
  */
 public class PdfServiceImpl implements PdfService
 {
-    /**
-     * Megabyte in bytes.
-     */
     public static final long MEGABYTE = 1024 * 1024;
     /**
      * Use no more than 32MB of main memory when merging PDFs, the disk is used for the rest.
      */
     public static final int MAX_MAIN_MEMORY_BYTES = 1024 * 1024 * 32;
-    /**
-     * Logger instance.
-     */
     private Logger log = LogManager.getLogger(getClass());
-    /**
-     * Random number generator.
-     */
     private Random random = new Random();
 
     /**
@@ -123,7 +114,6 @@ public class PdfServiceImpl implements PdfService
      */
     public String generatePdf(InputStream xslStream, URI baseURI, Source source) throws PdfServiceException
     {
-        // create a temporary file name
         String filename = String.format("%s/acm-%s.pdf", System.getProperty("java.io.tmpdir"), UUID.randomUUID());
         log.debug("PDF creation: using [{}] as temporary file name", filename);
         try
@@ -133,15 +123,17 @@ public class PdfServiceImpl implements PdfService
             FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
 
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            /**
-             * the JDK's built-in Xalan XSLTC TrAX implementation - JDK
-             * org.apache.xalan.processor - Xalan
-             * org.apache.xalan.xsltc.trax - Xalan
-             * 
-             * those are TransformerFactory implementation providers and not sure which implementation doesn't support below XMLConstants 
-             * that's why suppressing IllegalArgumentException.
+            /*
+             * The empty string denies every protocol, but these three restrictions are best-effort: whether any of
+             * them takes effect depends on the TrAX provider that TransformerFactory.newInstance() selects, and
+             * neither provider reachable here accepts the whole set. Xalan 2.7.2 is on this application's classpath
+             * and is therefore the provider selected at run time; it predates JAXP 1.5 and rejects all three as "Not
+             * supported", so none of them is applied. The JDK's built-in XSLTC factory, selected only when Xalan is
+             * absent, accepts the DTD and stylesheet restrictions but rejects the schema one - and because all three
+             * calls share a single try block, that rejection leaves the stylesheet call unreached as well. The
+             * stylesheet compiled below is therefore parsed under the provider's own default external-access policy,
+             * so callers must supply a stylesheet and data source they trust.
              */
-         
             try
             {
                 transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -150,7 +142,8 @@ public class PdfServiceImpl implements PdfService
             }
             catch (IllegalArgumentException e)
             {
-                // TODO: handle exception
+                // Intentionally empty: a provider that does not recognise one of these attributes must not stop PDF
+                // generation, and there is nothing to recover - whatever was accepted stays in force.
             }
             Transformer transformer = transformerFactory.newTransformer(new StreamSource(xslStream));
 
@@ -173,7 +166,6 @@ public class PdfServiceImpl implements PdfService
     @Override
     public String generatePdf(InputStream xslStream, URI baseURI, Map<String, String> parameters) throws PdfServiceException
     {
-        // create a temporary file name
         String filename = String.format("%s/acm-%020d.pdf", System.getProperty("java.io.tmpdir"), Math.abs(random.nextLong()));
         log.debug("PDF creation: using [{}] as temporary file name", filename);
         try (OutputStream os = new BufferedOutputStream(new FileOutputStream(filename)))
@@ -409,7 +401,6 @@ public class PdfServiceImpl implements PdfService
     @Override
     public void mergeSources(PDFMergerUtility pdfMergerUtility, String filename) throws PdfServiceException
     {
-        // using at most 32MB memory, the rest goes to disk
         MemoryUsageSetting memoryUsageSetting = MemoryUsageSetting.setupMixed(MAX_MAIN_MEMORY_BYTES);
         try
         {
@@ -438,7 +429,6 @@ public class PdfServiceImpl implements PdfService
     @Override
     public void mergeSources(PDFMergerUtility pdfMergerUtility, FileOutputStream fos) throws PdfServiceException
     {
-        // using at most 32MB memory, the rest goes to disk
         MemoryUsageSetting memoryUsageSetting = MemoryUsageSetting.setupMixed(MAX_MAIN_MEMORY_BYTES);
         try
         {
@@ -487,7 +477,6 @@ public class PdfServiceImpl implements PdfService
             log.debug("Successfully extracted pages from [{}]", filename);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             extractedDocument.save(baos);
-            // return input stream of newly generated document
             return new ByteArrayInputStream(baos.toByteArray());
         }
         catch (IOException | IndexOutOfBoundsException e)
@@ -521,7 +510,7 @@ public class PdfServiceImpl implements PdfService
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true,
                     true))
             {
-                // Adds a blank rectangle to bottom of the page to replace text
+                // White-fill the footer area first, so any page numbering already on the page is covered.
                 contentStream.setNonStrokingColor(Color.WHITE);
                 contentStream.addRect(550, 670, 100, 100);
                 contentStream.fill();
@@ -531,7 +520,6 @@ public class PdfServiceImpl implements PdfService
                 contentStream.setLeading(14.5f);
 
                 float stringWidth = font.getStringWidth(pageNumberingString) * fontSize / 1000f;
-                // calculate to center of the page
                 int rotation = document.getPage(i).getRotation();
                 boolean rotate = rotation == 90 || rotation == 270;
                 float pageWidth = rotate ? pageSize.getHeight() : pageSize.getWidth();
@@ -539,16 +527,11 @@ public class PdfServiceImpl implements PdfService
                 float centerX = rotate ? pageHeight / 1.05f : (pageWidth - stringWidth) / 2f;
                 float centerY = rotate ? (pageWidth - stringWidth) / 2f : pageHeight / 2f;
 
-                // append the content to the existing stream
-
                 contentStream.beginText();
-                // set font and font size
                 contentStream.setFont(font, fontSize);
-                // set text color
                 contentStream.setNonStrokingColor(0, 0, 0);
                 if (rotate)
                 {
-                    // rotate the text according to the page rotation
                     contentStream.setTextMatrix(Matrix.getRotateInstance(Math.PI / 2, centerX, centerY));
                 }
                 else

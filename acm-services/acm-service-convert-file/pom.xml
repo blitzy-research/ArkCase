@@ -14,7 +14,6 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- Spring -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
@@ -27,7 +26,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
         </dependency>
-        <!-- logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -86,6 +84,20 @@
         <dependency>
             <groupId>com.github.librepdf</groupId>
             <artifactId>openpdf</artifactId>
+        </dependency>
+
+        <!-- test. Versions and test scope are inherited from the root dependencyManagement. Needed to unit-test
+            MimeMessageParser's inline-image path, whose stream cast was widened to java.io.InputStream: the test
+            drives the parser with a javax.mail.Part that yields a plain ByteArrayInputStream, which is what the
+            widened cast has to accept, and with parts declaring a non-base64 transfer encoding, which the restored
+            check has to reject. javax.mail.Part is an interface, so EasyMock supplies it. -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
         </dependency>
     </dependencies>
 

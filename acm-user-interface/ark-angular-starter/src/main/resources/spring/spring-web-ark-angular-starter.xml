@@ -30,8 +30,27 @@
         </property>
         <property name="tempFolderPath" value="#{ systemProperties ['user.home'] }/.arkcase/tmp"/>
         <property name="deployFolderPath" value="#{ systemProperties ['user.home'] }/.arkcase/custom"/>
+        <!-- Deployment-host prerequisites for this command, all of them enforced rather than assumed:
+               * Node 20 and npm 10. The engine-strict flag makes npm refuse the install on a runtime outside the
+                 "engines" range declared in package.json, instead of printing EBADENGINE and continuing. The
+                 .npmrc copied into the temp folder (see filesToCopyFromArchive) sets the same option, so the rule
+                 still holds if the install is re-run by hand from that folder. Without one or the other the
+                 declared range is documentation, and a superseded runtime could still produce a bundle - which is
+                 the outcome the Node 20 migration exists to prevent.
+               * outbound HTTPS to registry.npmjs.org AND to codeload.github.com. The second one is easy to miss:
+                 53 locked dependencies are GitHub repositories, recorded in package-lock.json as git+ssh URLs
+                 because that is how npm writes GitHub coordinates. They are pinned to exact commits, so npm
+                 downloads them as HTTPS tarballs from codeload and needs neither ssh nor a git client for this
+                 command. If that download fails, npm's fallback is a git clone of the same coordinate, which on a
+                 host with no SSH credentials for github.com fails the install and therefore the deployment - it
+                 does not silently fall back to a weaker transport. A host that needs that fallback to work must
+                 supply either a deploy key or git url.insteadOf rewrite rules.
+               * the ignore-scripts flag is required: one git-sourced asset repository's prepare script tries to
+                 build an ancient native module. These are prebuilt asset repositories with checked-in dist
+                 folders, so their lifecycle scripts produce nothing the Grunt pipeline consumes. It is passed here
+                 rather than set in .npmrc so that it does not also suppress the "prebuild" hook of npm run build. -->
         <property name="npmInstallCommand">
-            <value>$[frontEndCommandPrefix]npm ci --ignore-scripts</value>
+            <value>$[frontEndCommandPrefix]npm ci --ignore-scripts --engine-strict</value>
         </property>
         <property name="gruntDefaultCommand">
             <value>$[frontEndCommandPrefix]$[frontEndCommandPath]grunt$[frontEndCommandSuffix] --no-color</value>
@@ -77,6 +96,8 @@
             <list>
                 <value>.csslintrc</value>
                 <value>.jshintrc</value>
+                <!-- carries engine-strict, so the temp-folder install enforces the declared Node and npm range -->
+                <value>.npmrc</value>
                 <value>application.js</value>
                 <value>config.js</value>
                 <value>Gruntfile.js</value>

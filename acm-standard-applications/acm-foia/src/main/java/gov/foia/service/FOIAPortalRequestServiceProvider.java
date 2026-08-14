@@ -73,21 +73,12 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
 
     private PortalCreateInquiryService portalCreateInquiryService;
 
-    /*
-     * (non-Javadoc)
-     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#providesServiceForRequestType()
-     */
     @Override
     public String providesServiceForRequestType()
     {
         return PortalFOIARequest.class.getName();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#submitRequest(java.lang.String,
-     * com.armedia.acm.portalgateway.web.api.PortalRequest)
-     */
     @Override
     public PortalResponse submitRequest(String portalId, String portalUserId, PortalRequest request) throws PortalRequestServiceException
     {
@@ -104,40 +95,33 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
         }
         catch (IOException e)
         {
-            log.warn("Error deserializing raw request from user with ID [{}] from portal with ID [{}].", portalUserId, portalId);
-            throw new PortalRequestServiceException(
-                    String.format("Error deserializing raw request from user with ID [%s] from portal with ID [%s].", portalUserId,
-                            portalId),
-                    e, SUBMIT_REQUEST_METHOD_DESERIALIZE);
+            log.warn("Error deserializing raw request [{}] from user with ID [{}] from portal with ID [{}].", rawRequestContent,
+                    portalUserId, portalId);
+            throw new PortalRequestServiceException(String.format(
+                    "Error deserializing raw request [%s] from user with ID [%s] from portal with ID [%s].", rawRequestContent,
+                    portalUserId, portalId), e, SUBMIT_REQUEST_METHOD_DESERIALIZE);
         }
         catch (AcmCreateObjectFailedException | AcmUserActionFailedException | PipelineProcessException e)
         {
-            log.warn("Error creating request for raw request from user with ID [{}] from portal with ID [{}].", portalUserId, portalId);
-            throw new PortalRequestServiceException(
-                    String.format("Error creating request for raw request from user with ID [%s] from portal with ID [%s].",
-                            portalUserId, portalId),
-                    e, SUBMIT_REQUEST_METHOD_CREATE_REQUEST);
+            log.warn("Error creating request for raw request [{}] from user with ID [{}] from portal with ID [{}].", rawRequestContent,
+                    portalUserId, portalId);
+            throw new PortalRequestServiceException(String.format(
+                    "Error creating request for raw request [%s] from user with ID [%s] from portal with ID [%s].", rawRequestContent,
+                    portalUserId, portalId), e, SUBMIT_REQUEST_METHOD_CREATE_REQUEST);
         }
     }
 
     /**
-     * Builds the mapper that reads a portal request, preserving the Java 8 treatment of java.time values.
+     * Builds the mapper that reads a portal request.
      * <p>
-     * The request is deserialized by a plain {@link ObjectMapper} with no java.time module registered, exactly as it was
-     * before this platform moved to Java 17, so the accepted request shape is unchanged: a request that omits
-     * <code>recordSearchDateFrom</code> and <code>recordSearchDateTo</code>, or sends them as <code>null</code>, is
-     * accepted, and one that sends a value for either is rejected as a deserialization failure. Registering a java.time
-     * module here would instead start accepting ISO-8601 date strings, which would widen the published request contract.
-     * <p>
-     * What the module below changes is only <em>how</em> such a value is rejected. Without it, Jackson tries to bind
-     * java.time values reflectively, and on Java 17 that reflection is refused by the platform itself with an
-     * {@link java.lang.reflect.InaccessibleObjectException} - an unchecked exception which escapes the
-     * <code>catch (IOException)</code> below and surfaces as a bare server error, and which is raised while the
-     * deserializer is being built, so it strikes even requests that carry no date at all. The module keeps java.time out
-     * of reflective binding altogether: an absent or null value stays null, and a present value raises the same
-     * {@link com.fasterxml.jackson.databind.JsonMappingException} that Java 8 raised, which this method's caller already
-     * translates into a {@link PortalRequestServiceException}. The alternative - opening <code>java.base/java.time</code>
-     * in the production launch configuration - is deliberately not used.
+     * No standard Jackson <code>JavaTimeModule</code> is registered, so ISO-8601 date strings are not part of the
+     * request contract: <code>recordSearchDateFrom</code> and <code>recordSearchDateTo</code> are accepted when absent
+     * or sent as <code>null</code>, and rejected when either carries a value. {@link UnsupportedJavaTimeModule} is what
+     * makes that rejection a {@link com.fasterxml.jackson.databind.JsonMappingException}, which
+     * {@link #submitRequest(String, String, PortalRequest)} translates into a {@link PortalRequestServiceException}.
+     * Without it, Jackson binds java.time reflectively and the platform refuses the access with an unchecked
+     * {@link java.lang.reflect.InaccessibleObjectException} raised while the deserializer is built - it escapes the
+     * caller's <code>catch (IOException)</code> and fails even requests that carry no date at all.
      *
      * @return a mapper for portal request content; never <code>null</code>.
      */
@@ -174,8 +158,12 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
     /**
      * Reports a value of an unsupported type as a mapping failure. Jackson resolves a JSON null through
      * {@link JsonDeserializer#getNullValue(DeserializationContext)} without consulting this method, so only a value that
-     * is actually present is rejected - which is precisely the Java 8 behaviour being preserved. The value itself is
-     * never quoted in the message, because portal request content carries personal data.
+     * is actually present is rejected - which is precisely the Java 8 behaviour being preserved. The message names the
+     * unsupported type and quotes no value, matching the text Jackson itself produced on Java 8; the caller's own
+     * failure message still carries the raw request content, exactly as the base commit wrote it, because the
+     * <code>error_message</code> that {@code PortalRequestServiceExceptionMapper} publishes is part of the frozen
+     * response contract. Redacting it is a security change with its own contract approval, registered in the
+     * migration's known-issues record rather than folded into this compatibility fix.
      */
     private static class UnsupportedValueDeserializer extends JsonDeserializer<Object>
     {
@@ -194,11 +182,6 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#listRequests(java.lang.String,
-     * java.lang.String)
-     */
     @Override
     public List<PortalResponse> listRequests(String portalId, String portalUserId) throws PortalRequestServiceException
     {
@@ -225,23 +208,12 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
 
     }
 
-    /*
-     * (non-Javadoc)
-     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#getRequestStatus(java.lang.String,
-     * java.lang.String, java.lang.String)
-     */
     @Override
     public PortalResponse getRequestStatus(String portalId, String portalUserId, String requestId) throws PortalRequestServiceException
     {
         try
         {
             PortalFOIARequestStatus mapRequestStatus = portalRequestService.getExternalRequest(portalUserId, requestId);
-            // TODO: this should be configurable
-            // if ("Approved".equals(mapRequestStatus.getRequestStatus()))
-            // {
-            // // TODO: if a request processing was finished, we should return the result instead as part of
-            // // PortalResponse#rawResponse
-            // }
             return mapRequestStatus(mapRequestStatus);
         }
         catch (NoResultException | NonUniqueResultException e)
@@ -279,10 +251,6 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
     }
 
 
-    /*
-     * (non-Javadoc)
-     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#submitInquiry(com.armedia.acm.portalgateway.web.api.PortalRequest)
-     */
     @Override
     public void submitInquiry(PortalRequest request) throws PortalRequestServiceException
     {
@@ -304,19 +272,11 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
 
     }
 
-    /**
-     * @param createRequestService
-     *            the createRequestService to set
-     */
     public void setCreateRequestService(PortalCreateRequestService createRequestService)
     {
         this.createRequestService = createRequestService;
     }
 
-    /**
-     * @param portalRequestService
-     *            the portalRequestService to set
-     */
     public void setPortalRequestService(PortalRequestService portalRequestService)
     {
         this.portalRequestService = portalRequestService;

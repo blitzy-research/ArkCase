@@ -57,22 +57,13 @@
         <easymock.version>4.3</easymock.version>
         <easymock-extension.version>3.2</easymock-extension.version>
         <eclipselink-jpa.version>2.6.0</eclipselink-jpa.version>
-        <!-- EclipseLink's ORM stays at 2.6.0; ONLY its separately-published bytecode reader moves, and it has to.
-            org.eclipse.persistence.asm:2.6.0 repackages ASM 5, whose Opcodes stop at V1_8 = 52, so it cannot read a
-            class-file major 61. EclipseLink reads every entity's .class with that reader
-            (MetadataAsmFactory -> MetadataClass) and, critically, FAILS SILENTLY: no exception, just empty metadata.
-            Measured on JDK 17 with a real entity, holding everything else constant:
-              ASM 2.6.0 + major 61 -> isEntityAnnotated=false, declaredFields=0   (the defect)
-              ASM 2.6.0 + major 52 -> isEntityAnnotated=true,  declaredFields=1   (so the JVM is not the variable)
-              ASM 9.1.0 + major 61 -> isEntityAnnotated=true,  declaredFields=13  (the fix)
-            The consequence in a deployed container is total, not cosmetic: every @Entity silently vanishes from the
-            persistence unit, EclipseLink logs only "The collection of metamodel types is empty", and the first JPQL
-            query fails with "The abstract schema type 'AcmProcessDefinition' is unknown", which aborts the root
-            application context. The Java 8 baseline WAR deploys on JDK 17 unaffected, because its classes are
-            major 52 - which is why a unit suite cannot see this and only a deployment can.
-            9.1.0 is the lowest published version of this artifact whose Opcodes declare V17, it keeps the same
-            org.eclipse.persistence.internal.libraries.asm package the 2.6.0 core compiles against, and the ORM,
-            the JPQL parser, the DDL and every mapping stay exactly where they were. -->
+        <!-- The ORM stays at 2.6.0; only EclipseLink's separately-published bytecode reader is versioned here,
+            because it must understand class-file major 61 to find JPA annotations at all - the 2.6.0 reader returns
+            empty metadata for such a class without raising anything. 9.1.0 keeps the same
+            org.eclipse.persistence.internal.libraries.asm package the 2.6.0 core links against.
+            NOT part of the agreed migration plan, which withdrew every EclipseLink candidate: this is a documented
+            divergence awaiting ratification, with its measurement and its deployment evidence in
+            docs/migration/dependency-change-inventory.md. -->
         <eclipselink-asm.version>9.1.0</eclipselink-asm.version>
         <ehcache.version>2.6.9</ehcache.version>
         <exchange-web-services.version>2.0</exchange-web-services.version>
@@ -130,21 +121,12 @@
         <solr-solrj.version>7.6.0</solr-solrj.version>
         <sonar.version>3.5.0.1254</sonar.version>
         <spring.integration.version>4.3.22.RELEASE</spring.integration.version>
-        <!-- 2.3.3 cannot authenticate on Java 17 at all, and the reason is the exact defect this migration fixed in
-            ArkCase's own subclass. spring-ldap-core 2.3.3's AbstractContextSource holds the JNDI provider as a
-            compile-time CLASS LITERAL in its static initializer, so class initialization fails under JEP 396:
-              IllegalAccessError: class org.springframework.ldap.core.support.AbstractContextSource (in unnamed
-              module) cannot access class com.sun.jndi.ldap.LdapCtxFactory (in module java.naming) because module
-              java.naming does not export com.sun.jndi.ldap to unnamed module
-            raised from AbstractContextSource.<clinit>:77. The observable effect is total: every POST to
-            /arkcase/login_post returns HTTP 500 with NoClassDefFoundError "Could not initialize class
-            LdapContextSource", because ArkCase's ActiveDirectoryAbstractContextSource extends it.
-            Verified at the bytecode level rather than inferred - the static initializers differ in exactly one way:
-              2.3.3  ldc #124  // class  com/sun/jndi/ldap/LdapCtxFactory   -> IllegalAccessError on JDK 17
-              2.3.4  ldc #20   // String com.sun.jndi.ldap.LdapCtxFactory   -> resolves as a name, no access needed
-            So upstream applied the same indirection this migration applied to the subclass. Taking their patch
-            release keeps the provider identical, needs no production add-exports directive (R-2 forbids one), and
-            stays inside 2.3.x. -->
+        <!-- 2.3.4 is the lowest release whose AbstractContextSource static initializer holds the JNDI provider as a
+            String rather than as a class literal, which is what lets the base class initialize on Java 17 at all;
+            under 2.3.3 every authentication attempt fails, because ActiveDirectoryAbstractContextSource extends it.
+            The provider resolved is identical and the move stays inside 2.3.x.
+            NOT part of the agreed migration plan, which maps no spring-ldap change: this is a documented divergence
+            awaiting ratification, evidenced in docs/migration/dependency-change-inventory.md. -->
         <spring.ldap.version>2.3.4.RELEASE</spring.ldap.version>
         <spring.security.kerberos.version>1.0.1.RELEASE</spring.security.kerberos.version>
         <spring.security.saml2.core.version>1.0.10.RELEASE</spring.security.saml2.core.version>
@@ -169,12 +151,10 @@
         <jaudiotagger.version>2.0.3</jaudiotagger.version>
         <reflections.version>0.9.9</reflections.version>
         <camel.spring.version>3.7.0</camel.spring.version>
-        <!-- Versions the reactor already shipped before the Java 17 migration, verified against the archived Java 8
-            baseline WAR's WEB-INF/lib rather than assumed. They are named here only so the JAXB and activation
-            provider convergence in dependencyManagement can hang its exclusions off managed coordinates; no artifact
-            changes version because of them. cxf-rt-databinding-jaxb 3.0.12 arrives with OpenCMIS and stax-ex 1.8.1
-            with the JAXB runtime. There is deliberately no cxf.core.version: see the note at the cxf-core position
-            in dependencyManagement for why managing that coordinate moved eleven jars and was reverted. -->
+        <!-- The three coordinates below carry the versions mediation already resolved, so managing them moves no
+            artifact; they exist only so the JAXB and activation provider convergence in dependencyManagement can
+            attach its exclusions. Do not add a cxf.core.version: managing cxf-core forces 3.3.5 and pulls eleven
+            further jars - see the note at the cxf-core position in dependencyManagement. -->
         <cxf.databinding.jaxb.version>3.0.12</cxf.databinding.jaxb.version>
         <cxf.rs.client.version>3.3.5</cxf.rs.client.version>
         <stax.ex.version>1.8.1</stax.ex.version>
@@ -190,14 +170,22 @@
         <nimbusds.version>9.5</nimbusds.version>
         <openpdf.version>1.2.10</openpdf.version>
         <javax-jms.version>1.1</javax-jms.version>
-        <!-- code coverage reports -->
         <jacoco.version>0.8.7</jacoco.version>
         <code.coverage.minimum>0.02</code.coverage.minimum>
-        <!-- forked test runners. An explicit pin replaces the version Maven 3.8.7 silently inherited, 2.12.4,
-            which predates the late @{...} argLine substitution that lets the JaCoCo agent argument compose with
-            the JDK 17 module-access directives instead of being overwritten; surefire has supported that syntax
-            since 2.17. 3.5.3 is the version this migration standardises on for both forked runners. -->
+        <!-- The UNIT test runner only. An explicit pin replaces the version Maven 3.8.7 silently inherited, 2.12.4,
+            which predates the late @{...} argLine substitution that lets the JaCoCo agent argument compose with the
+            JDK 17 module-access directives instead of being overwritten: under 2.12.4 the fork dies with
+            "Error: could not open '{argLine}'". That capability arrived in surefire 2.17, so the floor is 2.17 and
+            3.5.3 is a current release above it.
+            Deliberately NOT used for maven-failsafe-plugin, which keeps the base commit's own 2.17: 2.17 already
+            performs the late substitution, so moving it would be a version change with no Java 17 reason behind it.
+            The measurement is recorded in docs/migration/dependency-change-inventory.md. -->
         <surefire.version>3.5.3</surefire.version>
+        <!-- maven-failsafe-plugin is held at the base commit's own version, and it is a property so that the two
+            coreBuild profiles in acm-standard-applications/acm-foia and acm-standard-applications/acm-privacy can
+            consume the same value instead of hardcoding one that could drift away from this declaration. See the
+            failsafe plugin block below for why the version itself does not move. -->
+        <failsafe.version>2.17</failsafe.version>
         <owasp.encoder.version>1.2.3</owasp.encoder.version>
     </properties>
     <organization>
@@ -264,7 +252,6 @@
             <id>repository.jboss.org-public</id>
             <url>https://repository.jboss.org/nexus/content/groups/public</url>
         </repository>
-        <!-- The Activiti repository -->
         <repository>
             <name>Activiti repository (hosted by Alfresco)</name>
             <id>Alfresco Maven Repository</id>
@@ -274,7 +261,6 @@
             <id>milton-repo</id>
             <url>http://dl.bintray.com/milton/Milton</url>
         </repository>
-        <!-- swagger -->
         <repository>
             <id>jcenter-snapshots</id>
             <name>jcenter</name>
@@ -356,21 +342,11 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
                 <configuration>
-                    <!-- JDK 17 strong encapsulation (JEP 396) exceptions, TEST SCOPE ONLY: these directives
-                        apply exclusively to the forked test JVM and are deliberately absent from the production
-                        launch configuration. Each one is demanded by a pinned third-party test dependency and is
-                        attributed to its exact stack frame in docs/migration/add-opens-exceptions.md:
-                          java.time         - Jackson databind 2.10.3, ClassUtil.checkAndFixAccess via FieldProperty.fixAccess
-                          java.lang         - CGLIB inside EasyMock's ClassProxyFactory, ClassLoader.defineClass
-                          java.io           - PowerMock 2.0.9 (no successor exists), WhiteboxImpl.doGetAllMethods on File.readObject
-                          java.nio.file     - PowerMock 2.0.9, same frame, Files.provider
-                          java.util         - PowerMock 2.0.9, same frame, HashMap.hash
-                          java.math         - PowerMock 2.0.9, same frame, BigDecimal.add
-                          java.util.stream  - PowerMock 2.0.9, same frame, the int-stream head's iterator
-                          jdk.xml.internal  - PowerMock's MockClassLoader, FactoryFinder.<clinit> via DocumentBuilderFactory.newInstance
-                        The leading @{argLine} is mandatory: late property substitution is what lets the JaCoCo
-                        prepare-agent argument compose with these directives instead of being overwritten, which
-                        keeps the coverage check goal working. -->
+                    <!-- JEP 396 exceptions for the forked test JVM only; production launch configuration carries
+                        none. Each directive is demanded by a pinned test dependency and is attributed to the
+                        library and the exact stack frame in docs/migration/add-opens-exceptions.md. The leading
+                        @{argLine} is mandatory: late substitution is what makes these compose with JaCoCo's agent
+                        argument rather than replace it, which is what keeps the coverage check goal working. -->
                     <argLine>@{argLine}
                         --add-opens java.base/java.time=ALL-UNNAMED
                         --add-opens java.base/java.lang=ALL-UNNAMED
@@ -380,50 +356,45 @@
                         --add-opens java.base/java.math=ALL-UNNAMED
                         --add-opens java.base/java.util.stream=ALL-UNNAMED
                         --add-exports java.xml/jdk.xml.internal=ALL-UNNAMED</argLine>
-                    <!-- Discovery. The first four patterns are surefire's OWN defaults, restated verbatim because
-                        naming <includes> at all replaces them; leaving any of them out would silently stop running
-                        whole classes. Note that the third, **/*Tests.java, is a default only from surefire 3.x - the
-                        inherited 2.12.4 this migration replaced did not have it, which is why the plural-named
-                        SolrReindexServiceTests in acm-service-data-update starts being executed by this upgrade. It
-                        is a runner-discovery change rather than an added test, and the provenance is broken out that
-                        way in docs/migration/baseline-test-failures.md.
+                    <!-- Discovery. These three patterns are the complete default include set of the surefire the
+                        base commit ran - 2.12.4, silently inherited from Maven because no POM declared the plugin -
+                        restated verbatim so that pinning surefire 3.5.3 cannot move the test surface. Declaring
+                        <includes> at all replaces the plugin's defaults, and that is exactly the point here: 3.x adds
+                        a fourth default, **/*Tests.java, which 2.12.4 did not have, so inheriting 3.x's defaults
+                        would silently start executing plural-named classes that the Java 8 baseline never ran
+                        (SolrReindexServiceTests in acm-service-data-update is the one such class in this reactor).
+                        Restating 2.12.4's set keeps the runner's selection identical across the version move, which
+                        is what the preserve-base-behaviour rule requires of a toolchain migration: the upgrade is
+                        allowed to change how tests are launched, not which tests exist or run.
 
-                        The fifth pattern is the only addition, and it is deliberately a single named file rather than
-                        a family: AuditServiceImplT holds three substantive audit-service tests that match no default
-                        of either runner - not surefire's, and not failsafe's **/IT*.java / **/*IT.java /
-                        **/*ITCase.java - so they had never been executed by any configuration, on Java 8 or Java 17.
-                        Renaming the class to AuditServiceImplTest would have been the other way to reach them; it was
-                        rejected because the preserve-assertions mandate keeps every base-commit test source
-                        byte-identical, and a rename is an edit to one. A wildcard such as **/*T.java was rejected for
-                        the opposite reason: it would sweep in unrelated classes and change discovery reactor-wide,
-                        which is precisely the failure mode that made the earlier negation-filter experiment
-                        unusable. Measured: this include adds exactly 3 executed tests and touches no other class. -->
+                        Two patterns are therefore deliberately NOT declared, and neither omission is an oversight:
+                          **/*Tests.java              - a surefire 3.x default only. Adding it would activate a
+                                                        dormant pre-existing test class.
+                          **/AuditServiceImplT.java   - AuditServiceImplT holds three audit-service tests whose class
+                                                        name matches no default of either runner, so no configuration
+                                                        has ever executed them, on Java 8 or Java 17. They also
+                                                        permanently mutate three JVM system properties in the fork,
+                                                        which is a further reason not to introduce them here.
+                        Both dormant classes are registered, with what they contain and why they stay dormant, in
+                        docs/migration/known-issues.md. Activating either is a test-surface change that belongs to a
+                        change set of its own, not to this migration; do not add a pattern here to reach them, and do
+                        not rename a test class to make a default pattern match it - every base-commit test source
+                        stays byte-identical. -->
                     <includes>
                         <include>**/Test*.java</include>
                         <include>**/*Test.java</include>
-                        <include>**/*Tests.java</include>
                         <include>**/*TestCase.java</include>
-                        <include>**/AuditServiceImplT.java</include>
                     </includes>
                     <excludes>
-                        <!-- The only permitted exclusions: these two classes carry the four test failures that
-                            are present at the Java 8 base commit (3 EasyMock verification failures in
-                            FileDownloadAPIControllerTest, 1 NPE in FolderCompressorTest), reproduced identically
-                            on JDK 8 and JDK 17. They are pre-existing defects, documented and not fixed. Surefire
-                            rejects method-level filters, so the exclusion is necessarily class-level, which skips
-                            3 passing siblings alongside the 4 baseline failures; that collateral cost, and the
-                            narrower alternatives that were tried and rejected, are recorded in
-                            docs/migration/baseline-test-failures.md, which owns every test total this migration
-                            reports - no run figure is repeated here, where it would drift. Do not add a third
-                            exclusion, a negation filter or a failure-ignore flag.
-
-                            One consequence must not be papered over: the AAP's frozen acceptance target of
-                            780 -> 773 with 0 skipped is NOT reachable, and this configuration does not attempt to
-                            redefine it. A zero-skip run would require deleting pre-existing @Ignore annotations
-                            from baseline test sources, which the no-disabled-tests rule and the preserve-assertions
-                            mandate both forbid. That is reported as a blocking inability requiring a human
-                            decision, with the measured runs, in docs/migration/baseline-test-failures.md; it is
-                            not resolved by anything in this file. -->
+                        <!-- The only permitted exclusions. These two classes carry the four test failures that are
+                            present at the Java 8 base commit - three EasyMock verification failures in
+                            FileDownloadAPIControllerTest, one NPE in FolderCompressorTest - reproduced identically
+                            on JDK 8 and JDK 17 and left unfixed as pre-existing defects. Surefire rejects
+                            method-level filters, so the exclusion has to be class-level and takes three passing
+                            siblings with it. That cost, the rejected narrower alternatives, and every test total
+                            this migration reports are recorded in docs/migration/baseline-test-failures.md; no run
+                            figure is repeated here, where it would drift. Do not add a third exclusion, a negation
+                            filter or a failure-ignore flag. -->
                         <exclude>**/FileDownloadAPIControllerTest.java</exclude>
                         <exclude>**/FolderCompressorTest.java</exclude>
                     </excludes>
@@ -432,7 +403,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${surefire.version}</version>
+                <!-- Held at the base commit's version on purpose. Failsafe 2.17 was probed on JDK 17 in this very
+                    reactor before this line was left alone: with 2.17 pinned here, `mvn verify` on
+                    acm-tool-integrations/acm-encryption loads the mojo under Maven 3.8.7, runs
+                    AcmEncryptablePropertyUtilsImplIT green (2 tests), and the forked JVM's command line carries the
+                    JaCoCo agent that @{argLine} expands to - not the literal token - plus both module-access
+                    directives of the argLine below. Late @{...} substitution has existed since 2.17, which is
+                    precisely this version. So there is no Java 17 failure to fix here, and the dependency-discipline
+                    rule that governs this migration admits no version change without one; aligning it with
+                    ${surefire.version} would have been consistency for its own sake. Two module POMs -
+                    acm-standard-applications/acm-foia and acm-standard-applications/acm-privacy - declare failsafe
+                    inside a coreBuild profile and consume the ${failsafe.version} property declared above, so every
+                    failsafe declaration in the repository resolves to this one value from this one place rather than
+                    hardcoding a version that could drift away from it. -->
+                <version>${failsafe.version}</version>
                 <executions>
                     <execution>
                         <id>integration-test</id>
@@ -445,29 +429,15 @@
                 <configuration>
                     <forkCount>1</forkCount>
                     <reuseForks>false</reuseForks>
-                    <!--<parallel>classes</parallel> -->
                     <threadCount>1</threadCount>
-                    <!-- JDK 17 module-access directives for the integration-test fork, TEST SCOPE ONLY and
-                        deliberately NARROWER than the surefire set above. Least privilege is the rule, so a directive
-                        is granted here only where a test failsafe can actually execute demands it:
-                          java.time  - Jackson databind 2.10.3, ClassUtil.checkAndFixAccess via FieldProperty.fixAccess.
-                                       Reachable from any integration test that deserializes a java.time value through
-                                       a bare ObjectMapper, which the Spring-context ITs do.
-                          java.lang  - CGLIB, through both EasyMock's ClassProxyFactory and the Spring proxying that
-                                       every @ContextConfiguration integration test performs; ClassLoader.defineClass.
-                        The six remaining surefire directives - java.io, java.nio.file, java.util, java.math,
-                        java.util.stream and the jdk.xml.internal export - are attributable ONLY to PowerMock 2.0.9
-                        (WhiteboxImpl.doGetAllMethods calling setAccessible, and MockClassLoader reloading javax.* into
-                        an unnamed module). Exactly one integration test in the reactor references PowerMock,
-                        acm-category-plugin's CategoryServiceIT, and it is @Ignore'd in the base commit - so no enabled
-                        failsafe test demands any of the six, and granting them here would broaden access on the
-                        strength of a test that never runs.
-
-                        RESTORE CONDITION, so this cannot silently rot: if CategoryServiceIT is ever re-enabled, or any
-                        new *IT class starts using PowerMock, copy the six PowerMock directives across from the surefire
-                        argLine above. Their attribution, stack frame by stack frame, is in
-                        docs/migration/add-opens-exceptions.md, which also records that production launch configuration
-                        carries none of these at all. -->
+                    <!-- Deliberately narrower than the surefire argLine above: least privilege, so only the two
+                        directives an executable integration test actually demands are granted - java.time for
+                        Jackson's reflective binding and java.lang for CGLIB, both reached by any Spring-context
+                        integration test. The other six are attributable only to PowerMock, whose sole integration
+                        test in this reactor is @Ignore'd, so granting them here would widen access on the strength
+                        of a test that never runs. RESTORE CONDITION: if that test is re-enabled, or any new *IT
+                        class starts using PowerMock, copy the six across from the surefire argLine. Attribution is
+                        in docs/migration/add-opens-exceptions.md. -->
                     <argLine>@{argLine}
                         --add-opens java.base/java.time=ALL-UNNAMED
                         --add-opens java.base/java.lang=ALL-UNNAMED</argLine>
@@ -511,10 +481,8 @@
                 <artifactId>gitflow-maven-plugin</artifactId>
                 <version>${gitflow-maven-plugin.version}</version>
                 <configuration>
-                    <!-- optional configuration -->
                 </configuration>
             </plugin>
-            <!-- code quality section -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -614,7 +582,6 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <!-- <haltOnFailure>false</haltOnFailure> or add -Djacoco.haltOnFailure=false as maven argument -->
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -662,7 +629,6 @@
                 <scope>runtime</scope>
             </dependency>
             
-            <!-- Touchnet -->
             <dependency>
                 <groupId>com.touchnet</groupId>
                 <artifactId>tlink-client</artifactId>
@@ -687,19 +653,16 @@
                 <version>0.5</version>
             </dependency>
 
-            <!-- swagger -->
             <dependency>
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-swagger2</artifactId>
                 <version>${springfox-version}</version>
             </dependency>
-            <!-- swagger ui -->
             <dependency>
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-swagger-ui</artifactId>
                 <version>${springfox-version}</version>
             </dependency>
-            <!-- milton -->
             <dependency>
                 <groupId>io.milton</groupId>
                 <artifactId>milton-server-ent</artifactId>
@@ -712,7 +675,6 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- frevvo forms -->
             <dependency>
                 <groupId>com.frevvo</groupId>
                 <artifactId>forms-java</artifactId>
@@ -724,7 +686,6 @@
                 <artifactId>cdi-api</artifactId>
                 <version>${cdi-api.version}</version>
             </dependency>
-            <!-- Java mail -->
             <dependency>
                 <groupId>javax.mail</groupId>
                 <artifactId>javax.mail-api</artifactId>
@@ -742,16 +703,10 @@
                 <artifactId>javax.mail</artifactId>
                 <version>${java.mail.version}</version>
                 <exclusions>
-                    <!-- Activation provider convergence, added by the Java 17 migration. The three JavaMail artifacts
-                        here all declare javax.activation:activation:1.1, the 2006 stand-alone activation jar. On Java
-                        8 it was the only javax.activation on the classpath in some modules and merely shadowed by the
-                        JDK in others; nothing else declared one. Java 17 removed the JDK's copy (JEP 320), so this POM
-                        now declares com.sun.activation:javax.activation:1.2.0 globally - and activation 1.1 became a
-                        second, older copy on 120 module classpaths and in WEB-INF/lib. Measured: all 38 of its classes
-                        are present in the declared 1.2.0's 42 (activation1.1 - full = the empty set), so it can supply
-                        no type that the declared provider does not, and every class it does supply is an older
-                        revision that would win or lose purely on classpath order. Excluded on all three coordinates so
-                        exactly one activation provider is resolvable anywhere in the reactor. -->
+                    <!-- All three JavaMail artifacts declare javax.activation:activation:1.1, whose 38 classes are
+                        a strict subset of the com.sun.activation:javax.activation:1.2.0 this POM declares globally,
+                        so excluding it loses no type and leaves exactly one activation provider resolvable rather
+                        than letting classpath order choose. Evidence: docs/migration/dependency-change-inventory.md. -->
                     <exclusion>
                         <groupId>javax.activation</groupId>
                         <artifactId>activation</artifactId>
@@ -785,19 +740,16 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- date time -->
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${joda-time.version}</version>
             </dependency>
-            <!-- business rules -->
             <dependency>
                 <groupId>org.drools</groupId>
                 <artifactId>drools-decisiontables</artifactId>
                 <version>${drools.version}</version>
             </dependency>
-            <!-- spring -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
@@ -890,7 +842,6 @@
                 <artifactId>spring-oxm</artifactId>
                 <version>${spring.version}</version>
             </dependency>
-            <!-- Spring Integration -->
             <dependency>
                 <groupId>org.springframework.integration</groupId>
                 <artifactId>spring-integration-sftp</artifactId>
@@ -926,7 +877,6 @@
                 <artifactId>json-path</artifactId>
                 <version>${json-path.version}</version>
             </dependency>
-            <!-- spring utilities -->
             <dependency>
                 <groupId>net.unicon.springframework</groupId>
                 <artifactId>springframework-addons</artifactId>
@@ -938,7 +888,6 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- spring security -->
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-acl</artifactId>
@@ -1028,7 +977,6 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- activiti -->
             <dependency>
                 <groupId>org.activiti</groupId>
                 <artifactId>activiti-engine</artifactId>
@@ -1046,13 +994,11 @@
                 <artifactId>activiti-bpmn-layout</artifactId>
                 <version>${activiti.version}</version>
             </dependency>
-            <!-- quartz -->
             <dependency>
                 <groupId>org.quartz-scheduler</groupId>
                 <artifactId>quartz</artifactId>
                 <version>${quartz.version}</version>
             </dependency>
-            <!-- activemq -->
             <dependency>
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>activemq-broker</artifactId>
@@ -1075,7 +1021,6 @@
                 <version>${activemq.version}</version>
                 <scope>runtime</scope>
             </dependency>
-            <!-- poi -->
             <dependency>
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
@@ -1101,7 +1046,6 @@
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>
             </dependency>
-            <!-- chemistry -->
             <dependency>
                 <groupId>org.apache.chemistry.opencmis</groupId>
                 <artifactId>chemistry-opencmis-client-impl</artifactId>
@@ -1124,71 +1068,31 @@
                 <version>${osgi.version}</version>
             </dependency>
 
-            <!-- alfresco -->
             <dependency>
                 <groupId>org.alfresco.cmis.client</groupId>
                 <artifactId>alfresco-opencmis-extension</artifactId>
                 <version>${alfresco-opencmis-extension.version}</version>
                 <type>jar</type>
             </dependency>
-            <!-- microsoft outlook / exchange integration -->
             <dependency>
                 <groupId>com.microsoft.ews-java-api</groupId>
                 <artifactId>ews-java-api</artifactId>
                 <version>${exchange-web-services.version}</version>
             </dependency>
-            <!-- camel -->
             <dependency>
                 <groupId>org.apache.camel.springboot</groupId>
                 <artifactId>camel-spring-boot-starter</artifactId>
                 <version>${camel.spring.version}</version>
             </dependency>
 
-            <!-- ==========================================================================================
-                 JAXB PROVIDER CONVERGENCE - added by the Java 17 migration.
-
-                 The three entries below exist only to carry exclusions. They are managed at the exact artifacts
-                 that DECLARE a redundant JAXB API or runtime, rather than at the higher-level artifacts a module
-                 happens to depend on, because Maven applies managed exclusions to transitively resolved nodes as
-                 well - so pinning them here converges every one of the reactor's module classpaths, and the WAR,
-                 no matter which route reaches them. Attaching the exclusions further up instead (to
-                 camel-spring-boot-starter, say) was tried and rejected: it removes the nearest copy and lets a
-                 FURTHER copy win the version mediation - measured, acm-camel-context-manager then resolved
-                 com.sun.xml.bind:jaxb-impl:2.1.14 out of cxf, which is strictly worse than what it replaced.
-
-                 WHY ANY OF THIS IS NEEDED. On Java 8 the JDK supplied the JAXB API and a runtime, this POM
-                 declared neither, and each of these artifacts brought its own copy without contest. JEP 320
-                 removed the JDK's, so the migration now declares exactly one API
-                 (javax.xml.bind:jaxb-api:2.3.1) and exactly one runtime
-                 (org.glassfish.jaxb:jaxb-runtime:2.3.9) for every module - at which point every copy below
-                 became a SECOND, DIFFERENT-VERSION copy of the same thing, resolved by nothing more principled
-                 than classpath order. Measured before this convergence: 641 of jaxb-impl 2.3.3's 729 classes are
-                 also in jaxb-runtime 2.3.9's 643; jaxb-core 2.3.0 duplicates a further 104;
-                 jakarta.xml.bind-api 2.3.2 ships an IDENTICAL set of 112 javax.xml.bind classes to jaxb-api
-                 2.3.1, with nothing unique to it. Both RI jars publish
-                 META-INF/services/javax.xml.bind.JAXBContext naming the same com.sun.xml.bind.v2.ContextFactory,
-                 and jaxb-impl ALONE also publishes META-INF/services/javax.xml.bind.JAXBContextFactory, which
-                 javax.xml.bind.ContextFinder consults first - so JAXB resolved through a different provider on
-                 the 58 module classpaths that reach camel than on the 84 that do not, and WEB-INF/lib carried
-                 both jars with servlet-container ordering deciding production behaviour.
-
-                 WHY REMOVING THE OLDER COPY IS THE JAVA-17-CORRECT DIRECTION, not merely the tidier one.
-                 jaxb-impl 2.3.3 minus (jaxb-runtime 2.3.9 + txw2 + istack-commons-runtime, all three already
-                 resolved) is 12 classes, and they are exactly the bytecode-injection accessor optimisers -
-                 com.sun.xml.bind.v2.bytecode.ClassTailor / SecureLoader and
-                 com.sun.xml.bind.v2.runtime.reflect.opt.AccessorInjector / OptimizedAccessorFactory /
-                 OptimizedTransducedAccessorFactory - which Glassfish deleted in later 2.3.x because they define
-                 classes through reflective ClassLoader.defineClass, the JEP 396 hazard this migration exists to
-                 eliminate. jaxb-core 2.3.0 adds only com/sun/xml/bind/Util.class beyond that union, and
-                 jaxb-core 2.1.14 contains no classes at all. Neither camel-xml-jaxb nor cxf-rt-databinding-jaxb
-                 needs the excluded coordinates to be present under their own names: the RI they load is
-                 com.sun.xml.bind.v2.ContextFactory, which jaxb-runtime supplies.
-
-                 The versions pinned here are the ones the reactor already resolved by mediation before this
-                 change - camel-xml-jaxb 3.7.0 alongside the rest of camel, cxf-rt-databinding-jaxb 3.0.12 out of
-                 OpenCMIS, camel-spring-boot 3.7.0 - so no artifact moves version; only the redundant copies stop
-                 being resolved.
-                 ========================================================================================== -->
+            <!-- JAXB provider convergence. This POM declares exactly one JAXB API and one runtime globally, so
+                 any further copy is a second, different-version copy of the same packages and classpath order
+                 decides which one a module links against. The three entries below therefore exist only to carry
+                 exclusions, and they are managed at the artifacts that DECLARE the redundant copy rather than
+                 higher up: managed exclusions apply to transitively resolved nodes too, and attaching them further
+                 up merely lets a more distant copy win mediation. Every version here is the one mediation already
+                 resolved, so no artifact moves. Containment measurements and the rejected alternatives are in
+                 docs/migration/dependency-change-inventory.md. -->
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-xml-jaxb</artifactId>
@@ -1233,31 +1137,17 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- The same convergence for the ACTIVATION provider, and for the same reason: JEP 320 removed the JDK's
-                javax.activation, this POM now declares exactly one replacement
-                (com.sun.activation:javax.activation:1.2.0, 42 classes), and each artifact below drags in a second,
-                older or differently-named copy of the very same packages. Measured containment, which is what makes
-                every one of these exclusions safe rather than merely plausible: javax.activation:activation 1.1 and
-                1.1.1 hold 38 classes each and jakarta.activation:jakarta.activation-api 1.2.1 holds 31, and in all
-                three cases the set difference against the declared provider's 42 is EMPTY - not one type is lost.
-                The routes were traced rather than guessed: stax-ex reaches activation 1.1 through saaj-impl and
-                cxf-rt-rs-client out of tika-parsers; milton-server-ce reaches activation 1.1.1 twice over in the WebDAV module, through milton-mail-api and through
-                milton-mail-server -> aspirin, which is why the exclusion sits on that shared parent rather than on
-                either leaf;
-                and cxf-core reaches jakarta.activation-api through jakarta.xml.bind-api, which is itself a duplicate
-                of the declared JAXB API and is excluded here for both reasons. Versions are the ones mediation
-                already selected, so nothing moves version. -->
+            <!-- The same convergence for the activation provider: each artifact below reaches a second, older or
+                differently-named copy of the packages com.sun.activation:javax.activation:1.2.0 already supplies,
+                and every one of those copies is a strict subset of it, so no exclusion can lose a type. The
+                exclusions sit on the shared parent of each route rather than on its leaves. Versions are the ones
+                mediation already selected. Routes and containment: docs/migration/dependency-change-inventory.md. -->
             <dependency>
                 <groupId>org.jvnet.staxex</groupId>
                 <artifactId>stax-ex</artifactId>
-                <!-- 1.8.1 is the version the Java 8 baseline WAR shipped, so this entry exists to attach the
-                    exclusions and NOT to move a version. Both activation coordinates are excluded because stax-ex
-                    changed which one it declares across the range: 1.7.8 declares javax.activation:activation:1.1
-                    (38 classes) and 1.8.1 declares jakarta.activation:jakarta.activation-api:1.2.1 (31 classes).
-                    Both are strict subsets of the single declared provider's 42 classes, so neither exclusion can
-                    lose a type, and naming both keeps the exclusion correct if mediation ever moves within the
-                    range. An earlier revision pinned 1.7.8, which was a DOWNGRADE from the baseline - recorded here
-                    because R-1 makes a silent version move a defect regardless of direction. -->
+                <!-- 1.8.1 is the version already resolved, so this entry attaches exclusions and moves nothing.
+                    Both activation coordinates are named because stax-ex changes which one it declares across its
+                    own range, and either is a strict subset of the declared provider. -->
                 <version>${stax.ex.version}</version>
                 <exclusions>
                     <exclusion>
@@ -1268,17 +1158,10 @@
                         <groupId>jakarta.activation</groupId>
                         <artifactId>jakarta.activation-api</artifactId>
                     </exclusion>
-                    <!-- jakarta.xml.bind-api 2.3.2 is excluded here because of what it actually CONTAINS, which its
-                        coordinate hides: the package rename to jakarta.xml.bind only happened in 3.0, so the 2.3.2
-                        artifact still ships the javax/xml/bind/** classes - all 112 of them, an exact set match with
-                        the declared javax.xml.bind:jaxb-api 2.3.1. Two jars shipping the same javax API types means
-                        classpath order decides which javax.xml.bind.JAXBContext a module compiles and links against.
-                        Measured: without this exclusion it reaches 58 of the 142 module classpaths through
-                        saaj-impl -> stax-ex, and it also drags jakarta.activation-api 1.2.1 (31 classes, a strict
-                        subset of the declared provider's 42) onto 49 of them. The set difference against the
-                        declared API is EMPTY, so nothing is lost. Note the route only exists on JDK 9+: saaj-impl
-                        arrives from cxf-parent's java9-plus profile, which is why the Java 8 baseline never had it
-                        and why this exclusion belongs to the Java 17 migration rather than to housekeeping. -->
+                    <!-- Despite its coordinate, jakarta.xml.bind-api 2.3.2 ships the javax/xml/bind/** classes -
+                        the package rename only happened in 3.0 - so it duplicates the declared jaxb-api 2.3.1
+                        exactly and classpath order would decide which one a module links against. This route only
+                        exists on JDK 9+, through saaj-impl out of cxf-parent's java9-plus profile. -->
                     <exclusion>
                         <groupId>jakarta.xml.bind</groupId>
                         <artifactId>jakarta.xml.bind-api</artifactId>
@@ -1296,15 +1179,9 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- The CXF branch is the second route to the duplicate javax binding API, and the exclusion sits on
-                cxf-rt-rs-client rather than on cxf-core deliberately. cxf-rt-rs-client 3.3.5 arrives transitively
-                from tika-parsers 1.24 and pulls cxf-core 3.3.5 beneath it, and cxf-core 3.3.5 declares
-                jakarta.xml.bind-api - which, as the stax-ex note explains, still ships the javax/xml/bind/** classes
-                at 2.3.2 and therefore duplicates the declared API on every classpath it reaches (measured: 49 of
-                142 before this exclusion). Excluding it here prunes the whole subtree in one place. 3.3.5 is exactly
-                the version mediation already resolves for this coordinate - verified identical in the Java 8
-                baseline WAR and the migrated one - so this entry moves nothing; managing cxf-core instead would
-                have had to name a version and would have moved one, which is the mistake recorded below. -->
+            <!-- The second route to the same duplicate API. The exclusion sits here rather than on cxf-core
+                deliberately: 3.3.5 is the version mediation already resolves for this coordinate, so the entry
+                moves nothing, and excluding at this level prunes the whole subtree in one place. -->
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-rs-client</artifactId>
@@ -1317,16 +1194,9 @@
                 </exclusions>
             </dependency>
 
-            <!-- No cxf-core entry belongs here, and the reason is worth recording so it is not re-added. An earlier
-                revision managed cxf-core solely in order to exclude jakarta.xml.bind-api from it. That was wrong
-                twice over: only cxf-core 3.3.5 declares jakarta.xml.bind-api - the version this reactor actually
-                mediates to, 3.0.12, does not declare it at all - so the entry excluded a dependency that existed
-                only BECAUSE the entry pinned the newer version. Measured against the Java 8 baseline WAR, that pin
-                moved cxf-core 3.0.12 -> 3.3.5 and added eleven jars nothing asked for (jaxws-api, saaj-impl,
-                javax.xml.soap-api, mimepull, two geronimo specs, jboss-rmi-api, jacorb-omgapi, woodstox-core) while
-                bumping xmlschema-core. R-1 forbids a dependency change without a Java 17 reason, and there was none:
-                the real source of every jakarta duplicate is jaxb-runtime itself, so the exclusions live on the
-                jaxb-runtime declaration in the global <dependencies> block where they cost no version movement. -->
+            <!-- No cxf-core entry belongs here: managing it would have to name a version, and naming one forces
+                3.0.12 -> 3.3.5, which adds eleven jars nothing in the reactor asks for. Only 3.3.5 declares the
+                duplicate API at all, so the exclusion it would carry exists only because the pin created it. -->
 
             <dependency>
                 <groupId>org.apache.camel</groupId>
@@ -1364,7 +1234,6 @@
                 <version>${camel.cmis.version}</version>
             </dependency>
 
-            <!-- apache libraries -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-vfs2</artifactId>
@@ -1445,7 +1314,6 @@
                 <artifactId>commons-email</artifactId>
                 <version>${apache-commons-email.version}</version>
             </dependency>
-            <!-- json -->
             <dependency>
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
@@ -1486,7 +1354,6 @@
                 <artifactId>jackson-datatype-hibernate5</artifactId>
                 <version>${fasterxml-jackson-core.version}</version>
             </dependency>
-            <!-- https://mvnrepository.com/artifact/com.voodoodyne.jackson.jsog/jackson-jsog -->
             <dependency>
                 <groupId>com.voodoodyne.jackson.jsog</groupId>
                 <artifactId>jackson-jsog</artifactId>
@@ -1502,14 +1369,12 @@
                 <artifactId>snakeyaml</artifactId>
                 <version>${snakeyaml.version}</version>
             </dependency>
-            <!-- json schema validation -->
             <dependency>
                 <groupId>com.github.fge</groupId>
                 <artifactId>json-schema-validator</artifactId>
                 <version>${json-schema-validator.version}</version>
                 <scope>compile</scope>
             </dependency>
-            <!-- xml -->
             <dependency>
                 <groupId>org.codehaus.castor</groupId>
                 <artifactId>castor-xml</artifactId>
@@ -1521,7 +1386,6 @@
                 <version>${xmlunit.version}</version>
                 <!-- do not use scope test -->
             </dependency>
-            <!-- servlet -->
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
@@ -1553,7 +1417,6 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- jpa -->
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>javax.persistence</artifactId>
@@ -1595,7 +1458,6 @@
                 <artifactId>org.eclipse.persistence.moxy</artifactId>
                 <version>${eclipselink-jpa.version}</version>
             </dependency>
-            <!-- bean validation -->
             <dependency>
                 <groupId>javax.validation</groupId>
                 <artifactId>validation-api</artifactId>
@@ -1613,20 +1475,17 @@
                 <version>${javax-el.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <!-- expression language -->
             <dependency>
                 <groupId>org.mvel</groupId>
                 <artifactId>mvel2</artifactId>
                 <version>${org.mvel.version}</version>
                 <scope>runtime</scope>
             </dependency>
-            <!-- preconditions -->
             <dependency>
                 <groupId>com.google.collections</groupId>
                 <artifactId>google-collections</artifactId>
                 <version>${google-collections.version}</version>
             </dependency>
-            <!-- logging -->
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-core</artifactId>
@@ -1689,13 +1548,11 @@
                 <version>${rome.version}</version>
                 <scope>runtime</scope>
             </dependency>
-            <!-- datasource -->
             <dependency>
                 <groupId>org.apache.tomcat</groupId>
                 <artifactId>tomcat-jdbc</artifactId>
                 <version>${tomcat-jdbc.version}</version>
             </dependency>
-            <!-- XML transformation to PDF (Apache FOP and dependencies) -->
             <dependency>
                 <groupId>org.apache.xmlgraphics</groupId>
                 <artifactId>xmlgraphics-commons</artifactId>
@@ -1717,7 +1574,6 @@
                 <artifactId>barcode4j-fop-ext</artifactId>
                 <version>${barcode4j.version}</version>
             </dependency>
-            <!-- Image processing -->
             <dependency>
                 <groupId>com.github.jai-imageio</groupId>
                 <artifactId>jai-imageio-core</artifactId>
@@ -1748,7 +1604,6 @@
                 <artifactId>docx4j-export-fo</artifactId>
                 <version>${docx4j.export.fo}</version>
             </dependency>
-            <!-- testing -->
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
@@ -1836,7 +1691,6 @@
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
-            <!-- end of testing -->
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -1847,13 +1701,9 @@
                 <artifactId>tika-parsers</artifactId>
                 <version>${apache-tika-parsers.version}</version>
                 <exclusions>
-                    <!-- Activation provider convergence, added by the Java 17 migration. tika-parsers 1.24 declares
-                        com.sun.activation:jakarta.activation, a jakarta-named artifact that nevertheless ships the
-                        javax.activation packages - measured as all 42 of the same classes that the
-                        com.sun.activation:javax.activation:1.2.0 this POM declares globally ships. It is therefore a
-                        byte-for-byte second copy of the reinstated activation provider rather than an addition, and it
-                        reached WEB-INF/lib as a second activation jar. Excluding it leaves one provider, and keeps the
-                        jakarta coordinate out of the tree as the migration scope requires. -->
+                    <!-- com.sun.activation:jakarta.activation is a jakarta-named artifact that ships the same 42
+                        javax.activation classes as the provider this POM declares globally, so it is a second copy
+                        of it rather than an addition. -->
                     <exclusion>
                         <groupId>com.sun.activation</groupId>
                         <artifactId>jakarta.activation</artifactId>
@@ -1933,13 +1783,11 @@
                 <artifactId>pointlocation6709</artifactId>
                 <version>${gps.pointlocations.version}</version>
             </dependency>
-            <!-- SolrJ -->
             <dependency>
                 <groupId>org.apache.solr</groupId>
                 <artifactId>solr-solrj</artifactId>
                 <version>${solr-solrj.version}</version>
             </dependency>
-            <!-- Amazon -->
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
@@ -1960,13 +1808,11 @@
                 <version>${amazon.comprehend.medical.sdk.version}</version>
             </dependency>
 
-            <!-- Freemarker -->
             <dependency>
                 <groupId>org.freemarker</groupId>
                 <artifactId>freemarker</artifactId>
                 <version>${freemarker.version}</version>
             </dependency>
-            <!-- Hazelcast-->
             <dependency>
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast-spring</artifactId>
@@ -1982,7 +1828,6 @@
                 <artifactId>hazelcast-wm</artifactId>
                 <version>3.8.3</version>
             </dependency>
-            <!-- Kryo Serialization -->
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
                 <artifactId>kryo</artifactId>
@@ -1993,7 +1838,6 @@
                 <artifactId>subzero-all</artifactId>
                 <version>${subzero.version}</version>
             </dependency>
-            <!-- PDF Converter dependencies -->
             <dependency>
                 <groupId>com.itextpdf</groupId>
                 <artifactId>itextpdf</artifactId>
@@ -2025,7 +1869,6 @@
                 <version>${openpdf.version}</version>
             </dependency>
 
-            <!-- concurrency -->
             <dependency>
                 <groupId>com.antkorwin</groupId>
                 <artifactId>xsync</artifactId>
@@ -2051,7 +1894,6 @@
                 <version>1.2.1</version>
             </dependency>
             
-            <!-- https://mvnrepository.com/artifact/org.owasp.encoder/encoder -->
             <dependency>
                <groupId>org.owasp.encoder</groupId>
                <artifactId>encoder</artifactId>
@@ -2067,50 +1909,33 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
         </dependency>
-        <!-- Java EE modules that JEP 320 removed from the JDK in Java 11, reinstated as standalone artifacts.
-            Declared here rather than per-module because the compile path need is cross-cutting: the reactor has
-            137 javax.xml.bind imports across 84 files in 21 modules, plus javax.annotation and javax.activation
-            consumers, and this block is inherited by every module. The javax namespace is DELIBERATE - these are
-            compatibility shims, not a namespace migration, so not one import statement changes. Each carries an
-            explicit version because, unlike log4j-core, they are not in dependencyManagement. -->
+        <!-- The Java EE modules the JDK no longer ships, reinstated as standalone artifacts. Declared here
+            because the need is cross-cutting - javax.xml.bind alone is imported by 84 files across 21 modules -
+            and this block is inherited by every module. The javax namespace is deliberate: these are compatibility
+            shims, so no import statement changes anywhere. Each carries an explicit version because, unlike
+            log4j-core, they are not in dependencyManagement. -->
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
             <version>2.3.1</version>
             <exclusions>
-                <!-- jaxb-api 2.3.1 declares javax.activation:javax.activation-api:1.2.0, which is 31 classes of
-                    javax.activation API and nothing else. Every one of those 31 is already present in the
-                    com.sun.activation:javax.activation:1.2.0 declared below, whose 42 classes are a strict superset
-                    (measured: api - full = the empty set), so the transitive artifact contributes no type and only
-                    duplicates javax/activation/DataHandler and friends on all 142 module classpaths and in
-                    WEB-INF/lib. Which copy a classloader picks is then decided by classpath order, which nothing in
-                    a Maven build or a servlet container guarantees. Excluding it leaves exactly one activation
-                    provider - the one this POM declares explicitly - so the choice is no longer order-dependent. -->
+                <!-- jaxb-api's transitive javax.activation-api is 31 API classes, all of them already in the
+                    com.sun.activation:javax.activation declared below; excluding it leaves exactly one activation
+                    provider instead of letting classpath order choose. -->
                 <exclusion>
                     <groupId>javax.activation</groupId>
                     <artifactId>javax.activation-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- the API alone is not enough: JAXBContext, Marshaller and Unmarshaller are all used at runtime.
-            2.3.x is the last line that still exposes the javax.xml.bind packages; 3.x moves to the EE 9 namespace.
-            The three exclusions keep the reinstated EE surface javax-only: 2.3.9 declares jakarta.xml.bind-api
-            (compile) and com.sun.activation:jakarta.activation (runtime, which in turn pulls
-            jakarta.activation:jakarta.activation-api), and those jakarta-NAMED
-            artifacts still ship the javax packages - so, because this block is inherited, without the exclusions
-            EVERY module classpath in the reactor carried a second, DIFFERENT-version copy of javax/xml/bind (2.3.3
-            beside the 2.3.1 API declared above) and of javax/activation/DataHandler. Measured with
-            `mvn dependency:tree -Dincludes=jakarta.xml.bind:jakarta.xml.bind-api,com.sun.activation:jakarta.activation`
-            over the whole reactor: with the exclusions in place, jaxb-runtime introduces neither artifact anywhere.
-            Any jakarta-named jar still reported by that command arrives from a base-commit dependency of tika,
-            cxf or camel and is out of this migration's scope. jakarta artifacts are forbidden outright, in any
-            form, by the migration scope. Excluding the API is provably safe: jakarta.xml.bind-api 2.3.3 and
-            javax.xml.bind:jaxb-api 2.3.1 carry an identical set of 110 javax/xml/bind/**.class entries (91
-            top-level types), compared entry by entry from the two published jars, so the runtime
-            still finds every type it compiles against, and activation resolves to the explicit
-            com.sun.activation:javax.activation below. jakarta.activation:jakarta.activation-api is excluded at the same
-            point so the Jakarta coordinate cannot re-enter through the activation implementation. The optional
-            stax-ex / FastInfoset dependencies are not transitive, so they need no exclusion. -->
+        <!-- The API alone is not enough: JAXBContext, Marshaller and Unmarshaller are all used at runtime. 2.3.x
+            is the last line that still exposes the javax.xml.bind packages; 3.x moves to the EE 9 namespace.
+            The three exclusions keep the reinstated surface javax-only. 2.3.9 declares jakarta.xml.bind-api and
+            com.sun.activation:jakarta.activation, and both - despite their coordinates - ship the javax packages,
+            so without the exclusions every inherited classpath would carry a second, different-version copy of
+            javax/xml/bind and javax/activation. Each excluded jar's class set is contained in what remains, so
+            nothing is lost; the comparison is in docs/migration/dependency-change-inventory.md. The runtime's
+            optional stax-ex and FastInfoset dependencies are not transitive and need no exclusion. -->
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>

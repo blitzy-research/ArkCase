@@ -48,7 +48,6 @@ public class DistributiveEventMulticaster implements ApplicationEventMulticaster
     @Override
     public void addApplicationListener(ApplicationListener<?> listener)
     {
-        // choose multicaster by annotation
         if (listener.getClass().getAnnotation(AsyncApplicationListener.class) != null)
         {
             asyncEventMulticaster.addApplicationListener(listener);
@@ -59,10 +58,16 @@ public class DistributiveEventMulticaster implements ApplicationEventMulticaster
         }
     }
 
+    /**
+     * No-op by design. A bean name on its own cannot be routed, because the {@link AsyncApplicationListener}
+     * annotation that decides between the synchronous and the asynchronous delegate is read from the listener's own
+     * class in {@link #addApplicationListener(ApplicationListener)}, and singleton listeners already arrive through
+     * that instance path. Discarding the name is therefore what makes this wrapper hold no bean-name state at all,
+     * which is why the two remove-by-name methods below have nothing to act on.
+     */
     @Override
     public void addApplicationListenerBean(String listenerBeanName)
     {
-        // do nothing
     }
 
     @Override
@@ -72,10 +77,12 @@ public class DistributiveEventMulticaster implements ApplicationEventMulticaster
         syncEventMulticaster.removeApplicationListener(listener);
     }
 
+    /**
+     * No-op by design: nothing is registered by bean name, so there is nothing to remove by bean name.
+     */
     @Override
     public void removeApplicationListenerBean(String listenerBeanName)
     {
-        // do nothing
     }
 
     @Override
@@ -85,10 +92,13 @@ public class DistributiveEventMulticaster implements ApplicationEventMulticaster
         syncEventMulticaster.removeApplicationListeners(predicate);
     }
 
+    /**
+     * No-op by design, for the same reason as {@link #removeApplicationListenerBean(String)}: this multicaster keeps
+     * no bean names for a predicate to match.
+     */
     @Override
     public void removeApplicationListenerBeans(Predicate<String> predicate)
     {
-        // do nothing
     }
 
     @Override

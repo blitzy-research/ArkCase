@@ -27,7 +27,15 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>2.17</version>
+                        <!-- Consume the single reactor-wide Failsafe pin, ${failsafe.version}, from the root POM.
+                            A hardcoded version here wins over the inherited declaration whenever this profile
+                            activates, so a value repeated in this file can silently diverge from the root's and take
+                            the root configuration's late @{argLine} substitution with it - the mechanism that composes
+                            the JaCoCo agent argument with the JDK 17 module-access directives. The property resolves to
+                            the base commit's 2.17, which the root POM explains and no measurement asks to move. The
+                            profile's executions, goals and skipTests below are untouched: which tests run here does not
+                            change. -->
+                        <version>${failsafe.version}</version>
                         <executions>
                             <execution>
                                 <id>integration-test</id>
@@ -47,7 +55,6 @@
     </profiles>
 
     <dependencies>
-        <!-- core arkcase -->
         <dependency>
             <groupId>com.armedia.acm.acm-plugins.acm-default-plugins</groupId>
             <artifactId>acm-admin-plugin</artifactId>
@@ -144,7 +151,6 @@
             <artifactId>commons-io</artifactId>
         </dependency>
 
-        <!-- testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

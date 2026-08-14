@@ -77,8 +77,8 @@ module.exports = {
         },
         css : [ 'assets/css/application.css', 'modules/**/css/*.css', 'assets/css/arkcase-extension.css'],
         scss : [ 'modules/**/scss/*.scss'],
-        js : [ 'config.js', 'application.js', 'scripts/*/**/*.js', 'services/*.js', // Includes services/services.client.module.js file only
-        'directives/*.js', // Includes directives/directives.client.js file only
+        js : [ 'config.js', 'application.js', 'scripts/*/**/*.js', 'services/*.js',
+        'directives/*.js',
         'filters/*.js', 'filters/*/*.js' ],
         distJs : [ 'assets/dist/vendors.min.js', 'assets/dist/application.min.js' ],
         distCss : [ 'assets/dist/application.min.css' ], // Can't use this, because CSS has fonts and images dependencies

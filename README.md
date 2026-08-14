@@ -27,8 +27,15 @@ This section documents how developers can build and run ArkCase.  (For non-devel
 * VirtualBox <https://www.virtualbox.org>
 * Vagrant <https://www.vagrantup.com>
 * Tomcat 9 <https://tomcat.apache.org>
-* git <https://git-scm.com/>. Regenerating the frontend lockfile with `npm install --ignore-scripts` needs git; installing from the committed lockfile with `npm ci --ignore-scripts` needs none at all, only outbound HTTPS to registry.npmjs.org and codeload.github.com. Both commands carry `--ignore-scripts` deliberately, and it is not optional: npm runs `prepare` for git dependencies, and one of the locked asset repositories tries to build an ancient native module there that cannot compile on Node 20. This is the install form the migration proved and the one the deployed application runs.
-* Node.js 20 LTS <https://nodejs.org>. The frontend declares `engines` of `node >=20.19.0 <21` and `npm >=10`; npm reports an `EBADENGINE` warning on a runtime outside that range and continues, so run the frontend build on Node 20.
+* git <https://git-scm.com/>. The frontend install needs it: every GitHub dependency in the committed `package-lock.json` is recorded as a `git+ssh` URL, so `npm ci --ignore-scripts` — and `npm install --ignore-scripts` when the lockfile is regenerated — needs git on the path together with either SSH access to github.com or these two rewrites, which is how the build hosts are configured:
+
+    ```bash
+    git config --global url."https://github.com/".insteadOf git+ssh://git@github.com/
+    git config --global url."https://github.com/".insteadOf ssh://git@github.com/
+    ```
+
+    Both commands carry `--ignore-scripts` deliberately, and it is not optional: npm runs `prepare` for git dependencies, and one of the locked asset repositories tries to build an ancient native module there that cannot compile on Node 20. This is the install form the deployed application runs.
+* Node.js 20 LTS <https://nodejs.org>. The frontend declares `engines` of `node >=20.19.0 <21` and `npm >=10`, and enforces it: the project `.npmrc` sets `engine-strict=true`, so on a runtime outside that range npm **refuses** the install with `EBADENGINE` and a non-zero exit rather than warning and carrying on. The same rule applies to the deploy-time install, which runs `npm ci --ignore-scripts --engine-strict`. That is deliberate — a bundle built on a superseded runtime is the outcome this migration exists to prevent — so use Node 20 rather than working around the refusal.
 * npm 10 (comes with Node 20)
 
 ### Build the Vagrant VM
@@ -120,20 +127,28 @@ export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Duser.timezone=GMT -Djavax.ne
 
 export NODE_ENV=development
 
-export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)
-# MacOS Example: export CATALINA_OPTS=/usr/local/opt/tomcat-native/lib"
+### TOMCAT_NATIVE_LIBRARY_PATH is the directory holding the Tomcat native library.
+### MacOS example: export TOMCAT_NATIVE_LIBRARY_PATH=/usr/local/opt/tomcat-native/lib
+### The quotes close on this line. Leaving them open would fold the comment below into the value,
+### so -Djava.library.path would carry a newline and a shell comment and the native library would
+### never be found.
+export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=${TOMCAT_NATIVE_LIBRARY_PATH:?TOMCAT_NATIVE_LIBRARY_PATH must be set}"
 
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
 
-Replace `PATH_TO_THE_TOMCAT_NATIVE_LIBRARY` with the directory holding your Tomcat native library, and export the two credentials before starting Tomcat:
+Export `TOMCAT_NATIVE_LIBRARY_PATH` with the directory holding your Tomcat native library, and the two credentials, before starting Tomcat:
 
 * `ARKCASE_KEYSTORE_PASSWORD` — the password of `${HOME}/.arkcase/acm/private/arkcase.ks`, chosen when that key store was created by the `arkcase-ce` provisioning you ran above.
 * `ARKCASE_TRUSTSTORE_PASSWORD` — the password of `${HOME}/.arkcase/acm/private/arkcase.ts`, chosen the same way.
 
-Everything else in the script above runs as written, since `${HOME}` is expanded by the shell.  The `${user.home}` references in the `server.xml` connector snippet earlier in this section are different: Tomcat expands those itself, so leave them as they are.  Do not commit either password to source control, and rotate both — along with any default they were provisioned with — before a deployment is reachable by anyone but you.
+With those three variables exported the script above runs as written and needs no editing: every substitution in it is an ordinary shell expansion, and `${HOME}` in particular is expanded by the shell on Linux and MacOS X alike.  The `${user.home}` references in the `server.xml` connector snippet earlier in this section are different: they are Tomcat property placeholders that Tomcat expands itself, they are **not** shell syntax, and a shell would reject them — so leave them where they are and never copy one into this script.  Do not commit either password to source control, and rotate both — along with any default they were provisioned with — before a deployment is reachable by anyone but you.
 
-**Module-access flags on Java 17.**  Leave `JAVA_OPTS` exactly as it is above: on Tomcat 9 nothing needs to be added, because Tomcat's own `bin/catalina.sh` exports `--add-opens=java.base/java.lang=ALL-UNNAMED` (among others) before the JVM starts, and that is the one open ArkCase genuinely requires — two pinned libraries, Drools and Groovy, reflect into `java.lang` while the application compiles its business rules during startup.  This was measured rather than assumed: with Tomcat's flags in place the application starts and login succeeds, and with them removed the root Spring context fails with `InaccessibleObjectException` and every request returns 404.  If you launch ArkCase with anything other than Tomcat's own script, add `--add-opens=java.base/java.lang=ALL-UNNAMED` yourself and nothing else.  Do not add `--add-exports` or `--illegal-access`, and do not copy the Maven test runners' directives into a server: those are confined to forked test JVMs, are configured in the root `pom.xml`, and their per-library attribution — together with the runtime exception above — is recorded in the [module-access exceptions record](docs/migration/add-opens-exceptions.md).
+**Module-access flags on Java 17.** Leave `JAVA_OPTS` exactly as it is above. ArkCase's launch configuration grants no module access: add no `--add-opens`, no `--add-exports` and no `--illegal-access`, exactly as at the Java 8 base commit.
+
+One measured observation belongs beside that, because it is a deployment fact rather than a policy: ArkCase's start-up reflects into `java.base/java.lang`. Two pinned dependencies do it while the application compiles its business rules during context initialisation — Drools 7.34.0.Final, whose `ClassGenerator` calls `setAccessible` on `ClassLoader.defineClass`, and Groovy 1.8.6, reached through AWS SDK 1.11.775, which calls `setAccessible` on `Object.finalize()`. On Tomcat 9 nothing has to be done about it: Tomcat's own `bin/catalina.sh` exports seven `--add-opens` through `JDK_JAVA_OPTIONS` before the JVM starts — including `java.base/java.lang`, alongside `java.lang.invoke`, `java.lang.reflect`, `java.io`, `java.util`, `java.util.concurrent` and `java.rmi/sun.rmi.transport` — which is why this file needs no flag. Started through a launcher that omits them, the `/arkcase` context fails to initialise with `InaccessibleObjectException` and every path returns 404.
+
+That is recorded as an unreconciled observation rather than as a grant: opening `java.base/java.lang` to `ALL-UNNAMED` exposes the JDK's most sensitive package to every library on the classpath, not only the two that ask for it, and retiring the demand means moving off Drools and the Groovy it carries — a behaviour change this migration does not make. The measurement, both demanding dependencies with their stack frames, the two-run experiment behind it and the options a human can ratify are in the [module-access exceptions record](docs/migration/add-opens-exceptions.md). Do not copy the Maven test runners' directives into a server: those are confined to forked test JVMs and are configured in the root `pom.xml`.
 
 #### Start Tomcat
 
@@ -147,7 +162,7 @@ The result of the command `mvn -DskipITs clean install` (described above) is the
 
 Copy this file to `$TOMCAT_HOME`, rename it to `arkcase.war`, and move the `arkcase.war` to `$TOMCAT_HOME/webapps`.  Then, watch the Tomcat log file (`$TOMCAT_HOME/logs/catalina.out`).  The first startup will take 5 - 10 minutes. 
 
-If you see any errors that prevent application startup (in other words: if after Tomcat has started, you get a 404 error from `https://arkcase-ce.local/arkcase`, raise a GitHub issue in this repository.
+If you see any errors that prevent application startup (in other words, if you get a 404 error from `https://arkcase-ce.local/arkcase` after Tomcat has started), raise a GitHub issue in this repository.
 
 ### Trusting the self-signed ArkCase certificate
 
@@ -163,6 +178,6 @@ Once you see the ArkCase login page, you can log in with the administrator accou
 
 ### IDE Integration
 
-ArkCase is a Maven project with a standard Maven folder layout.  You can load it into your chosen IDE or editor in whichever way is supported by your editor; if your IDE supports starting and launching a war file, this should work in the normal way.  Detailed steps to configure IDE integration is beyond the scope of this guide.
+ArkCase is a Maven project with a standard Maven folder layout.  You can load it into your chosen IDE or editor in whichever way is supported by your editor; if your IDE supports starting and launching a war file, this should work in the normal way.  Detailed steps to configure IDE integration are beyond the scope of this guide.
 
-ArkCase developers have used IntelliJ IDEA and Eclipse.  Visual Studio Code is usable as a code editor, but you have to deploy ArkCase manually as described above; so far VS Code seems unable to deploy ArkCase from within itself.
+ArkCase developers have used IntelliJ IDEA and Eclipse.  Visual Studio Code is usable as a code editor, but you have to deploy ArkCase manually as described above; it cannot deploy ArkCase from within itself.

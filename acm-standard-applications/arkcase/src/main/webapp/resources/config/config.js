@@ -1,36 +1,17 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
 var _ = require('lodash'), glob = require('glob');
 
-/**
- * Load app configurations
- */
 module.exports = _.extend(require('./env/all'));
 
 /**
- * Load active profiles
- *
- * `profiles.js` is generated, never checked in: at deploy time AngularResourceCopier
- * writes it into the assembly folder immediately before invoking Grunt, and in a
- * checkout the `prebuild` script (scripts/ensure-profiles.js) writes the same file
- * ahead of `npm run build`. This module is the first thing the Grunt `default` chain
- * loads, so an unguarded require aborts the entire build whenever neither producer
- * has run. The require is guarded and defaulted to `{ profiles: [ 'custom' ] }`, the
- * exact value the assembler emits for its own single-profile fallback; the generated
- * module wins whenever it is present, so deployed behaviour is unchanged.
- *
- * Only the absence of that one module is defaulted; every other failure is re-thrown
- * rather than masked, because silently substituting the single default profile would
- * downgrade a multi-profile deployment without a word. The test is therefore narrowed
- * twice: to MODULE_NOT_FOUND, node's own stable error code, and to a require stack
- * whose innermost frame is this file - so a generated module that exists but does not
- * parse, one that throws while loading, and one whose own require cannot be resolved
- * all surface their real error. `requireStack` is treated as advisory: when it is
- * unavailable the code alone decides, which keeps a bare checkout building. The
- * message text is deliberately never matched, since its wording is not a contract.
+ * `profiles.js` is generated, never checked in - by AngularResourceCopier at deploy time and by the `prebuild`
+ * script in a checkout - so only its absence is defaulted, to the single-profile value the assembler itself
+ * emits. Every other failure is re-thrown rather than masked, because substituting that default would silently
+ * downgrade a multi-profile deployment. Absence is therefore identified by MODULE_NOT_FOUND together with an
+ * innermost require frame of this file, so a generated module that does not parse, throws, or has an
+ * unresolvable require of its own surfaces its real error. `requireStack` is advisory: when node does not
+ * supply it the code alone decides, which keeps a bare checkout building. The message text is never matched.
  */
 try {
     var activeProfiles = require('./../profiles');
@@ -42,20 +23,12 @@ try {
     activeProfiles = { profiles: [ 'custom' ] };
 }
 
-/**
- * Get files by glob patterns
- */
 module.exports.getGlobbedFiles = function(globPatterns, removeRoot) {
-    // For context switching
     var _this = this;
-
-    // URL paths regex
     var urlRegex = new RegExp('^(?:[a-z]+:)?\/\/', 'i');
-
-    // The output array
     var output = [];
 
-    // If glob pattern is array so we use each pattern in a recursive way, otherwise we use glob
+    // A URL is kept verbatim; only a filesystem pattern is expanded, and an array is expanded element by element.
     if (_.isArray(globPatterns)) {
         globPatterns.forEach(function(globPattern) {
             output = _.union(output, _this.getGlobbedFiles(globPattern, removeRoot));
@@ -77,9 +50,6 @@ module.exports.getGlobbedFiles = function(globPatterns, removeRoot) {
     return output;
 };
 
-/**
- * Get the modules JavaScript files
- */
 module.exports.getJavaScriptAssets = function() {
     return this.getGlobbedFiles(this.assets.lib.js.concat(this.assets.js, this.assets.lib.customJs), '');
 };
@@ -151,9 +121,6 @@ module.exports.getModulesJavaScriptAssets = function() {
     return output;
 };
 
-/**
- * Get the modules CSS files
- */
 module.exports.getCSSAssets = function() {
     var _this = this;
     var cssResources = _this.assets.lib.css.concat(_this.assets.css);

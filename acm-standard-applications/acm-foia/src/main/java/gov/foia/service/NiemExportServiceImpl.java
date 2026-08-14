@@ -231,15 +231,17 @@ public class NiemExportServiceImpl implements NiemExportService
     private void transformXMLToFile(Document document, FileOutputStream fileOutputStream) throws TransformerException
     {
         TransformerFactory factory = TransformerFactory.newInstance();
-        /**
-         * the JDK's built-in Xalan XSLTC TrAX implementation - JDK
-         * org.apache.xalan.processor - Xalan
-         * org.apache.xalan.xsltc.trax - Xalan
-         * 
-         * those are TransformerFactory implementation providers and not sure which implementation doesn't support below XMLConstants 
-         * that's why suppressing IllegalArgumentException.
+        /*
+         * The empty string denies every protocol, but these three restrictions are best-effort: whether any of them
+         * takes effect depends on the TrAX provider that TransformerFactory.newInstance() selects, and neither
+         * provider reachable here accepts the whole set. Xalan 2.7.2 is on this application's classpath and is
+         * therefore the provider selected at run time; it predates JAXP 1.5 and rejects all three as "Not supported",
+         * so none of them is applied. The JDK's built-in XSLTC factory, selected only when Xalan is absent, accepts
+         * the DTD and stylesheet restrictions but rejects the schema one - and because all three calls share a single
+         * try block, that rejection leaves the stylesheet call unreached as well. External access consequently stays
+         * at the provider's own default for this transformation, which is an identity transform of a document this
+         * service built in memory.
          */
-     
         try
         {
             factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -248,7 +250,8 @@ public class NiemExportServiceImpl implements NiemExportService
         }
         catch (IllegalArgumentException e)
         {
-            // TODO: handle exception
+            // Intentionally empty: a provider that does not recognise one of these attributes must not stop the
+            // export, and there is nothing to recover - whatever was accepted before the rejection stays in force.
         }
 
         Transformer transformer = factory.newTransformer();

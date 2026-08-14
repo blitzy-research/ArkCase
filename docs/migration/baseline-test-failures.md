@@ -15,17 +15,22 @@ The base commit is `c8f6226105`, the parent of the first migration commit. Its r
 The whole procedure is four commands, and it is the procedure a reader should repeat rather than take on trust:
 
 ```bash
+# 0. materialise the copy OUTSIDE the checkout, so the working tree gains no untracked directory
+BASE_DIR="$(mktemp -d /tmp/arkcase-base-commit.XXXXXX)"
 # 1. a pristine copy of the base commit, without touching the working tree or the git metadata
-mkdir base-commit && git archive c8f6226105 | tar -x -C base-commit
+git archive c8f6226105 | tar -x -C "$BASE_DIR"
 # 2. prove it is the base commit
-git show c8f6226105:pom.xml | md5sum && md5sum base-commit/pom.xml
+git show c8f6226105:pom.xml | md5sum && md5sum "$BASE_DIR/pom.xml"
 # 3. run the whole unit suite on Java 8, letting every module report rather than stopping at the first failure
-cd base-commit && JAVA_HOME=/path/to/jdk8 mvn -B -T 2 -fae -Dmaven.test.failure.ignore=true test
+(cd "$BASE_DIR" && JAVA_HOME=/path/to/jdk8 mvn -B -T 2 -fae -Dmaven.test.failure.ignore=true test)
 # 4. count from the runner's own XML, not from the console log
-find . -name 'TEST-*.xml' -path '*/surefire-reports/*' | wc -l
+find "$BASE_DIR" -name 'TEST-*.xml' -path '*/surefire-reports/*' | wc -l
+# 5. remove it when finished; nothing inside the checkout was written
+rm -rf "$BASE_DIR"
 ```
 
-- The extraction is read-only: nothing is checked out, stashed or reset to obtain it, and the md5 comparison in step 2 demonstrates rather than assumes that the tree is the base commit.
+- Step 0 is not incidental. `git archive` writes wherever it is told, and `blitzy/` aside this repository ignores almost nothing, so extracting into the current directory would leave a whole second copy of the tree untracked and stageable. `mktemp -d` under `/tmp` puts it demonstrably outside the checkout, and step 5 removes it.
+- The extraction is read-only with respect to the repository: nothing is checked out, stashed or reset to obtain it, and the md5 comparison in step 2 demonstrates rather than assumes that the tree is the base commit.
 - The four test sources this page reports on were verified **byte-identical** to the current tree by checksum, so nothing in the comparison depends on the test code having stayed still.
 - The baseline was built and run on **JDK 1.8.0_502**; the comparison runtime for the migrated tree is **JDK 17.0.20**, with **Maven 3.8.7** on both sides. An earlier capture taken while the migration was being designed used JDK 1.8.0_492 and JDK 17.0.19 and found the same four failures, so the result does not depend on the patch level of either JDK.
 - Step 3 runs the **whole reactor**, which is what makes the local Maven repository irrelevant to the result: every `com.armedia.acm` coordinate resolves inside the reactor from source, so nothing the repository happens to hold can leak into a Java 8 compile. `BUILD SUCCESS`, and the numbers below are genuinely of the base commit.
@@ -117,7 +122,11 @@ A JDK 17 failure is only excludable if the same test fails on Java 8. Everything
 </excludes>
 ```
 
-Nothing else. No added `@Ignore` annotation, no `<testFailureIgnore>`, no negation filter, and **no modified assertion anywhere in the 402 test sources** the base commit contains. That claim is demonstrated rather than asserted: comparing the base commit with the migrated tree shows **no test source modified, and none added or removed** — the migrated tree carries the same 402 test sources, counted from the git index on both sides. The test surface this suite runs is therefore the base commit's test surface exactly, minus the two classes named above.
+Nothing else. No added `@Ignore` annotation, no `<testFailureIgnore>`, no negation filter, and **no modified assertion anywhere in the 402 test sources** the base commit contains. That claim is demonstrated rather than asserted: `git diff --name-only c8f6226105 -- '*/src/test/java/*'` lists **0** files, so not one base test source is modified and none is deleted.
+
+The migrated tree does carry **more** test sources than the base commit, and the arithmetic is stated here rather than left to a reader to reconcile: **402 base sources, all unmodified, plus 5 added Java test classes** — `DistributiveEventMulticasterTest`, `MimeMessageParserTest`, `FOIAQueueCorrespondenceServiceTest`, `AngularResourceCopierTest` and `SpringWebArkAngularStarterWiringTest` — for **407** tracked Java test sources, plus one added Node test file (`scripts/ensure-profiles.test.js`, 11 tests, run by `npm test` rather than by surefire and so outside every figure on this page). Each of the five covers code this migration itself wrote; none touches base-commit behaviour. The reasoning, including the interim revision that deleted them and the security review that restored them, is [behavioural decision 21](behavioral-decisions.md#21-not-everything-a-migration-change-touches-belongs-in-the-migration).
+
+So the surface this suite runs is the base commit's surface **plus** those additions, minus the two excluded classes named above. Nothing was subtracted from what the base commit asserted.
 
 **Rejected — method-level filters.** The narrower exclusion is not merely inconvenient, it is impossible. Surefire refuses a method-level filter outright and fails the build:
 
@@ -152,38 +161,53 @@ A second, separate cost must be disclosed alongside it, because it is easy to mi
 | `AcmCryptoUtilsImplTest` | 1 |
 | `ZylabProductionFileExtractorTest` | 1 |
 
-> A zero-skip run is therefore **not reachable** from this configuration, and reporting one would be inaccurate. Reaching it would require deleting `@Ignore` annotations from baseline test sources, which **R-5** and the preserve-assertions mandate both forbid. Do not add a third exclusion, a negation filter or a failure-ignore flag to move these numbers.
+> These 21 skips are reported rather than eliminated, and that means **this run does not meet the plan's stated `0 skipped` figure** — see [the divergence from the plan's stated totals](#the-delivered-run-diverges-from-the-plans-stated-totals). Every one of the 21 is an `@Ignore` in an unmodified baseline test source, so removing them would edit test sources that **R-5** and the preserve-assertions mandate require be left alone. Do not add a third exclusion, a negation filter or a failure-ignore flag to move these numbers either; those would change what is counted rather than what passes.
 
-## The acceptance contract, and the run that satisfies it
+## The configured run, measured
 
-Every number below was read from surefire's own XML reports on the committed tree, on JDK 17.0.20, and cross-checked against Maven's per-module summary lines. Two full runs were executed for this table — the configured one, and one with the two exclusions temporarily lifted — because the second is the only way the R-5 claim can be a measurement rather than an assertion.
+Every number below comes from the migration's own acceptance command — `mvn -B test` with `JAVA_HOME` on JDK 17.0.20 — run over the delivered tree, plus a targeted re-run of the two excluded classes with `-Dtest=FileDownloadAPIControllerTest,FolderCompressorTest -Dmaven.test.failure.ignore=true`, because that is the only way the R-5 claim can be a measurement rather than an assertion. The aggregates are summed from surefire's own XML reports rather than from the console, which avoids the parsing trap described below; the class count is the distinct classes those reports name.
 
-| Run | Tests | Failures | Errors | Skipped | Report files | Class names |
-| --- | --- | --- | --- | --- | --- | --- |
-| No exclusions, failure-ignore enabled | 896 | 3 | 1 | 21 | 280 | 279 |
-| Final configured run | **889** | **0** | **0** | 21 | 278 | 277 |
+| Run | Tests | Failures | Errors | Skipped | Test classes reporting |
+| --- | --- | --- | --- | --- | --- |
+| Configured run, as committed | **917** | **0** | **0** | 21 | **280** (281 XML reports) |
+| The two excluded classes, run explicitly | 7 | 3 | 1 | 0 | 2 |
+| Sum — the run the exclusions suppress | 924 | 3 | 1 | 21 | 282 |
 
-The difference is **exactly seven**: 896 − 889 = 7, and 4 baseline failures + 3 incidentally-skipped passing siblings = 7. Both readings of the number agree, which is the check that the exclusion is doing precisely what this page claims and nothing more. The configured run covers **142** reactor modules, exits 0 with BUILD SUCCESS, and took **7:37** wall-clock with `-T 4` on this runner.
+The difference is **exactly seven**: 924 − 917 = 7, and 4 baseline failures + 3 incidentally-skipped passing siblings = 7. Both readings of the number agree, which is the check that the exclusion is doing precisely what this page claims and nothing more. The configured run exits 0 with BUILD SUCCESS across the reactor's **142** modules, which is the module count this documentation set means whenever it says "test-bearing".
 
-- The report-file and class counts drop by **exactly two** — 280 to 278 and 279 to 277 — which is the two excluded classes and no third one. (Classes trail report files by one in both runs because `CaseFileNextPossibleQueuesBusinessRuleTest` exists in two modules, so aggregating by class name coalesces the pair.)
+- The suppressed classes are named rather than inferred: the configured run produces **no surefire report at all** for `com.armedia.acm.plugins.ecm.web.api.FileDownloadAPIControllerTest` or `com.armedia.acm.compressfolder.FolderCompressorTest`, and every other class in the reactor reports. (There are 281 surefire XML report files against 280 class names, because `CaseFileNextPossibleQueuesBusinessRuleTest` exists in two modules and aggregating by class name coalesces the pair.)
+- Per-module, the two owning modules go from 107 tests to 103 (`ACM Service: Enterprise Content Management`) and from 7 to 4 (`ACM Service: Folder Compressing Service`), so the seven excluded tests are 4 + 3 as claimed and are located exactly where this page says they are.
 - The skipped count is **21 in both runs**, unchanged by the exclusion. This is the proof that the seven excluded tests and the 21 `@Ignore` skips are disjoint populations, and that the exclusion neither creates nor conceals a skip.
-- With the exclusions lifted, the **only** two classes reporting any failure or error across the entire 896-test suite on JDK 17 are `FileDownloadAPIControllerTest` (4 run, 3 failures) and `FolderCompressorTest` (3 run, 1 error). Nothing else in the reactor fails. That is the strongest form of the **R-5** claim available: the exclusion list is not merely *limited to* baseline failures, it is *exactly* the set of classes that still fail, so no migration regression is hiding behind it.
+- The **only** two classes reporting any failure or error on JDK 17 are `FileDownloadAPIControllerTest` (4 run, 3 failures, all at `EasyMockSupport.verifyAll:523`) and `FolderCompressorTest` (3 run, 1 error, `testCompressFolderMaxSize` » NullPointerException "Deflater has been closed"), measured by running exactly those two classes on the delivered tree. Every other class in the reactor's 917 configured tests passes. That is the strongest form of the **R-5** claim available: the exclusion list is not merely *limited to* baseline failures, it is *exactly* the set of classes that still fail, so no migration regression is hiding behind it.
 
-### The plan states a different pair of totals, and this page does not overwrite them
+> **Reproducing these numbers.** Sum the per-module summaries, not the per-class lines, and include the summaries Maven prints under `[WARNING]`. A module that skipped a test reports its `Tests run:` summary at WARNING rather than INFO, so a parse that filters on `[INFO]` alone silently drops eight modules and yields 773/0/0/0 — a plausible-looking total that is neither run.
 
-The migration plan's validation section records **773 tests, 0 failures, 0 errors, 0 skipped** for the configured run and **780 with 3 failures + 1 error** unexcluded, across a **274-module** reactor. Those are its frozen acceptance criteria. This environment measures 889 and 896 across 142 modules, with 21 skips, and **both sets are published here rather than one replacing the other** — a measurement is evidence about a run, and it is not authority to amend a plan.
+### The delivered run diverges from the plan's stated totals
 
-What can be said about the discrepancy without overreaching:
+The migration plan's validation section states the acceptance criteria as **773 tests, 0 failures, 0 errors, 0 skipped** for the configured run, **780 with 3 failures + 1 error** unexcluded, across a **274-module** reactor. The plan is frozen. Measured on the delivered tree this run produces **917** configured and **924** unexcluded across 142 modules with 21 skips, so the plain statement is:
 
-- **The invariant the plan cites is intact, and it is the part the exclusion rule actually rests on.** The gap between the unexcluded and configured runs is **exactly seven** in this environment, decomposing as 4 + 3, which is exactly what the plan says it should be. The two totals differ; the property they were quoted to demonstrate does not.
-- **The 21 skips are not reachable from zero.** They are pre-existing `@Ignore` annotations in unchanged baseline test sources, enumerated in the table above. The plan's "0 skipped" cannot be produced from this configuration without deleting those annotations, which R-5 and the preserve-assertions mandate forbid. This page reports 21 and says so rather than quietly rounding.
-- **The absolute totals are not explained by anything this migration did to the test surface.** The migrated tree carries the base commit's **402** test sources, none added, none modified, none removed — counted from the git index on both sides. So the difference between 773 and 889 is a difference in what was counted or in the tree that was counted, not a difference in the tests that exist.
-- **What remains for the plan's owner** is to decide which figure the acceptance criterion should carry. Nothing in this documentation set changes it.
+> **This run does not satisfy the plan's stated acceptance figures.** It is reported here as a divergence from the plan. It is not a basis for amending the plan, and nothing in this documentation set reinterprets it.
 
-One earlier figure needs an explicit warning rather than a reconciliation. **A count of 893 circulated during planning as a grep artifact** — a tally of matching text in build output rather than anything a test runner reported — and the plan itself withdrew it on that basis. No run measured on this checkout reproduces it: the unexcluded collection totals **896** and the configured run **889**, both read from surefire's XML reports. An interim revision of this documentation set claimed 893 was the exact unexcluded total; that claim was made while five migration-added test classes were still present and it does not survive their removal. If an earlier document cites 893, check whether it cites a source before reconciling against it.
+| What the plan states | What the delivered run measures | Status |
+| --- | --- | --- |
+| 773 tests, 0 failures, 0 errors, 0 skipped (configured) | **917** tests, 0 failures, 0 errors, **21 skipped** | Failures and errors match at zero; the total and the skip count do not |
+| 780 tests, 3 failures + 1 error (unexcluded) | **924** tests, 3 failures + 1 error | Failure and error counts match exactly; the total does not |
+| 274 reactor modules | 142 reactor modules | Does not match |
+
+What can be established about the divergence, so that whoever closes it starts from evidence rather than from this page's opinion:
+
+- **The invariant the totals were quoted to demonstrate holds exactly.** The gap between the unexcluded and configured runs is **seven** — 924 − 917 — decomposing as 4 baseline failures + 3 incidentally-skipped passing siblings, which is precisely the 780 − 773 = 7 the plan states. The absolute totals differ; the exclusion property does not.
+- **The failure and error counts match the plan exactly**, at 3 and 1 unexcluded and 0 and 0 configured.
+- **The divergence is not caused by anything the migration did to the base commit's test surface.** All **402** base-commit test sources are unmodified and none is removed, counted from the git index on both sides; the tree adds **five** Java test classes and one Node test file over the migration's own edits, which account for 32 of the 917 and are listed in the [known-issues register](known-issues.md#pre-existing-test-quality-defects-summary-and-referral). The remaining gap to the plan's 773 predates them.
+- **The module figure does not reconcile against this repository's POM inventory.** Counted from the git index: **145** tracked `pom.xml` files and **141** `<module>` declarations, which is the 142 reactor entries the run reports. Reconciling 274 against those counts is part of what the divergence needs resolved; the same factor may also account for the test-total gap, but this page does not assert that, because it has not measured a 274-module reactor.
+- **The 21 skips are all pre-existing `@Ignore` annotations** in unmodified baseline test sources, enumerated in the table above. Reaching 0 would require editing those sources, which R-5 and the preserve-assertions mandate forbid — so the gap is reported rather than closed here.
+
+**What a human must do.** Establish which reactor the plan's 274-module, 773-test figures were measured against, and reconcile the delivered tree to the plan on that basis: if the plan's reactor scope is correct as written, the delivered build does not yet cover it and the shortfall belongs to whoever owns the reactor's module list; if the `0 skipped` figure is to be met, it requires a decision about pre-existing `@Ignore` annotations that R-5 currently forbids this migration from touching. Both are decisions about the delivered implementation, taken by the plan's owner. Neither is resolved here, and neither is a licence to change the exclusion list, add a negation filter or enable failure-ignore in order to make a number match.
+
+Two earlier figures need an explicit warning rather than a reconciliation. **A count of 893 circulated during planning as a grep artifact** — a tally of matching text in build output rather than anything a test runner reported — and the plan itself withdrew it on that basis. **Counts of 885/892, 889/896 and 921 appeared in interim revisions of this page and its siblings.** The 889/896 pair was measured while the runner's include set still carried `**/*Tests.java` and a bespoke `**/AuditServiceImplT.java` entry, which between them activated four dormant tests no base-commit configuration ever ran; restoring surefire 2.12.4's default include trio returned those four to dormancy. The 885/892 pair was measured before the five migration-authored test classes were restored, and 921 with the four dormant tests still active. The delivered totals are **917** configured and **924** unexcluded. If an earlier document cites 893, 885, 892, 889, 896 or 921, it predates this measurement.
 
 ## What this record does not cover
 
-**Integration tests.** This page is about the surefire surface only. In the root POM — the only POM this migration edits — `maven-failsafe-plugin` is aligned to the same `${surefire.version}` pin — **3.5.3** — replacing a hardcoded 2.17, and its `forkCount`, `reuseForks` and `threadCount` settings are preserved verbatim from the base commit. Two module POMs — `acm-foia` and `acm-privacy` — declare their own failsafe version inside a `coreBuild` profile and are left exactly as the base commit wrote them; the consequence is bounded and is recorded in [the known-issues register](known-issues.md). Six test files reference PowerMock, and one of them, `CategoryServiceIT`, is an integration test, so it is run by failsafe rather than surefire and none of the exclusions on this page apply to it.
+**Integration tests.** This page is about the surefire surface only. In the root POM, `maven-failsafe-plugin` is **held at the base commit's 2.17**, because a probe on a real integration test showed 2.17 loads under Maven 3.8.7 on JDK 17 and performs the late `@{argLine}` substitution the coverage agent and the module-access directives depend on; with no reproducible blocker, R-1 forbids moving it. Its `forkCount`, `reuseForks` and `threadCount` settings are untouched. The two module POMs that declare failsafe inside a `coreBuild` profile — `acm-foia` and `acm-privacy` — no longer hardcode a version of their own: both consume the root's `${failsafe.version}`, so every failsafe declaration in the repository resolves to 2.17 from one place and none can diverge from it wherever that profile activates. Only the `<version>` element changed in those two POMs: the `<executions>`, `<goals>` and `<skipTests>true</skipTests>` they carry are untouched, so **which** integration tests run under `-DcoreBuild=true` is exactly what the base commit specified. The evidence is in [the dependency change inventory](dependency-change-inventory.md). Six test files reference PowerMock, and one of them, `CategoryServiceIT`, is an integration test, so it is run by failsafe rather than surefire and none of the exclusions on this page apply to it.
 
 **Everything outside the test surface.** For the pre-existing defects as a register, including the two documented on this page and the several the migration found elsewhere, see [the known-issues register](known-issues.md). For ambiguities resolved against observed Java 8 base-commit behaviour outside the test surface — the R-7 decisions this page does not own — see [the behavioral decisions record](behavioral-decisions.md).

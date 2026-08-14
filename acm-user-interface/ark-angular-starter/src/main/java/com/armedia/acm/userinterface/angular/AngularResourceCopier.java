@@ -69,8 +69,12 @@ import java.util.stream.Collectors;
  * The ArkCase WAR file should configure the deployment folder in a Tomcat context resources element, such that
  * files in this deployment folder are treated as if they were in the root folder of the war file itself.
  * <p>
- * npm (the Node.js Package Manager) must be installed on the deployment host, and npm must be in the system
- * path. Yarn is no longer used: the install runs from the committed npm lockfile instead.
+ * npm (the Node.js Package Manager) must be installed on the deployment host and must be on the system path, on a
+ * Node runtime that satisfies the frontend's declared <code>engines</code> range. That range is enforced rather than
+ * documented - the install command passes <code>--engine-strict</code> and the <code>.npmrc</code> staged into the temp
+ * folder sets the same option - so an out-of-range runtime fails the install, and with it the deployment, instead of
+ * quietly building against it. The install is a lockfile install, so <code>package-lock.json</code> has to be one of
+ * the files copied out of the archive or it fails before Grunt runs.
  * <p>
  * The resources to be copied from the war file and extension jars; the front-end commands to be run (e.g. npm,
  * grunt); and the resources to be copied to the deployment folder are configured in Spring. All resources to
@@ -127,10 +131,9 @@ public class AngularResourceCopier implements ServletContextAware
                 copiedFiles.add(copied);
             }
 
-            // npm ci, against the committed lockfile
             runFrontEndBuildCommand(tmpDir, npmInstallCommand);
-            // add 'customer' as specific profile, so if any customer resources are present will come
-            // on top of core and extension resources
+
+            // 'custom' is always appended last, so customer resources override the core and extension ones.
 
             List<String> activeProfiles = springActiveProfile.getExtensionActiveProfile()
                     .map(it -> Arrays.asList(it, "custom"))
@@ -147,10 +150,10 @@ public class AngularResourceCopier implements ServletContextAware
 
             log.debug("Found {} files in tmp folder", tmpFilesFound.size());
 
-            // delete all files that exist in the tmp dir, but we didn't copy them there; such files must have been
-            // removed from the project. Exceptions are files managed by npm and grunt: lib folder, node_modules
-            // folder, bower_components folder, package-lock.json
-            
+            // Anything in the temp folder that was not copied there on this run was removed from the project, so
+            // it is deleted to stop a stale file surviving into the bundle. The four exclusions below are owned by
+            // npm and Grunt rather than by this copier, and deleting any of them would force a reinstall or break
+            // the build outright.
             List<File> oldFilesInTmpFolder = tmpFilesFound.stream()
                     .filter(p -> !p.contains("node_modules"))
                     .filter(p -> !p.contains("bower_components"))
@@ -163,7 +166,7 @@ public class AngularResourceCopier implements ServletContextAware
             log.debug("Found {} files to be removed from tmp folder", oldFilesInTmpFolder.size());
             oldFilesInTmpFolder.stream()
                     .peek(f -> log.debug("Removing tmp file [{}]", f.toPath()))
-                    .forEach(File::delete);
+                    .forEach(this::deleteStaleTmpFile);
 
             runFrontEndBuildCommand(tmpDir, gruntDefaultCommand);
 
@@ -183,9 +186,36 @@ public class AngularResourceCopier implements ServletContextAware
         catch (IOException e)
         {
             log.error("Could not copy Angular resources", e);
-            // make sure the webapp does not start... if it did start it wouldn't work right. So better to make sure
-            // it doesn't deploy.
+            // Fail the deployment rather than start a webapp whose front end was never assembled.
             throw new RuntimeException("Could not assemble Angular webapp: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Removes one file that the assembly did not place in the temp folder, and reports it when the removal does not
+     * happen.
+     * <p>
+     * The result of {@link File#delete()} used to be discarded. That mattered because of what a survivor means here: a
+     * file this assembly did not copy has been removed from the project, so if it is still readable after the prune the
+     * deployed application is serving a stale resource - and the pipeline runs on regardless, which is why nothing else
+     * would ever mention it. Reporting the survivor by path is what makes that state diagnosable.
+     * <p>
+     * A failed removal is deliberately <strong>not</strong> escalated to a deployment failure. The deletion of an
+     * already-absent file is a routine no-op here - two of the prune's inputs can name the same path through different
+     * spellings - and refusing to deploy over a stale leftover would be a stricter contract than any release of this
+     * class has offered. The distinction is drawn on {@link File#exists()} rather than on the boolean alone, so a file
+     * that is simply already gone is silent and only a genuine survivor is logged.
+     *
+     * @param staleFile
+     *            the file to remove.
+     */
+    private void deleteStaleTmpFile(File staleFile)
+    {
+        if (!staleFile.delete() && staleFile.exists())
+        {
+            log.warn("Could not remove stale tmp file [{}]; the assembled webapp may serve a resource that is no "
+                    + "longer part of the project. Check the permissions and free space of the temp folder.",
+                    staleFile.getPath());
         }
     }
 
@@ -329,9 +359,8 @@ public class AngularResourceCopier implements ServletContextAware
         DefaultExecutor executor = new DefaultExecutor();
         executor.setWorkingDirectory(tmpDir);
 
-        // Slf4jDebugOutputStream is an OutputStream we can send to the DefaultExecutor; the DefaultExecutor will
-        // pipe its STDIN and STDOUT to this output stream, which will log such output at DEBUG level to our
-        // SLF4j logger.
+        // A PumpStreamHandler built with one stream sends both the process's stdout and its stderr there, so npm
+        // and Grunt diagnostics are logged at DEBUG rather than lost.
         try (Slf4jDebugOutputStream debugOutputStream = new Slf4jDebugOutputStream(log))
         {
 

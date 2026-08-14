@@ -2,53 +2,23 @@ include:
   - local: '.gitlab-ci-release.yml'
 
 variables:
-  # Deploy server with specific Arkcase version
-  # ============================================
-  # DEPLOY_SERVER: true
-  # ENVIRONMENT_NAME: Test FOIA
-  # ENVIRONMENT_URL: https://foia-test.arkcase.org/
-  # ARKCASE_VERSION: 3.3.6-RC1
-  # INVENTORY: 47
-  # TAGS: core,foia
-  
-  # Will have more variables to support extensions.
-  # TAGS can be 'core', 'core,foia' depending of the environment
-  # INVENTORY is the ID of the inventory in tower. Current inventory IDs are:
-  #   44 - dev.core
-  #   45 - dev.foia
-  #   46 - test.core
-  #   47 - test.foia
-  #   58 - dev.privacy
+  # Deploying a specific ArkCase version is driven entirely by pipeline variables, set
+  # per run rather than declared here: DEPLOY_SERVER, ENVIRONMENT_NAME, ENVIRONMENT_URL,
+  # ARKCASE_VERSION, INVENTORY and TAGS. INVENTORY is an automation-controller inventory
+  # id and TAGS selects the extensions to deploy ('core', 'core,foia', 'core,privacy');
+  # the id-to-environment mapping is held in the operations runbook, not in this file.
 
   GIT_SSL_NO_VERIFY: "true"
   GIT_STRATEGY: clone
 
-# CI runner image. This is the only runtime pin for the pipeline: the jobs
-# included from .gitlab-ci-release.yml declare no image of their own.
-#
-# INFRASTRUCTURE PRECONDITION, external to this repository: the image must
-# supply JDK 17, Node 20 LTS and npm 10. The reactor now compiles at release 17
-# (the compiler contract is declared once, in the root pom.xml) and the frontend
-# declares engines "node >=20.19.0 <21" / "npm >=10", so the superseded JDK 8 /
-# Node 6-8 image can no longer build this branch. The tag is a new major: the
-# base runtime changed incompatibly. The image Dockerfile lives OUTSIDE this
-# repository and MUST be rebuilt on those runtimes before this pipeline passes.
-#
-# Network reach the image needs, measured rather than assumed: `npm ci` against
-# the committed package-lock.json needs only outbound HTTPS to
-# registry.npmjs.org and codeload.github.com. It records every GitHub
-# dependency as git+ssh:// but resolves each one to a codeload tarball because
-# the committish is a full 40-character SHA, so the install completes with no
-# git binary and no SSH key present at all - verified by installing with git
-# absent from PATH.
-#
-# REGENERATING the lockfile is the case that does need git: `npm install`
-# clones each GitHub coordinate. An image used for that must ship an SSH deploy
-# key, or the two `git config --global url.<https>.insteadOf <ssh>` rewrite
-# rules mapping https://github.com/ over git+ssh://git@github.com/ and over
-# ssh://git@github.com/. No pipeline job in this file or in
-# .gitlab-ci-release.yml runs either command today; both invoke Maven only, and
-# the deploy-time front-end install runs inside the deployed application.
+# The pipeline's only runtime pin: the jobs included from .gitlab-ci-release.yml declare
+# no image of their own. The image must supply JDK 17, Node 20 LTS and npm 10, and it
+# must ship git together with either SSH reachability to github.com or the two
+# `git config --global url.https://github.com/.insteadOf` rewrites (over
+# git+ssh://git@github.com/ and ssh://git@github.com/), because every GitHub coordinate
+# in the committed package-lock.json is recorded as a git+ssh URL. Registry and codeload
+# HTTPS alone are not the supported transport. The image is built outside this
+# repository; see docs/migration/dependency-change-inventory.md.
 image: arkcase-gitlab-ci:2.0.0
 
 stages:
@@ -63,7 +33,6 @@ stages:
 .build_backend_snapshot:
   stage: build
   script:
-    # build war file and deploy to Nexus Snapshots
     - echo '<settings>' > /root/.m2/settings.xml
     - echo '  <servers>' >> /root/.m2/settings.xml
     - echo '    <server>' >> /root/.m2/settings.xml
@@ -90,52 +59,47 @@ stages:
   only:
     - feature/*
 
-# Front-end gate for the Node 20 migration.
+# Maven does not validate the front end: `mvn install` copies src/main/webapp/resources into the
+# WAR verbatim, and the Grunt pipeline runs at deploy time, from AngularResourceCopier. This job is
+# therefore the only place CI exercises the manifest, the lockfile and the bundle build, so without it
+# a manifest that no longer installs, a lockfile that has drifted out of step with package.json or a
+# pipeline that no longer emits its bundles would first be reported by a deployment.
 #
-# The backend jobs above do NOT exercise the front-end toolchain: `mvn install` only
-# packages src/main/webapp/resources into the WAR verbatim, and the Grunt pipeline is
-# not run until deploy time, when AngularResourceCopier invokes npm and Grunt in the
-# assembly folder. So without this job nothing in CI would notice a manifest that no
-# longer installs, a lockfile that has drifted out of step with package.json, a Grunt
-# pipeline that no longer produces its bundles, or bundles that no longer build - the
-# first report would come from a deployment.
+#   npm ci      - installs strictly from the committed package-lock.json and fails if the lockfile and
+#                 the manifest disagree. --ignore-scripts is required, not a preference: a git-sourced
+#                 asset repository's `prepare` script builds an ancient native module that cannot
+#                 compile on Node 20. It is passed on the command line rather than set in .npmrc so
+#                 that it does NOT also suppress the `prebuild` hook of `npm run build`, which writes
+#                 the generated profiles module.
+#   npm run build - the full Grunt `default` chain, the real proof the pipeline still emits its bundles
+#                 on Node 20.
+#   npm audit   - the advisory report, run on every pipeline so the dependency graph's security
+#                 position is visible rather than rediscovered. DELIBERATELY NON-BLOCKING (`|| true`):
+#                 the frozen AngularJS 1.4.14 stack this migration must preserve has no
+#                 behaviour-preserving patch path for most of its advisories, so a blocking gate would
+#                 fail every pipeline and pressure someone into an upgrade the scope forbids.
+#                 Promoting it - dropping `|| true` and choosing an --audit-level - is an owner
+#                 decision recorded in docs/migration/known-issues.md.
 #
-# The two commands are the migration's own acceptance criteria for the front end, in
-# the order that fails soonest and cheapest:
-#   npm ci      - installs strictly from the committed package-lock.json and fails if the
-#                 lockfile and the manifest disagree. --ignore-scripts is REQUIRED, not a
-#                 preference: one git-sourced asset repository has a `prepare` script that
-#                 tries to build an ancient native module, which cannot compile on Node 20.
-#                 It is safe because these are prebuilt asset repositories with checked-in
-#                 distribution directories. It is passed on the command line rather than
-#                 set in .npmrc precisely so that it does NOT also suppress the `prebuild`
-#                 hook of `npm run build`, which is what writes the generated profiles module.
-#   npm run build - the full Grunt `default` chain, which is the real proof the pipeline
-#                 still emits its bundles on Node 20. Its `prebuild` hook writes the
-#                 generated profiles module first, which is why --ignore-scripts is passed
-#                 on the install command line rather than set in a project .npmrc: it must
-#                 not also suppress that hook.
-#
-# The manifest declares engines "node >=20.19.0 <21" / "npm >=10". npm's default is
-# engine-strict=false, so a runner outside that range prints EBADENGINE and continues;
-# pinning the image to Node 20 is what actually holds the runtime, and that pin is the
-# image precondition recorded at the top of this file.
+# The declared engines range ("node >=20.19.0 <21" / "npm >=10") is not self-enforcing, because npm
+# defaults to engine-strict=false. Two things hold the runtime: the image pin at the top of this file
+# supplies it, and the frontend's .npmrc sets engine-strict=true - which holds here, in the
+# deploy-time install and in every other install path - reinforced by --engine-strict below. Measured:
+# the same manifest and lockfile under Node 22 fails EBADENGINE with exit 1.
 .validate_frontend:
   stage: build
   script:
     - cd acm-standard-applications/arkcase/src/main/webapp/resources
     - node --version
     - npm --version
-    - npm ci --ignore-scripts
+    - npm ci --ignore-scripts --engine-strict
+    - npm audit || true
     - npm run build
 
 build_backend_develop:
   extends: .build_backend_snapshot
   only:
     - develop
-  except:
-    changes:
-      #- .gitlab-ci.yaml
 
 validate_frontend_develop:
   extends: .validate_frontend
@@ -192,7 +156,6 @@ deploy_backend_foia_dev:
   environment:
     name: Dev Privacy
   script:
-    # Dev Privacy repository ID on tower.armedia.com is 58
     - 'curl -H "Content-Type: application/json" -X POST -s -u gitlabci:$GITLABCI_TOWER_PASSWORD -d ''{ "inventory": 58, "job_tags": "core,privacy", "extra_vars": "{\"arkcase_version\": \"\", \"arkcase_configuration_version\":\"\", \"arkcase_config_server_version\":\"\", \"snowbound_arkcase_version\":\"\"}"}'' -k $TOWER_URL/api/v2/job_templates/129/launch/'
 
 start_security_scan:
@@ -209,15 +172,11 @@ start_security_scan:
     - echo "[DEFAULT]" >> credendials
     - echo "veracode_api_key_id = $VERACODE_API_KEY" >> credentials
     - echo "veracode_api_key_secret = $VERACODE_API_SECRET" >> credentials
-    # get arkcase.war version from Nexus
     - mvn -B dependency:get -DremoteRepositories=$NEXUS_URL/repository/$ARKCASE_REPOSITORY -DgroupId=com.armedia.acm.acm-standard-applications -DartifactId=arkcase -Dversion=$ARKCASE_VERSION -Dpackaging=war -Dtransitive=false -Dmaven.wagon.http.ssl.insecure=true
     - find ~/.m2/repository/com/armedia/acm -name _remote.repositories -exec rm -v {} \;
     - mvn -B dependency:copy -Dartifact=com.armedia.acm.acm-standard-applications:arkcase:$ARKCASE_VERSION:war -DoutputDirectory=. -Dmaven.wagon.http.ssl.insecure=true
-    # Upload war
     - 'curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/5.0/uploadfile.do -method POST)" https://analysiscenter.veracode.com/api/5.0/uploadfile.do -F "app_id=529559" -F "file=@arkcase-$ARKCASE_VERSION.war"'
-    # Begin static scan
     - 'curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/5.0/beginprescan.do -method POST)" https://analysiscenter.veracode.com/api/5.0/beginprescan.do -F "app_id=529559" -F "auto_scan=true"'
-    # Start Software Composition Analysis
     - curl -sSL https://download.sourceclear.com/ci.sh | sh
     
 
@@ -233,18 +192,14 @@ security_scan_results:
     - echo "[DEFAULT]" >> credendials
     - echo "veracode_api_key_id = $VERACODE_API_KEY" >> credentials
     - echo "veracode_api_key_secret = $VERACODE_API_SECRET" >> credentials
-    # Get scan info
     - 'BUILDINFO=$(curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/5.0/getbuildinfo.do -method POST)" https://analysiscenter.veracode.com/api/5.0/getbuildinfo.do -F "app_id=529559" 2>/dev/null)'
     - echo "BUILDINFO=$BUILDINFO"
     - BUILD_ID=$(grep -oPm1 "(?<=build_id=\")[^\"<]+" <<< "$BUILDINFO" | head -1)
     - echo "BUILD_ID=$BUILD_ID"
-    # Get detailed report
     - 'DETAILED_REPORT=$(curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/5.0/detailedreport.do?build_id=$BUILD_ID -method GET)" https://analysiscenter.veracode.com/api/5.0/detailedreport.do?build_id=$BUILD_ID 2>/dev/null)'
     - SCAN_SCORE=$(grep -oPm1 "(?<=score=\")[^\"<]+" <<< "$DETAILED_REPORT" | head -1)
     - echo "SCAN_SCORE=$SCAN_SCORE"
-    # Get detailed report as PDF
     - 'curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/4.0/detailedreportpdf.do?build_id=$BUILD_ID -method GET)" https://analysiscenter.veracode.com/api/4.0/detailedreportpdf.do?build_id=$BUILD_ID > scan-report.pdf' 
-    # Send results via email
     - echo 'set from = "veracode-scan@armedia.com"' >> ~/.muttrc
     - echo 'set realname = "Veracode Scan"' >> ~/.muttrc
     - echo 'set smtp_url = "smtp://$SMTP_SERVER:25"' >> ~/.muttrc
@@ -256,9 +211,5 @@ security_scan_results:
 .restart:
   stage: restart
   script:
-    # Connect to environment
-    # shutdown arkcase
-    # startup arkcase
-    # verify started
     - not blank job
   when: manual
