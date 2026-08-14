@@ -2,11 +2,23 @@ include:
   - local: '.gitlab-ci-release.yml'
 
 variables:
-  # Deploying a specific ArkCase version is driven entirely by pipeline variables, set
-  # per run rather than declared here: DEPLOY_SERVER, ENVIRONMENT_NAME, ENVIRONMENT_URL,
-  # ARKCASE_VERSION, INVENTORY and TAGS. INVENTORY is an automation-controller inventory
-  # id and TAGS selects the extensions to deploy ('core', 'core,foia', 'core,privacy');
-  # the id-to-environment mapping is held in the operations runbook, not in this file.
+  # Deploy server with specific Arkcase version
+  # ============================================
+  # DEPLOY_SERVER: true
+  # ENVIRONMENT_NAME: Test FOIA
+  # ENVIRONMENT_URL: https://foia-test.arkcase.org/
+  # ARKCASE_VERSION: 3.3.6-RC1
+  # INVENTORY: 47
+  # TAGS: core,foia
+  
+  # Will have more variables to support extensions.
+  # TAGS can be 'core', 'core,foia' depending of the environment
+  # INVENTORY is the ID of the inventory in tower. Current inventory IDs are:
+  #   44 - dev.core
+  #   45 - dev.foia
+  #   46 - test.core
+  #   47 - test.foia
+  #   58 - dev.privacy
 
   GIT_SSL_NO_VERIFY: "true"
   GIT_STRATEGY: clone
@@ -33,6 +45,7 @@ stages:
 .build_backend_snapshot:
   stage: build
   script:
+    # build war file and deploy to Nexus Snapshots
     - echo '<settings>' > /root/.m2/settings.xml
     - echo '  <servers>' >> /root/.m2/settings.xml
     - echo '    <server>' >> /root/.m2/settings.xml
@@ -100,6 +113,9 @@ build_backend_develop:
   extends: .build_backend_snapshot
   only:
     - develop
+  except:
+    changes:
+      #- .gitlab-ci.yaml
 
 validate_frontend_develop:
   extends: .validate_frontend
@@ -156,6 +172,7 @@ deploy_backend_foia_dev:
   environment:
     name: Dev Privacy
   script:
+    # Dev Privacy repository ID on tower.armedia.com is 58
     - 'curl -H "Content-Type: application/json" -X POST -s -u gitlabci:$GITLABCI_TOWER_PASSWORD -d ''{ "inventory": 58, "job_tags": "core,privacy", "extra_vars": "{\"arkcase_version\": \"\", \"arkcase_configuration_version\":\"\", \"arkcase_config_server_version\":\"\", \"snowbound_arkcase_version\":\"\"}"}'' -k $TOWER_URL/api/v2/job_templates/129/launch/'
 
 start_security_scan:
@@ -172,11 +189,15 @@ start_security_scan:
     - echo "[DEFAULT]" >> credendials
     - echo "veracode_api_key_id = $VERACODE_API_KEY" >> credentials
     - echo "veracode_api_key_secret = $VERACODE_API_SECRET" >> credentials
+    # get arkcase.war version from Nexus
     - mvn -B dependency:get -DremoteRepositories=$NEXUS_URL/repository/$ARKCASE_REPOSITORY -DgroupId=com.armedia.acm.acm-standard-applications -DartifactId=arkcase -Dversion=$ARKCASE_VERSION -Dpackaging=war -Dtransitive=false -Dmaven.wagon.http.ssl.insecure=true
     - find ~/.m2/repository/com/armedia/acm -name _remote.repositories -exec rm -v {} \;
     - mvn -B dependency:copy -Dartifact=com.armedia.acm.acm-standard-applications:arkcase:$ARKCASE_VERSION:war -DoutputDirectory=. -Dmaven.wagon.http.ssl.insecure=true
+    # Upload war
     - 'curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/5.0/uploadfile.do -method POST)" https://analysiscenter.veracode.com/api/5.0/uploadfile.do -F "app_id=529559" -F "file=@arkcase-$ARKCASE_VERSION.war"'
+    # Begin static scan
     - 'curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/5.0/beginprescan.do -method POST)" https://analysiscenter.veracode.com/api/5.0/beginprescan.do -F "app_id=529559" -F "auto_scan=true"'
+    # Start Software Composition Analysis
     - curl -sSL https://download.sourceclear.com/ci.sh | sh
     
 
@@ -192,14 +213,18 @@ security_scan_results:
     - echo "[DEFAULT]" >> credendials
     - echo "veracode_api_key_id = $VERACODE_API_KEY" >> credentials
     - echo "veracode_api_key_secret = $VERACODE_API_SECRET" >> credentials
+    # Get scan info
     - 'BUILDINFO=$(curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/5.0/getbuildinfo.do -method POST)" https://analysiscenter.veracode.com/api/5.0/getbuildinfo.do -F "app_id=529559" 2>/dev/null)'
     - echo "BUILDINFO=$BUILDINFO"
     - BUILD_ID=$(grep -oPm1 "(?<=build_id=\")[^\"<]+" <<< "$BUILDINFO" | head -1)
     - echo "BUILD_ID=$BUILD_ID"
+    # Get detailed report
     - 'DETAILED_REPORT=$(curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/5.0/detailedreport.do?build_id=$BUILD_ID -method GET)" https://analysiscenter.veracode.com/api/5.0/detailedreport.do?build_id=$BUILD_ID 2>/dev/null)'
     - SCAN_SCORE=$(grep -oPm1 "(?<=score=\")[^\"<]+" <<< "$DETAILED_REPORT" | head -1)
     - echo "SCAN_SCORE=$SCAN_SCORE"
+    # Get detailed report as PDF
     - 'curl -k --compressed -H "Authorization: $(./vcodeHMAC-CLI_linux -credsFile credentials -url https://analysiscenter.veracode.com/api/4.0/detailedreportpdf.do?build_id=$BUILD_ID -method GET)" https://analysiscenter.veracode.com/api/4.0/detailedreportpdf.do?build_id=$BUILD_ID > scan-report.pdf' 
+    # Send results via email
     - echo 'set from = "veracode-scan@armedia.com"' >> ~/.muttrc
     - echo 'set realname = "Veracode Scan"' >> ~/.muttrc
     - echo 'set smtp_url = "smtp://$SMTP_SERVER:25"' >> ~/.muttrc
@@ -211,5 +236,9 @@ security_scan_results:
 .restart:
   stage: restart
   script:
+    # Connect to environment
+    # shutdown arkcase
+    # startup arkcase
+    # verify started
     - not blank job
   when: manual

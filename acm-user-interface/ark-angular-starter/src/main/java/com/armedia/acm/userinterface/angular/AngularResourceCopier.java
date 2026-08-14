@@ -69,12 +69,8 @@ import java.util.stream.Collectors;
  * The ArkCase WAR file should configure the deployment folder in a Tomcat context resources element, such that
  * files in this deployment folder are treated as if they were in the root folder of the war file itself.
  * <p>
- * npm (the Node.js Package Manager) must be installed on the deployment host and must be on the system path, on a
- * Node runtime that satisfies the frontend's declared <code>engines</code> range. That range is enforced rather than
- * documented - the install command passes <code>--engine-strict</code> and the <code>.npmrc</code> staged into the temp
- * folder sets the same option - so an out-of-range runtime fails the install, and with it the deployment, instead of
- * quietly building against it. The install is a lockfile install, so <code>package-lock.json</code> has to be one of
- * the files copied out of the archive or it fails before Grunt runs.
+ * npm (the Node.js Package Manager) must be installed on the deployment host, and npm must be in the
+ * system path.
  * <p>
  * The resources to be copied from the war file and extension jars; the front-end commands to be run (e.g. npm,
  * grunt); and the resources to be copied to the deployment folder are configured in Spring. All resources to
@@ -131,9 +127,10 @@ public class AngularResourceCopier implements ServletContextAware
                 copiedFiles.add(copied);
             }
 
+            // npm install
             runFrontEndBuildCommand(tmpDir, npmInstallCommand);
-
-            // 'custom' is always appended last, so customer resources override the core and extension ones.
+            // add 'customer' as specific profile, so if any customer resources are present will come
+            // on top of core and extension resources
 
             List<String> activeProfiles = springActiveProfile.getExtensionActiveProfile()
                     .map(it -> Arrays.asList(it, "custom"))
@@ -150,10 +147,10 @@ public class AngularResourceCopier implements ServletContextAware
 
             log.debug("Found {} files in tmp folder", tmpFilesFound.size());
 
-            // Anything in the temp folder that was not copied there on this run was removed from the project, so
-            // it is deleted to stop a stale file surviving into the bundle. The four exclusions below are owned by
-            // npm and Grunt rather than by this copier, and deleting any of them would force a reinstall or break
-            // the build outright.
+            // delete all files that exist in the tmp dir, but we didn't copy them there; such files must have been
+            // removed from the project. Exceptions are files managed by npm and grunt: lib folder, node_modules
+            // folder, bower_components folder, package-lock.json
+            
             List<File> oldFilesInTmpFolder = tmpFilesFound.stream()
                     .filter(p -> !p.contains("node_modules"))
                     .filter(p -> !p.contains("bower_components"))
@@ -186,7 +183,8 @@ public class AngularResourceCopier implements ServletContextAware
         catch (IOException e)
         {
             log.error("Could not copy Angular resources", e);
-            // Fail the deployment rather than start a webapp whose front end was never assembled.
+            // make sure the webapp does not start... if it did start it wouldn't work right. So better to make sure
+            // it doesn't deploy.
             throw new RuntimeException("Could not assemble Angular webapp: " + e.getMessage(), e);
         }
     }
@@ -359,8 +357,9 @@ public class AngularResourceCopier implements ServletContextAware
         DefaultExecutor executor = new DefaultExecutor();
         executor.setWorkingDirectory(tmpDir);
 
-        // A PumpStreamHandler built with one stream sends both the process's stdout and its stderr there, so npm
-        // and Grunt diagnostics are logged at DEBUG rather than lost.
+        // Slf4jDebugOutputStream is an OutputStream we can send to the DefaultExecutor; the DefaultExecutor will
+        // pipe its STDIN and STDOUT to this output stream, which will log such output at DEBUG level to our
+        // SLF4j logger.
         try (Slf4jDebugOutputStream debugOutputStream = new Slf4jDebugOutputStream(log))
         {
 

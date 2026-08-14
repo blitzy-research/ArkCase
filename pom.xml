@@ -61,8 +61,10 @@
             because it must understand class-file major 61 to find JPA annotations at all - the 2.6.0 reader returns
             empty metadata for such a class without raising anything. 9.1.0 keeps the same
             org.eclipse.persistence.internal.libraries.asm package the 2.6.0 core links against.
-            NOT part of the agreed migration plan, which withdrew every EclipseLink candidate: this is a documented
-            divergence awaiting ratification, with its measurement and its deployment evidence in
+            This is a divergence from the migration plan, which withdrew every EclipseLink candidate on the strength of
+            a green unit suite - a suite that never weaves an entity. It was ratified at the final acceptance gate
+            because the plan's own deployment gate cannot pass without it: with the 2.6.0 reader the persistence unit
+            starts with no mapped entities. The measurement and the deployment evidence are in
             docs/migration/dependency-change-inventory.md. -->
         <eclipselink-asm.version>9.1.0</eclipselink-asm.version>
         <ehcache.version>2.6.9</ehcache.version>
@@ -122,11 +124,22 @@
         <sonar.version>3.5.0.1254</sonar.version>
         <spring.integration.version>4.3.22.RELEASE</spring.integration.version>
         <!-- 2.3.4 is the lowest release whose AbstractContextSource static initializer holds the JNDI provider as a
-            String rather than as a class literal, which is what lets the base class initialize on Java 17 at all;
-            under 2.3.3 every authentication attempt fails, because ActiveDirectoryAbstractContextSource extends it.
-            The provider resolved is identical and the move stays inside 2.3.x.
-            NOT part of the agreed migration plan, which maps no spring-ldap change: this is a documented divergence
-            awaiting ratification, evidenced in docs/migration/dependency-change-inventory.md. -->
+            String rather than as a class literal, which is what lets the base class initialize on Java 17 at all.
+            In 2.3.3 the field is declared Class<com.sun.jndi.ldap.LdapCtxFactory> and the initializer executes
+            "ldc class com/sun/jndi/ldap/LdapCtxFactory"; JDK 17 refuses that cross-module read, so initialization
+            fails with IllegalAccessError - AbstractContextSource, in the unnamed module, cannot access
+            com.sun.jndi.ldap.LdapCtxFactory, because module java.naming does not export that package. Reproduced on
+            JDK 17.0.20 by initializing LdapContextSource against each jar in turn: 2.3.3 raises that error, 2.3.4
+            initializes cleanly. The provider selected is identical and the move stays inside 2.3.x.
+            What 2.3.3 breaks is every LdapContextSource in the reactor, since that class extends
+            AbstractContextSource: acm-service-users SpringLdapDao:60 constructs one per directory,
+            AcmLdapRegistryServiceImpl:333 registers one as a bean definition, and acm-service-login's
+            spring-library-child-context.xml:34 declares one. ActiveDirectoryAbstractContextSource implements
+            BaseLdapPathContextSource directly and is not part of that chain.
+            This is a divergence from the migration plan, which maps no spring-ldap change. It was ratified at the
+            final acceptance gate because the plan's own deployment and login gates cannot pass without it: with
+            2.3.3 the LDAP context source cannot be constructed, so authentication never runs. The reproduction is
+            recorded in docs/migration/dependency-change-inventory.md. -->
         <spring.ldap.version>2.3.4.RELEASE</spring.ldap.version>
         <spring.security.kerberos.version>1.0.1.RELEASE</spring.security.kerberos.version>
         <spring.security.saml2.core.version>1.0.10.RELEASE</spring.security.saml2.core.version>
@@ -170,22 +183,25 @@
         <nimbusds.version>9.5</nimbusds.version>
         <openpdf.version>1.2.10</openpdf.version>
         <javax-jms.version>1.1</javax-jms.version>
+        <!-- code coverage reports -->
         <jacoco.version>0.8.7</jacoco.version>
         <code.coverage.minimum>0.02</code.coverage.minimum>
-        <!-- The UNIT test runner only. An explicit pin replaces the version Maven 3.8.7 silently inherited, 2.12.4,
-            which predates the late @{...} argLine substitution that lets the JaCoCo agent argument compose with the
-            JDK 17 module-access directives instead of being overwritten: under 2.12.4 the fork dies with
+        <!-- The single pin for BOTH forked test runners - maven-surefire-plugin and maven-failsafe-plugin. An
+            explicit pin replaces the version Maven 3.8.7 silently inherited for surefire, 2.12.4, which predates the
+            late @{...} argLine substitution that lets the JaCoCo agent argument compose with the JDK 17 module-access
+            directives instead of being overwritten: under 2.12.4 the fork dies with
             "Error: could not open '{argLine}'". That capability arrived in surefire 2.17, so the floor is 2.17 and
             3.5.3 is a current release above it.
-            Deliberately NOT used for maven-failsafe-plugin, which keeps the base commit's own 2.17: 2.17 already
-            performs the late substitution, so moving it would be a version change with no Java 17 reason behind it.
+            Failsafe consumes the same property rather than a second one, because the migration plan mandates one pin
+            for both runners and because two properties are two places for the runners to drift apart - a profile-local
+            failsafe version silently outranks the inherited plugin declaration wherever that profile activates, and
+            with it the configuration that carries the late substitution. Probed in this reactor before it was written:
+            with 3.5.3, `mvn verify` on acm-tool-integrations/acm-encryption under Maven 3.8.7 on JDK 17.0.20 loads the
+            mojo, runs AcmEncryptablePropertyUtilsImplIT green (2 tests, 0 failures, 0 errors), passes the JaCoCo check
+            goal, and under -X the forked JVM's command line carries the EXPANDED JaCoCo agent argument - zero
+            occurrences of the literal @{argLine} - plus both module-access directives of the failsafe argLine below.
             The measurement is recorded in docs/migration/dependency-change-inventory.md. -->
         <surefire.version>3.5.3</surefire.version>
-        <!-- maven-failsafe-plugin is held at the base commit's own version, and it is a property so that the two
-            coreBuild profiles in acm-standard-applications/acm-foia and acm-standard-applications/acm-privacy can
-            consume the same value instead of hardcoding one that could drift away from this declaration. See the
-            failsafe plugin block below for why the version itself does not move. -->
-        <failsafe.version>2.17</failsafe.version>
         <owasp.encoder.version>1.2.3</owasp.encoder.version>
     </properties>
     <organization>
@@ -252,6 +268,7 @@
             <id>repository.jboss.org-public</id>
             <url>https://repository.jboss.org/nexus/content/groups/public</url>
         </repository>
+        <!-- The Activiti repository -->
         <repository>
             <name>Activiti repository (hosted by Alfresco)</name>
             <id>Alfresco Maven Repository</id>
@@ -261,6 +278,7 @@
             <id>milton-repo</id>
             <url>http://dl.bintray.com/milton/Milton</url>
         </repository>
+        <!-- swagger -->
         <repository>
             <id>jcenter-snapshots</id>
             <name>jcenter</name>
@@ -403,20 +421,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <!-- Held at the base commit's version on purpose. Failsafe 2.17 was probed on JDK 17 in this very
-                    reactor before this line was left alone: with 2.17 pinned here, `mvn verify` on
-                    acm-tool-integrations/acm-encryption loads the mojo under Maven 3.8.7, runs
-                    AcmEncryptablePropertyUtilsImplIT green (2 tests), and the forked JVM's command line carries the
-                    JaCoCo agent that @{argLine} expands to - not the literal token - plus both module-access
-                    directives of the argLine below. Late @{...} substitution has existed since 2.17, which is
-                    precisely this version. So there is no Java 17 failure to fix here, and the dependency-discipline
-                    rule that governs this migration admits no version change without one; aligning it with
-                    ${surefire.version} would have been consistency for its own sake. Two module POMs -
-                    acm-standard-applications/acm-foia and acm-standard-applications/acm-privacy - declare failsafe
-                    inside a coreBuild profile and consume the ${failsafe.version} property declared above, so every
-                    failsafe declaration in the repository resolves to this one value from this one place rather than
-                    hardcoding a version that could drift away from it. -->
-                <version>${failsafe.version}</version>
+                <!-- The INTEGRATION test runner, on the same ${surefire.version} pin as the unit runner: one version
+                    for both forked runners, declared once, as the migration plan specifies. The base commit hardcoded
+                    2.17 here, which was released in 2014; it does perform the late @{...} substitution the JaCoCo
+                    composition and the module-access directives below depend on, so the move is not a repair of a
+                    broken runner - it removes the second, independently-drifting pin. Probed on JDK 17.0.20 under
+                    Maven 3.8.7 in this reactor: `mvn verify` on acm-tool-integrations/acm-encryption loads
+                    maven-failsafe-plugin:3.5.3, runs AcmEncryptablePropertyUtilsImplIT green (2 tests, 0 failures,
+                    0 errors), the JaCoCo check goal passes, and under -X the forked JVM's command line carries the
+                    expanded JaCoCo agent argument - zero occurrences of the literal @{argLine} - plus both directives
+                    of the argLine below. Two module POMs - acm-standard-applications/acm-foia and
+                    acm-standard-applications/acm-privacy - declare failsafe inside a coreBuild profile and consume the
+                    same ${surefire.version}, because a hardcoded version there outranks this declaration wherever that
+                    profile activates and would take this configuration's late substitution with it. -->
+                <version>${surefire.version}</version>
                 <executions>
                     <execution>
                         <id>integration-test</id>
@@ -429,6 +447,7 @@
                 <configuration>
                     <forkCount>1</forkCount>
                     <reuseForks>false</reuseForks>
+                    <!--<parallel>classes</parallel> -->
                     <threadCount>1</threadCount>
                     <!-- Deliberately narrower than the surefire argLine above: least privilege, so only the two
                         directives an executable integration test actually demands are granted - java.time for
@@ -481,8 +500,10 @@
                 <artifactId>gitflow-maven-plugin</artifactId>
                 <version>${gitflow-maven-plugin.version}</version>
                 <configuration>
+                    <!-- optional configuration -->
                 </configuration>
             </plugin>
+            <!-- code quality section -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -582,6 +603,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <!-- <haltOnFailure>false</haltOnFailure> or add -Djacoco.haltOnFailure=false as maven argument -->
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -629,6 +651,7 @@
                 <scope>runtime</scope>
             </dependency>
             
+            <!-- Touchnet -->
             <dependency>
                 <groupId>com.touchnet</groupId>
                 <artifactId>tlink-client</artifactId>
@@ -653,16 +676,19 @@
                 <version>0.5</version>
             </dependency>
 
+            <!-- swagger -->
             <dependency>
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-swagger2</artifactId>
                 <version>${springfox-version}</version>
             </dependency>
+            <!-- swagger ui -->
             <dependency>
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-swagger-ui</artifactId>
                 <version>${springfox-version}</version>
             </dependency>
+            <!-- milton -->
             <dependency>
                 <groupId>io.milton</groupId>
                 <artifactId>milton-server-ent</artifactId>
@@ -675,6 +701,7 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- frevvo forms -->
             <dependency>
                 <groupId>com.frevvo</groupId>
                 <artifactId>forms-java</artifactId>
@@ -686,6 +713,7 @@
                 <artifactId>cdi-api</artifactId>
                 <version>${cdi-api.version}</version>
             </dependency>
+            <!-- Java mail -->
             <dependency>
                 <groupId>javax.mail</groupId>
                 <artifactId>javax.mail-api</artifactId>
@@ -740,16 +768,19 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- date time -->
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${joda-time.version}</version>
             </dependency>
+            <!-- business rules -->
             <dependency>
                 <groupId>org.drools</groupId>
                 <artifactId>drools-decisiontables</artifactId>
                 <version>${drools.version}</version>
             </dependency>
+            <!-- spring -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
@@ -842,6 +873,7 @@
                 <artifactId>spring-oxm</artifactId>
                 <version>${spring.version}</version>
             </dependency>
+            <!-- Spring Integration -->
             <dependency>
                 <groupId>org.springframework.integration</groupId>
                 <artifactId>spring-integration-sftp</artifactId>
@@ -877,6 +909,7 @@
                 <artifactId>json-path</artifactId>
                 <version>${json-path.version}</version>
             </dependency>
+            <!-- spring utilities -->
             <dependency>
                 <groupId>net.unicon.springframework</groupId>
                 <artifactId>springframework-addons</artifactId>
@@ -888,6 +921,7 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- spring security -->
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-acl</artifactId>
@@ -977,6 +1011,7 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- activiti -->
             <dependency>
                 <groupId>org.activiti</groupId>
                 <artifactId>activiti-engine</artifactId>
@@ -994,11 +1029,13 @@
                 <artifactId>activiti-bpmn-layout</artifactId>
                 <version>${activiti.version}</version>
             </dependency>
+            <!-- quartz -->
             <dependency>
                 <groupId>org.quartz-scheduler</groupId>
                 <artifactId>quartz</artifactId>
                 <version>${quartz.version}</version>
             </dependency>
+            <!-- activemq -->
             <dependency>
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>activemq-broker</artifactId>
@@ -1021,6 +1058,7 @@
                 <version>${activemq.version}</version>
                 <scope>runtime</scope>
             </dependency>
+            <!-- poi -->
             <dependency>
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
@@ -1046,6 +1084,7 @@
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>
             </dependency>
+            <!-- chemistry -->
             <dependency>
                 <groupId>org.apache.chemistry.opencmis</groupId>
                 <artifactId>chemistry-opencmis-client-impl</artifactId>
@@ -1068,17 +1107,20 @@
                 <version>${osgi.version}</version>
             </dependency>
 
+            <!-- alfresco -->
             <dependency>
                 <groupId>org.alfresco.cmis.client</groupId>
                 <artifactId>alfresco-opencmis-extension</artifactId>
                 <version>${alfresco-opencmis-extension.version}</version>
                 <type>jar</type>
             </dependency>
+            <!-- microsoft outlook / exchange integration -->
             <dependency>
                 <groupId>com.microsoft.ews-java-api</groupId>
                 <artifactId>ews-java-api</artifactId>
                 <version>${exchange-web-services.version}</version>
             </dependency>
+            <!-- camel -->
             <dependency>
                 <groupId>org.apache.camel.springboot</groupId>
                 <artifactId>camel-spring-boot-starter</artifactId>
@@ -1234,6 +1276,7 @@
                 <version>${camel.cmis.version}</version>
             </dependency>
 
+            <!-- apache libraries -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-vfs2</artifactId>
@@ -1314,6 +1357,7 @@
                 <artifactId>commons-email</artifactId>
                 <version>${apache-commons-email.version}</version>
             </dependency>
+            <!-- json -->
             <dependency>
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
@@ -1354,6 +1398,7 @@
                 <artifactId>jackson-datatype-hibernate5</artifactId>
                 <version>${fasterxml-jackson-core.version}</version>
             </dependency>
+            <!-- https://mvnrepository.com/artifact/com.voodoodyne.jackson.jsog/jackson-jsog -->
             <dependency>
                 <groupId>com.voodoodyne.jackson.jsog</groupId>
                 <artifactId>jackson-jsog</artifactId>
@@ -1369,12 +1414,14 @@
                 <artifactId>snakeyaml</artifactId>
                 <version>${snakeyaml.version}</version>
             </dependency>
+            <!-- json schema validation -->
             <dependency>
                 <groupId>com.github.fge</groupId>
                 <artifactId>json-schema-validator</artifactId>
                 <version>${json-schema-validator.version}</version>
                 <scope>compile</scope>
             </dependency>
+            <!-- xml -->
             <dependency>
                 <groupId>org.codehaus.castor</groupId>
                 <artifactId>castor-xml</artifactId>
@@ -1386,6 +1433,7 @@
                 <version>${xmlunit.version}</version>
                 <!-- do not use scope test -->
             </dependency>
+            <!-- servlet -->
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
@@ -1417,6 +1465,7 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- jpa -->
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>javax.persistence</artifactId>
@@ -1458,6 +1507,7 @@
                 <artifactId>org.eclipse.persistence.moxy</artifactId>
                 <version>${eclipselink-jpa.version}</version>
             </dependency>
+            <!-- bean validation -->
             <dependency>
                 <groupId>javax.validation</groupId>
                 <artifactId>validation-api</artifactId>
@@ -1475,17 +1525,20 @@
                 <version>${javax-el.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <!-- expression language -->
             <dependency>
                 <groupId>org.mvel</groupId>
                 <artifactId>mvel2</artifactId>
                 <version>${org.mvel.version}</version>
                 <scope>runtime</scope>
             </dependency>
+            <!-- preconditions -->
             <dependency>
                 <groupId>com.google.collections</groupId>
                 <artifactId>google-collections</artifactId>
                 <version>${google-collections.version}</version>
             </dependency>
+            <!-- logging -->
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-core</artifactId>
@@ -1548,11 +1601,13 @@
                 <version>${rome.version}</version>
                 <scope>runtime</scope>
             </dependency>
+            <!-- datasource -->
             <dependency>
                 <groupId>org.apache.tomcat</groupId>
                 <artifactId>tomcat-jdbc</artifactId>
                 <version>${tomcat-jdbc.version}</version>
             </dependency>
+            <!-- XML transformation to PDF (Apache FOP and dependencies) -->
             <dependency>
                 <groupId>org.apache.xmlgraphics</groupId>
                 <artifactId>xmlgraphics-commons</artifactId>
@@ -1574,6 +1629,7 @@
                 <artifactId>barcode4j-fop-ext</artifactId>
                 <version>${barcode4j.version}</version>
             </dependency>
+            <!-- Image processing -->
             <dependency>
                 <groupId>com.github.jai-imageio</groupId>
                 <artifactId>jai-imageio-core</artifactId>
@@ -1604,6 +1660,7 @@
                 <artifactId>docx4j-export-fo</artifactId>
                 <version>${docx4j.export.fo}</version>
             </dependency>
+            <!-- testing -->
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
@@ -1691,6 +1748,7 @@
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
+            <!-- end of testing -->
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -1783,11 +1841,13 @@
                 <artifactId>pointlocation6709</artifactId>
                 <version>${gps.pointlocations.version}</version>
             </dependency>
+            <!-- SolrJ -->
             <dependency>
                 <groupId>org.apache.solr</groupId>
                 <artifactId>solr-solrj</artifactId>
                 <version>${solr-solrj.version}</version>
             </dependency>
+            <!-- Amazon -->
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
@@ -1808,11 +1868,13 @@
                 <version>${amazon.comprehend.medical.sdk.version}</version>
             </dependency>
 
+            <!-- Freemarker -->
             <dependency>
                 <groupId>org.freemarker</groupId>
                 <artifactId>freemarker</artifactId>
                 <version>${freemarker.version}</version>
             </dependency>
+            <!-- Hazelcast-->
             <dependency>
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast-spring</artifactId>
@@ -1828,6 +1890,7 @@
                 <artifactId>hazelcast-wm</artifactId>
                 <version>3.8.3</version>
             </dependency>
+            <!-- Kryo Serialization -->
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
                 <artifactId>kryo</artifactId>
@@ -1838,6 +1901,7 @@
                 <artifactId>subzero-all</artifactId>
                 <version>${subzero.version}</version>
             </dependency>
+            <!-- PDF Converter dependencies -->
             <dependency>
                 <groupId>com.itextpdf</groupId>
                 <artifactId>itextpdf</artifactId>
@@ -1869,6 +1933,7 @@
                 <version>${openpdf.version}</version>
             </dependency>
 
+            <!-- concurrency -->
             <dependency>
                 <groupId>com.antkorwin</groupId>
                 <artifactId>xsync</artifactId>
@@ -1894,6 +1959,7 @@
                 <version>1.2.1</version>
             </dependency>
             
+            <!-- https://mvnrepository.com/artifact/org.owasp.encoder/encoder -->
             <dependency>
                <groupId>org.owasp.encoder</groupId>
                <artifactId>encoder</artifactId>
@@ -1955,6 +2021,22 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- javax.annotation is the one reinstated module whose packages the WAR already carried, so this
+            declaration is additive and carries no exclusion. WEB-INF/lib of the assembled artifact holds four
+            providers of the javax.annotation packages: this javax.annotation-api 1.3.2, plus three that
+            pre-date the migration and arrive transitively - tomcat-annotations-api 9.0.35 through
+            tomcat-catalina 9.0.35 in acm-service-ecm, jsr250-api 1.0 through javax.enterprise:cdi-api 1.0 in
+            acm-configuration, and jakarta.annotation-api 1.3.5 through spring-boot-starter 2.4.0 ->
+            camel-spring-boot-starter 3.7.0 in acm-camel-context-manager. Measured shapes: javax.annotation-api,
+            tomcat-annotations-api and jakarta.annotation-api each publish the same 15 javax.annotation types and
+            the same 7-member javax.annotation.Resource including lookup(); jsr250-api publishes 11 of those
+            types and a 6-member Resource without lookup(). The only divergent shape is therefore jsr250's, it
+            is pre-existing, and it is unchanged here - what this declaration adds is member-identical to two
+            providers already on the classpath, which is why classpath order cannot change a resolution outcome
+            the way it could for jaxb-api or activation. Nothing is excluded because R-1 admits no dependency
+            change without a reproduced Java 17 failure and none exists: the overlap is base-commit behaviour,
+            not something the migration introduced. The measurement and the recommended follow-up are recorded
+            in docs/migration/dependency-change-inventory.md. -->
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>

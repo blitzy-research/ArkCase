@@ -14,13 +14,13 @@ This page documents how developers can build and run ArkCase from source. If you
 - git <https://git-scm.com/>. The frontend install needs it: every GitHub dependency in the committed `package-lock.json` is recorded as a `git+ssh` URL, so `npm ci --ignore-scripts` — and `npm install --ignore-scripts` when the lockfile is regenerated — needs git on the path together with either SSH access to github.com or these two rewrites, which is how the build hosts are configured:
 
     ```bash
-    git config --global url."https://github.com/".insteadOf git+ssh://git@github.com/
-    git config --global url."https://github.com/".insteadOf ssh://git@github.com/
+    git config --global --add url."https://github.com/".insteadOf git+ssh://git@github.com/
+    git config --global --add url."https://github.com/".insteadOf ssh://git@github.com/
     ```
 
-    Both commands carry `--ignore-scripts` deliberately, and it is not optional: npm runs `prepare` for git dependencies, and one of the locked asset repositories tries to build an ancient native module there that cannot compile on Node 20. This is the install form the deployed application runs.
+    `insteadOf` is a multi-valued key and a plain `git config <key> <value>` replaces rather than appends, so `--add` is required on both: without it the second command discards the first rule and only `ssh://` URLs get rewritten.
 - Node.js 20 LTS <https://nodejs.org>. The frontend declares `engines` of `node >=20.19.0 <21` and `npm >=10`, and enforces it: the project `.npmrc` sets `engine-strict=true`, so on a runtime outside that range npm **refuses** the install with `EBADENGINE` and a non-zero exit rather than warning and carrying on. The same rule applies to the deploy-time install, which runs `npm ci --ignore-scripts --engine-strict`. That is deliberate — a bundle built on a superseded runtime is the outcome this migration exists to prevent — so use Node 20 rather than working around the refusal.
-- npm 10 (comes with Node 20)
+- npm 10 (comes with Node 20). Install the frontend with `npm ci --ignore-scripts`; `--ignore-scripts` is not optional, because npm runs `prepare` for git dependencies and one of the locked asset repositories tries to build an ancient native module there that cannot compile on Node 20. This is the install form the deployed application runs, as `npm ci --ignore-scripts --engine-strict`.
 
 ## Build the Vagrant VM
 
@@ -79,42 +79,26 @@ In your Tomcat 9 installation, edit `conf/server.xml` and add a TLS connector be
 
 ### Tomcat `setenv.sh`
 
-Create `bin/setenv.sh`, mark it executable, and set environment variables for `JAVA_OPTS`, `NODE_ENV`, and `CATALINA_OPTS`. **No credential value belongs in this file, or anywhere else in source control.** The two key-store passwords are read from the environment below, so the script itself carries no secret and can be committed to your own configuration repository as it stands.
+Create `bin/setenv.sh`, mark it executable, and set environment variables for `JAVA_OPTS`, `NODE_ENV`, and `CATALINA_OPTS`. **Do not check real keystore or trust-store passwords into source control — set them through environment variables or a secret manager in any non-local environment.**
 
 ```bash
 #!/bin/sh
 
-# ${HOME} is expanded by the shell, so this works as written on Linux and on macOS alike.
-# The ':?' form makes the shell abort with the message shown if the variable is unset or empty,
-# so a missing credential stops Tomcat at startup instead of failing later in the TLS handshake.
+# macOS: replace ${user.home} with the actual path to your home folder.
 export JAVA_OPTS="-Djava.net.preferIPv4Stack=true \
   -Duser.timezone=GMT \
-  -Djavax.net.ssl.keyStorePassword=${ARKCASE_KEYSTORE_PASSWORD:?ARKCASE_KEYSTORE_PASSWORD must be set} \
-  -Djavax.net.ssl.trustStorePassword=${ARKCASE_TRUSTSTORE_PASSWORD:?ARKCASE_TRUSTSTORE_PASSWORD must be set} \
-  -Djavax.net.ssl.keyStore=${HOME}/.arkcase/acm/private/arkcase.ks \
-  -Djavax.net.ssl.trustStore=${HOME}/.arkcase/acm/private/arkcase.ts \
+  -Djavax.net.ssl.keyStorePassword=<REDACTED> \
+  -Djavax.net.ssl.trustStorePassword=<REDACTED> \
+  -Djavax.net.ssl.keyStore=${user.home}/.arkcase/acm/private/arkcase.ks \
+  -Djavax.net.ssl.trustStore=${user.home}/.arkcase/acm/private/arkcase.ts \
   -Dspring.profiles.active=ldap \
-  -Dacm.configurationserver.propertyfile=${HOME}/.arkcase/acm/conf.yml \
+  -Dacm.configurationserver.propertyfile=${user.home}/.arkcase/acm/conf.yml \
   -Xms1024M -Xmx1024M"
 
 export NODE_ENV=development
-# TOMCAT_NATIVE_LIBRARY_PATH is the directory holding the Tomcat native library,
-# for example /usr/local/opt/tomcat-native/lib on macOS. The quotes close on this line:
-# leaving them open would fold the comment below into the value.
-export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=${TOMCAT_NATIVE_LIBRARY_PATH:?TOMCAT_NATIVE_LIBRARY_PATH must be set}"
+export CATALINA_OPTS="$CATALINA_OPTS -Djava.library.path=(PATH TO THE TOMCAT NATIVE LIBRARY)"
 export CATALINA_PID=$CATALINA_HOME/temp/catalina.pid
 ```
-
-Three variables are yours to export before Tomcat starts; the fourth is set by the script itself:
-
-| What | Purpose | Where its value comes from |
-| --- | --- | --- |
-| `TOMCAT_NATIVE_LIBRARY_PATH` | `-Djava.library.path` for the Tomcat native connector | The directory holding the library you installed above — for example `/usr/local/opt/tomcat-native/lib` on macOS |
-| `ARKCASE_KEYSTORE_PASSWORD` | Opens `${HOME}/.arkcase/acm/private/arkcase.ks` | Set when that key store was created — by the `arkcase-ce` provisioning for a Vagrant VM, or by whoever generated the store for any other deployment |
-| `ARKCASE_TRUSTSTORE_PASSWORD` | Opens `${HOME}/.arkcase/acm/private/arkcase.ts` | Set the same way, when the trust store was created |
-| `NODE_ENV` | Selects the frontend build profile | Left at `development` for a developer machine |
-
-Export the two credentials from your shell profile, your process manager's environment, or a secret manager before starting Tomcat — never from a file under version control — and rotate any value that was provisioned as a default before the deployment becomes reachable by anyone but you. With all three variables exported, the script above runs as written and needs no editing: every substitution in it is an ordinary shell expansion, and `${HOME}` in particular is expanded by the shell on Linux and macOS alike. The `${user.home}` placeholders in the `server.xml` connector snippet are different — they are Tomcat property placeholders that Tomcat expands itself, they are **not** shell syntax, and a shell would reject them, so leave them where they are and never copy one into this script.
 
 **Module-access flags on Java 17.** Leave `JAVA_OPTS` exactly as it is above. ArkCase's launch configuration grants no module access: add no `--add-opens`, no `--add-exports` and no `--illegal-access`, exactly as at the Java 8 base commit.
 
@@ -133,18 +117,24 @@ $TOMCAT_HOME/bin/shutdown.sh -force
 
 Copy `acm-standard-applications/arkcase/target/arkcase-<version>.war` to `$TOMCAT_HOME/webapps/arkcase.war` and watch `$TOMCAT_HOME/logs/catalina.out`. The first startup takes 5 to 10 minutes. If startup fails or `https://arkcase-ce.local/arkcase` returns 404, raise a GitHub issue.
 
+### Upgrading: the front-end install property was renamed
+
+The deploy-time front-end assembler no longer runs yarn, so the Spring property that carries its install command was renamed with it: **`yarnInstallCommand` is now `npmInstallCommand`** on `com.armedia.acm.userinterface.angular.AngularResourceCopier`. No alias is kept under the old name, because no yarn-named setter may survive the migration.
+
+This only affects a deployment that sets the property itself — an out-of-repo extension jar, or an external Spring XML overriding the `angularResourceCopier` bean. Such a definition fails at context refresh with `NotWritablePropertyException: Invalid property 'yarnInstallCommand'`, and the `/arkcase` context does not start. Rename the property in that definition and give it an npm command; the value ArkCase itself ships is `npm ci --ignore-scripts --engine-strict`. A deployment that does not set the property needs no change.
+
 ## Trust the Self-Signed Certificate
 
 When you first open <https://arkcase-ce.local/arkcase> your browser will warn about the self-signed certificate authority. Follow the procedure for your operating system to trust it.
 
 ## Log In to ArkCase
 
-Once the login page loads, sign in with the administrator account:
+Once the login page loads, sign in with the default administrator account:
 
 - User: `arkcase-admin@arkcase.org`
-- Password: the value your directory provisioning set for that account. For a Vagrant VM built from the `arkcase-ce` repository, that repository's provisioning assigns it; for any other deployment, your identity provider holds it. It is deliberately not published in this repository, and neither is any other credential.
+- Password: `<REDACTED>` (see the upstream README for the development default)
 
-> Security note: an administrator password provisioned as a default is intended only for local developer evaluation. In any shared, staging, or production deployment, rotate it immediately, and inject credentials through environment variables, Spring Cloud Config encrypted values, or a secret manager — never commit them to source control, and never publish them in documentation.
+> Security note: the default administrator password is intended only for local developer evaluation. In any shared, staging, or production deployment, rotate this credential immediately and inject credentials through environment variables, Spring Cloud Config encrypted values, or a secret manager — never commit them to source control.
 
 ## IDE Integration
 

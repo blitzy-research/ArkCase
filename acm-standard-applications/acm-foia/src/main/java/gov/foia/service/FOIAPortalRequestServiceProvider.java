@@ -73,12 +73,21 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
 
     private PortalCreateInquiryService portalCreateInquiryService;
 
+    /*
+     * (non-Javadoc)
+     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#providesServiceForRequestType()
+     */
     @Override
     public String providesServiceForRequestType()
     {
         return PortalFOIARequest.class.getName();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#submitRequest(java.lang.String,
+     * com.armedia.acm.portalgateway.web.api.PortalRequest)
+     */
     @Override
     public PortalResponse submitRequest(String portalId, String portalUserId, PortalRequest request) throws PortalRequestServiceException
     {
@@ -182,6 +191,11 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#listRequests(java.lang.String,
+     * java.lang.String)
+     */
     @Override
     public List<PortalResponse> listRequests(String portalId, String portalUserId) throws PortalRequestServiceException
     {
@@ -208,12 +222,23 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
 
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#getRequestStatus(java.lang.String,
+     * java.lang.String, java.lang.String)
+     */
     @Override
     public PortalResponse getRequestStatus(String portalId, String portalUserId, String requestId) throws PortalRequestServiceException
     {
         try
         {
             PortalFOIARequestStatus mapRequestStatus = portalRequestService.getExternalRequest(portalUserId, requestId);
+            // TODO: this should be configurable
+            // if ("Approved".equals(mapRequestStatus.getRequestStatus()))
+            // {
+            // // TODO: if a request processing was finished, we should return the result instead as part of
+            // // PortalResponse#rawResponse
+            // }
             return mapRequestStatus(mapRequestStatus);
         }
         catch (NoResultException | NonUniqueResultException e)
@@ -251,6 +276,10 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
     }
 
 
+    /*
+     * (non-Javadoc)
+     * @see com.armedia.acm.portalgateway.service.PortalRequestServiceProvider#submitInquiry(com.armedia.acm.portalgateway.web.api.PortalRequest)
+     */
     @Override
     public void submitInquiry(PortalRequest request) throws PortalRequestServiceException
     {
@@ -272,11 +301,19 @@ public class FOIAPortalRequestServiceProvider implements PortalRequestServicePro
 
     }
 
+    /**
+     * @param createRequestService
+     *            the createRequestService to set
+     */
     public void setCreateRequestService(PortalCreateRequestService createRequestService)
     {
         this.createRequestService = createRequestService;
     }
 
+    /**
+     * @param portalRequestService
+     *            the portalRequestService to set
+     */
     public void setPortalRequestService(PortalRequestService portalRequestService)
     {
         this.portalRequestService = portalRequestService;

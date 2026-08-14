@@ -64,6 +64,7 @@ release_start:
     - git config --global user.email "$GIT_USERMAIL"
     - git remote set-url origin "$GIT_URL"
     - mvn -B gitflow:release-start -DpushRemote=true -DreleaseVersion=$RELEASE_VERSION -DcommitDevelopmentVersionAtStart=true -DdevelopmentVersion=$DEVELOP_NEW_VERSION -Dmaven.wagon.http.ssl.insecure=true
+    # Deploy on test servers
     
 release_candidate_X:
   stage: release
@@ -92,6 +93,7 @@ release_candidate_X:
     - git push origin HEAD:refs/tags/$RELEASE_VERSION-$RELEASE_CANDIDATE_SUFFIX
     - mvn -DskipTests -T 4 -B clean deploy "-DaltDeploymentRepository=arkcase.release::default::$NEXUS_URL/repository/arkcase.release/" -DversionOverride=$RELEASE_VERSION-$RELEASE_CANDIDATE_SUFFIX -DversionOsgi=false -Dmaven.wagon.http.ssl.insecure=true
     - sshpass -e sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SFTP_USER@$SFTP_SERVER <<< $'put acm-standard-applications/arkcase/target/*.war /from-arkcase/arkcase-'$RELEASE_VERSION-$RELEASE_CANDIDATE_SUFFIX'.war' 
+    # Deploy on test servers
 
 release:
   stage: release
@@ -123,6 +125,12 @@ release:
     - git checkout master
     - mvn -DskipTests -T 4 -B clean deploy "-DaltDeploymentRepository=arkcase.release::default::$NEXUS_URL/repository/arkcase.release/" -Dmaven.wagon.http.ssl.insecure=true
     - sshpass -e sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SFTP_USER@$SFTP_SERVER <<< $'put acm-standard-applications/arkcase/target/*.war /from-arkcase/arkcase-'$RELEASE_VERSION'.war' 
+    #- git remote add github git@github.com:ArkCase/ArkCase.git
+    #- git fetch github
+    #- git checkout main
+    #- git cherry-pick -m 1 --strategy=recursive -X theirs --allow-empty --keep-redundant-commits $last_commit..master
+    #- git push github main
+    # Deploy on test servers
     
 start_support_branch:
   stage: release
@@ -174,6 +182,7 @@ release_hotfix:
     - mvn -B gitflow:hotfix-finish -DpushRemote=true -DhotfixVersion=support/$HOTFIX_SUPPORT_VERSION/$RELEASE_VERSION -DskipTestProject=true -DskipMergeDevBranch=true
     - mvn -DskipTests -T 4 -B clean deploy "-DaltDeploymentRepository=arkcase.release::default::$NEXUS_URL/repository/arkcase.release/"
     - sshpass -e sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SFTP_USER@$SFTP_SERVER <<< $'put acm-standard-applications/arkcase/target/*.war /from-arkcase/arkcase-'$RELEASE_VERSION'.war' 
+    # Deploy on test servers
 
 release_all:
   stage: release
@@ -187,6 +196,8 @@ release_all:
     - export CONFIG_SERVER_TAG=$CI_COMMIT_REF_NAME
     - export SNOWBOUND_TAG=$([[ $CI_COMMIT_REF_NAME = "develop" ]] && echo "snowbound-5.6.2" || echo "snowbound-"$CI_COMMIT_REF_NAME)
     - export FOIA_REPORTS_TAG=$CI_COMMIT_REF_NAME
+    # Trigger other project releases:
+    # Configuration
     - curl -k --request POST --form token=$CONFIGURATION_PROJECT_TOKEN --form ref=$CONFIGURATION_TAG
       --form "variables[RELEASE_START]=$RELEASE_START"
       --form "variables[RELEASE_VERSION]=$RELEASE_VERSION"
@@ -200,6 +211,7 @@ release_all:
       --form "variables[HOTFIX_SUPPORT_VERSION]=$HOTFIX_SUPPORT_VERSION"
       --form "variables[RELEASE_HOTFIX]=$RELEASE_HOTFIX"
       https://$GITLAB_SERVER/api/v4/projects/30/trigger/pipeline
+    # Portal backend
     - curl -k --request POST --form token=$EXTERNAL_WEB_PORTAL_PROJECT_TOKEN --form ref=$PORTAL_BACKEND_TAG
       --form "variables[RELEASE_START]=$RELEASE_START"
       --form "variables[RELEASE_VERSION]=$RELEASE_VERSION"
@@ -213,6 +225,7 @@ release_all:
       --form "variables[HOTFIX_SUPPORT_VERSION]=$HOTFIX_SUPPORT_VERSION"
       --form "variables[RELEASE_HOTFIX]=$RELEASE_HOTFIX"
       https://$GITLAB_SERVER/api/v4/projects/193/trigger/pipeline
+    # Portal UI
     - curl -k --request POST --form token=$EXTERNAL_WEB_PORTAL_UI_PROJECT_TOKEN --form ref=$PORTAL_FRONTEND_TAG
       --form "variables[RELEASE_START]=$RELEASE_START"
       --form "variables[RELEASE_VERSION]=$RELEASE_VERSION"
@@ -226,6 +239,7 @@ release_all:
       --form "variables[HOTFIX_SUPPORT_VERSION]=$HOTFIX_SUPPORT_VERSION"
       --form "variables[RELEASE_HOTFIX]=$RELEASE_HOTFIX"
       https://$GITLAB_SERVER/api/v4/projects/237/trigger/pipeline
+    # Config server
     - curl -k --request POST --form token=$CONFIG_SERVER_PROJECT_TOKEN --form ref=$CONFIG_SERVER_TAG
       --form "variables[RELEASE_START]=$RELEASE_START"
       --form "variables[RELEASE_VERSION]=$RELEASE_VERSION"
@@ -239,6 +253,7 @@ release_all:
       --form "variables[HOTFIX_SUPPORT_VERSION]=$HOTFIX_SUPPORT_VERSION"
       --form "variables[RELEASE_HOTFIX]=$RELEASE_HOTFIX"
       https://$GITLAB_SERVER/api/v4/projects/322/trigger/pipeline
+    # Snowbound
     - curl -k --request POST --form token=$SNOWBOUND_PROJECT_TOKEN --form ref=$SNOWBOUND_TAG
       --form "variables[RELEASE_START]=$RELEASE_START"
       --form "variables[RELEASE_VERSION]=$RELEASE_VERSION"
@@ -252,6 +267,7 @@ release_all:
       --form "variables[HOTFIX_SUPPORT_VERSION]=$HOTFIX_SUPPORT_VERSION"
       --form "variables[RELEASE_HOTFIX]=$RELEASE_HOTFIX"
       https://$GITLAB_SERVER/api/v4/projects/39/trigger/pipeline
+    # Foia analytical reports
     - curl -k --request POST --form token=$FOIA_REPORTS_PROJECT_TOKEN --form ref=$FOIA_REPORTS_TAG
       --form "variables[RELEASE_START]=$RELEASE_START"
       --form "variables[RELEASE_VERSION]=$RELEASE_VERSION"
@@ -265,4 +281,4 @@ release_all:
       --form "variables[HOTFIX_SUPPORT_VERSION]=$HOTFIX_SUPPORT_VERSION"
       --form "variables[RELEASE_HOTFIX]=$RELEASE_HOTFIX"
       https://$GITLAB_SERVER/api/v4/projects/422/trigger/pipeline
-
+    # Installer

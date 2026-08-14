@@ -242,6 +242,7 @@ public class NiemExportServiceImpl implements NiemExportService
          * at the provider's own default for this transformation, which is an identity transform of a document this
          * service built in memory.
          */
+     
         try
         {
             factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -250,8 +251,7 @@ public class NiemExportServiceImpl implements NiemExportService
         }
         catch (IllegalArgumentException e)
         {
-            // Intentionally empty: a provider that does not recognise one of these attributes must not stop the
-            // export, and there is nothing to recover - whatever was accepted before the rejection stays in force.
+            // TODO: handle exception
         }
 
         Transformer transformer = factory.newTransformer();

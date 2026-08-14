@@ -43,6 +43,20 @@ var TEMPORARY_SUFFIX = '.tmp';
 // Bounds the name search so a collision ends in a clear error rather than an unbounded loop.
 var TEMPORARY_NAME_ATTEMPTS = 10;
 
+/**
+ * Codes that mean the filesystem cannot make a hard link at all, as opposed to refusing this particular one.
+ * FAT32 and exFAT have no link operation; many SMB/CIFS and NFS mounts and some container bind-mounts refuse
+ * it; and the deploy driver documents Windows support, where a temp folder can easily sit on such a volume.
+ * `EEXIST` is deliberately absent: that is the create-only outcome the publication relies on, not a missing
+ * capability. `EPERM` appears here because that is what a link-less volume reports, and it is safe to include
+ * even though a permission problem raises it too - the fallback then fails the same way the link did.
+ */
+var HARD_LINK_UNSUPPORTED_CODES = [ 'EPERM', 'EXDEV', 'ENOSYS', 'EOPNOTSUPP', 'ENOTSUP' ];
+
+function isHardLinkUnsupported(error) {
+    return !!error && HARD_LINK_UNSUPPORTED_CODES.indexOf(error.code) !== -1;
+}
+
 // Returns the module body the assembler emits, deliberately without a trailing newline.
 function renderProfilesModule(profiles) {
     var quoted = profiles.map(function(profile) {
@@ -188,6 +202,26 @@ function writeTemporaryModule(directory, body) {
 }
 
 /**
+ * Publish the staged module by moving it, for filesystems with no hard-link operation.
+ *
+ * `rename` would replace an existing `profiles.js`, which is the one thing this helper must never do, so the
+ * target is tested first and an existing file is reported as `EEXIST` - the same code `link` raises - so the
+ * caller's create-only handling is identical on both paths.
+ *
+ * @param {string} temporary path of the staged file
+ * @param {string} target path the module is published at
+ */
+function publishByRename(temporary, target) {
+    if (fs.existsSync(target)) {
+        var occupied = new Error('ensure-profiles: ' + target + ' already exists.');
+        occupied.code = 'EEXIST';
+        throw occupied;
+    }
+
+    fs.renameSync(temporary, target);
+}
+
+/**
  * Create `<frontend root>/profiles.js` when, and only when, it is absent.
  *
  * Publication is a single atomic step: the module is staged in a sibling temporary file, synced, and then
@@ -206,6 +240,15 @@ function writeTemporaryModule(directory, body) {
  * the module absent, which the next prebuild simply repairs. The property worth paying for is that a module
  * which is present is always whole, and the `fsync` before publication is what buys it.
  *
+ * Where the filesystem has no hard links at all - FAT32, exFAT, many network shares, some container
+ * bind-mounts - `link` cannot be used and `rename` publishes instead. `rename` does clobber, so the create-only
+ * rule is enforced by testing for the target first and reporting a synthetic `EEXIST`, which routes that case
+ * into exactly the same "already provisioned" branch below. That test and the rename are two steps rather than
+ * one, so this path is not atomic against a second writer that creates `profiles.js` in between: it trades the
+ * link path's guarantee for working at all on a volume that cannot link, and it is entered only when the link
+ * was refused for want of the capability. Both producers are single prebuild or deploy steps, so a concurrent
+ * second writer is not a situation either of them creates.
+ *
  * @returns {boolean} true when the file was created, false when it was skipped
  */
 function ensureProfilesModule() {
@@ -214,7 +257,22 @@ function ensureProfilesModule() {
 
     try {
         temporary = writeTemporaryModule(path.dirname(target), renderProfilesModule(DEFAULT_PROFILES));
-        fs.linkSync(temporary, target);
+
+        try {
+            fs.linkSync(temporary, target);
+        } catch (linkError) {
+            if (!isHardLinkUnsupported(linkError)) {
+                throw linkError;
+            }
+
+            console.log('ensure-profiles: hard links are unavailable here [' + linkError.code +
+                ']; publishing ' + target + ' by rename instead.');
+            publishByRename(temporary, target);
+
+            // The rename moved the staged file, so there is no longer a temporary to clean up. Clearing the
+            // handle keeps the `finally` below from unlinking a path that no longer names the staged bytes.
+            temporary = null;
+        }
     } catch (error) {
         // `writeTemporaryModule` retries its own EEXIST and reports exhaustion as a
         // plain Error, so an EEXIST reaching this point can only be the published

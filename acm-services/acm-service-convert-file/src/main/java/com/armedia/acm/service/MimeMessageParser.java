@@ -71,20 +71,25 @@ public class MimeMessageParser
      */
     private static final String BASE64_TRANSFER_ENCODING = "base64";
 
-    private static Logger log = LogManager.getLogger(MimeMessageParser.class);
-
     /**
-     * Walk the MIME structure recursively and execute the callback on every part, the given part included.
+     * The delete character, the one non-printable code point that does not sort below the space.
+     */
+    private static final char DELETE_CHARACTER = 0x7f;
+
+    /***
+     * Walk the Mime Structure recursivly and execute the callback on every part.
      * 
      * @param p
      *            mime object
-     * @param level
-     *            depth of the current part, incremented for each nested multipart level
+     * @param initial
+     *            level of current depth of the part
      * @param callback
-     *            object holding the callback function
+     *            Object holding the callback function
      * @throws Exception
-     *             whatever the callback throws, or a messaging or I/O failure while reading a multipart's content
      */
+
+    private static Logger log = LogManager.getLogger(MimeMessageParser.class);
+
     private static void walkMimeStructure(Part p, int level, WalkMimeCallback callback) throws Exception
     {
         callback.walkMimeCallback(p, level);
@@ -99,14 +104,12 @@ public class MimeMessageParser
         }
     }
 
-    /**
+    /***
      * Print the structure of the Mime object.
      * 
      * @param p
      *            Mime object
-     * @return one indented line per part, listing its base content type and, when present, its content disposition
      * @throws Exception
-     *             on a messaging or I/O failure while walking the structure or reading a part's headers
      */
     public static String printStructure(Part p) throws Exception
     {
@@ -140,11 +143,9 @@ public class MimeMessageParser
      * 
      * @param p
      *            MimePart
-     * @return the content as a String, or <code>null</code> when the part is neither a String nor a stream
+     * @return Content as String
      * @throws IOException
-     *             if the part's raw stream cannot be read
      * @throws MessagingException
-     *             if the part's raw stream cannot be obtained
      */
     private static String getStringContent(Part p) throws IOException, MessagingException
     {
@@ -158,7 +159,7 @@ public class MimeMessageParser
         {
             log.debug("Email body could not be read automatically (%s), we try to read it anyway.", e.toString());
 
-            // Fall back to the undecoded stream, which is then read as UTF-8 below.
+            // most likely the specified charset could not be found
             content = p.getInputStream();
         }
 
@@ -177,13 +178,12 @@ public class MimeMessageParser
     }
 
     /**
-     * Find the main message body, preferring html over plain.
+     * Find the main message body, prefering html over plain.
      * 
      * @param p
      *            mime object
      * @return the main message body and the corresponding contentType or an empty text/plain
      * @throws Exception
-     *             on a messaging or I/O failure while walking the structure or reading a part's content
      */
     public static MimeObjectEntry<String> findBodyPart(Part p) throws Exception
     {
@@ -221,18 +221,14 @@ public class MimeMessageParser
     }
 
     /**
-     * Set the main message body to new string content. Only the first non-attachment text/html part is replaced; a
-     * message without one is returned unchanged apart from having its multipart content set again.
+     * Set the main message body to new string content
      * 
      * @param message
      *            mime object
      * @param newStringContent
      *            new message text content
      * @return the changed message
-     * @throws IOException
-     *             if the message's content cannot be read
-     * @throws MessagingException
-     *             if the message is not multipart, or a part cannot be read or updated
+     * @throws Exception
      */
     public static Part setBodyPart(Part message, String newStringContent) throws IOException, MessagingException
     {
@@ -254,14 +250,13 @@ public class MimeMessageParser
     }
 
     /**
-     * Get all inline images (images with a Content-Id) as a HashMap.
+     * Get all inline images (images with an Content-Id) as a Hashmap.
      * The key is the Content-Id and all images in all multipart containers are included in the map.
      * 
      * @param p
      *            mime object
-     * @return HashMap&lt;Content-Id, &lt;Base64Image, ContentType&gt;&gt;
+     * @return Hashmap&lt;Content-Id, &lt;Base64Image, ContentType&gt;&gt;
      * @throws Exception
-     *             on a messaging or I/O failure while walking the structure or reading an image's content
      */
     public static HashMap<String, MimeObjectEntry<String>> getInlineImageMap(Part p) throws Exception
     {
@@ -325,7 +320,8 @@ public class MimeMessageParser
         {
             throw new ClassCastException(String.format(
                     "Inline image of type [%s] declares content transfer encoding [%s], only [%s] is supported",
-                    p.getContentType(), transferEncoding, BASE64_TRANSFER_ENCODING));
+                    sanitizeHeaderValue(p.getContentType()), sanitizeHeaderValue(transferEncoding),
+                    BASE64_TRANSFER_ENCODING));
         }
 
         return (InputStream) content;
@@ -360,6 +356,43 @@ public class MimeMessageParser
         return transferEncodingHeader[0];
     }
 
+    /**
+     * Neutralise line breaks and other control characters in a header-derived value before it is placed in an exception
+     * message.
+     * <p>
+     * Both values the rejection above interpolates are taken from the part's own MIME headers, so both are supplied by
+     * whoever composed the message. That message travels to the log of whichever mail-conversion path caught the
+     * exception, and a carriage return or line feed inside a header value would let it forge additional, attacker-chosen
+     * log entries - CWE-117 log injection. Every character below the printable range, and the delete character, is
+     * therefore replaced with a space.
+     * <p>
+     * The replacement is one space per character rather than a collapse or a removal, so the value stays legible and the
+     * declared encoding a reader sees in the message is still exactly the token the part sent. Nothing is truncated,
+     * because the point is to keep the diagnostic honest, not to shorten it.
+     *
+     * @param value
+     *            a header-derived value, possibly null
+     * @return the value with control characters replaced by spaces and the result trimmed, or the string "null" when
+     *         the value is null, which is what interpolating it directly would have produced
+     */
+    private static String sanitizeHeaderValue(String value)
+    {
+        if (value == null)
+        {
+            return "null";
+        }
+
+        StringBuilder sanitized = new StringBuilder(value.length());
+
+        for (int i = 0; i < value.length(); i++)
+        {
+            char character = value.charAt(i);
+            sanitized.append(character < ' ' || character == DELETE_CHARACTER ? ' ' : character);
+        }
+
+        return sanitized.toString().trim();
+    }
+
     public static List<Part> getAttachments(Part p) throws Exception
     {
         final List<Part> result = new ArrayList<>();
@@ -381,15 +414,14 @@ public class MimeMessageParser
     }
 
     /**
+     * 
      * Converts the body content of emails from text/html email format to a formatted
-     * string with carriage returns for element breaks. A body that cannot be read is logged and reported as an empty
-     * string rather than raised.
+     * string with carriage returns for element breaks
      * 
      * @param message
      *            mime message
      * @return String formatted body content
      * @throws MessagingException
-     *             if the message's subject cannot be read while reporting a body failure
      */
     public static String getFormattedStringContent(Message message) throws MessagingException
     {
@@ -419,13 +451,13 @@ public class MimeMessageParser
     }
 
     /**
+     * 
      * Returns true if an email is the only attachment in a list of attachments
      * 
      * @param attachments
      *            Email attachments
      * @return boolean true if an email is the only attachment
      * @throws MessagingException
-     *             if the single attachment's content type cannot be read
      */
     public static boolean hasForwardedEmailAsAttachment(List<Part> attachments) throws MessagingException
     {

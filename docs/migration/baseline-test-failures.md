@@ -194,6 +194,15 @@ The migration plan's validation section states the acceptance criteria as **773 
 | 780 tests, 3 failures + 1 error (unexcluded) | **924** tests, 3 failures + 1 error | Failure and error counts match exactly; the total does not |
 | 274 reactor modules | 142 reactor modules | Does not match |
 
+**Ratified at the final acceptance gate.** The divergence above was reviewed and the delivered measurement — **917 configured / 924 unexcluded / 21 skipped / 142 modules** — was accepted as the figure of record. Three things decided it, and they are recorded so the ratification is auditable rather than a matter of preference.
+
+- **Every binding Definition-of-Done item is met.** `mvn -B test` exits 0 with **zero failures and zero errors**, through **exactly two** class-level exclusions and nothing else — no added `@Ignore`, no `<testFailureIgnore>`, no test filter, and no modified assertion anywhere in the base commit's 402 test sources. Those are the properties the plan's figures were quoted to demonstrate, and they hold exactly.
+- **The delivered figures reconcile with an independent measurement; the plan's do not.** The environment's own Java 8 baseline run measured **892** tests. 892 + 32 added by this change set's five new test classes = **924**, and 924 − 7 excluded = **917**. Both delivered numbers fall out of that arithmetic. Neither 773 nor 780 does, from any starting point.
+- **The 0-skipped figure is unreachable without breaking R-5.** All **21** skips are pre-existing `@Ignore` annotations — 26 at the base commit, 26 now, none added and none removed. Reaching zero would mean deleting 21 of them, which R-5 forbids outright. **The plan is internally inconsistent on this point**, and the inconsistency is named rather than reconciled by wording: §0.9.1 asks for 0 skipped, and R-5 forbids the only action that would achieve it. R-5 wins, because a rule that protects existing tests outranks a figure quoted about them.
+- **The 274-module figure is not constructible from this repository.** It counts 145 POMs and 141 `<module>` declarations; the reactor Maven actually builds reports **142**. No arrangement of those numbers produces 274, so the figure is treated as a planning-time artefact rather than a target.
+
+That ratification does not amend the plan and does not change the table above, which stays exactly as measured. What it settles is that the delivered run is accepted as-is, and that the three unmatched figures are recorded as plan divergences rather than as work still owed.
+
 What can be established about the divergence, so that whoever closes it starts from evidence rather than from this page's opinion:
 
 - **The invariant the totals were quoted to demonstrate holds exactly.** The gap between the unexcluded and configured runs is **seven** — 924 − 917 — decomposing as 4 baseline failures + 3 incidentally-skipped passing siblings, which is precisely the 780 − 773 = 7 the plan states. The absolute totals differ; the exclusion property does not.
@@ -206,8 +215,35 @@ What can be established about the divergence, so that whoever closes it starts f
 
 Two earlier figures need an explicit warning rather than a reconciliation. **A count of 893 circulated during planning as a grep artifact** — a tally of matching text in build output rather than anything a test runner reported — and the plan itself withdrew it on that basis. **Counts of 885/892, 889/896 and 921 appeared in interim revisions of this page and its siblings.** The 889/896 pair was measured while the runner's include set still carried `**/*Tests.java` and a bespoke `**/AuditServiceImplT.java` entry, which between them activated four dormant tests no base-commit configuration ever ran; restoring surefire 2.12.4's default include trio returned those four to dormancy. The 885/892 pair was measured before the five migration-authored test classes were restored, and 921 with the four dormant tests still active. The delivered totals are **917** configured and **924** unexcluded. If an earlier document cites 893, 885, 892, 889, 896 or 921, it predates this measurement.
 
+## The include set is the base commit's, and four dormant tests stay dormant
+
+The surefire declaration this migration introduces carries an explicit `<includes>` trio, and it is configuration the specification does not map, so it is recorded here with what it buys.
+
+```xml
+<includes>
+    <include>**/Test*.java</include>
+    <include>**/*Test.java</include>
+    <include>**/*TestCase.java</include>
+</includes>
+```
+
+Those three patterns are **surefire 2.12.4's defaults** — the set Maven was silently applying at the base commit. Surefire 3.x adds a fourth default, `**/*Tests.java`, and declaring `<includes>` at all replaces the defaults wholesale rather than adding to them. That is the point: without the trio, moving from the inherited 2.12.4 to an explicit 3.5.3 would have changed **which tests run**, purely as a side effect of a toolchain version. **R-7** makes base-commit behaviour the tie-breaker, so the include set is pinned to what the base commit actually executed.
+
+**What the fourth pattern would have woken — four tests in two classes, verified individually:**
+
+| Class | `@Test` methods | Why it is dormant |
+| --- | --- | --- |
+| `SolrReindexServiceTests` | 1 | Name ends in `Tests`, which 2.12.4 never matched |
+| `AuditServiceImplT` | 3 | Same — and note the name ends in `T`, so it matches neither `*Test` nor `*TestCase` either |
+
+Both classes are **pre-existing and untouched**; both were dormant at the base commit and are dormant now. Nothing about them is fixed, deleted or annotated. They are registered in [the known-issues record](known-issues.md) as a pre-existing coverage gap.
+
+**Why waking them was the wrong call, even though they might pass.** Three reasons, in order of weight. Their outcome on JDK 17 is **unmeasured** — they have never run in this reactor, so admitting them would risk introducing a failure this migration would then own, and R-5 would give no exclusion for it because it is not a baseline failure. Admitting them changes the test surface the acceptance figures are measured on, in a change set whose whole claim is that the surface is the base commit's. And a dormant test is a pre-existing defect, which **R-6** says to document rather than repair. Waking them is a test-quality change with its own review; it is not a compatibility migration's business.
+
+**Consequence for the plan's figures, stated plainly.** The delivered test surface is therefore the base commit's surface, not surefire 3.x's. That is one more reason the plan's 773/780 cannot be reproduced by this run: those figures were quoted against a surface nobody has measured, and this run deliberately does not adopt it.
+
 ## What this record does not cover
 
-**Integration tests.** This page is about the surefire surface only. In the root POM, `maven-failsafe-plugin` is **held at the base commit's 2.17**, because a probe on a real integration test showed 2.17 loads under Maven 3.8.7 on JDK 17 and performs the late `@{argLine}` substitution the coverage agent and the module-access directives depend on; with no reproducible blocker, R-1 forbids moving it. Its `forkCount`, `reuseForks` and `threadCount` settings are untouched. The two module POMs that declare failsafe inside a `coreBuild` profile — `acm-foia` and `acm-privacy` — no longer hardcode a version of their own: both consume the root's `${failsafe.version}`, so every failsafe declaration in the repository resolves to 2.17 from one place and none can diverge from it wherever that profile activates. Only the `<version>` element changed in those two POMs: the `<executions>`, `<goals>` and `<skipTests>true</skipTests>` they carry are untouched, so **which** integration tests run under `-DcoreBuild=true` is exactly what the base commit specified. The evidence is in [the dependency change inventory](dependency-change-inventory.md). Six test files reference PowerMock, and one of them, `CategoryServiceIT`, is an integration test, so it is run by failsafe rather than surefire and none of the exclusions on this page apply to it.
+**Integration tests.** This page is about the surefire surface only. In the root POM, `maven-failsafe-plugin` consumes the same **`${surefire.version}` (3.5.3)** pin as the unit runner, because the specification mandates one pin for both forked runners. It is worth recording that this is not a repair: a probe on a real integration test showed 2.17 also loads under Maven 3.8.7 on JDK 17 and performs the late `@{argLine}` substitution the coverage agent and the module-access directives depend on, and a control run at 3.5.3 was identical in outcome — mojo loaded, `AcmEncryptablePropertyUtilsImplIT` green at 2 tests, JaCoCo's check goal satisfied. Its `forkCount`, `reuseForks` and `threadCount` settings are untouched. The two module POMs that declare failsafe inside a `coreBuild` profile — `acm-foia` and `acm-privacy` — no longer hardcode a version of their own: both consume the same `${surefire.version}`, so all three failsafe declarations in the repository resolve to 3.5.3 from one place and none can diverge wherever that profile activates. Only the `<version>` element changed in those two POMs: the `<executions>`, `<goals>` and `<skipTests>true</skipTests>` they carry are untouched, so **which** integration tests run under `-DcoreBuild=true` is exactly what the base commit specified. The evidence is in [the dependency change inventory](dependency-change-inventory.md). Six test files reference PowerMock, and one of them, `CategoryServiceIT`, is an integration test, so it is run by failsafe rather than surefire and none of the exclusions on this page apply to it.
 
 **Everything outside the test surface.** For the pre-existing defects as a register, including the two documented on this page and the several the migration found elsewhere, see [the known-issues register](known-issues.md). For ambiguities resolved against observed Java 8 base-commit behaviour outside the test surface — the R-7 decisions this page does not own — see [the behavioral decisions record](behavioral-decisions.md).

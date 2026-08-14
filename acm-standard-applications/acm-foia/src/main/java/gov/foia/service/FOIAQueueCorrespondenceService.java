@@ -263,7 +263,7 @@ public class FOIAQueueCorrespondenceService
                 }
                 catch (TemplateException | IOException e)
                 {
-                    // A template that cannot be rendered falls back to the default body, so the letter is still sent.
+                    // failing to send an email should not break the flow
                     log.error("Unable to generate email for {} about {} with ID [{}]", emailAddress, request.getObjectType(),
                             request.getId(),
                             e);
@@ -281,41 +281,69 @@ public class FOIAQueueCorrespondenceService
 
     }
 
+    /**
+     * @return the responseFolderService
+     */
     public ResponseFolderService getResponseFolderService()
     {
         return responseFolderService;
     }
 
+    /**
+     * @param responseFolderService
+     *            the responseFolderService to set
+     */
     public void setResponseFolderService(ResponseFolderService responseFolderService)
     {
         this.responseFolderService = responseFolderService;
     }
 
+    /**
+     * @return the notificationSender
+     */
     public NotificationSender getNotificationSender()
     {
         return notificationSender;
     }
 
+    /**
+     * @param notificationSender
+     *            the notificationSender to set
+     */
     public void setNotificationSender(NotificationSender notificationSender)
     {
         this.notificationSender = notificationSender;
     }
 
+    /**
+     * @return the userDao
+     */
     public UserDao getUserDao()
     {
         return userDao;
     }
 
+    /**
+     * @param userDao
+     *            the userDao to set
+     */
     public void setUserDao(UserDao userDao)
     {
         this.userDao = userDao;
     }
 
+    /**
+     * @return the ecmFileService
+     */
     public EcmFileService getEcmFileService()
     {
         return ecmFileService;
     }
 
+    /**
+     * @param ecmFileService
+     *            the ecmFileService to set
+     */
     public void setEcmFileService(EcmFileService ecmFileService)
     {
         this.ecmFileService = ecmFileService;

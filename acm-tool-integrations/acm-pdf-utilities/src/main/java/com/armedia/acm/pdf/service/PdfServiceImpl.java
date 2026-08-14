@@ -90,12 +90,21 @@ import java.util.UUID;
  */
 public class PdfServiceImpl implements PdfService
 {
+    /**
+     * Megabyte in bytes.
+     */
     public static final long MEGABYTE = 1024 * 1024;
     /**
      * Use no more than 32MB of main memory when merging PDFs, the disk is used for the rest.
      */
     public static final int MAX_MAIN_MEMORY_BYTES = 1024 * 1024 * 32;
+    /**
+     * Logger instance.
+     */
     private Logger log = LogManager.getLogger(getClass());
+    /**
+     * Random number generator.
+     */
     private Random random = new Random();
 
     /**
@@ -114,6 +123,7 @@ public class PdfServiceImpl implements PdfService
      */
     public String generatePdf(InputStream xslStream, URI baseURI, Source source) throws PdfServiceException
     {
+        // create a temporary file name
         String filename = String.format("%s/acm-%s.pdf", System.getProperty("java.io.tmpdir"), UUID.randomUUID());
         log.debug("PDF creation: using [{}] as temporary file name", filename);
         try
@@ -134,6 +144,7 @@ public class PdfServiceImpl implements PdfService
              * stylesheet compiled below is therefore parsed under the provider's own default external-access policy,
              * so callers must supply a stylesheet and data source they trust.
              */
+         
             try
             {
                 transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -142,8 +153,7 @@ public class PdfServiceImpl implements PdfService
             }
             catch (IllegalArgumentException e)
             {
-                // Intentionally empty: a provider that does not recognise one of these attributes must not stop PDF
-                // generation, and there is nothing to recover - whatever was accepted stays in force.
+                // TODO: handle exception
             }
             Transformer transformer = transformerFactory.newTransformer(new StreamSource(xslStream));
 
@@ -166,6 +176,7 @@ public class PdfServiceImpl implements PdfService
     @Override
     public String generatePdf(InputStream xslStream, URI baseURI, Map<String, String> parameters) throws PdfServiceException
     {
+        // create a temporary file name
         String filename = String.format("%s/acm-%020d.pdf", System.getProperty("java.io.tmpdir"), Math.abs(random.nextLong()));
         log.debug("PDF creation: using [{}] as temporary file name", filename);
         try (OutputStream os = new BufferedOutputStream(new FileOutputStream(filename)))
@@ -401,6 +412,7 @@ public class PdfServiceImpl implements PdfService
     @Override
     public void mergeSources(PDFMergerUtility pdfMergerUtility, String filename) throws PdfServiceException
     {
+        // using at most 32MB memory, the rest goes to disk
         MemoryUsageSetting memoryUsageSetting = MemoryUsageSetting.setupMixed(MAX_MAIN_MEMORY_BYTES);
         try
         {
@@ -429,6 +441,7 @@ public class PdfServiceImpl implements PdfService
     @Override
     public void mergeSources(PDFMergerUtility pdfMergerUtility, FileOutputStream fos) throws PdfServiceException
     {
+        // using at most 32MB memory, the rest goes to disk
         MemoryUsageSetting memoryUsageSetting = MemoryUsageSetting.setupMixed(MAX_MAIN_MEMORY_BYTES);
         try
         {
@@ -477,6 +490,7 @@ public class PdfServiceImpl implements PdfService
             log.debug("Successfully extracted pages from [{}]", filename);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             extractedDocument.save(baos);
+            // return input stream of newly generated document
             return new ByteArrayInputStream(baos.toByteArray());
         }
         catch (IOException | IndexOutOfBoundsException e)
@@ -510,7 +524,7 @@ public class PdfServiceImpl implements PdfService
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true,
                     true))
             {
-                // White-fill the footer area first, so any page numbering already on the page is covered.
+                // Adds a blank rectangle to bottom of the page to replace text
                 contentStream.setNonStrokingColor(Color.WHITE);
                 contentStream.addRect(550, 670, 100, 100);
                 contentStream.fill();
@@ -520,6 +534,7 @@ public class PdfServiceImpl implements PdfService
                 contentStream.setLeading(14.5f);
 
                 float stringWidth = font.getStringWidth(pageNumberingString) * fontSize / 1000f;
+                // calculate to center of the page
                 int rotation = document.getPage(i).getRotation();
                 boolean rotate = rotation == 90 || rotation == 270;
                 float pageWidth = rotate ? pageSize.getHeight() : pageSize.getWidth();
@@ -527,11 +542,16 @@ public class PdfServiceImpl implements PdfService
                 float centerX = rotate ? pageHeight / 1.05f : (pageWidth - stringWidth) / 2f;
                 float centerY = rotate ? (pageWidth - stringWidth) / 2f : pageHeight / 2f;
 
+                // append the content to the existing stream
+
                 contentStream.beginText();
+                // set font and font size
                 contentStream.setFont(font, fontSize);
+                // set text color
                 contentStream.setNonStrokingColor(0, 0, 0);
                 if (rotate)
                 {
+                    // rotate the text according to the page rotation
                     contentStream.setTextMatrix(Matrix.getRotateInstance(Math.PI / 2, centerX, centerY));
                 }
                 else

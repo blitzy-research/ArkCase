@@ -88,8 +88,8 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     @Override
     public DirContext getContext(String principal, String credentials)
     {
-        // Authentication is the normal caller, so pooling is disabled explicitly: a pooled connection would
-        // outlive a password change.
+        // This method is typically called for authentication purposes, which means that we
+        // should explicitly disable pooling in case passwords are changed (LDAP-183).
         return doGetContext(principal, credentials, EXPLICITLY_DISABLE_POOLING);
     }
 
@@ -123,6 +123,10 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.ldap.core.ContextSource#getReadOnlyContext()
+     */
     @Override
     public DirContext getReadOnlyContext()
     {
@@ -139,6 +143,10 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.ldap.core.ContextSource#getReadWriteContext()
+     */
     @Override
     public DirContext getReadWriteContext()
     {
@@ -261,12 +269,23 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
         return (LdapName)this.base.clone();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.springframework.ldap.core.support.BaseLdapPathSource#getBaseLdapPath
+     * ()
+     */
     @Override
     public DistinguishedName getBaseLdapPath()
     {
         return getBase().immutableDistinguishedName();
     }
 
+    /*
+     * (non-Javadoc)
+     * @seeorg.springframework.ldap.core.support.BaseLdapPathSource#
+     * getBaseLdapPathAsString()
+     */
     @Override
     public String getBaseLdapPathAsString()
     {
@@ -352,7 +371,7 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
      * Set the DirObjectFactory to use. Default is
      * {@link DefaultDirObjectFactory}. The specified class needs to be an
      * implementation of javax.naming.spi.DirObjectFactory. <b>Note: </b>Setting
-     * this value to null may cause connection leaks when using
+     * this value to null may have cause connection leaks when using
      * ContextMapper methods in LdapTemplate.
      *
      * @param dirObjectFactory
@@ -365,7 +384,7 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     }
 
     /**
-     * Checks that all necessary data is set and that there are no compatibility
+     * Checks that all necessary data is set and that there is no compatibility
      * issues, after which the instance is initialized. Note that you need to
      * call this method explicitly after setting all desired properties if using
      * the class outside of a Spring Context.
@@ -541,7 +560,6 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
      * this method.
      *
      * @param baseEnvironmentProperties
-     *            custom JNDI environment properties, copied into the base environment.
      */
     public void setBaseEnvironmentProperties(Map baseEnvironmentProperties)
     {
@@ -597,7 +615,7 @@ public abstract class ActiveDirectoryAbstractContextSource implements BaseLdapPa
     }
 
     /**
-     * Set whether environment properties should be cached between requests for
+     * Set whether environment properties should be cached between requsts for
      * anonymous environment. Default is <code>true</code>; setting this
      * property to <code>false</code> causes the environment Hashmap to be
      * rebuilt from the current property settings of this instance between each

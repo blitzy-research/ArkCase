@@ -1,21 +1,28 @@
 'use strict';
 
+/**
+ * Module dependencies.
+ */
 var _ = require('lodash'), glob = require('glob');
 
+/**
+ * Load app configurations
+ */
 module.exports = _.extend(require('./env/all'));
 
 /**
- * `profiles.js` is generated, never checked in - by AngularResourceCopier at deploy time and by the `prebuild`
- * script in a checkout - so only its absence is defaulted, to the single-profile value the assembler itself
- * emits. Every other failure is re-thrown rather than masked, because substituting that default would silently
- * downgrade a multi-profile deployment. Absence is therefore identified by MODULE_NOT_FOUND together with an
- * innermost require frame of this file, so a generated module that does not parse, throws, or has an
- * unresolvable require of its own surfaces its real error. `requireStack` is advisory: when node does not
- * supply it the code alone decides, which keeps a bare checkout building. The message text is never matched.
+ * Load active profiles
  */
 try {
     var activeProfiles = require('./../profiles');
 } catch (ex) {
+    // `profiles.js` is generated, never checked in - by AngularResourceCopier at deploy time and by the `prebuild`
+    // script in a checkout - so only its absence is defaulted, to the single-profile value the assembler itself
+    // emits. Every other failure is re-thrown rather than masked, because substituting that default would silently
+    // downgrade a multi-profile deployment. Absence is therefore identified by MODULE_NOT_FOUND together with an
+    // innermost require frame of this file, so a generated module that does not parse, throws, or has an
+    // unresolvable require of its own surfaces its real error. `requireStack` is advisory: when node does not
+    // supply it the code alone decides, which keeps a bare checkout building. The message text is never matched.
     if (!ex || ex.code !== 'MODULE_NOT_FOUND' || (ex.requireStack && ex.requireStack[0] !== __filename)) {
         throw ex;
     }
@@ -23,12 +30,20 @@ try {
     activeProfiles = { profiles: [ 'custom' ] };
 }
 
+/**
+ * Get files by glob patterns
+ */
 module.exports.getGlobbedFiles = function(globPatterns, removeRoot) {
+    // For context switching
     var _this = this;
+
+    // URL paths regex
     var urlRegex = new RegExp('^(?:[a-z]+:)?\/\/', 'i');
+
+    // The output array
     var output = [];
 
-    // A URL is kept verbatim; only a filesystem pattern is expanded, and an array is expanded element by element.
+    // If glob pattern is array so we use each pattern in a recursive way, otherwise we use glob
     if (_.isArray(globPatterns)) {
         globPatterns.forEach(function(globPattern) {
             output = _.union(output, _this.getGlobbedFiles(globPattern, removeRoot));
@@ -50,6 +65,9 @@ module.exports.getGlobbedFiles = function(globPatterns, removeRoot) {
     return output;
 };
 
+/**
+ * Get the modules JavaScript files
+ */
 module.exports.getJavaScriptAssets = function() {
     return this.getGlobbedFiles(this.assets.lib.js.concat(this.assets.js, this.assets.lib.customJs), '');
 };
@@ -121,6 +139,9 @@ module.exports.getModulesJavaScriptAssets = function() {
     return output;
 };
 
+/**
+ * Get the modules CSS files
+ */
 module.exports.getCSSAssets = function() {
     var _this = this;
     var cssResources = _this.assets.lib.css.concat(_this.assets.css);
